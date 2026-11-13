@@ -175,7 +175,7 @@ All three modes are covered. A Class on an Action is identity only: either playe
 ## 11. The Campaign (1 card)
 
 ### Lady Corwen's Commission
-- **Quest:** dominate at Dusk 3 times. Each Location you dominate counts once, and the Last Battle counts as a Location.
+- **Quest:** dominate at Dusk 8 times (raised from 3 after S1 showed low counts complete too early; S2's simulation tunes it to a median of Round 5–7, and Elliott approves any change). Each Location you dominate counts once, and the Last Battle counts as a Location.
 - **Campaign Order:** 2 Energy: draw 2 cards.
 - **Legendary Creature: Aldric the Unbroken.** Fighter · Human · Level 8 · Steady · Martial · **Shield** · 9/12 · **Armour 1.** Arrives free when the Quest is complete.
 
@@ -203,5 +203,5 @@ All three modes are covered. A Class on an Action is identity only: either playe
 - React, Adapt and Strat.
 - Held and Consumed Items.
 - Locations of 2, 3 and 4 lanes, including Dawn healing.
-- A Quest expected to complete around Rounds 5–7, confirmed later by S2's simulation.
+- A Quest expected to complete around Rounds 5–7, tuned by S2's simulation.
 - Out-of-range scores: none.

@@ -233,7 +233,7 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 
 | Trigger | Rule |
 |---|---|
-| **On Summon** | resolves just after the creature is placed |
+| **On Summon** | resolves just after the creature is placed. If it needs a chosen target, the target is chosen as part of the Summon action. If there's no legal target, the creature still arrives and the effect does nothing. |
 | **On Defeat** | resolves just after the creature goes to the Released Pile. "The enemy across from it" means the enemy in the lane it stood in. |
 
 ## 13. Open questions
@@ -241,9 +241,9 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Monsters carry a **Kind** (Beast, Undead, Dragon and so on) in place of a Class and a Race.
 2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.
 
-### Readings needing Elliott's approval (S1)
+### Readings from S1: approved by Elliott, 13 November 2026
 
-The rulebook doesn't settle these exactly. The engine uses the reading closest to the old game's code; each can be changed in one place.
+These are settled rules. S2 moves each into the section it belongs to.
 
 3. **An empty Draw Pile:** when a player must draw from an empty Draw Pile, their Discard Pile is shuffled to make a new one. If both are empty, they draw nothing. (The Released Pile is never used.)
 4. **The mulligan:** a player puts any number of cards from their Round 1 hand into their Discard Pile and draws as many. Keeping the whole hand is allowed. Each player decides once.
