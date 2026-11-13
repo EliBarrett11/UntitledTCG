@@ -219,7 +219,24 @@ Each Action card has up to three **modes**, each with its own cost and effect.
 
 Each keyword, trigger and effect is designed with Elliott and added here with its exact rule before it's built. **Proven designs from the old game are available as a reference** (14 keywords and 9 trigger types). Reuse one only when Elliott agrees, under a new name.
 
+**"Creature"** in card text means a Character or Monster.
+
+### 12.1 Keywords (approved by Elliott, 13 November 2026)
+
+| Keyword | Rule |
+|---|---|
+| **Ambush** | It arrives Active rather than Spent. |
+| **Armour X** | Each time it would take damage from any source, it takes X less (minimum 0). Armour from different sources adds up. |
+| **Riposte X** | After an attack on it resolves, if it's still on the battlefield, it deals X damage to the attacker. This works even while it's Spent, and it's separate from hitting back. |
+
+### 12.2 Triggers (approved by Elliott, 13 November 2026)
+
+| Trigger | Rule |
+|---|---|
+| **On Summon** | resolves just after the creature is placed |
+| **On Defeat** | resolves just after the creature goes to the Released Pile. "The enemy across from it" means the enemy in the lane it stood in. |
+
 ## 13. Open questions
 
-1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Which traits Monsters carry (a Class and a Race, or a creature kind instead) is still to be decided.
+1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Monsters carry a **Kind** (Beast, Undead, Dragon and so on) in place of a Class and a Race.
 2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.

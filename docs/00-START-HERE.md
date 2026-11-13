@@ -71,7 +71,9 @@ Every renameable term is in this table, so the final names can be swapped in one
 | **the Last Battle** | The late-game finale on the whole board |
 | **Dawn** | The start of each Round |
 | **Dusk** | The end of each Round |
-| **Traits** | A Character's identity tags: at least a Class and a Race |
+| **Traits** | A card's identity tags: a Character has a Class and a Race; a Monster has a Kind |
+| **Kind** | A Monster's trait: Beast, Undead, Dragon and so on |
+| **creature** | In card text: a Character or Monster |
 | **Class** | Fighter, Wizard, Rogue, Cleric, Ranger and so on |
 | **Race** | Human, Elf, Dwarf, Orc and so on |
 | **Martial / Arcane** | The two attack kinds: weapons and spells |

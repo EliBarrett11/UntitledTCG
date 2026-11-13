@@ -1,6 +1,6 @@
-# The first deck: draft for Elliott's approval
+# The first deck
 
-**Status:** draft, 13 November 2026. Nothing here is built until Elliott approves it. Once it's approved, it becomes `docs/cards.json` in stage S2, and the keywords and triggers move into the rulebook (section 12).
+**Status:** **approved by Elliott, 13 November 2026**, including the keywords, triggers, the word "creature" and Monster Kinds. Stage S2 turns it into `docs/cards.json`. The keywords and triggers are now in the rulebook (section 12). Card ids and art prompts are in `docs/07-art-prompts.md`.
 
 Both players use a copy of this deck. The aim is the smallest deck that tests every rule, so most cards are plain on purpose.
 
@@ -22,15 +22,15 @@ Every Character has a **Class** and a **Race**. Traits have no rules of their ow
 
 **Other accent colours:** Monsters: sickly ember orange. Actions without a Class: tarnished silver. Events: deep plum. Items: aged bronze. Locations: verdigris teal. Campaign: royal purple.
 
-**A question for Elliott:** Monsters aren't given traits here. One option is a **Kind** in place of Class and Race (Beast, Undead, Dragon, Giant and so on).
+**Monsters** carry a **Kind** in place of Class and Race: Gloomfang = Beast, Barrow = Undead, Stonehide = Beast, the Ashen Wyrm = Dragon.
 
-**A proposed word:** card text says **"creature"** to mean "a Character or Monster" (it matches the engine's shared code path). It's added to the vocabulary if approved.
+Card text says **"creature"** to mean "a Character or Monster".
 
 ---
 
-## 2. Keywords and triggers to approve
+## 2. Keywords and triggers
 
-The limit is 4 keywords and 3 trigger types. This draft uses **3 keywords** and **2 triggers**. Each needs Elliott's approval, and each one's old-game counterpart is named so the engine can reuse it.
+The limit is 4 keywords and 3 trigger types. This deck uses **3 keywords** and **2 triggers**, all approved. Each one's old-game counterpart is named so the engine can reuse it.
 
 | Keyword | Exact rule | Price | Old-game counterpart |
 |---|---|---|---|
@@ -103,17 +103,17 @@ Fighter · Orc · **Heavy** · Slow · Martial
 ## 5. Monsters: 3 series (5 cards)
 
 ### Gloomfang Wolf → Gloomfang Alpha (2 copies)
-Monster · **Light** · Swift · Martial · vanilla
+Monster · Beast · **Light** · Swift · Martial · vanilla
 - *Wolf:* L1 3/3 · L2 4/4 · L3 5/4
 - *Alpha:* L4 5/5 · L5 6/6 · L6 7/7
 
 ### Barrow Shade → Barrow Lord (2 copies)
-Monster · **Mid** · Steady · Arcane
+Monster · Undead · **Mid** · Steady · Arcane
 - *Shade:* L2 2/4 · L3 3/5 · L4 4/6. **On Defeat:** 2 damage to the enemy across from it.
 - *Lord:* L5 5/7 · L6 5/8 · L7 6/9. **On Defeat:** 3 damage to the enemy across from it.
 
 ### Stonehide Basilisk → Elder Stonehide (1 copy)
-Monster · **Heavy** · Slow · Martial
+Monster · Beast · **Heavy** · Slow · Martial
 - *Basilisk:* L3 2/4 · L4 3/5 · L5 4/7. **Armour 1.**
 - *Elder:* L6 5/8 · L7 7/10 · L8 8/11. **Armour 2.**
 
@@ -122,7 +122,7 @@ Monster · **Heavy** · Slow · Martial
 ## 6. The Legendary (1 card)
 
 ### The Ashen Wyrm
-Legendary Monster · Level 8 · cost 5 · Swift · Arcane · 10/11
+Legendary Monster · Dragon · Level 8 · cost 5 · Swift · Arcane · 10/11
 **On Summon:** 2 damage to each enemy creature in its Location.
 
 ---
