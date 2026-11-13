@@ -37,13 +37,15 @@ This pack holds everything a fresh Claude needs to rebuild Elliott's card game i
 | **The board** | A **war-table map**: a candlelit commander's table with a painted campaign map, and Locations are regions on the map. |
 | **Name** | Working title "Untitled Fantasy TCG" for now. |
 
-**Assumptions made for questions Elliott skipped.** Confirm or change these early.
+**Decisions confirmed by Elliott later the same day (13 November 2026).**
 
-| Topic | Assumption |
+| Topic | Decision |
 |---|---|
-| **What gives Characters their identity** | **Classes:** Fighter, Wizard, Rogue, Cleric, Ranger and so on. Each Class has its own play style. A Character series is one adventurer levelling up from their first Level to their last. |
-| **Campaign cards** | An objective (a **Quest**) is tracked from the start of the match. Completing it brings a **Legendary Hero** onto the board. |
-| **The old code** | The new project may **read** the old game's repository as a reference for code it can reuse (engine, AI, presenter, tests, tools). Nothing from the old setting (names, card data, art) is copied over. |
+| **What gives Characters their identity** | **Traits.** Every Character has at least a **Class** (Fighter, Wizard, Rogue, Cleric, Ranger and so on) and a **Race** (Human, Elf, Dwarf, Orc and so on). The design chat chooses how many of each to use. Each Class has its own play style. A Character series is one adventurer levelling up from their first Level to their last. |
+| **Campaign cards** | An objective (a **Quest**) is tracked from the start of the match. Completing it brings a **Legendary Creature** onto the board. |
+| **The old code** | The coding session may **read** the old game's repository, **EliBarrett11/Pok-monLegendsTCG**, as a reference for code it can reuse (engine, AI, presenter, tests, tools). Nothing from the old setting (names, card data, art) is copied over. |
+| **The out-of-creatures tie-break** | On a Renown tie, the player whose Warlord has taken less damage this match wins. If that's tied too, the match is a draw. |
+| **Art** | Whenever art is needed, the design chat gives Elliott the finished prompts to generate. |
 
 ## 3. The vocabulary
 
@@ -53,9 +55,9 @@ Every renameable term is in this table, so the final names can be swapped in one
 |---|---|
 | **Character card** | A hero, in a series of up to 6 Levels |
 | **Monster card** | Works exactly like a Character card for now |
-| **Campaign card** | Has a Quest and a Legendary Hero |
+| **Campaign card** | Has a Quest and a Legendary Creature |
 | **Quest** | Tracked from the start of the match |
-| **Legendary Hero** | Arrives when the Quest is completed |
+| **Legendary Creature** | Arrives when the Quest is completed; a Character or a Monster. Not a deck card. (Different from a **Legendary** card, which is a deck card.) |
 | **Campaign Order** | Playing the Campaign card from your hand |
 | **Action card** | Three modes: React, Adapt and Strat |
 | **Event card** | Release and Favour |
@@ -69,7 +71,9 @@ Every renameable term is in this table, so the final names can be swapped in one
 | **the Last Battle** | The late-game finale on the whole board |
 | **Dawn** | The start of each Round |
 | **Dusk** | The end of each Round |
-| **Class** | Fighter, Wizard, Rogue, Cleric, Ranger and so on (an assumption, see section 2) |
+| **Traits** | A Character's identity tags: at least a Class and a Race |
+| **Class** | Fighter, Wizard, Rogue, Cleric, Ranger and so on |
+| **Race** | Human, Elf, Dwarf, Orc and so on |
 | **Martial / Arcane** | The two attack kinds: weapons and spells |
 | **Shield / Ward** guard | A Shield guards against Martial attacks, a Ward against Arcane |
 | **Health** | The damage a card can take |

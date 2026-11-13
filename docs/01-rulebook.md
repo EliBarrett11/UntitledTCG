@@ -11,7 +11,7 @@ Keywords, triggers and card effects aren't listed here. They start from nothing 
 - **The first player to 100 Renown wins**, at once, at any moment, even in the middle of an action.
 - **Out of creatures:** if neither player has a Character or Monster left (in play, in hand, or in their Draw Pile), the match ends at that Round's Dusk.
   - The player with more Renown wins.
-  - On a tie, the player whose Warlord has taken less damage this match wins (this needs Elliott's confirmation, section 13).
+  - On a tie, the player whose Warlord has taken less damage this match wins.
   - If that's tied too, it's a draw.
 
 ## 2. Renown
@@ -61,7 +61,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
 6. Dawn healing (from Location passives and keywords, once they exist).
 7. Cards off the battlefield take this Round's Level (section 7).
 8. Each player draws 7 cards, less one per card they Retained.
-9. Waiting Legendary Heroes arrive.
+9. Waiting Legendary Creatures arrive.
 
 In Round 1, after the draw, each player may **mulligan** once.
 
@@ -106,7 +106,8 @@ In Round 1, after the draw, each player may **mulligan** once.
   - A series may change form (name and art) at certain Levels.
 - **Levels off the battlefield** (hand, Draw Pile and Discard Pile): the series' first Level in Round 1, +1 each Round, up to its maximum.
 - **On the battlefield,** a summoned card is a snapshot at the Level it was summoned and doesn't develop further.
-- **Cost:** `ceil(Level / 2)` Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. **Legendary** cards cost 5 and are Level 8 from the start. **Legendary Heroes** are Level 8 and arrive free.
+- **Cost:** `ceil(Level / 2)` Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. **Legendary** cards cost 5 and are Level 8 from the start. **Legendary Creatures** are Level 8 and arrive free.
+- **Traits:** every Character has a Class and a Race. Traits carry no rules of their own until a keyword, trigger or effect refers to them.
 - **Stats:**
   - **Attack:** the damage it deals.
   - **Health:** the damage it can take.
@@ -165,16 +166,16 @@ Each Action card has up to three **modes**, each with its own cost and effect.
 - **Release N:** choose exactly N other cards from your hand and put them in the Released Pile. Then the Event resolves and is Released too.
 - **Favour:** if any Released card meets the Event's Favour condition, you get the stronger effect and +3 Renown.
 
-### 8.4 Campaign cards, Quests and Legendary Heroes
+### 8.4 Campaign cards, Quests and Legendary Creatures
 - Campaign cards are shuffled into the deck. Each one's **Quest** is tracked from the start of the match, whether the card has been drawn or not.
 - **A drawn Campaign card** can only be played as its **Campaign Order**: an action with its own Energy cost. The Order resolves at once and can't be Reacted to. The card is then discarded and keeps cycling through the deck. Playing it doesn't affect the Quest.
 - **When a Quest is completed:**
   1. The Campaign card is taken at once from wherever it is and leaves the deck for good.
-  2. Its **Legendary Hero** arrives in your leftmost empty space, Spent. If there's no empty space, it waits and arrives as soon as one frees up.
+  2. Its **Legendary Creature** arrives in your leftmost empty space, Spent. If there's no empty space, it waits and arrives as soon as one frees up.
   3. You gain 2 Renown.
 
   The Quest stays ticked and makes no further progress. If the card was already Released, the Quest still completes as normal.
-- A defeated Legendary Hero goes to the Released Pile.
+- A defeated Legendary Creature goes to the Released Pile.
 
 ## 9. Locations
 
@@ -220,6 +221,5 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 
 ## 13. Open questions
 
-1. **Monsters:** how will they differ from Characters? For now they're identical.
-2. **The out-of-creatures tie-break:** the Warlord has no Health, so the second tie-break is proposed as the least damage taken by the Warlord this match, then a draw.
-3. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.
+1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Which traits Monsters carry (a Class and a Race, or a creature kind instead) is still to be decided.
+2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.

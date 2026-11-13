@@ -8,7 +8,7 @@
 | *(new)* | **Monster card** |
 | Trainer card | **Campaign card** |
 | Trainer Objective | **Quest** |
-| Partner | **Legendary Hero** |
+| Partner | **Legendary Creature** |
 | Trainer Command | **Campaign Order** |
 | Command card | **Action card** |
 | Supporter card | **Event card** |
@@ -31,4 +31,4 @@
 | Slow / Steady / Swift | **Slow / Steady / Swift** |
 | Ready, Active, Spent, Retain, Release, Favour, Exert, Exhaust, Released Pile | Unchanged |
 
-**Other names in the old code:** `Pokemon`/`pokemon` → `Creature` (the shared code path for Characters and Monsters); `trainer` → `campaign`; `partner` → `hero`; `command` → `action`; `supporter` → `event`; `mart` → `market`; `dollars` → `gold`; `recognition` → `renown`; `tournament` → `lastBattle`; `breakfast` → `dawn`; `supper` → `dusk`; `strength` → `health`.
+**Other names in the old code:** `Pokemon`/`pokemon` → `Creature` (the shared code path for Characters and Monsters); `trainer` → `campaign`; `partner` → `legendaryCreature`; `command` → `action`; `supporter` → `event`; `mart` → `market`; `dollars` → `gold`; `recognition` → `renown`; `tournament` → `lastBattle`; `breakfast` → `dawn`; `supper` → `dusk`; `strength` → `health`.
