@@ -118,3 +118,18 @@ html, body {
   text-transform: uppercase;
   color: var(--brass);
 }
+
+.debug-link {
+  margin: 18px 0 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 22px;
+}
+.debug-link a { color: var(--parchment); opacity: 0.75; }
+
+/* The debug view (?debug=1): a plain scrolling text log, not the stage. */
+body.debug { overflow: auto; background: var(--leather-lo); color: var(--parchment); }
+#debug { max-width: 1100px; margin: 0 auto; padding: 16px; font-family: Georgia, 'Times New Roman', serif; }
+#debug h1 { font-weight: normal; font-size: 28px; margin: 8px 0; }
+#debug form { margin: 8px 0 16px; }
+#debug input { width: 7em; }
+#debug-log { white-space: pre-wrap; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.45; background: rgba(0, 0, 0, 0.35); padding: 12px; border: 1px solid rgba(184, 146, 90, 0.35); }

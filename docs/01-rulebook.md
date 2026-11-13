@@ -240,3 +240,21 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 
 1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Monsters carry a **Kind** (Beast, Undead, Dragon and so on) in place of a Class and a Race.
 2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.
+
+### Readings needing Elliott's approval (S1)
+
+The rulebook doesn't settle these exactly. The engine uses the reading closest to the old game's code; each can be changed in one place.
+
+3. **An empty Draw Pile:** when a player must draw from an empty Draw Pile, their Discard Pile is shuffled to make a new one. If both are empty, they draw nothing. (The Released Pile is never used.)
+4. **The mulligan:** a player puts any number of cards from their Round 1 hand into their Discard Pile and draws as many. Keeping the whole hand is allowed. Each player decides once.
+5. **Out of creatures:** it's checked at the end of Dusk, after hands are discarded. A Character or Monster in the **Discard Pile** counts as "left", because the Discard Pile reshuffles into the Draw Pile. A Legendary Creature waiting for a space counts too. So the match only ends this way once every creature is Released or gone.
+6. **Retained Items:** "Unbought Items in hand are discarded too" is read as applying to Items that weren't Retained. A Retained Item stays in hand, like any Retained card.
+7. **Retain is a turn:** like every Battle Phase action, it ends your turn and uses 1 of the Market's Stock.
+8. **The Market's pool:** it starts with one copy of each Item that appears in either deck. Used and lost Items (deck copies included) go to the pool too, so it can hold duplicates.
+9. **Choosing targets:** a card's target is chosen when it's played (an Action mode, an Event, an Item, a Campaign Order). A Strat keeps that target until it resolves. Effects never pause mid-way for a new choice. A trigger that needs a chosen target will need a choice step, designed with it.
+10. **Return to hand:** the card goes back to its owner's hand at this Round's Level; damage and anything it gained are lost; its Held Item goes to the Market's pool. A Legendary Creature can't be returned (it isn't a deck card).
+11. **React targets:** a React that names "the attacker" or "your card being attacked" can only be played against an attack on a Character or Monster. Other Reacts can be played in any React window.
+12. **Hitting back:** whether the target is Ready is checked when the attack resolves (after any React).
+13. **Trigger chains:** triggers caused directly by an action are level 1. Each trigger that causes another adds a level. A trigger that would be level 5 doesn't resolve.
+14. **Round 1:** its Dawn runs every step (Energy, Gold, the draw), then the mulligan, then the Battle Phase. Round 1's initiative is decided at random from the match's seed.
+15. **Quest kinds:** the engine can count defeats, Locations dominated (each Location at a Dusk is 1; the Last Battle is 1), damage to the enemy Warlord, and Items bought from the Market. The placeholder Quest is "Dominate a Location 8 times".

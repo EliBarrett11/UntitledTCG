@@ -12,7 +12,7 @@ const expected = {
   'Location card': V.CARD_TYPES.location,
   'Campaign card': V.CARD_TYPES.campaign,
   'Quest': V.CAMPAIGN.quest,
-  'Legendary Hero': V.CAMPAIGN.legendaryHero,
+  'Legendary Creature': V.CAMPAIGN.legendaryCreature,
   'Campaign Order': V.CAMPAIGN.campaignOrder,
   'React': V.ACTION_MODES.react,
   'Adapt': V.ACTION_MODES.adapt,
@@ -30,7 +30,16 @@ const expected = {
   'Dawn': V.PHASES.dawn,
   'Battle Phase': V.PHASES.battle,
   'Dusk': V.PHASES.dusk,
+  'Trait': V.TRAIT,
+  'Traits': V.TRAITS,
   'Class': V.CLASS,
+  'Race': V.RACE,
+  'Fighter': V.CLASSES.fighter,
+  'Human': V.RACES.human,
+  'Elf': V.RACES.elf,
+  'Dwarf': V.RACES.dwarf,
+  'Orc': V.RACES.orc,
+  'Halfling': V.RACES.halfling,
   'Martial': V.ATTACK_KINDS.martial,
   'Arcane': V.ATTACK_KINDS.arcane,
   'Shield': V.GUARDS.shield,
@@ -75,5 +84,7 @@ assert.throws(() => { 'use strict'; V.CARD_TYPES.character = 'X'; }, TypeError);
 
 // No DOM code in the engine module.
 assert.equal(typeof globalThis.document, 'undefined');
+
+assert.equal(V.CAMPAIGN.legendaryHero, undefined, 'renamed to Legendary Creature');
 
 console.log(`smoke: ${Object.keys(expected).length} terms present, non-empty and frozen`);

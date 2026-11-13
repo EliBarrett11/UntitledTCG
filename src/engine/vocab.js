@@ -19,7 +19,7 @@ export const CARD_TYPES = freeze({
 
 export const CAMPAIGN = freeze({
   quest: 'Quest',
-  legendaryHero: 'Legendary Hero',
+  legendaryCreature: 'Legendary Creature',
   campaignOrder: 'Campaign Order',
 });
 
@@ -78,15 +78,26 @@ export const STATS = freeze({
   speed: 'Speed',
 });
 
+// Traits: a Character's identity tags, at least a Class and a Race. (Monsters' traits are an open question.)
+export const TRAIT = 'Trait';
+export const TRAITS = 'Traits';
 export const CLASS = 'Class';
+export const RACE = 'Race';
 
-// Class names are an assumption (00-START-HERE.md section 2), awaiting Elliott's confirmation.
 export const CLASSES = freeze({
   fighter: 'Fighter',
   wizard: 'Wizard',
   rogue: 'Rogue',
   cleric: 'Cleric',
   ranger: 'Ranger',
+});
+
+export const RACES = freeze({
+  human: 'Human',
+  elf: 'Elf',
+  dwarf: 'Dwarf',
+  orc: 'Orc',
+  halfling: 'Halfling',
 });
 
 export const RESOURCES = freeze({
@@ -126,6 +137,6 @@ export const TERMS = freeze({
 
 export const VOCAB = freeze({
   GAME, CARD_TYPES, CAMPAIGN, LEGENDARY, ACTION_MODES, EVENT_PARTS, ITEM_KINDS,
-  PHASES, ROUND, SPEEDS, ATTACK_KINDS, GUARDS, SERIES, STATS, CLASS, CLASSES,
+  PHASES, ROUND, SPEEDS, ATTACK_KINDS, GUARDS, SERIES, STATS, TRAIT, TRAITS, CLASS, CLASSES, RACE, RACES,
   RESOURCES, PLACES, MARKET_TERMS, TERMS,
 });

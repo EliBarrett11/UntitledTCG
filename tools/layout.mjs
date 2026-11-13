@@ -22,6 +22,7 @@ try {
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
+const STAGE = 's1';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png',
   '.svg': 'image/svg+xml' };
@@ -88,7 +89,7 @@ for (const [w, h] of SIZES) {
     return out;
   });
 
-  const shot = join(shotDir, `s0-${w}x${h}.png`);
+  const shot = join(shotDir, `${STAGE}-${w}x${h}.png`);
   await page.screenshot({ path: shot });
   const all = [...problems, ...errors];
   if (all.length) {
@@ -96,8 +97,29 @@ for (const [w, h] of SIZES) {
     console.log(`FAIL  ${w}×${h}`);
     for (const p of all) console.log(`      ${p}`);
   } else {
-    console.log(`PASS  ${w}×${h}  → tools/screenshots/s0-${w}x${h}.png`);
+    console.log(`PASS  ${w}×${h}  → tools/screenshots/${STAGE}-${w}x${h}.png`);
   }
+  await page.close();
+}
+
+// The debug view (?debug=1): one seeded AI-vs-AI match plays to the end with no page errors.
+{
+  const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, deviceScaleFactor: 1 });
+  const errors = [];
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
+  page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
+  await page.goto(`${url}?debug=1&seed=3`, { waitUntil: 'networkidle' });
+  try {
+    await page.waitForSelector('body[data-done="true"]', { timeout: 180000 });
+  } catch { errors.push('the debug match did not finish'); }
+  const status = await page.textContent('#debug-status').catch(() => '');
+  const lines = await page.evaluate(() => document.getElementById('debug-log')?.textContent.split('\n').length ?? 0);
+  await page.screenshot({ path: join(shotDir, `${STAGE}-debug.png`) });
+  if (errors.length || lines < 50) {
+    failures++;
+    console.log('FAIL  debug view');
+    for (const p of errors) console.log(`      ${p}`);
+  } else console.log(`PASS  debug view: ${status} (${lines} log lines) → tools/screenshots/${STAGE}-debug.png`);
   await page.close();
 }
 

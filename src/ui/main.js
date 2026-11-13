@@ -1,18 +1,23 @@
 import { GAME } from '../engine/vocab.js';
 
-const STAGE_W = 1920;
-const STAGE_H = 1080;
+const params = new URLSearchParams(location.search);
 
-document.title = GAME.title;
-document.getElementById('game-title').textContent = GAME.title;
+if (params.get('debug') === '1') {
+  import('./debug.js').then((m) => m.runDebugView(params));
+} else {
+  const STAGE_W = 1920;
+  const STAGE_H = 1080;
 
-const stage = document.getElementById('stage');
+  document.title = GAME.title;
+  document.getElementById('game-title').textContent = GAME.title;
 
-// Scale the fixed 1920×1080 stage to fit the window, keeping its aspect ratio.
-function fitStage() {
-  const scale = Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H);
-  stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  const stage = document.getElementById('stage');
+
+  // Scale the fixed 1920×1080 stage to fit the window, keeping its aspect ratio.
+  const fitStage = () => {
+    const scale = Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H);
+    stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  };
+  window.addEventListener('resize', fitStage);
+  fitStage();
 }
-
-window.addEventListener('resize', fitStage);
-fitStage();
