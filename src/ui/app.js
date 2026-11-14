@@ -7,7 +7,7 @@ import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lan
 import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
 import { render, fitLabels } from './view.js';
-import { cardFace } from './cardview.js';
+import { renderCard } from './cards.js';
 import { displayLine, HUMAN, AI, esc } from './text.js';
 
 defineCards(CARDS);
@@ -262,14 +262,19 @@ export function startApp(params) {
     if (!ui.sel && !ui.menu) { ui.picks = basePicks(); ui.handSel = null; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = ui.attacker ?? null; }
     stage.innerHTML = render(s, ui);
     fitLabels(stage);
-    // The log keeps only the lines that fit (newest first): no line is ever cut off.
-    const logPanel = stage.querySelector('.log-panel');
-    while (logPanel && logPanel.scrollHeight > logPanel.clientHeight + 1 && logPanel.querySelectorAll('.log-line').length > 1) logPanel.querySelector('.log-line:last-child').remove();
+    fitLog();
+    document.fonts.ready.then(fitLog);
     document.body.dataset.version = String(version);
     document.body.dataset.phase = s.phase;
     document.body.dataset.actor = actor(s) ?? '';
     document.body.dataset.react = s.reactWindow ? s.reactWindow.reactor : '';
     document.body.dataset.step = ui.sel ? `sel:${ui.sel.field ?? ''}:${ui.sel.cands.length}:${ui.sel.release.length}` : ui.menu ? 'menu' : 'idle';
+  }
+
+  // The log keeps only the lines that fit (newest first): no line is ever cut off. (Again once the fonts load.)
+  function fitLog() {
+    const logPanel = stage.querySelector('.log-panel');
+    while (logPanel && logPanel.scrollHeight > logPanel.clientHeight + 1 && logPanel.querySelectorAll('.log-line').length > 0) logPanel.querySelector('.log-line:last-child').remove();
   }
 
   // --- Input -------------------------------------------------------------------------------------------------
@@ -325,9 +330,9 @@ export function startApp(params) {
     const pv = stage.querySelector('#preview');
     if (!pv) return;
     if (!el || ui.menu) { pv.hidden = true; return; }
-    const c = hoverCard(el);
-    if (!c) { pv.hidden = true; return; }
-    pv.innerHTML = cardFace(c, { size: 'full' });
+    const h = hoverCard(el);
+    if (!h) { pv.hidden = true; return; }
+    pv.innerHTML = renderCard(h.card, { size: 'full', ...h.opts });
     pv.hidden = false;
     const scale = stage.getBoundingClientRect().width / STAGE_W;
     const r = el.getBoundingClientRect();
@@ -343,14 +348,36 @@ export function startApp(params) {
     pv.style.top = `${Math.round(y)}px`;
   });
   stage.addEventListener('mouseleave', () => { const pv = stage.querySelector('#preview'); if (pv) pv.hidden = true; });
+  // Full cards tilt slightly under the pointer: the preview follows the pointer over the card it shows.
+  stage.addEventListener('mousemove', (e) => {
+    const pv = stage.querySelector('#preview');
+    const full = pv && !pv.hidden ? pv.querySelector('.card-full') : null;
+    const el = e.target.closest('[data-hover]');
+    if (!full || !el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const r = el.getBoundingClientRect();
+    const fx = (e.clientX - r.left) / r.width - 0.5;
+    const fy = (e.clientY - r.top) / r.height - 0.5;
+    full.style.setProperty('--ry', `${(fx * 10).toFixed(2)}deg`);
+    full.style.setProperty('--rx', `${(-fy * 8).toFixed(2)}deg`);
+  });
+  // The card a hovered element shows, with its state: a creature on the board (live stats), a placed
+  // Location (its lanes and Rounds left), a Campaign (its Quest's progress).
   function hoverCard(el) {
     const k = el.dataset.hover;
     const uid = el.dataset.uid;
-    if (k === 'board') return s.players[el.dataset.who].row[Number(el.dataset.space)];
-    if (k === 'hand' || k === 'react') return s.players[HUMAN].hand.find((c) => c.uid === uid);
-    if (k === 'bag') return s.players[el.dataset.who].bag.find((c) => c.uid === uid);
-    if (k === 'market') return s.market.onSale;
-    if (k === 'location' || k === 'quest') return { ...cardAtRound(el.dataset.id, s.round, 'preview'), text: cardDef(el.dataset.id).text };
+    const one = (card, opts = {}) => (card ? { card, opts } : null);
+    if (k === 'board') return one(s.players[el.dataset.who].row[Number(el.dataset.space)], { live: true });
+    if (k === 'hand' || k === 'react') return one(s.players[HUMAN].hand.find((c) => c.uid === uid));
+    if (k === 'bag') return one(s.players[el.dataset.who].bag.find((c) => c.uid === uid));
+    if (k === 'market') return one(s.market.onSale);
+    if (k === 'location') {
+      const l = s.locations.find((x) => x.uid === el.dataset.loc);
+      return l ? one(l.card, { lanes: lanesOf(l), roundsLeft: l.roundsLeft }) : null;
+    }
+    if (k === 'quest') {
+      const q = s.players[el.dataset.who].quests[0];
+      return one(cardAtRound(el.dataset.id, s.round, 'preview'), { quest: q });
+    }
     return null;
   }
 

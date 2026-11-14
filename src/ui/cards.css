@@ -1,0 +1,170 @@
+/* The cards (stage S4), built to docs/mockups/cards-s4-types.html, -finishes.html and -sizes.html. */
+.card { position: relative; flex-shrink: 0; filter: drop-shadow(0 12px 22px rgba(0,0,0,0.6)); font-family: 'EB Garamond', Georgia, serif; color: #ede2c8; text-align: left; }
+.card-full { width: 340px; height: 476px; }
+.card-mini { width: 200px; height: 280px; }
+.card-token { width: 164px; height: 230px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.55)); }
+.card-hair { position: absolute; inset: 0; clip-path: var(--clip); }
+.card-panel { position: absolute; inset: 1.5px; clip-path: var(--clip); background: #0c0805; overflow: hidden; }
+.foil .card-panel { inset: 3px; }
+.card-art { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+.card-fade { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(12,8,5,0) 34%, rgba(12,8,5,0.72) 52%, rgba(12,8,5,0.96) 64%, #0c0805 76%); }
+.card-pending { position: absolute; left: 0; top: 0; width: 100%; height: 62%; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--accent) 85%, transparent) 0%, color-mix(in srgb, var(--accent) 30%, transparent) 45%, #0c0805 85%); }
+.card-pending span { font-size: 10px; letter-spacing: 4px; color: rgba(237,226,200,0.8); white-space: nowrap; }
+.card-full .card-pending span { font-size: 12px; letter-spacing: 5px; }
+.card-token .card-pending span { font-size: 8px; letter-spacing: 3px; }
+.nowrap { white-space: nowrap; }
+.bright { color: #ede2c8; }
+
+/* Gems and badges */
+.gem { position: absolute; border-radius: 50%; background: #140d08; border: 1.5px solid #c7a15a; box-shadow: 0 2px 6px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; gap: 1px; color: #ede2c8; font-weight: 700; z-index: 2; }
+.gem svg { flex-shrink: 0; }
+.gem-full { width: 42px; height: 42px; left: 12px; top: 16px; font-size: 17px; }
+.frame-character .gem-full { top: 22px; }
+.gem-mini { width: 30px; height: 30px; left: 8px; top: 10px; font-size: 13px; }
+.frame-character .gem-mini { top: 12px; }
+.gem-mini.gem-level { left: auto; right: 8px; top: 11px; }
+.frame-monster .gem-mini.gem-level { top: 18px; }
+.gem-token { width: 28px; height: 28px; left: 7px; top: 10px; font-size: 13px; }
+.free { font-size: 9px; letter-spacing: 1px; line-height: 1; }
+.gem-mini .free { font-size: 7px; letter-spacing: 0.5px; }
+.lvl-badge { position: absolute; right: 12px; top: 20px; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 42px; height: 46px; background: #140d08; border: 1.5px solid #c7a15a; border-radius: 6px 6px 21px 21px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+.frame-monster .lvl-badge { top: 14px; right: 16px; }
+.lvl-cap { font-size: 8px; letter-spacing: 2px; color: #c2b393; }
+.lvl-cap.legend { letter-spacing: 0.5px; }
+.lvl-n { font-size: 18px; font-weight: 700; color: #ede2c8; line-height: 1; display: flex; }
+.legend-banner { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); padding: 3px 14px; background: linear-gradient(90deg, #6d4a14, #e6c36a, #6d4a14); color: #22170e; font-size: 10px; letter-spacing: 3px; font-weight: 700; border-radius: 2px; z-index: 2; }
+.price-coin { position: absolute; border-radius: 50%; background: #140d08; border: 1.5px solid #e2b955; box-shadow: 0 2px 6px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; gap: 1px; color: #f6dc8c; font-weight: 700; z-index: 2; }
+.price-full { width: 44px; height: 44px; right: 14px; top: 30px; font-size: 17px; }
+.price-mini { width: 30px; height: 30px; right: 8px; top: 18px; font-size: 13px; }
+.retained-tag { position: absolute; top: 54px; right: 8px; background: #3a2a1a; border: 1px solid #c7a15a; border-radius: 3px; padding: 1px 6px; font-size: 10px; letter-spacing: 2px; z-index: 3; }
+.card-full .retained-tag { top: 74px; right: 14px; }
+
+/* Outside the panel: the Action's notch cost, the Event's wax seal, the Item's cord and hole */
+.notch-cost { position: absolute; display: flex; align-items: center; gap: 3px; border-radius: 8px; background: #140d08; border: 1.5px solid #c7a15a; color: #ede2c8; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.6); z-index: 3; }
+.notch-full { left: 6px; top: 13px; padding: 6px 10px; font-size: 16px; }
+.notch-mini { left: 2px; top: 6px; padding: 3px 6px; font-size: 12px; border-radius: 6px; }
+.seal { position: absolute; left: 50%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle at 38% 35%, #b4579f 0%, #7a2f68 45%, #4c1840 100%); box-shadow: 0 3px 8px rgba(0,0,0,0.7), inset 0 0 0 4px rgba(0,0,0,0.18); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #f6e6f2; z-index: 3; }
+.seal-full { top: -6px; width: 64px; height: 64px; }
+.seal-mini { top: -5px; width: 38px; height: 38px; }
+.seal-cap { font-size: 8px; letter-spacing: 2px; font-weight: 700; }
+.seal-n { font-family: Cinzel, serif; font-size: 22px; font-weight: 700; line-height: 1; }
+.seal-mini .seal-n { font-size: 15px; }
+.cord { position: absolute; left: 50%; width: 2px; transform: translateX(-50%) rotate(8deg); background: linear-gradient(#5a3b22, #2a1a0f); z-index: 1; }
+.cord-full { top: -26px; height: 40px; }
+.cord-mini { top: -16px; height: 24px; }
+.hole { position: absolute; left: 50%; transform: translateX(-50%); border-radius: 50%; background: #0a0604; border: 2px solid #c7a15a; box-shadow: inset 0 1px 3px rgba(0,0,0,0.9); z-index: 2; }
+.hole-full { top: 9px; width: 16px; height: 16px; }
+.hole-mini { top: 5px; width: 11px; height: 11px; }
+
+/* The text block, anchored to the bottom */
+.body { position: absolute; display: flex; flex-direction: column; z-index: 1; }
+.card-full .body { left: 16px; right: 16px; bottom: 16px; gap: 7px; }
+.card-full .body-creature { bottom: 54px; gap: 6px; }
+.card-full.frame-campaign .body { bottom: 42px; }
+.card-mini .body { left: 10px; right: 10px; bottom: 12px; gap: 4px; }
+.card-mini .body-creature { bottom: 38px; gap: 3px; }
+.card-mini.frame-campaign .body { bottom: 26px; }
+.name { font-family: Cinzel, serif; font-weight: 700; color: #f3e9d2; letter-spacing: 0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+.card-full .name { font-size: 22px; }
+.card-full.frame-campaign .name { font-size: 21px; }
+.card-mini .name { font-size: 14px; }
+.type { font-weight: 600; }
+.card-full .type { font-size: 11px; letter-spacing: 2px; }
+.card-mini .type { font-size: 9.5px; letter-spacing: 1.5px; }
+.rule { line-height: 1.32; color: #ede2c8; }
+.rule b, .order b, .quest-box b, .lc-box b { color: #f3e9d2; }
+.card-full .rule { font-size: 15px; }
+.card-mini .rule { font-size: 12px; line-height: 1.25; }
+.reminder { font-style: italic; color: #c2b393; }
+.card-full .reminder { font-size: 12px; }
+.muted-rule { color: #c2b393; }
+.favour-mini { color: #d39bcb; }
+.card-mini .favour-mini { font-size: 11px; }
+.facts { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: #c2b393; }
+.facts svg { flex-shrink: 0; }
+
+/* Level ladder and chips */
+.ladder-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.ladder { display: flex; align-items: center; gap: 3px; }
+.rung { width: 19px; height: 17px; border-radius: 3px; border: 1px solid rgba(199,161,90,0.35); color: rgba(194,179,147,0.7); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.rung.past { background: rgba(199,161,90,0.2); color: #c2b393; border-color: rgba(199,161,90,0.5); }
+.rung.on { background: #c7a15a; color: #22170e; border-color: #c7a15a; }
+.rung-break { width: 1px; height: 14px; background: rgba(199,161,90,0.55); margin: 0 2px; }
+.series { font-size: 11px; letter-spacing: 1px; color: #c2b393; }
+.pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.pill { display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(199,161,90,0.45); background: rgba(20,13,8,0.75); font-size: 12px; color: #c2b393; }
+.pill.bright { color: #ede2c8; }
+
+/* Stat tabs, flush in the bottom corners */
+.tab { position: absolute; bottom: 0; display: flex; align-items: center; justify-content: center; gap: 6px; color: #fff; font-weight: 700; z-index: 2; }
+.tab-a { left: 0; background: linear-gradient(var(--accent), color-mix(in srgb, var(--accent) 80%, transparent)); border-top: 1.5px solid #c7a15a; border-right: 1.5px solid #c7a15a; }
+.tab-h { right: 0; background: linear-gradient(#4a2a1a, #2c170d); border-top: 1.5px solid #c7a15a; border-left: 1.5px solid #c7a15a; }
+.card-full .tab { width: 92px; height: 44px; font-size: 24px; }
+.card-full .tab-a { border-top-right-radius: 14px; }
+.card-full .tab-h { border-top-left-radius: 14px; }
+.card-mini .tab { width: 62px; height: 32px; font-size: 17px; }
+.card-mini .tab-a { border-top-right-radius: 10px; }
+.card-mini .tab-h { border-top-left-radius: 10px; }
+.card-token .tab { width: 58px; height: 30px; font-size: 16px; }
+.card-token .tab-a { border-top-right-radius: 9px; }
+.card-token .tab-h { border-top-left-radius: 9px; }
+.tab .up { color: #8fe07a; }
+.tab .down { color: #ff8a7a; }
+.tab .mark { font-size: 8px; vertical-align: 2px; }
+
+/* Action modes, Event Favour, Location lanes, Campaign Order, Quest and Legendary Creature */
+.mode { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; background: rgba(20,13,8,0.72); border: 1px solid rgba(199,161,90,0.35); border-radius: 6px; }
+.mode-head { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 50px; flex-shrink: 0; }
+.mode-name { font-size: 10px; letter-spacing: 2px; font-weight: 700; }
+.mode-cost { display: flex; align-items: center; gap: 2px; font-weight: 700; font-size: 15px; }
+.mode-text { font-size: 14px; line-height: 1.32; }
+.favour { padding: 7px 10px; border-radius: 6px; border: 1px solid #d39bcb88; background: rgba(122,59,112,0.28); }
+.favour-head { font-size: 10px; letter-spacing: 2px; color: #d39bcb; font-weight: 700; }
+.favour-text { font-size: 14px; line-height: 1.32; }
+.lanes { display: flex; gap: 3px; }
+.lane { width: 18px; height: 12px; border-radius: 2px; background: rgba(237,226,200,0.15); }
+.lane.on { background: #86d2c1; }
+.order { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; line-height: 1.32; }
+.order-cost { flex-shrink: 0; display: flex; align-items: center; gap: 2px; padding: 1px 7px; border-radius: 8px; border: 1px solid #c7a15a; font-weight: 700; }
+.quest-box { display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.32; }
+.quest-pips { display: flex; gap: 3px; }
+.quest-pips .qpip { flex-grow: 1; height: 8px; border-radius: 2px; background: rgba(237,226,200,0.15); }
+.quest-pips .qpip.on { background: #a283dc; }
+.lc-box { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; background: rgba(109,74,160,0.25); border: 1px solid #a283dc88; font-size: 12.5px; line-height: 1.25; }
+
+/* Token (the board) */
+.guard-badge { position: absolute; right: 7px; top: 12px; display: flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 8px; background: rgba(20,13,8,0.85); border: 1px solid rgba(199,161,90,0.6); color: #ede2c8; font-size: 10.5px; z-index: 2; }
+.frame-monster .guard-badge { top: 20px; }
+.held-band { position: absolute; left: 6px; right: 6px; top: 108px; text-align: center; font-size: 10.5px; letter-spacing: 1px; color: #22170e; background: linear-gradient(90deg, #8c5f33, #dcae80, #8c5f33); border-radius: 2px; padding: 1px 0; z-index: 2; }
+.body-token { left: 8px; right: 8px; bottom: 36px; gap: 2px; align-items: center; text-align: center; }
+.body-token .name { font-size: 12.5px; }
+.body-token .sub { font-size: 11px; color: #c2b393; font-style: italic; line-height: 1.15; }
+
+/* Chip (24–40 px): a round crop of the art, an accent ring and the Level */
+.card-chip { position: relative; display: inline-block; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--accent); background: #140d08; box-shadow: 0 1px 3px rgba(0,0,0,0.6); vertical-align: middle; }
+.card-chip img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: center 22%; display: block; }
+.chip-pending { display: block; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 80%, transparent), #140d08 75%); }
+.chip-lvl { position: absolute; right: -5px; bottom: -4px; min-width: 14px; height: 14px; padding: 0 2px; border-radius: 7px; background: #140d08; border: 1px solid #c7a15a; font-size: 8.5px; font-weight: 700; color: #ede2c8; display: flex; align-items: center; justify-content: center; line-height: 1; }
+
+/* Finish: foil hairline and a slow sheen; Full cards tilt under the pointer */
+.sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; z-index: 4;
+  background: linear-gradient(115deg, rgba(255,255,255,0) 30%, rgba(255,236,170,0.32) 45%, rgba(160,220,255,0.18) 52%, rgba(255,255,255,0) 66%); background-size: 250% 100%; animation: sheen 5s ease-in-out infinite; }
+@keyframes sheen { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
+.card-full { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.12s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .sheen { animation: none; background-position: 50% 0; }
+  .card-full { transform: none !important; transition: none; }
+}
+
+/* The card sheets (?sheet=full|all) */
+body.sheet { overflow: auto; height: auto; background: radial-gradient(ellipse at 50% 20%, #3e2819 0%, #22150c 60%, #120b06 100%) fixed; }
+body.sheet #viewport { position: static; }
+#sheet { padding: 48px 40px 60px; }
+.sheet-grid { display: flex; flex-wrap: wrap; gap: 36px 28px; }
+.sheet-cell { display: flex; flex-direction: column; gap: 22px; }
+.sheet-label { font-family: Cinzel, serif; font-size: 13px; letter-spacing: 2px; color: #c2b393; }
+.sheet-row { display: flex; align-items: flex-start; gap: 22px; }
+.sheet-card { padding-top: 26px; }
+.sheet-token.spent .card { opacity: 0.6; filter: saturate(0.4); }
+.sheet-chips { display: flex; align-items: center; gap: 14px; padding-top: 40px; }

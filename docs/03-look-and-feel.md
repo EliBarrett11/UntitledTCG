@@ -85,3 +85,14 @@ The docs don't settle these interface details; S3 uses the simplest reading.
 8. **The Last Battle:** the map goes dark with drifting embers, and its label says the Last Battle's rules.
 9. **Fonts:** Cinzel and EB Garamond, as in the mockup, served from `assets/fonts/` so the game doesn't depend on another site.
 10. **Play again** starts a new match with the next seed.
+
+## 7. Readings needing Elliott's approval (S4)
+
+1. **Foil on final forms:** the sheen and gold hairline go on a series' final form at its **top Level** only (Oathsworn Captain at Level 7, as in the finishes mockup; at Level 5 it's plain brass, as in the types mockup). The Legendary and Legendary Creatures are always foil.
+2. **Approved wording, not the mockups' paraphrases:** where a mockup words an effect differently from `docs/cards.json` (Runed Blade's "The creature holding it has +2 Attack and Armour 1", Rumour of Treasure's "gain 3 Gold, draw 2", Call to Arms' "Draw 4 cards instead"), the card shows the approved wording ("+2 Attack. Armour 1.", "Gain 3 Gold. Draw 2 cards.", "Draw 4 cards."). Never hand-typed.
+3. **Reminder lines** (italic or plain, from the rulebook's numbers, as in the mockups): an Event's "Release N: choose N other card(s) from your hand to Release."; its Favour box ends "+3 Renown."; a Held Item's "Held: stays with one creature" and "Lost if its holder is defeated."; a Consumed Item's "Consumed: used once" and "Then it goes to the Market's pool."; a Location's "Dominate it at Dusk for +3 Renown."; a Legendary Creature's "Arrives when the Quest for Lady Corwen's Commission is complete." They explain rules; they aren't flavour.
+4. **A Location's 9-lane diagram:** on a placed Location it lights the lanes it covers; in the hand it lights lanes 2 onwards, as in the mockup, just to show its width.
+5. **Mini sizes:** the Mini type line drops the card type for creatures ("HUMAN FIGHTER"), as in the sizes mockup. A Mini Location shows its lanes and Rounds on a line of their own, because the combined type line doesn't fit at 200 px. Mini creatures also show their keywords and trigger line (rules), which the mockup's vanilla example didn't need.
+6. **Choices at Full size:** the mulligan shows Minis (seven Full cards don't fit across the table), and Release choices are made on the Minis in the hand. Every one of them shows at Full size on hover. The React tray shows the playable React cards as Minis, which is the size that fits above the hand.
+7. **Chips in the log:** each log line shows a Chip of the card it names (the longest card name in the line). The Quest trackers show their Legendary Creature as a Chip.
+8. **Card names in Cinzel:** the mockups' HTML names Cinzel for card names (as on the approved board). Their PNGs show a fallback serif, because the font hadn't loaded when they were captured. The cards use Cinzel, served from `assets/fonts/`.

@@ -4,7 +4,9 @@ import { RULES } from '../engine/rules.js';
 import { baseEnergyFor, availableExert } from '../engine/energy.js';
 import { isReady, locationAt, lanesOf, lanesHere, creaturesOf } from '../engine/game.js';
 import { cardDef } from '../engine/cards.js';
-import { creatureToken, cardFace, cardBack, icon } from './cardview.js';
+import { renderCard, cardBack, icon, chipFor } from './cards.js';
+import { legendaryCreatureOf, cardAtRound } from '../engine/cards.js';
+import { chipCardFor } from './text.js';
 import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText } from './text.js';
 
 export const LANE_W = 1532 / 9;
@@ -38,9 +40,10 @@ function quest(s, who) {
   const segs = Array.from({ length: need }, (_, i) => `<div class="seg${i < Math.min(q.progress, need) ? ' on' : ''}"></div>`).join('');
   const verb = q.quest.kind === 'dominate' ? 'Dominate at Dusk' : 'Progress';
   const line = q.complete ? `Complete · ${def.legendaryCreature.name} has arrived` : `${verb}: ${Math.min(q.progress, need)} of ${need} · then ${def.legendaryCreature.name} arrives`;
-  return `<div class="quest" data-region="quest-${who}" data-hover="quest" data-id="${esc(q.id)}">
-    <div class="label">CAMPAIGN · QUEST</div>
-    <div class="quest-name">${esc(q.name)}</div>
+  const lc = legendaryCreatureOf(def, `chip-${q.uid}`);
+  return `<div class="quest" data-region="quest-${who}" data-hover="quest" data-id="${esc(q.id)}" data-who="${who}">
+    <div class="quest-head"><div><div class="label">CAMPAIGN · QUEST</div>
+    <div class="quest-name">${esc(q.name)}</div></div>${chipFor(lc, 30)}</div>
     <div class="segs">${segs}</div>
     <div class="quest-line">${esc(line)}</div>
   </div>`;
@@ -85,11 +88,11 @@ function map(s, ui) {
     const owner = l.owner === HUMAN ? 'placed by you' : 'placed by the enemy';
     const rounds = `${l.roundsLeft} Round${l.roundsLeft === 1 ? '' : 's'} left`;
     const short = `${shortPassive(l.card)} · ${l.roundsLeft} Rd${l.roundsLeft === 1 ? '' : 's'} · ${l.owner === HUMAN ? 'yours' : "enemy's"}`;
-    return `<div class="loc" style="left:${left}px;width:${width}px;--tint:${tint}" data-hover="location" data-id="${esc(l.card.id)}">
+    return `<div class="loc" style="left:${left}px;width:${width}px;--tint:${tint}" data-hover="location" data-id="${esc(l.card.id)}" data-loc="${esc(l.uid)}">
         ${artOf(l.card) ? `<img class="loc-art" src="${esc(artOf(l.card))}" alt="" draggable="false">` : ''}
       </div>
       <div class="loc-label-wrap" style="left:${l.start * LANE_W}px;width:${l.width * LANE_W}px">
-        <div class="loc-label" data-hover="location" data-id="${esc(l.card.id)}">
+        <div class="loc-label" data-hover="location" data-id="${esc(l.card.id)}" data-loc="${esc(l.uid)}">
           <div class="loc-name">${esc(l.name.toUpperCase())}</div>
           <div class="loc-line" data-full="${esc(`${defText(l.card).replace(/\.$/, '')} · ${rounds} · ${owner}`)}" data-short="${esc(short)}">${esc(`${defText(l.card).replace(/\.$/, '')} · ${rounds} · ${owner}`)}</div>
         </div>
@@ -117,8 +120,13 @@ function row(s, who, ui) {
     const cpick = ui.picks?.creature?.[`${who}:${lane}`];
     const chips = s.strats.filter((x) => !x.target.none && x.target.who === who && (x.target.area ? lanesHere(s, x.target.space).includes(lane) && (x.target.space === lane) : x.target.space === lane))
       .map((x) => `<div class="strat-chip ${x.owner === HUMAN ? 'mine' : 'theirs'}" title="${x.owner === HUMAN ? `Your sealed Strat (${esc(x.card.name)})` : 'The enemy\'s sealed Strat'} targets ${x.target.area ? 'this Location' : 'this creature'}">${cardBack('back-chip')}<span>STRAT</span></div>`).join('');
-    const body = c ? creatureToken(c, { who, space: lane, ready: isReady(s, c), classes: [cpick ? 'target' : '', ui.attacker === lane && who === HUMAN ? 'selected' : '', ui.picks?.attacker?.[lane] && who === HUMAN ? 'can-attack' : ''].join(' ') })
-      : '<div class="empty-slot"></div>';
+    let body = '<div class="empty-slot"></div>';
+    if (c) {
+      const ready = isReady(s, c);
+      const cls = [c.spent ? 'spent' : '', ready ? 'ready' : '', cpick ? 'target' : '', ui.attacker === lane && who === HUMAN ? 'selected' : '', ui.picks?.attacker?.[lane] && who === HUMAN ? 'can-attack' : ''].filter(Boolean).join(' ');
+      const tag = c.spent ? '<div class="tag tag-spent">SPENT</div>' : ready ? '<div class="tag tag-ready">READY</div>' : '';
+      body = `<div class="slot-card ${cls}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board">${tag}${renderCard(c, { size: 'token', live: true })}</div>`;
+    }
     const attrs = cpick ? `data-pick="${esc(cpick)}"` : pick ? `data-pick="${esc(pick)}"` : ui.picks?.attacker?.[lane] && who === HUMAN && c ? 'data-act="attacker"' : '';
     return `<div class="cell${pick ? ' target' : ''}" data-cell="${who}:${lane}" data-lane="${lane}" style="left:${lane * LANE_W}px;top:${ROW_Y[who]}px;width:${LANE_W}px" ${attrs}>${body}${chips}</div>`;
   }).join('');
@@ -145,17 +153,12 @@ function column(s, ui) {
   const stockFull = item?.stock ?? 1;
   const canBuy = ui.picks?.marketBuy;
   const market = item ? `<div class="market-row">
-      <div class="market-card" data-hover="market" data-uid="${esc(item.uid)}">${artOf(item) ? `<img class="art-img" src="${esc(artOf(item))}" alt="" draggable="false">` : '<span class="art-pending">ART PENDING</span>'}
-        <div class="badge badge-gold">${icon('gold')}${item.price}</div></div>
-      <div class="market-info">
-        <div class="market-name">${esc(item.name)}</div>
-        <div class="market-type">ITEM · ${item.kind.toUpperCase()}</div>
-        <div class="market-text">${esc(defText(item))}</div>
-        <button type="button" class="btn buy" ${canBuy ? 'data-act="buy-market"' : 'disabled'}>Buy for ${item.price} Gold</button>
-      </div></div>`
+      <div class="market-card" data-hover="market" data-uid="${esc(item.uid)}">${renderCard(item, { size: 'mini' })}</div>
+      <button type="button" class="btn buy" ${canBuy ? 'data-act="buy-market"' : 'disabled'}>Buy for ${item.price} Gold</button>
+      </div>`
     : `<div class="sold-out">${m.soldOut ? 'SOLD OUT' : 'NOTHING ON SALE'}<div class="muted small">${m.soldOut ? `Restocks after ${m.soldOut.by === HUMAN ? 'your' : 'the enemy\'s'} next turn` : ''}</div></div>`;
   const stockRing = item ? `<div class="stock">${dial(m.stock, stockFull, 34, 26).replace('$', `<b>${m.stock}</b>`)}Stock · turns left</div>` : '';
-  const log = ui.log.slice(-7).reverse().map((l, i) => `<div class="log-line${i === 0 ? ' latest' : ''}">${esc(l)}</div>`).join('');
+  const log = ui.log.slice(-7).reverse().map((l, i) => { const c = chipCardFor(l); return `<div class="log-line${i === 0 ? ' latest' : ''}">${c ? chipFor(c, 24) : '<span class="log-dot"></span>'}<span>${esc(l)}</span></div>`; }).join('');
   const passable = ui.picks?.pass;
   return `<div class="column" data-region="column">
     <div class="panel round-panel">
@@ -205,7 +208,7 @@ function hand(s, ui) {
     const favour = ui.favourCards?.includes(c.uid);
     const attrs = `data-uid="${esc(c.uid)}" data-hover="hand" ${pick ? `data-pick="${esc(pick)}"` : playable && !ui.locked ? 'data-act="hand"' : ''}`;
     return `<div class="hand-card${playable ? ' playable' : ''}${sel ? ' selected' : ''}${pick ? ' target' : ''}${chosen ? ' chosen' : ''}" style="left:${pos[i].x}px;top:${HAND.y}px;transform:rotate(${pos[i].rot.toFixed(2)}deg);z-index:${10 + i}" ${attrs}>
-      ${cardFace(c, { size: 'mini' })}${favour ? '<div class="favour-tag">FAVOUR</div>' : ''}
+      ${renderCard(c, { size: 'mini' })}${favour ? '<div class="favour-tag">FAVOUR</div>' : ''}
     </div>`;
   }).join('')}</div>`;
 }
@@ -225,14 +228,14 @@ function menu(ui) {
 function reactBar(s, ui) {
   if (!ui.react) return '';
   const secs = Math.max(0, Math.ceil(ui.react.left / 1000));
-  const tray = ui.react.options.map((o, i) => `<button type="button" class="react-opt${ui.react.chosen === i ? ' selected' : ''}" data-act="react" data-i="${i}" data-hover="react" data-uid="${esc(o.uid)}">
-      <b>${esc(o.name)}</b> · React ${o.cost}: ${esc(o.text)}</button>`).join('');
+  const tray = ui.react.options.map((o, i) => `<div class="react-opt${ui.react.chosen === i ? ' selected' : ''}" data-act="react" data-i="${i}" data-hover="react" data-uid="${esc(o.uid)}" title="React ${o.cost}: ${esc(o.text)}">
+      ${renderCard(s.players[HUMAN].hand.find((c) => c.uid === o.uid), { size: 'mini' })}<div class="react-cost">React ${o.cost}</div></div>`).join('');
   return `<div class="react-bar" data-region="react-bar">
       <div class="react-text">${esc(ui.react.what)}</div>
       <div class="react-timer" style="--p:${pct(ui.react.left, ui.react.total)}%"><span>${secs}</span></div>
       <button type="button" class="btn let" data-act="decline">Let it happen</button>
     </div>
-    <div class="react-tray" data-region="react-tray"><div class="label">YOUR REACTS</div>${tray}</div>`;
+    <div class="react-tray" data-region="react-tray"><div class="label react-label">YOUR<br>REACTS</div>${tray}</div>`;
 }
 
 function mulligan(s, ui) {
@@ -242,7 +245,7 @@ function mulligan(s, ui) {
   return `<div class="overlay" data-region="mulligan"><div class="dialog mull">
     <div class="dialog-title">ROUND 1 · MULLIGAN</div>
     <div class="muted">Choose any cards to put into your Discard Pile, then draw as many. You can do this once.</div>
-    <div class="mull-cards">${cards.map((c) => `<div class="mull-card${ui.mulligan.has(c.uid) ? ' chosen' : ''}" data-act="mull-toggle" data-uid="${esc(c.uid)}" data-hover="hand">${cardFace(c, { size: 'small' })}${ui.mulligan.has(c.uid) ? '<div class="mull-x">PUT BACK</div>' : ''}</div>`).join('')}</div>
+    <div class="mull-cards">${cards.map((c) => `<div class="mull-card${ui.mulligan.has(c.uid) ? ' chosen' : ''}" data-act="mull-toggle" data-uid="${esc(c.uid)}" data-hover="hand">${renderCard(c, { size: 'mini' })}${ui.mulligan.has(c.uid) ? '<div class="mull-x">PUT BACK</div>' : ''}</div>`).join('')}</div>
     <div class="dialog-buttons">
       <button type="button" class="btn" data-act="mull-keep">Keep my hand</button>
       <button type="button" class="btn primary" data-act="mull-go" ${n ? '' : 'disabled'}>Put back ${n} and draw ${n}</button>

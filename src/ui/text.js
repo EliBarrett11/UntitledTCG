@@ -1,7 +1,7 @@
 // Words the board shows. Card wording comes from the generated card data (src/data/cards.js); nothing here
 // is card text. This file only looks it up, and turns the engine's neutral log ("Player 1", "Player 2")
 // into the human's view ("You", "The enemy").
-import { cardDef, creatureAtLevel, isCreature } from '../engine/cards.js';
+import { cardDef, creatureAtLevel, isCreature, cardAtRound, legendaryCreatureOf } from '../engine/cards.js';
 import { CARDS } from '../data/cards.js';
 import { ART } from '../data/art.js';
 import { KEYWORDS, TRIGGERS } from '../engine/abilities.js';
@@ -81,11 +81,19 @@ export function typeLine(c) {
 // The accent colour: a Character's Class, a Monster, an Action's Class (or none), an Event, Item, Location
 // or Campaign (docs/06-first-deck-draft.md section 1).
 const CLASS_ACCENT = { Fighter: '#9b2226', Wizard: '#3a5ea8', Rogue: '#3f7d3a', Cleric: '#c9a64a', Ranger: '#c06a24' };
-const TYPE_ACCENT = { Monster: '#c2571e', Action: '#8a8f96', Event: '#6a3d6e', Item: '#9a6a3a', Location: '#3f8a7d', Campaign: '#6d4aa0' };
+const TYPE_ACCENT = { Monster: '#b8521c', Action: '#8a8f96', Event: '#7a3b70', Item: '#9a6a3a', Location: '#3f8a7d', Campaign: '#6d4aa0' };
 export function accentOf(c) {
   if (c.cardType === 'Character' || c.cardType === 'Action') return CLASS_ACCENT[c.traits?.class] ?? TYPE_ACCENT[c.cardType] ?? '#8a8f96';
   return TYPE_ACCENT[c.cardType] ?? '#8a8f96';
 }
+// The type line's colour (the accent, lightened to read on the dark panel; from the approved card design).
+const CLASS_TYPE = { Fighter: '#ec7c80', Wizard: '#97b3f2', Rogue: '#8fd18a', Cleric: '#ead48a', Ranger: '#f0b07a' };
+const TYPE_TYPE = { Monster: '#f09763', Action: '#c9ccd2', Event: '#d39bcb', Item: '#dcae80', Location: '#86d2c1', Campaign: '#c2a6ee' };
+export function typeColourOf(c) {
+  if (c.cardType === 'Character' || c.cardType === 'Action') return CLASS_TYPE[c.traits?.class] ?? TYPE_TYPE[c.cardType] ?? '#c9ccd2';
+  return TYPE_TYPE[c.cardType] ?? '#c9ccd2';
+}
+
 // The tint of a placed Location on the map.
 const LOCATION_TINT = { 'ironroot-pass': '#2f6b52', 'emberfall-ruins': '#a34a1f', 'mistveil-marshes': '#4f6a7a' };
 export const tintOf = (id) => LOCATION_TINT[id] ?? '#3f8a7d';
@@ -130,4 +138,26 @@ export function displayLine(line) {
     .replace(/Player 1/g, 'You').replace(/Player 2/g, 'The enemy')
     .replace(/(^|[.:] )the enemy/g, (m, a) => `${a}The enemy`)
     .replace(/(\w) The enemy/g, '$1 the enemy').replace(/(\w) Your /g, '$1 your ');
+}
+
+// The card a log line is about, for its Chip: the longest card name the line mentions (or null).
+let NAMED = null;
+export function chipCardFor(line) {
+  if (!NAMED) {
+    NAMED = [];
+    for (const def of CARDS) {
+      if (isCreature(def)) for (const f of def.forms) NAMED.push([f.name, creatureAtLevel(def, Number(Object.keys(f.levels)[0]), `chip-${f.id}`)]);
+      else NAMED.push([def.name, cardAtRound(def.id, 1, `chip-${def.id}`)]);
+      if (def.legendaryCreature) NAMED.push([def.legendaryCreature.name, legendaryCreatureOf(def, 'chip-lc')]);
+    }
+    NAMED.sort((a, b) => b[0].length - a[0].length);
+  }
+  const hit = NAMED.find(([name]) => line.includes(name));
+  if (!hit) return null;
+  // On the board a creature keeps its Level: show the Level the line names, if it does.
+  const lv = line.match(/\(Level (\d+)\)/);
+  if (lv && isCreature(hit[1]) && !hit[1].legendaryCreature) {
+    try { return creatureAtLevel(cardDef(hit[1].id), Number(lv[1]), hit[1].uid); } catch { return hit[1]; }
+  }
+  return hit[1];
 }

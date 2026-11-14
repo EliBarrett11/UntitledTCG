@@ -19,7 +19,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 's3';
+const STAGE = 's4';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -71,7 +71,7 @@ function inspect() {
     if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
   }
   // No text clipped or cut off.
-  for (const el of stage.querySelectorAll('.token, .token-body, .face, .face-body, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast')) {
+  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast')) {
     if (!visible(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
@@ -116,7 +116,7 @@ for (const [w, h] of SIZES) {
     if (sc.steps) await sc.steps(page);
     const problems = [];
     if (sc.need && !(await page.$(sc.need))) problems.push(`the scene didn't reach ${sc.need}`);
-    if (sc.preview && !(await page.$('.preview:not([hidden]) .face-full'))) problems.push('the hover preview did not show');
+    if (sc.preview && !(await page.$('.preview:not([hidden]) .card-full'))) problems.push('the hover preview did not show');
     problems.push(...(await page.evaluate(inspect)), ...errors);
     const file = `${STAGE}-${sc.name}-${w}x${h}.png`;
     if (w === 1920 || SHOT_ALL_SIZES.has(sc.name)) await page.screenshot({ path: join(shotDir, file) });
@@ -127,6 +127,24 @@ for (const [w, h] of SIZES) {
     } else console.log(`PASS  ${w}×${h} ${sc.name}`);
     await page.close();
   }
+}
+
+// Screenshots for the report: the contact sheet (every card at Full size), the foil cards, the hand.
+{
+  const page = await browser.newPage({ viewport: { width: 2600, height: 1000 }, deviceScaleFactor: 1 });
+  await page.goto(`${url}?sheet=full`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: join(shotDir, `${STAGE}-contact-sheet.png`), fullPage: true });
+  await page.goto(`${url}?sheet=foil`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: join(shotDir, `${STAGE}-foil.png`), clip: { x: 0, y: 0, width: 1260, height: 620 } });
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto(`${url}?seed=${SEED}&scene=mid&pace=100000`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: join(shotDir, `${STAGE}-hand.png`), clip: { x: 300, y: 740, width: 920, height: 340 } });
+  await page.close();
+  console.log(`Saved ${STAGE}-contact-sheet.png, ${STAGE}-foil.png and ${STAGE}-hand.png`);
 }
 
 // The debug view (?debug=1): one seeded AI-vs-AI match plays to the end with no page errors.
