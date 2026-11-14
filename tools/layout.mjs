@@ -19,7 +19,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 's5';
+const STAGE = 'v1';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.

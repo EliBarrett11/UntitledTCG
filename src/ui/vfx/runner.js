@@ -124,7 +124,8 @@ export async function runEffect(ctx, vfx, id, env) {
     if (Array.isArray(s.area)) return [at.cx + (r() - 0.5) * 2 * s.area[0], at.cy + (r() - 0.5) * 2 * s.area[1]];
     return [at.cx + (s.dx ?? 0), at.cy + (s.dy ?? 0)];
   };
-  const count = (n) => (low ? Math.max(n >= 4 ? 1 : 0, Math.round(n / 4)) : n);
+  const ps = vfx.particleScale ?? 1;
+  const count = (n) => { const m = Math.round(n * ps); return low ? Math.max(n >= 4 ? 1 : 0, Math.round(m / 4)) : Math.max(n ? 1 : 0, m); };
 
   async function exec(s) {
     const tgts = targetsOf(s);
@@ -138,7 +139,7 @@ export async function runEffect(ctx, vfx, id, env) {
         return;
       }
       case 'emit': {
-        const rate = (s.rate ?? 30) * (low ? 0.25 : 1) / f;
+        const rate = (s.rate ?? 30) * (low ? 0.25 : 1) * ps / f;
         const path = s.path ? [box(s.path[0], s), box(s.path[1], s)] : null;
         for (const t of path ? [null] : tgts) {
           vfx.emitter({ rate, dur: s.dur * f, group, spawn: (k) => {
@@ -167,7 +168,7 @@ export async function runEffect(ctx, vfx, id, env) {
         const at = vfx.ribbon(tex, { from: { x: a.cx, y: a.cy }, to: { x: b.cx, y: b.cy }, bend: s.bend ?? 0, width: s.width ?? 40, travel: s.travel * f, lag: s.lag * f, col: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0 }, group);
         if (s.motes && !low) {
           const m = { ...s.motes };
-          vfx.emitter({ rate: m.rate / f, dur: s.travel * f, group, spawn: (k) => { const p = at(k); particle(m, p.x, p.y); } });
+          vfx.emitter({ rate: m.rate * ps / f, dur: s.travel * f, group, spawn: (k) => { const p = at(k); particle(m, p.x, p.y); } });
         }
         return;
       }
@@ -192,7 +193,7 @@ export async function runEffect(ctx, vfx, id, env) {
             vfx.spawn(tex, { x: x0, y: y0, vx, vy, gy: g, life: s.dur * f, w, h, rot: rad(s.rotOffset ?? 0), spin: s.align ? 0 : rad(s.spin ?? 0) / f, align: !!s.align, fadeIn: 0.1, fadeOut: 0.9, frame, col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, delay: delay * f }, group);
             if (s.trail && !low && i === 0) {
               const tr = s.trail;
-              vfx.emitter({ rate: tr.rate / f, dur: s.dur * f, delay: delay * f, group, spawn: (k) => { const t = k * T; particle({ ...tr, angle: tr.align ? Math.atan2(vy + g * t, vx) * 180 / Math.PI : tr.angle }, x0 + vx * t, y0 + vy * t + 0.5 * g * t * t); } });
+              vfx.emitter({ rate: tr.rate * ps / f, dur: s.dur * f, delay: delay * f, group, spawn: (k) => { const t = k * T; particle({ ...tr, angle: tr.align ? Math.atan2(vy + g * t, vx) * 180 / Math.PI : tr.angle }, x0 + vx * t, y0 + vy * t + 0.5 * g * t * t); } });
             }
           }
         });

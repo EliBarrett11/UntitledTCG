@@ -57,6 +57,7 @@ export function startApp(params) {
   // The effects layer (stage V1); without WebGL it is off and the S5 animations play.
   const vfx = createVfx(stage, { settings: () => settings, params });
   document.body.dataset.vfx = vfx.on ? 'webgl' : '2d';
+  if (params.get('fps') === '1') import('./vfx/fps.js').then((m) => m.startFpsOverlay(vfx));
   const presenter = createPresenter(stage, {
     vfx,
     settings: () => settings,

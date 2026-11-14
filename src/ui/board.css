@@ -320,3 +320,5 @@ body.debug #viewport { position: static; }
 .amb-ember.ash { filter: brightness(0.35); }
 @keyframes amb-blow { 0% { transform: translate(0, 0) rotate(0deg); opacity: 0; } 10% { opacity: 0.9; } 85% { opacity: 0.7; } 100% { transform: translate(1580px, -140px) rotate(540deg); opacity: 0; } }
 body.low-motion .ambient { display: none; }
+/* ?fps=1: the frame-rate overlay (a measuring aid). */
+.fps-overlay { position: fixed; left: 6px; top: 6px; z-index: 1000; pointer-events: none; font: 12px/1.3 ui-monospace, Menlo, Consolas, monospace; color: #e8f5d0; background: rgba(0,0,0,0.72); padding: 4px 8px; border-radius: 4px; white-space: nowrap; }

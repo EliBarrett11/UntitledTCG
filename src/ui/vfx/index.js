@@ -2,7 +2,12 @@
 // ambient table. If WebGL2 isn't available (or ?webgl=0), `on` is false and the presenter plays the S5
 // animations instead, so the game always works.
 //
-// Dev aids: ?webgl=0 (the 2D fallback), ?vfxmissing=a,b (treat those textures as missing).
+// Full quality is the default. Automatic quality scaling steps down only if real frame times stay above 20 ms
+// for a few seconds of effects (bloom resolution, then particle count, then render scale) and steps back up
+// when there is headroom.
+//
+// Dev aids: ?webgl=0 (the 2D fallback), ?vfxmissing=a,b (treat those textures as missing),
+// ?vfxquality=N (hold quality step N; 0 is full), ?fps=1 (the frame-rate overlay, see fps.js).
 import { createRenderer } from './gl.js';
 import { loadManifest, loadImage, drawStandIn } from './textures.js';
 import { EFFECTS, texturesOf } from './library.js';
@@ -19,9 +24,8 @@ export function createVfx(stage, { settings, params }) {
   canvas.setAttribute('aria-hidden', 'true');
   const ambient = createAmbient({ missing });
   let shakeUntil = 0; let shakePx = 0; let shakeT0 = 0;
-  // The scene buffer is 8-bit (half-float cost a sixth more frame time for little gain). Dev aids for
-  // performance work: ?vfxhdr=1 (a half-float scene buffer), ?vfxbloom=0 (no bloom).
-  const options = { hdr: params?.get('vfxhdr') === '1', bloom: params?.get('vfxbloom') !== '0' };
+  // Dev aids for performance work: ?vfxhdr=0 (an 8-bit scene buffer), ?vfxbloom=0 (no bloom).
+  const options = { hdr: params?.get('vfxhdr') !== '0', bloom: params?.get('vfxbloom') !== '0' };
   const r = off ? null : createRenderer(canvas, {
     options,
     onFrame: {
@@ -87,25 +91,46 @@ export function createVfx(stage, { settings, params }) {
     for (let k = 0; k < 3; k++) next();
   }
 
-  // --- Size: the canvas covers the stage; its buffer follows the stage's size on screen ---------------------------
-  let quality = 1;
-  const dprCap = 1.5;
+  // --- Quality steps --------------------------------------------------------------------------------------------
+  // 0 is full quality. Each step down gives up the least visible thing first.
+  const STEPS = [
+    { name: 'full', bloomDiv: 4, particles: 1, scale: 1 },
+    { name: 'bloom ½', bloomDiv: 8, particles: 1, scale: 1 },
+    { name: 'particles ½', bloomDiv: 8, particles: 0.5, scale: 1 },
+    { name: 'scale ¾', bloomDiv: 8, particles: 0.5, scale: 0.75 },
+    { name: 'scale ½', bloomDiv: 8, particles: 0.5, scale: 0.5 },
+  ];
+  const pinned = params?.has('vfxquality') ? Math.max(0, Math.min(STEPS.length - 1, Number(params.get('vfxquality')) || 0)) : null;
+  let step = pinned ?? 0;
+  const dprCap = 2;
   function resize() {
     if (!r) return;
     const w = stage.getBoundingClientRect().width;
     const scale = w / STAGE_W || 1;
     const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
-    r.resize(STAGE_W * scale * dpr * quality, STAGE_H * scale * dpr * quality);
+    const st = STEPS[step];
+    r.resize(STAGE_W * scale * dpr * st.scale, STAGE_H * scale * dpr * st.scale, st.bloomDiv);
   }
-  // Adaptive resolution: if frames run long, draw the effects at a lower resolution (they are soft anyway).
-  let slow = 0; let fast = 0;
+  // Automatic quality scaling, judged once a second from the frames drawn while effects play: three slow
+  // seconds in a row (average over 20 ms) step down; five quick ones (under 12 ms) step back up.
+  let windowStart = 0; let windowTimes = []; let slowSecs = 0; let quickSecs = 0;
+  const history = [];   // [{ t, ms }] for the last 5 s, for the fps overlay
   function adapt() {
     const ft = r.frameTimes;
     const last = ft[ft.length - 1];
+    const now = performance.now();
     if (!last || last > 250) return;
-    if (last > 20) { slow += 1; fast = 0; } else if (last < 13) { fast += 1; slow = Math.max(0, slow - 1); }
-    if (slow > 12 && quality > 0.5) { quality = Math.max(0.5, quality * 0.85); slow = 0; resize(); }
-    if (fast > 240 && quality < 1) { quality = Math.min(1, quality / 0.85); fast = 0; resize(); }
+    history.push({ t: now, ms: last });
+    while (history.length && history[0].t < now - 5000) history.shift();
+    if (pinned !== null) return;
+    if (!windowStart) windowStart = now;
+    windowTimes.push(last);
+    if (now - windowStart < 1000) return;
+    const avg = windowTimes.reduce((a, b) => a + b, 0) / windowTimes.length;
+    windowStart = now; windowTimes = [];
+    if (avg > 20) { slowSecs += 1; quickSecs = 0; } else if (avg < 12) { quickSecs += 1; slowSecs = 0; } else { slowSecs = 0; quickSecs = 0; }
+    if (slowSecs >= 3 && step < STEPS.length - 1) { step += 1; slowSecs = 0; resize(); }
+    if (quickSecs >= 5 && step > 0) { step -= 1; quickSecs = 0; resize(); }
   }
 
   if (r) {
@@ -119,6 +144,9 @@ export function createVfx(stage, { settings, params }) {
   const api = {
     on: !!r,
     get lowMotion() { return !!settings().lowMotion; },
+    // The share of particles drawn at this quality step (low motion takes its own quarter on top).
+    get particleScale() { return STEPS[step].particles; },
+    quality: () => ({ step, name: STEPS[step].name, steps: STEPS.length, pinned: pinned !== null, recent: history.map((h) => h.ms) }),
     // After each redraw of the stage: put the canvas and the ambient layer back in it.
     attach(s) {
       const fx = stage.querySelector('#fx');
@@ -136,7 +164,7 @@ export function createVfx(stage, { settings, params }) {
     resize,
     clear() { if (r) r.clear(); },
     // For the checks and the performance tool.
-    stats: () => (r ? { frames: r.frames, frameTimes: [...r.frameTimes], quality, running: r.running, size: r.size, ready: state.ready.size, standIns: [...state.loading.keys()].filter((k) => !state.ready.has(k)) } : null),
+    stats: () => (r ? { frames: r.frames, frameTimes: [...r.frameTimes], quality: step, qualityName: STEPS[step].name, running: r.running, size: r.size, ready: state.ready.size, standIns: [...state.loading.keys()].filter((k) => !state.ready.has(k)) } : null),
     resetStats() { if (r) r.frameTimes.length = 0; },
     ready: () => state.ready,
   };

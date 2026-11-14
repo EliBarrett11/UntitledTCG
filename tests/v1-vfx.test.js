@@ -158,6 +158,13 @@ test('low motion: no shake, no hit-stop, a quarter of the particles', async () =
   assert.ok(low.spawns <= full.spawns * 0.5, `${low.spawns} of ${full.spawns}`);
 });
 
+test('a lower quality step draws fewer particles; full quality is the default', async () => {
+  const spawns = async (ps) => { const { vfx, ctx, log } = fakes(); if (ps != null) vfx.particleScale = ps; await runEffect(ctx, vfx, 'attack.martial', env([])); return log.spawns; };
+  const full = await spawns(null);
+  assert.equal(await spawns(1), full);
+  assert.ok((await spawns(0.5)) < full * 0.75);
+});
+
 test('a damage effect is reported (for the presenter) before the defeat it causes; nothing else changes', () => {
   const s = blank();
   put(s, 'p2', 3, 'oathsworn-recruit', { spent: true, currentHealth: 2 });

@@ -54,11 +54,11 @@ const p95 = t[Math.floor(t.length * 0.95)];
 const worst = t[t.length - 1];
 const fps = 1000 / avg;
 const lines = [
-  `Performance at 1920×1080, seed ${SEED}, ${ACTIONS} actions, effects ${res.mode}${EXTRA ? ` (${EXTRA})` : ''}.`,
+  `Software rendering, for reference only (no GPU here). Performance at 1920×1080, seed ${SEED}, ${ACTIONS} actions, effects ${res.mode}${EXTRA ? ` (${EXTRA})` : ''}.`,
   `Renderer: ${renderer}.`,
   `Frames timed while beats played: ${t.length}.`,
   `Frame time: average ${avg.toFixed(1)} ms (${fps.toFixed(0)} fps), 95th percentile ${p95?.toFixed(1)} ms, worst ${worst?.toFixed(1)} ms.`,
-  `Effects buffer at the end: ${res.vfx ? `${res.vfx.size.w}×${res.vfx.size.h} (quality ${res.vfx.quality.toFixed(2)})` : 'none (2D)'}; ${res.vfx?.ready ?? 0} painted textures loaded.`,
+  `Effects buffer at the end: ${res.vfx ? `${res.vfx.size.w}×${res.vfx.size.h}, quality step ${res.vfx.quality} (${res.vfx.qualityName})` : 'none (2D)'}; ${res.vfx?.ready ?? 0} painted textures loaded.`,
   `60 fps target (16.7 ms average): ${avg <= 16.7 ? 'met' : 'NOT met'}.`,
   ...(errors.length ? [`Page errors: ${errors.join('; ')}`] : []),
 ];

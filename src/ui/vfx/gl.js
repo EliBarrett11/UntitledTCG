@@ -391,6 +391,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
 
   // --- Frame buffers ---------------------------------------------------------------------------------------------
   let W = 0; let H = 0; let bw = 0; let bh = 0;
+  let bloomDiv = 4;   // the bloom buffer is 1/4 of the scene (1/8 at a lower quality step)
   let scene = null; let bloomA = null; let bloomB = null;
   function target(w, h, float) {
     const tex = gl.createTexture();
@@ -410,14 +411,15 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     return { tex, fb, w, h };
   }
   function freeTarget(t) { if (t) { gl.deleteTexture(t.tex); gl.deleteFramebuffer(t.fb); } }
-  function resize(w, h) {
+  function resize(w, h, div = bloomDiv) {
     w = Math.max(2, Math.round(w)); h = Math.max(2, Math.round(h));
-    if (w === W && h === H) return;
+    if (w === W && h === H && div === bloomDiv) return;
+    bloomDiv = div;
     W = w; H = h;
     canvas.width = W; canvas.height = H;
     freeTarget(scene); freeTarget(bloomA); freeTarget(bloomB);
     scene = target(W, H, hdr);
-    bw = Math.max(2, Math.round(W / 4)); bh = Math.max(2, Math.round(H / 4));
+    bw = Math.max(2, Math.round(W / bloomDiv)); bh = Math.max(2, Math.round(H / bloomDiv));
     bloomA = target(bw, bh, hdr); bloomB = target(bw, bh, hdr);
     wake();
   }

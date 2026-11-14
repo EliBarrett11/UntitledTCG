@@ -66,7 +66,7 @@ async function match(browser, query, { actions = 400, route = null, label }) {
 const browser = await chromium.launch();
 // 1. Coverage.
 const seen = new Set();
-for (const seed of [5, 7, 11, 3, 21]) {
+for (const seed of [5, 7, 11, 3, 21, 8, 13]) {
   const r = await match(browser, `?seed=${seed}&autoplay=1&pace=30&speed=fast&lowmotion=0`, { label: `coverage, seed ${seed}` });
   for (const e of r.seen) seen.add(e);
   if (STORYBOARD.every((e) => seen.has(e)) && ALSO.every((e) => seen.has(e))) break;
