@@ -263,6 +263,12 @@
    "h": 832,
    "blend": "light"
   },
+  "blade-runes-glint": {
+   "file": "assets/vfx/blade-runes-glint.webp",
+   "w": 1024,
+   "h": 247,
+   "blend": "light"
+  },
   "bone-shards-atlas": {
    "file": "assets/vfx/bone-shards-atlas.webp",
    "w": 1024,
@@ -343,6 +349,12 @@
    "h": 1024,
    "blend": "light"
   },
+  "candle-flame": {
+   "file": "assets/vfx/candle-flame.webp",
+   "w": 408,
+   "h": 961,
+   "blend": "light"
+  },
   "candle-snuff": {
    "file": "assets/vfx/candle-snuff.webp",
    "w": 316,
@@ -360,6 +372,80 @@
    "w": 1024,
    "h": 734,
    "blend": "light"
+  },
+  "coin-shower": {
+   "file": "assets/vfx/coin-shower.webp",
+   "w": 830,
+   "h": 654,
+   "blend": "light"
+  },
+  "coin-spin-atlas": {
+   "file": "assets/vfx/coin-spin-atlas.webp",
+   "w": 1024,
+   "h": 670,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 9,
+     "y": 19,
+     "w": 246,
+     "h": 252
+    },
+    {
+     "x": 287,
+     "y": 16,
+     "w": 221,
+     "h": 256
+    },
+    {
+     "x": 570,
+     "y": 14,
+     "w": 161,
+     "h": 259
+    },
+    {
+     "x": 849,
+     "y": 11,
+     "w": 100,
+     "h": 264
+    },
+    {
+     "x": 102,
+     "y": 398,
+     "w": 52,
+     "h": 263
+    },
+    {
+     "x": 301,
+     "y": 399,
+     "w": 152,
+     "h": 262
+    },
+    {
+     "x": 522,
+     "y": 402,
+     "w": 246,
+     "h": 258
+    },
+    {
+     "x": 768,
+     "y": 405,
+     "w": 248,
+     "h": 252
+    }
+   ]
+  },
+  "compass-rose": {
+   "file": "assets/vfx/compass-rose.webp",
+   "w": 959,
+   "h": 1024,
+   "blend": "alpha"
+  },
+  "crimson-draught-splash": {
+   "file": "assets/vfx/crimson-draught-splash.webp",
+   "w": 1024,
+   "h": 966,
+   "blend": "alpha"
   },
   "drain-wisps": {
    "file": "assets/vfx/drain-wisps.webp",
@@ -679,6 +765,12 @@
     }
    ]
   },
+  "folded-letter": {
+   "file": "assets/vfx/folded-letter.webp",
+   "w": 765,
+   "h": 531,
+   "blend": "alpha"
+  },
   "fur-tufts-atlas": {
    "file": "assets/vfx/fur-tufts-atlas.webp",
    "w": 1024,
@@ -746,6 +838,80 @@
      "h": 265
     }
    ]
+  },
+  "glass-shards-atlas": {
+   "file": "assets/vfx/glass-shards-atlas.webp",
+   "w": 1024,
+   "h": 715,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 12,
+     "y": 11,
+     "w": 158,
+     "h": 306
+    },
+    {
+     "x": 206,
+     "y": 18,
+     "w": 169,
+     "h": 299
+    },
+    {
+     "x": 425,
+     "y": 18,
+     "w": 149,
+     "h": 295
+    },
+    {
+     "x": 636,
+     "y": 24,
+     "w": 172,
+     "h": 287
+    },
+    {
+     "x": 864,
+     "y": 12,
+     "w": 150,
+     "h": 305
+    },
+    {
+     "x": 10,
+     "y": 415,
+     "w": 142,
+     "h": 285
+    },
+    {
+     "x": 215,
+     "y": 408,
+     "w": 158,
+     "h": 296
+    },
+    {
+     "x": 427,
+     "y": 418,
+     "w": 157,
+     "h": 280
+    },
+    {
+     "x": 631,
+     "y": 417,
+     "w": 168,
+     "h": 280
+    },
+    {
+     "x": 843,
+     "y": 421,
+     "w": 168,
+     "h": 275
+    }
+   ]
+  },
+  "gold-coin": {
+   "file": "assets/vfx/gold-coin.webp",
+   "w": 715,
+   "h": 730,
+   "blend": "alpha"
   },
   "grave-mist": {
    "file": "assets/vfx/grave-mist.webp",
@@ -905,6 +1071,68 @@
    "h": 1024,
    "blend": "light"
   },
+  "impact-flash": {
+   "file": "assets/vfx/impact-flash.webp",
+   "w": 908,
+   "h": 842,
+   "blend": "light"
+  },
+  "impact-glints-atlas": {
+   "file": "assets/vfx/impact-glints-atlas.webp",
+   "w": 1024,
+   "h": 625,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 11,
+     "y": 14,
+     "w": 212,
+     "h": 212
+    },
+    {
+     "x": 295,
+     "y": 17,
+     "w": 175,
+     "h": 192
+    },
+    {
+     "x": 541,
+     "y": 13,
+     "w": 206,
+     "h": 203
+    },
+    {
+     "x": 804,
+     "y": 11,
+     "w": 208,
+     "h": 214
+    },
+    {
+     "x": 13,
+     "y": 381,
+     "w": 213,
+     "h": 211
+    },
+    {
+     "x": 285,
+     "y": 376,
+     "w": 201,
+     "h": 230
+    },
+    {
+     "x": 551,
+     "y": 384,
+     "w": 178,
+     "h": 200
+    },
+    {
+     "x": 786,
+     "y": 374,
+     "w": 227,
+     "h": 240
+    }
+   ]
+  },
   "ink-splatter-atlas": {
    "file": "assets/vfx/ink-splatter-atlas.webp",
    "w": 1024,
@@ -961,6 +1189,12 @@
     }
    ]
   },
+  "ink-spread-mask": {
+   "file": "assets/vfx/ink-spread-mask.webp",
+   "w": 1024,
+   "h": 1024,
+   "blend": "light"
+  },
   "knife-streaks-atlas": {
    "file": "assets/vfx/knife-streaks-atlas.webp",
    "w": 1024,
@@ -1009,6 +1243,18 @@
    "file": "assets/vfx/lantern-glint.webp",
    "w": 829,
    "h": 828,
+   "blend": "light"
+  },
+  "laurel-of-light": {
+   "file": "assets/vfx/laurel-of-light.webp",
+   "w": 1017,
+   "h": 892,
+   "blend": "light"
+  },
+  "liquid-fire-splash": {
+   "file": "assets/vfx/liquid-fire-splash.webp",
+   "w": 1004,
+   "h": 823,
    "blend": "light"
   },
   "lunge-streak": {
@@ -1061,10 +1307,22 @@
     }
    ]
   },
+  "parchment-burn-mask": {
+   "file": "assets/vfx/parchment-burn-mask.webp",
+   "w": 1024,
+   "h": 356,
+   "blend": "alpha"
+  },
   "poison-mist": {
    "file": "assets/vfx/poison-mist.webp",
    "w": 1024,
    "h": 451,
+   "blend": "light"
+  },
+  "quill-stroke": {
+   "file": "assets/vfx/quill-stroke.webp",
+   "w": 1024,
+   "h": 361,
    "blend": "light"
   },
   "ready-rim": {
@@ -1245,6 +1503,12 @@
     }
    ]
   },
+  "salve-glow": {
+   "file": "assets/vfx/salve-glow.webp",
+   "w": 877,
+   "h": 767,
+   "blend": "light"
+  },
   "shield-sigil": {
    "file": "assets/vfx/shield-sigil.webp",
    "w": 808,
@@ -1422,6 +1686,62 @@
    "w": 987,
    "h": 952,
    "blend": "light"
+  },
+  "war-banner": {
+   "file": "assets/vfx/war-banner.webp",
+   "w": 494,
+   "h": 1024,
+   "blend": "alpha"
+  },
+  "wax-seal": {
+   "file": "assets/vfx/wax-seal.webp",
+   "w": 886,
+   "h": 944,
+   "blend": "alpha"
+  },
+  "wax-seal-shards-atlas": {
+   "file": "assets/vfx/wax-seal-shards-atlas.webp",
+   "w": 1024,
+   "h": 838,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 12,
+     "y": 14,
+     "w": 292,
+     "h": 393
+    },
+    {
+     "x": 355,
+     "y": 11,
+     "w": 261,
+     "h": 388
+    },
+    {
+     "x": 722,
+     "y": 22,
+     "w": 269,
+     "h": 368
+    },
+    {
+     "x": 30,
+     "y": 475,
+     "w": 279,
+     "h": 352
+    },
+    {
+     "x": 352,
+     "y": 482,
+     "w": 307,
+     "h": 328
+    },
+    {
+     "x": 713,
+     "y": 469,
+     "w": 301,
+     "h": 354
+    }
+   ]
   },
   "wing-gust": {
    "file": "assets/vfx/wing-gust.webp",
