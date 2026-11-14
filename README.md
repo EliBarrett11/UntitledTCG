@@ -2,7 +2,7 @@
 
 *Working title.* A one-player browser card game against an AI opponent, set in an original, dark-leaning high-fantasy world. Two players summon heroes and creatures into lanes on a war-table map, fight over Locations, buy Items from the Market, chase their Campaign Quests and race to 100 Renown. It's built in plain HTML, CSS and JavaScript modules, one stage at a time; the design docs and the rulebook are in [`docs/`](docs/), starting with [`docs/00-START-HERE.md`](docs/00-START-HERE.md).
 
-**Play:** https://elibarrett11.github.io/UntitledTCG/
+**Play:** https://elibarrett11.github.io/UntitledTCG/ (a match against the AI; add `?seed=N` to replay one)
 
 ## Play locally
 
@@ -34,6 +34,12 @@ The card generator (run it after editing `docs/cards.json`; `--check` only verif
 
 ```bash
 node tools/buildcards.mjs
+```
+
+The real-input check (Playwright plays full matches against the AI with real mouse clicks, at three sizes):
+
+```bash
+node tools/realinput.mjs
 ```
 
 **Debug view:** open the page with `?debug=1` (and optionally `&seed=N`) to watch one seeded AI-vs-AI match as a text log.
@@ -68,3 +74,12 @@ node tools/buildcards.mjs
 - S1's approved readings moved into the rulebook's rules text; S2's readings listed in section 13.
 - Tests: the deck rules and the data, the wording round trip, every keyword and trigger with its edge cases, and the Quest. S1's placeholder cards are now test fixtures (`tests/fixtures/placeholder.js`).
 - The simulation and the debug view play the first deck. The 200-match report is in `tools/reports/s2-simulation.txt`.
+
+### S3: The board (14 November 2026)
+- `index.html` opens a match against the AI on the first deck (`?seed=N` replays one; `?debug=1` still runs the text-log match). Dev aids: `?pace=ms` and `?scene=mid|react|lastbattle|end`.
+- The war table, built from the approved mockup (`docs/mockups/board-s3.html`): the painted map, Locations as tinted regions with one-line cartographer's labels, the Wilds as parchment, a dark, ember-lit Last Battle; both Warlords with Renown dials and damage taken, Quest trackers, hands (the enemy's face down), piles, Bags and Gold; the right-hand column with the Round, phase, turn and initiative, the Last Battle trigger, Energy and Exert, Pass, the Market and the last actions.
+- Creatures show Level, name, traits, Speed, guard, keywords, held Item and current stats with ▲/▼; Ready ones glow, Spent ones are dimmed and turned. Card art when it exists (36 of 37), Art Pending otherwise; every card shows at Full size on hover.
+- Input through legalActions and applyAction only: a menu for each hand card, then highlighted spaces, lanes, Release choices and targets; attacks; the Market and the Bag; Pass; React windows with a 5-second countdown; the mulligan; the end screen with Play again. The AI's turns play out with a pause and a caption.
+- The mockup's two glitches are fixed: the side marker is off the lanes, and Location labels keep to one line.
+- `tools/realinput.mjs` (full matches by real clicks at three sizes) and an extended `tools/layout.mjs` (every scene at three sizes). Fonts are served from `assets/fonts/`. `tools/buildcards.mjs` also writes `src/data/art.js`, the list of art files that exist.
+- Interface readings for Elliott's approval: `docs/03-look-and-feel.md` section 6.

@@ -68,3 +68,18 @@ Do not include any text, letters, logos, borders, frames, card layouts or waterm
 - **The Codex:** right-click (or C) on anything opens a panel: the Full card, what it does now, where its numbers come from, its keywords and triggers, and every game term linked to a glossary.
 - **Previews:** before you commit an attack or effect, the board shows the result (damage, defeats, Renown).
 - **A ? overlay** lists the keys and a searchable rules page.
+
+## 6. Readings needing Elliott's approval (S3)
+
+The docs don't settle these interface details; S3 uses the simplest reading.
+
+1. **Playing a hand card:** clicking it opens a small menu of the ways to play it (Summon, Adapt, Strat, Play, Buy and use now, Buy and store, Place, Campaign Order, Retain). Then the legal choices light up one at a time: the space, the leftmost lane, the cards to Release, the target. Esc or a click on empty table cancels. Drag isn't built yet; everything works by clicking.
+2. **Location labels:** one line each. When the full line ("Creatures here have +2 Health · 3 Rounds left · placed by the enemy") doesn't fit, the label switches to a short line ("+2 Health · 3 Rds · enemy's").
+3. **The "ENEMY ▲ · ▼ YOU" marker** sits just below the map's left corner, off the lanes.
+4. **The React bar** fills the empty middle of the enemy's top bar, hiding the enemy's hand while it's open. Your playable Reacts sit in a tray just below the map, over your (dimmed) hand. The countdown is 5 seconds; when it runs out, the action happens.
+5. **A sealed Strat** shows as a small face-down card on its target creature, or on the leftmost lane of the Location it targets. Yours have a brass edge, the enemy's a red one. A Strat with no target is counted beside its owner's Quest.
+6. **The AI's turns:** each action waits 0.8 seconds, then its first log line shows as a caption in the middle of the map.
+7. **The hover preview** appears above a hand card, or beside any other card, always inside the table.
+8. **The Last Battle:** the map goes dark with drifting embers, and its label says the Last Battle's rules.
+9. **Fonts:** Cinzel and EB Garamond, as in the mockup, served from `assets/fonts/` so the game doesn't depend on another site.
+10. **Play again** starts a new match with the next seed.
