@@ -41,10 +41,10 @@ async function pointOf(page, selector, index = 0) {
 
 const sig = (page) => page.evaluate(() => {
   const b = document.body.dataset;
-  return `${b.version}|${b.step}|${b.phase}|${b.react}|${document.querySelectorAll('.menu').length}|${document.querySelectorAll('.mull-card.chosen').length}|${document.querySelectorAll('.react-opt.selected').length}`;
+  return `${b.version}|${b.step}|${b.phase}|${b.react}|${b.skips}|${b.beatsDone}|${document.querySelectorAll('.menu').length}|${document.querySelectorAll('.mull-card.chosen').length}|${document.querySelectorAll('.react-opt.selected').length}`;
 });
 
-async function playOne(browser, url, [w, h], log) {
+async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
   const errors = [];
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
@@ -63,7 +63,8 @@ async function playOne(browser, url, [w, h], log) {
     await page.mouse.click(p.x, p.y);
     clicks += 1;
     counts[what] = (counts[what] ?? 0) + 1;
-    for (let i = 0; i < 40; i++) {
+    // (Up to 3 s: a busy machine can be slow to draw the change.)
+    for (let i = 0; i < 120; i++) {
       if ((await sig(page)) !== before) return true;
       await page.waitForTimeout(25);
     }
@@ -71,6 +72,27 @@ async function playOne(browser, url, [w, h], log) {
   }
   const count = (sel) => page.evaluate((s) => document.querySelectorAll(s).length, sel);
   const state = () => page.evaluate(() => ({ ...document.body.dataset, end: !!document.querySelector('[data-region="end"]'), mull: !!document.querySelector('[data-region="mulligan"]'), react: !!document.querySelector('[data-region="react-bar"]') }));
+
+  // Drag a hand card onto one of the places it lights up (or onto the map, for a card with no target).
+  async function dragHand(index) {
+    const p = await pointOf(page, '[data-act="hand"]', index);
+    if (!p) return false;
+    const before = await sig(page);
+    await page.mouse.move(p.x, p.y);
+    await page.mouse.down();
+    await page.mouse.move(p.x + 12, p.y - 30, { steps: 3 });
+    await page.mouse.move(p.x + 24, p.y - 80, { steps: 3 });
+    const n = await count('.drop-ok');
+    const target = n ? await pointOf(page, '.drop-ok', Math.floor(pick() * n)) : await pointOf(page, '[data-region="map"]', 0);
+    if (!target) { await page.mouse.up(); return false; }
+    await page.mouse.move(target.x, target.y, { steps: 8 });
+    await page.mouse.up();
+    clicks += 1;
+    counts.drag = (counts.drag ?? 0) + 1;
+    for (let i = 0; i < 40; i++) { if ((await sig(page)) !== before) return true; await page.waitForTimeout(25); }
+    // A drop the card can't use shows a note and changes nothing on the board; that's allowed.
+    return !!(await page.$('.toast'));
+  }
 
   // Keep clicking highlighted choices until the selection is done (or cancel with Esc if it can't finish).
   async function finishSelection() {
@@ -102,9 +124,19 @@ async function playOne(browser, url, [w, h], log) {
   for (;;) {
     if (errors.length) throw new Error(errors.join('; '));
     if (clicks > MAX_CLICKS) throw new Error(`stall: more than ${MAX_CLICKS} clicks`);
-    if (Date.now() - t0 > 12 * 60 * 1000) throw new Error('stall: the match took over 12 minutes');
+    if (Date.now() - t0 > 25 * 60 * 1000) throw new Error('stall: the match took over 25 minutes');
     const st = await state();
-    if (st.end) break;
+    if (st.end && st.presenting !== '1') break;
+    if (st.presenting === '1') {
+      // Animations play; sometimes click to skip the beat.
+      if (pick() < skipRate) {
+        // (If the presentation ends just before the click lands, the click falls on the table and does nothing.)
+        const p = await pointOf(page, '[data-region="map"]', 0);
+        if (p) { await page.mouse.click(p.x, p.y); clicks += 1; counts.skip = (counts.skip ?? 0) + 1; }
+        await page.waitForTimeout(40);
+      } else await page.waitForTimeout(60);
+      continue;
+    }
     if (st.mull) {
       // Exercise the mulligan: put one card back.
       await click('.mull-card', 0, 'mulligan card');
@@ -118,6 +150,9 @@ async function playOne(browser, url, [w, h], log) {
       if ((await page.evaluate(() => document.body.dataset.version)) === v && (await state()).actor !== 'p1' && !(await state()).end) throw new Error('stall: the AI made no move');
       continue;
     }
+    // Between actions the board must match the state.
+    const off = await page.evaluate(() => window.__match.boardProblems());
+    if (off.length) throw new Error(`the board is out of step with the state: ${off.slice(0, 3).join('; ')}`);
     if (st.version === lastVersion) { if (++sameTurnTries > 25) throw new Error(`stall: no progress on the player's turn (step ${st.step})`); } else { lastVersion = st.version; sameTurnTries = 0; }
     if (st.react) {
       const opts = await count('.react-opt');
@@ -130,7 +165,8 @@ async function playOne(browser, url, [w, h], log) {
     const hand = await count('[data-act="hand"]');
     const r = pick();
     if (attackers && (r < 0.6 || !hand)) { await click('[data-act="attacker"]', Math.floor(pick() * attackers), 'attacker'); await finishSelection(); continue; }
-    if (hand && r < 0.85) { await click('[data-act="hand"]', Math.floor(pick() * hand), 'hand card'); await finishSelection(); continue; }
+    if (hand && r < 0.72) { await click('[data-act="hand"]', Math.floor(pick() * hand), 'hand card'); await finishSelection(); continue; }
+    if (hand && r < 0.85) { await dragHand(Math.floor(pick() * hand)); await finishSelection(); continue; }
     if (await count('[data-act="buy-market"]') && pick() < 0.5) { await click('[data-act="buy-market"]', 0, 'Buy'); await finishSelection(); continue; }
     if (await count('.bag-slot.usable') && pick() < 0.5) { await click('.bag-slot.usable', 0, 'Bag'); await finishSelection(); continue; }
     if (await count('[data-act="pass"]')) { await click('[data-act="pass"]', 0, 'Pass'); continue; }
@@ -139,7 +175,9 @@ async function playOne(browser, url, [w, h], log) {
     throw new Error('stall: nothing to click on the player\'s turn');
   }
   const end = await page.evaluate(() => document.querySelector('[data-region="end"] .dialog-title')?.textContent);
-  log(`  ${w}×${h}: the match ended (${end}) after ${clicks} real clicks; ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(', ')}.`);
+  const beats = await page.evaluate(() => window.__match.beats());
+  if (beats.started !== beats.done) throw new Error(`beats left unfinished: ${beats.started} started, ${beats.done} done`);
+  log(`  ${w}×${h}: ${beats.done} beats played; the match ended (${end}) after ${clicks} real clicks; ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(', ')}.`);
   // Play again starts a new match.
   await click('[data-act="again"]', 0, 'Play again');
   const fresh = await state();
@@ -154,13 +192,16 @@ const base = `http://127.0.0.1:${server.address().port}/`;
 const browser = await chromium.launch();
 let failures = 0;
 console.log(`Real-input check: full matches against the AI, real mouse clicks only (seed ${SEED}).`);
-for (const size of SIZES) {
+// Animations on, at normal speed, at each size; then once in low motion.
+const RUNS = [...SIZES.map((size) => ({ size, query: 'speed=normal&lowmotion=0', label: `${size[0]}×${size[1]}` })),
+  { size: SIZES[1], query: 'speed=normal&lowmotion=1', label: `${SIZES[1][0]}×${SIZES[1][1]} low motion` }];
+for (const run of RUNS) {
   try {
-    await playOne(browser, `${base}?seed=${SEED}&pace=30`, size, console.log);
-    console.log(`PASS  ${size[0]}×${size[1]}`);
+    await playOne(browser, `${base}?seed=${SEED}&pace=60&${run.query}`, run.size, console.log);
+    console.log(`PASS  ${run.label}`);
   } catch (e) {
     failures += 1;
-    console.log(`FAIL  ${size[0]}×${size[1]}: ${e.message}`);
+    console.log(`FAIL  ${run.label}: ${e.message}`);
   }
 }
 await browser.close();

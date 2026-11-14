@@ -24,12 +24,13 @@
 .gem-mini { width: 30px; height: 30px; left: 8px; top: 10px; font-size: 13px; }
 .frame-character .gem-mini { top: 12px; }
 .gem-mini.gem-level { left: auto; right: 8px; top: 11px; }
-.frame-monster .gem-mini.gem-level { top: 18px; }
+.frame-monster .gem-mini.gem-level { top: 28px; right: 14px; }
 .gem-token { width: 28px; height: 28px; left: 7px; top: 10px; font-size: 13px; }
+.frame-monster .gem-token { left: 10px; top: 15px; }
 .free { font-size: 9px; letter-spacing: 1px; line-height: 1; }
 .gem-mini .free { font-size: 7px; letter-spacing: 0.5px; }
 .lvl-badge { position: absolute; right: 12px; top: 20px; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 42px; height: 46px; background: #140d08; border: 1.5px solid #c7a15a; border-radius: 6px 6px 21px 21px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); }
-.frame-monster .lvl-badge { top: 14px; right: 16px; }
+.frame-monster .lvl-badge { top: 42px; right: 20px; }
 .lvl-cap { font-size: 8px; letter-spacing: 2px; color: #c2b393; }
 .lvl-cap.legend { letter-spacing: 0.5px; }
 .lvl-n { font-size: 18px; font-weight: 700; color: #ede2c8; line-height: 1; display: flex; }
@@ -39,6 +40,7 @@
 .price-mini { width: 30px; height: 30px; right: 8px; top: 18px; font-size: 13px; }
 .retained-tag { position: absolute; top: 54px; right: 8px; background: #3a2a1a; border: 1px solid #c7a15a; border-radius: 3px; padding: 1px 6px; font-size: 10px; letter-spacing: 2px; z-index: 3; }
 .card-full .retained-tag { top: 74px; right: 14px; }
+.frame-monster.card-mini .retained-tag { top: 64px; }
 
 /* Outside the panel: the Action's notch cost, the Event's wax seal, the Item's cord and hole */
 .notch-cost { position: absolute; display: flex; align-items: center; gap: 3px; border-radius: 8px; background: #140d08; border: 1.5px solid #c7a15a; color: #ede2c8; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.6); z-index: 3; }
@@ -135,7 +137,7 @@
 
 /* Token (the board) */
 .guard-badge { position: absolute; right: 7px; top: 12px; display: flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 8px; background: rgba(20,13,8,0.85); border: 1px solid rgba(199,161,90,0.6); color: #ede2c8; font-size: 10.5px; z-index: 2; }
-.frame-monster .guard-badge { top: 20px; }
+.frame-monster .guard-badge { top: 26px; right: 9px; }
 .held-band { position: absolute; left: 6px; right: 6px; top: 108px; text-align: center; font-size: 10.5px; letter-spacing: 1px; color: #22170e; background: linear-gradient(90deg, #8c5f33, #dcae80, #8c5f33); border-radius: 2px; padding: 1px 0; z-index: 2; }
 .body-token { left: 8px; right: 8px; bottom: 36px; gap: 2px; align-items: center; text-align: center; }
 .body-token .name { font-size: 12.5px; }

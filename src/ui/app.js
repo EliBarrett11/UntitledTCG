@@ -9,19 +9,59 @@ import { makeRng } from '../engine/random.js';
 import { render, fitLabels } from './view.js';
 import { renderCard } from './cards.js';
 import { displayLine, HUMAN, AI, esc } from './text.js';
+import { createPresenter } from './presenter.js';
+import { outcome, diff, badgeFor, summary } from './preview.js';
 
 defineCards(CARDS);
 
 const STAGE_W = 1920;
 const STAGE_H = 1080;
-const REACT_MS = 5000;
+const SETTINGS_KEY = 'untitled-tcg-settings';
+
+// Settings (game speed, low motion, the React timer), kept in localStorage. Storage can be missing or
+// blocked, so every read and write is wrapped; the defaults always work. A system reduced-motion setting
+// turns low motion on by default.
+export function loadSettings(params) {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { saved = {}; }
+  let reduced = false;
+  try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { reduced = false; }
+  const out = {
+    speed: ['slow', 'normal', 'fast'].includes(saved.speed) ? saved.speed : 'normal',
+    lowMotion: typeof saved.lowMotion === 'boolean' ? saved.lowMotion : reduced,
+    reactSeconds: [5, 8, 12, 20].includes(saved.reactSeconds) ? saved.reactSeconds : 5,
+  };
+  // Dev aids for the checks: ?speed=slow|normal|fast&lowmotion=0|1 (not saved).
+  if (params?.has('speed')) out.speed = params.get('speed');
+  if (params?.has('lowmotion')) out.lowMotion = params.get('lowmotion') === '1';
+  return out;
+}
+function saveSettings(v) {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(v)); } catch { /* storage unavailable: keep them for this visit */ }
+}
 
 const tkey = (t) => (!t ? '-' : t.none ? 'none' : t.kind ? `${t.kind}:${t.space ?? ''}` : `${t.who}:${t.space}${t.area ? ':area' : ''}`);
 const MODE = { adapt: 'Adapt', strat: 'Strat', react: 'React' };
 
 export function startApp(params) {
   const stage = document.getElementById('stage');
-  const pace = Math.max(0, Number(params.get('pace') ?? 800));
+  const pace = Math.max(0, Number(params.get('pace') ?? 500));
+  const autoplay = params.get('autoplay') === '1';
+  let settings = loadSettings(params);
+  const applyMotionClass = () => document.body.classList.toggle('low-motion', !!settings.lowMotion);
+  applyMotionClass();
+  let presenting = false;
+  let suppressClick = false;
+  let skips = 0;
+  const presenter = createPresenter(stage, {
+    settings: () => settings,
+    onBeat: ({ kind, caption, started, done }) => {
+      document.body.dataset.beat = kind ?? '';
+      document.body.dataset.beatsStarted = String(started);
+      document.body.dataset.beatsDone = String(done);
+      if (kind) { ui.caption = caption; setCaption(caption); }
+    },
+  });
   let seed = params.has('seed') ? Number(params.get('seed')) >>> 0 : (Date.now() % 1000000);
   let s;
   let rng;
@@ -38,10 +78,12 @@ export function startApp(params) {
     ui.log = s.log.map(displayLine);
     const scene = params.get('scene');
     if (scene) fastForward(scene);
+    presenting = false;
+    document.body.dataset.presenting = '';
     advance();
   }
   function freshUi() {
-    return { sel: null, menu: null, picks: {}, prompt: '', caption: '', log: [], mulligan: new Set(), react: null, toast: '' };
+    return { sel: null, menu: null, picks: {}, prompt: '', caption: '', log: [], mulligan: new Set(), react: null, toast: '', previews: {}, settingsOpen: false, settings };
   }
 
   // Dev aid (?scene=mid|react|lastbattle|end): both sides play as the AI until that moment, for screenshots and checks.
@@ -53,17 +95,40 @@ export function startApp(params) {
       end: () => s.phase === 'gameOver',
     }[scene];
     if (!done) return;
-    for (let i = 0; i < 4000 && !done() && s.phase !== 'gameOver'; i++) apply(chooseAction(s, actor(s), rng), true);
+    for (let i = 0; i < 4000 && !done() && s.phase !== 'gameOver'; i++) apply(chooseAction(s, actor(s), rng));
   }
 
-  function apply(a, quiet = false) {
+  function apply(a) {
     const before = s.log.length;
+    const prev = s;
     s = applyAction(s, a);
     version += 1;
     const lines = s.log.slice(before).map(displayLine);
     ui.log.push(...lines);
     if (ui.log.length > 60) ui.log.splice(0, ui.log.length - 60);
-    return quiet ? lines : lines;
+    return { prev, next: s, events: s.events, lines };
+  }
+
+  // Show an action: draw the new state, play its beats (a click skips the current one), then go on.
+  async function present(r) {
+    clearTimeout(timer);
+    stopReact();
+    presenting = true;
+    ui.locked = true;
+    ui.sel = null; ui.menu = null; ui.prompt = ''; ui.attacker = null; ui.previews = {};
+    document.body.dataset.presenting = '1';
+    draw();
+    const mine = version;
+    await presenter.play(r.prev, r.next, r.events);
+    if (mine !== version) return;   // a new match started meanwhile
+    presenting = false;
+    document.body.dataset.presenting = '';
+    advance();
+  }
+  function setCaption(text) {
+    let el = stage.querySelector('.caption');
+    if (!el) { el = document.createElement('div'); el.className = 'caption'; el.dataset.region = 'caption'; stage.appendChild(el); }
+    el.textContent = text;
   }
 
   function advance() {
@@ -75,10 +140,10 @@ export function startApp(params) {
     ui.attacker = null;
     const who = actor(s);
     if (s.phase === 'gameOver' || !who) return draw();
-    if (who === AI) {
+    if (who === AI || autoplay) {
       ui.locked = true;
       draw();
-      timer = setTimeout(aiStep, pace);
+      timer = setTimeout(() => aiStep(who), pace);
       return;
     }
     ui.locked = false;
@@ -86,11 +151,12 @@ export function startApp(params) {
     draw();
   }
 
-  function aiStep() {
-    const a = chooseAction(s, AI, rng);
-    const lines = apply(a);
-    ui.caption = captionFor(a, lines);
-    advance();
+  function aiStep(who = AI) {
+    if (actor(s) !== who || presenting) return;
+    const a = chooseAction(s, who, rng);
+    const r = apply(a);
+    ui.caption = captionFor(a, r.lines);
+    present(r);
   }
   function captionFor(a, lines) {
     if (a.type === 'decline') return 'The enemy lets it happen.';
@@ -102,8 +168,7 @@ export function startApp(params) {
 
   function act(a) {
     ui.caption = '';
-    apply(a);
-    advance();
+    present(apply(a));
   }
 
   // Begin narrowing a set of legal actions (one card's, one attacker's, the Market's...).
@@ -140,9 +205,13 @@ export function startApp(params) {
       ui.prompt = `${sel.label}: choose ${n - sel.release.length} more card${n - sel.release.length === 1 ? '' : 's'} to Release · Esc to cancel`;
     } else if (field === 'target') {
       p.cell = {}; p.creature = {};
+      ui.previews = {};
+      const seen = new Set();
       for (const a of sel.cands) {
         const t = a.target;
         const k = `t:${tkey(t)}`;
+        // The outcome of choosing this target (damage both ways, defeats, Renown).
+        if (!seen.has(k)) { seen.add(k); const txt = badgeFor(s, a, diff(s, outcome(s, a))); if (txt) ui.previews[k] = txt; }
         if (t.kind === 'warlord') p.warlord = k;
         else if (t.kind === 'creature') p.creature[`${AI}:${t.space}`] = k;
         else if (t.area) for (const lane of lanesHere(s, t.space)) p.cell[`${t.who}:${lane}`] = k;
@@ -171,7 +240,7 @@ export function startApp(params) {
     step();
   }
   function cancel() {
-    ui.sel = null; ui.menu = null; ui.prompt = ''; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = null;
+    ui.sel = null; ui.menu = null; ui.prompt = ''; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = null; ui.previews = {};
     if (ui.react) ui.react.chosen = null;
     ui.picks = basePicks();
     draw();
@@ -196,9 +265,9 @@ export function startApp(params) {
   }
 
   // A hand card: a small menu of the ways to play it (or straight on, when there's only one).
-  function openHand(uid) {
+  function openHand(uid, only = null) {
     const card = s.players[HUMAN].hand.find((c) => c.uid === uid);
-    const acts = mine().filter((a) => a.uid === uid && !(a.type === 'buyItem' && a.from === 'market'));
+    const acts = only ?? mine().filter((a) => a.uid === uid && !(a.type === 'buyItem' && a.from === 'market'));
     const groups = [];
     const add = (label, sub, filter) => { const list = acts.filter(filter); if (list.length) groups.push({ label, sub, list }); };
     add('Summon', `${card.cost} Energy`, (a) => a.type === 'summon');
@@ -227,9 +296,12 @@ export function startApp(params) {
     for (const a of acts) (byUid[a.uid] ??= []).push(a);
     const options = Object.entries(byUid).map(([uid, list]) => {
       const c = s.players[HUMAN].hand.find((x) => x.uid === uid);
-      return { uid, name: c.name, cost: c.modes.react.cost, text: c.modes.react.text, list };
+      // What the action will do with this React (its first target) and without it.
+      return { uid, name: c.name, cost: c.modes.react.cost, text: c.modes.react.text, list, with: summary(diff(s, outcome(s, list[0]))) };
     });
-    ui.react = { what: reactWhat(w.pending), options, total: REACT_MS, left: REACT_MS, deadline: performance.now() + REACT_MS, chosen: null };
+    const total = settings.reactSeconds * 1000;
+    const without = summary(diff(s, outcome(s, { type: 'decline', who: HUMAN })));
+    ui.react = { what: reactWhat(w.pending), options, without, total, left: total, deadline: performance.now() + total, chosen: null };
     reactTick = setInterval(() => {
       if (!ui.react) return;
       ui.react.left = Math.max(0, ui.react.deadline - performance.now());
@@ -268,7 +340,28 @@ export function startApp(params) {
     document.body.dataset.phase = s.phase;
     document.body.dataset.actor = actor(s) ?? '';
     document.body.dataset.react = s.reactWindow ? s.reactWindow.reactor : '';
-    document.body.dataset.step = ui.sel ? `sel:${ui.sel.field ?? ''}:${ui.sel.cands.length}:${ui.sel.release.length}` : ui.menu ? 'menu' : 'idle';
+    document.body.dataset.step = ui.sel ? `sel:${ui.sel.field ?? ''}:${ui.sel.cands.length}:${ui.sel.release.length}` : ui.menu ? 'menu' : ui.settingsOpen ? 'settings' : 'idle';
+    document.body.dataset.skips = String(skips);
+  }
+
+  // Dev aid for the checks: does the board on screen match the state? (A list of problems; empty when it does.)
+  function boardProblems() {
+    const out = [];
+    for (const who of [HUMAN, AI]) {
+      s.players[who].row.forEach((c, lane) => {
+        const el = stage.querySelector(`[data-cell="${who}:${lane}"] .slot-card`);
+        if ((el?.dataset.uid ?? null) !== (c?.uid ?? null)) out.push(`${who} lane ${lane + 1}: shows ${el?.dataset.uid ?? 'nothing'}, the state has ${c?.uid ?? 'nothing'}`);
+        if (el && c && el.querySelector('.tab-h span')?.textContent.replace(/[▲▼]/g, '') !== String(c.currentHealth)) out.push(`${who} lane ${lane + 1}: Health on screen differs`);
+        if (el && getComputedStyle(el).opacity === '0') out.push(`${who} lane ${lane + 1}: hidden`);
+      });
+      const dial = stage.querySelector(`[data-region="warlord-${who}"] .dial-n`);
+      if (dial && dial.textContent !== String(s.players[who].renown)) out.push(`${who}: Renown shows ${dial.textContent}, the state has ${s.players[who].renown}`);
+      const gold = stage.querySelector(`[data-region="piles-${who}"] .gold-n`);
+      if (gold && gold.lastChild.textContent !== String(s.players[who].gold)) out.push(`${who}: Gold shows ${gold.lastChild.textContent}`);
+    }
+    if (stage.querySelectorAll('.hand-card').length !== s.players[HUMAN].hand.length) out.push('the hand on screen differs');
+    if (stage.querySelector('#fx')?.children.length) out.push('effects left on the board');
+    return out;
   }
 
   // The log keeps only the lines that fit (newest first): no line is ever cut off. (Again once the fonts load.)
@@ -278,7 +371,13 @@ export function startApp(params) {
   }
 
   // --- Input -------------------------------------------------------------------------------------------------
+  // A click during a presentation skips to the end of the current beat.
   stage.addEventListener('click', (e) => {
+    if (presenting) { e.stopPropagation(); skips += 1; document.body.dataset.skips = String(skips); presenter.skip(); }
+  }, true);
+  stage.addEventListener('click', (e) => {
+    if (presenting) return;
+    if (suppressClick) { suppressClick = false; return; }
     const pv = stage.querySelector('#preview');
     if (pv) pv.hidden = true;
     const el = e.target.closest('[data-pick],[data-act]');
@@ -319,6 +418,16 @@ export function startApp(params) {
       case 'mull-keep': return act({ type: 'mulligan', who: HUMAN, cards: [] });
       case 'mull-go': { const cards = [...ui.mulligan]; ui.mulligan = new Set(); return act({ type: 'mulligan', who: HUMAN, cards }); }
       case 'again': seed += 1; return newMatch();
+      case 'settings': ui.settingsOpen = !ui.settingsOpen; return draw();
+      case 'set': {
+        const k = el.dataset.k;
+        const v = el.dataset.v;
+        settings = { ...settings, [k]: k === 'lowMotion' ? v === '1' : k === 'reactSeconds' ? Number(v) : v };
+        ui.settings = settings;
+        saveSettings(settings);
+        applyMotionClass();
+        return draw();
+      }
       default: return undefined;
     }
   });
@@ -329,7 +438,7 @@ export function startApp(params) {
     const el = e.target.closest('[data-hover]');
     const pv = stage.querySelector('#preview');
     if (!pv) return;
-    if (!el || ui.menu) { pv.hidden = true; return; }
+    if (!el || ui.menu || drag?.active) { pv.hidden = true; return; }
     const h = hoverCard(el);
     if (!h) { pv.hidden = true; return; }
     pv.innerHTML = renderCard(h.card, { size: 'full', ...h.opts });
@@ -353,7 +462,7 @@ export function startApp(params) {
     const pv = stage.querySelector('#preview');
     const full = pv && !pv.hidden ? pv.querySelector('.card-full') : null;
     const el = e.target.closest('[data-hover]');
-    if (!full || !el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!full || !el || settings.lowMotion) return;
     const r = el.getBoundingClientRect();
     const fx = (e.clientX - r.left) / r.width - 0.5;
     const fy = (e.clientY - r.top) / r.height - 0.5;
@@ -381,6 +490,80 @@ export function startApp(params) {
     return null;
   }
 
+  // --- Drag to play: a hand card onto a space, lane, creature or Warlord; a Ready creature onto a target ---------
+  let drag = null;
+  const toStage = (x, y) => { const sr = stage.getBoundingClientRect(); const k = sr.width / STAGE_W; return { x: (x - sr.left) / k, y: (y - sr.top) / k }; };
+  // Where an action can be dropped: the keys of the board elements that stand for its space, lane or target.
+  function dropKeys(a) {
+    if (a.type === 'summon') return [`cell:${HUMAN}:${a.space}`];
+    if (a.type === 'placeLocation') return [`cell:${HUMAN}:${a.start}`, `cell:${AI}:${a.start}`];
+    const t = a.target;
+    if (a.type === 'buyItem' && a.then === 'store') return ['bag'];
+    if (!t || t.none) return ['map'];
+    if (t.kind === 'warlord') return ['warlord'];
+    if (t.kind === 'creature') return [`cell:${AI}:${t.space}`];
+    if (t.area) return lanesHere(s, t.space).map((l) => `cell:${t.who}:${l}`);
+    return [`cell:${t.who}:${t.space}`];
+  }
+  function keyAt(x, y) {
+    const hit = document.elementFromPoint(x, y);
+    if (!hit) return null;
+    const c = hit.closest('[data-cell]');
+    if (c) return `cell:${c.dataset.cell}`;
+    if (hit.closest(`[data-region="warlord-${AI}"]`)) return 'warlord';
+    if (hit.closest(`[data-region="piles-${HUMAN}"] .bag`)) return 'bag';
+    if (hit.closest('[data-region="map"]')) return 'map';
+    return null;
+  }
+  const elFor = (k) => (k === 'warlord' ? stage.querySelector(`[data-region="warlord-${AI}"]`) : k === 'bag' ? stage.querySelector(`[data-region="piles-${HUMAN}"] .bag`) : k === 'map' ? null : stage.querySelector(`[data-cell="${k.slice(5)}"]`));
+  stage.addEventListener('pointerdown', (e) => {
+    if (presenting || ui.locked || e.button !== 0) return;
+    const el = e.target.closest('[data-act="hand"],[data-act="attacker"]');
+    if (!el) return;
+    drag = { kind: el.dataset.act, uid: el.dataset.uid, lane: Number(el.dataset.lane), x0: e.clientX, y0: e.clientY, active: false };
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    if (!drag.active) {
+      if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 8) return;
+      drag.active = true;
+      if (ui.sel || ui.menu) cancel();
+      drag.cands = drag.kind === 'hand' ? mine().filter((a) => a.uid === drag.uid && a.type !== 'retain' && !(a.type === 'buyItem' && a.from === 'market')) : mine().filter((a) => a.type === 'attack' && a.from === drag.lane);
+      drag.keys = new Set(drag.cands.flatMap(dropKeys));
+      for (const k of drag.keys) elFor(k)?.classList.add('drop-ok');
+      const card = drag.kind === 'hand' ? s.players[HUMAN].hand.find((c) => c.uid === drag.uid) : s.players[HUMAN].row[drag.lane];
+      const g = document.createElement('div');
+      g.className = 'drag-ghost';
+      g.innerHTML = renderCard(card, { size: drag.kind === 'hand' ? 'mini' : 'token', live: drag.kind !== 'hand' });
+      stage.appendChild(g);
+      drag.ghost = g;
+      const pv = stage.querySelector('#preview');
+      if (pv) pv.hidden = true;
+    }
+    const p = toStage(e.clientX, e.clientY);
+    drag.ghost.style.left = `${p.x}px`;
+    drag.ghost.style.top = `${p.y}px`;
+    const k = keyAt(e.clientX, e.clientY);
+    stage.querySelectorAll('.drop-hover').forEach((x) => x.classList.remove('drop-hover'));
+    if (k && (drag.keys.has(k) || (drag.keys.has('map') && k.startsWith('cell:')))) elFor(k)?.classList.add('drop-hover');
+  });
+  window.addEventListener('pointerup', (e) => {
+    if (!drag) return;
+    const d = drag;
+    drag = null;
+    if (!d.active) return;
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 0);
+    d.ghost?.remove();
+    stage.querySelectorAll('.drop-ok, .drop-hover').forEach((x) => x.classList.remove('drop-ok', 'drop-hover'));
+    const k = keyAt(e.clientX, e.clientY);
+    const list = d.cands.filter((a) => { const ks = dropKeys(a); return ks.includes(k) || (ks.includes('map') && (k === 'map' || k?.startsWith('cell:'))); });
+    if (!list.length) return toast('It can\'t be played there.');
+    if (d.kind === 'attacker') { ui.attacker = d.lane; return choose(list, `Attack with ${s.players[HUMAN].row[d.lane].name}`); }
+    ui.handSel = d.uid;
+    return openHand(d.uid, list);
+  });
+
   // The fixed 1920×1080 stage, scaled to fit the window.
   const fit = () => {
     const scale = Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H);
@@ -389,7 +572,8 @@ export function startApp(params) {
   window.addEventListener('resize', fit);
   fit();
   newMatch();
-  window.__match = { get seed() { return seed; } };
+  // Dev hooks for the checks (they read; they never change the match).
+  window.__match = { get seed() { return seed; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems };
 }
 
 export { esc };

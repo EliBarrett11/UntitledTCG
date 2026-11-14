@@ -1,0 +1,93 @@
+# S5 simulation: 200 AI-vs-AI matches, before and after the AI's Strat and Energy valuation
+
+## Before (the S4 AI)
+Simulated 200 AI-vs-AI matches with the first deck (seeds 1–200) in 155.8 s.
+Finished: 200. Failed: 0.
+Wins by seat: Player 1 99 (49.5%), Player 2 101 (50.5%), draws 0.
+Won by the player with Round 1 initiative: 104 of 200 (52.0%).
+How matches ended: renown 200.
+Match length: average 7.92 Rounds (median 8, range 5–11).
+The Last Battle triggered in 184 of 200 matches (92.0%).
+Quest (Lady Corwen's Commission): completed 153 times of 400 possible (38.3%).
+  Round completed: median 7, middle half 6–7, range 4–9.
+Renown by source:
+  Damage to the Warlord      12787  40.8%
+  Defeats                     7746  24.7%
+  Location dominance          7314  23.4%
+  Favours                     2728  8.7%
+  Last Battle dominance        416  1.3%
+  Quests                       313  1.0%
+Cards played (both players, all matches; per match in brackets):
+  Oathsworn Recruit                 592  (2.96)  summoned 592
+  Hollowfoot Cutpurse               486  (2.43)  summoned 486
+  Ashen Spire Apprentice            680  (3.40)  summoned 680
+  Deepforge Acolyte                 549  (2.75)  summoned 549
+  Thornwood Scout                   398  (1.99)  summoned 398
+  Ironhide Brawler                  653  (3.27)  summoned 653
+  Gloomfang Wolf                    649  (3.25)  summoned 649
+  Barrow Shade                      589  (2.94)  summoned 589
+  Stonehide Basilisk                314  (1.57)  summoned 314
+  The Ashen Wyrm                    363  (1.81)  summoned 363
+  Firebolt                          893  (4.46)  adapt 491, react 402
+  Parry                            1057  (5.29)  react 840, adapt 217
+  Night Raid                        152  (0.76)  adapt 152
+  Mending Prayer                    467  (2.33)  adapt 68, react 399
+  Call to Arms                      690  (3.45)  played 690
+  Rumour of Treasure                328  (1.64)  played 328
+  Desperate Gambit                  328  (1.64)  played 328
+  Healer's Salve                   1566  (7.83)  bought from the Market 1295, bought from hand 271
+  Draught of Vigour                 701  (3.50)  bought from the Market 498, bought from hand 203
+  Flask of Wildfire                1232  (6.16)  bought from the Market 1005, bought from hand 227
+  Tower Shield                      481  (2.40)  bought from the Market 338, bought from hand 143
+  Runed Blade                       320  (1.60)  bought from the Market 174, bought from hand 146
+  Ironroot Pass                     534  (2.67)  placed 534
+  Emberfall Ruins                   461  (2.31)  placed 461
+  Mistveil Marshes                   96  (0.48)  placed 96
+  Lady Corwen's Commission          115  (0.57)  Campaign Order 115
+Every card was played.
+
+## After (S5)
+Simulated 200 AI-vs-AI matches with the first deck (seeds 1–200) in 163.1 s.
+Finished: 200. Failed: 0.
+Wins by seat: Player 1 86 (43.0%), Player 2 114 (57.0%), draws 0.
+Won by the player with Round 1 initiative: 93 of 200 (46.5%).
+How matches ended: renown 200.
+Match length: average 7.92 Rounds (median 8, range 5–10).
+The Last Battle triggered in 184 of 200 matches (92.0%).
+Quest (Lady Corwen's Commission): completed 161 times of 400 possible (40.3%).
+  Round completed: median 7, middle half 6–7, range 4–9.
+Renown by source:
+  Damage to the Warlord      13199  41.0%
+  Defeats                     7971  24.7%
+  Location dominance          7413  23.0%
+  Favours                     2886  9.0%
+  Last Battle dominance        424  1.3%
+  Quests                       332  1.0%
+Cards played (both players, all matches; per match in brackets):
+  Oathsworn Recruit                 595  (2.98)  summoned 595
+  Hollowfoot Cutpurse               492  (2.46)  summoned 492
+  Ashen Spire Apprentice            662  (3.31)  summoned 662
+  Deepforge Acolyte                 567  (2.83)  summoned 567
+  Thornwood Scout                   431  (2.15)  summoned 431
+  Ironhide Brawler                  634  (3.17)  summoned 634
+  Gloomfang Wolf                    672  (3.36)  summoned 672
+  Barrow Shade                      600  (3.00)  summoned 600
+  Stonehide Basilisk                307  (1.53)  summoned 307
+  The Ashen Wyrm                    360  (1.80)  summoned 360
+  Firebolt                          911  (4.55)  adapt 305, react 416, strat 190
+  Parry                            1075  (5.38)  react 876, adapt 199
+  Night Raid                         36  (0.18)  adapt 36
+  Mending Prayer                    456  (2.28)  react 414, adapt 40, strat 2
+  Call to Arms                      670  (3.35)  played 670
+  Rumour of Treasure                320  (1.60)  played 320
+  Desperate Gambit                  354  (1.77)  played 354
+  Healer's Salve                   1450  (7.25)  bought from the Market 1219, bought from hand 231
+  Draught of Vigour                 490  (2.45)  bought from the Market 417, bought from hand 73
+  Flask of Wildfire                1245  (6.22)  bought from the Market 1015, bought from hand 230
+  Tower Shield                      525  (2.63)  bought from the Market 366, bought from hand 159
+  Runed Blade                       373  (1.86)  bought from the Market 206, bought from hand 167
+  Ironroot Pass                     548  (2.74)  placed 548
+  Emberfall Ruins                   446  (2.23)  placed 446
+  Mistveil Marshes                   96  (0.48)  placed 96
+  Lady Corwen's Commission           18  (0.09)  Campaign Order 18
+Every card was played.

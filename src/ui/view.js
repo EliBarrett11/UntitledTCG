@@ -22,7 +22,9 @@ const dial = (n, d, size, inner) => `<div class="dial" style="width:${size}px;he
 function warlord(s, who, ui) {
   const p = s.players[who];
   const pick = ui.picks?.warlord;
-  return `<div class="warlord ${who === HUMAN ? 'warlord-you' : 'warlord-enemy'}${pick ? ' target' : ''}" ${pick ? `data-pick="${esc(pick)}"` : ''} data-region="warlord-${who}">
+  const pick2 = who === AI ? pick : null;
+  return `<div class="warlord ${who === HUMAN ? 'warlord-you' : 'warlord-enemy'}${pick2 ? ' target' : ''}" ${pick2 ? `data-pick="${esc(pick2)}"` : ''} data-region="warlord-${who}">
+
     ${dial(p.renown, RULES.win, 74, 58).replace('$', `<div class="dial-n">${p.renown}</div><div class="dial-of">/ ${RULES.win}</div>`)}
     <div class="warlord-text">
       <div class="warlord-title">${who === HUMAN ? 'YOUR WARLORD' : 'ENEMY WARLORD'}</div>
@@ -128,7 +130,11 @@ function row(s, who, ui) {
       body = `<div class="slot-card ${cls}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board">${tag}${renderCard(c, { size: 'token', live: true })}</div>`;
     }
     const attrs = cpick ? `data-pick="${esc(cpick)}"` : pick ? `data-pick="${esc(pick)}"` : ui.picks?.attacker?.[lane] && who === HUMAN && c ? 'data-act="attacker"' : '';
-    return `<div class="cell${pick ? ' target' : ''}" data-cell="${who}:${lane}" data-lane="${lane}" style="left:${lane * LANE_W}px;top:${ROW_Y[who]}px;width:${LANE_W}px" ${attrs}>${body}${chips}</div>`;
+    // The preview of choosing this target (on a Location target, once, on its leftmost lane).
+    const pk = cpick ?? pick;
+    const showBadge = pk && ui.previews?.[pk] && (!pk.endsWith(':area') || pk.split(':')[2] === String(lane));
+    const badge = showBadge ? `<div class="preview-badge">${esc(ui.previews[pk])}</div>` : '';
+    return `<div class="cell${pick ? ' target' : ''}" data-cell="${who}:${lane}" data-lane="${lane}" style="left:${lane * LANE_W}px;top:${ROW_Y[who]}px;width:${LANE_W}px" ${attrs}>${body}${chips}${badge}</div>`;
   }).join('');
   return cells;
 }
@@ -229,7 +235,8 @@ function reactBar(s, ui) {
   if (!ui.react) return '';
   const secs = Math.max(0, Math.ceil(ui.react.left / 1000));
   const tray = ui.react.options.map((o, i) => `<div class="react-opt${ui.react.chosen === i ? ' selected' : ''}" data-act="react" data-i="${i}" data-hover="react" data-uid="${esc(o.uid)}" title="React ${o.cost}: ${esc(o.text)}">
-      ${renderCard(s.players[HUMAN].hand.find((c) => c.uid === o.uid), { size: 'mini' })}<div class="react-cost">React ${o.cost}</div></div>`).join('');
+      ${renderCard(s.players[HUMAN].hand.find((c) => c.uid === o.uid), { size: 'mini' })}<div class="react-cost">React ${o.cost}</div>
+      <div class="react-preview"><div><b>With it:</b> ${esc(o.with)}</div><div><b>Without:</b> ${esc(ui.react.without)}</div></div></div>`).join('');
   return `<div class="react-bar" data-region="react-bar">
       <div class="react-text">${esc(ui.react.what)}</div>
       <div class="react-timer" style="--p:${pct(ui.react.left, ui.react.total)}%"><span>${secs}</span></div>
@@ -275,7 +282,10 @@ export function render(s, ui) {
   return `<div class="table-bg"></div>
   <div class="topbar${ui.react ? ' reacting' : ''}" data-region="topbar">
     ${warlord(s, AI, ui)}${quest(s, AI)}${enemyHand(s)}${sealedStrats(s, AI)}<div class="grow"></div>${piles(s, AI, ui)}
+    <button type="button" class="gear" data-act="settings" title="Settings" aria-label="Settings">⚙</button>
   </div>
+  ${settingsPanel(ui)}
+  ${ui.picks?.warlord && ui.previews?.[ui.picks.warlord] ? `<div class="preview-badge warlord-badge">${esc(ui.previews[ui.picks.warlord])}</div>` : ''}
   ${map(s, ui)}
   <div class="side-marker">ENEMY ▲ · ▼ YOU</div>
   <div class="me-left">${sealedStrats(s, HUMAN)}${quest(s, HUMAN)}${warlord(s, HUMAN, ui)}</div>
@@ -289,7 +299,26 @@ export function render(s, ui) {
   ${mulligan(s, ui)}
   ${endScreen(s)}
   ${ui.toast ? `<div class="toast">${esc(ui.toast)}</div>` : ''}
+  <div id="fx" aria-hidden="true"></div>
   <div class="preview" id="preview" hidden></div>`;
+}
+
+// Settings: game speed, low motion and the React timer.
+function settingsPanel(ui) {
+  if (!ui.settingsOpen) return '';
+  const st = ui.settings;
+  const opt = (k, v, label, on) => `<button type="button" class="set${on ? ' on' : ''}" data-act="set" data-k="${k}" data-v="${v}">${label}</button>`;
+  return `<div class="settings" data-region="settings">
+    <div class="settings-title">SETTINGS</div>
+    <div class="label">GAME SPEED</div>
+    <div class="set-row">${['slow', 'normal', 'fast'].map((v) => opt('speed', v, v[0].toUpperCase() + v.slice(1), st.speed === v)).join('')}</div>
+    <div class="label">LOW MOTION</div>
+    <div class="set-row">${opt('lowMotion', '0', 'Off', !st.lowMotion)}${opt('lowMotion', '1', 'On', st.lowMotion)}</div>
+    <div class="muted small">No tilt, sheen, embers or ribbons; short fades instead.</div>
+    <div class="label">REACT TIMER</div>
+    <div class="set-row">${[5, 8, 12, 20].map((v) => opt('reactSeconds', v, `${v} s`, st.reactSeconds === v)).join('')}</div>
+    <button type="button" class="btn" data-act="settings">Close</button>
+  </div>`;
 }
 
 // After drawing: a Location label keeps to one line; if its full line doesn't fit, it uses the short one.

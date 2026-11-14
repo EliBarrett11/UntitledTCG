@@ -75,6 +75,17 @@ const result = await page.evaluate(() => {
     for (let i = 0; i < badges.length; i++) for (let j = i + 1; j < badges.length; j++) {
       if (overlap(r(badges[i]), r(badges[j]))) problems.push(`${label}: two badges overlap: "${badges[i].textContent.trim().slice(0, 20)}" / "${badges[j].textContent.trim().slice(0, 20)}"`);
     }
+    // The frame's shape never cuts into a badge on the panel (the Monster's claw-torn corner, the Action's notch...).
+    const panel = card.querySelector('.card-panel');
+    const pb = r(panel);
+    const pts = (getComputedStyle(panel).clipPath.match(/polygon\((.*)\)/)?.[1] ?? '').split(',').map((p) => p.trim().split(/\s+/).map((v, k) => (parseFloat(v) / 100) * (k ? pb.height : pb.width) + (k ? pb.top : pb.left)));
+    const inPoly = (x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i]; const [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
+    if (pts.length > 2) for (const b of badges) {
+      if (!panel.contains(b)) continue;
+      const bb = r(b);
+      const corners = [[bb.left + 1, bb.top + 1], [bb.right - 1, bb.top + 1], [bb.left + 1, bb.bottom - 1], [bb.right - 1, bb.bottom - 1], [(bb.left + bb.right) / 2, bb.top + 1]];
+      if (corners.some(([x, y]) => !inPoly(x, y))) problems.push(`${label}: the frame cuts into a badge: "${b.textContent.trim().slice(0, 20)}"`);
+    }
     const body = card.querySelector('.body');
     if (body && r(body).top < box.top + 8) problems.push(`${label}: the text block reaches the top edge`);
   }

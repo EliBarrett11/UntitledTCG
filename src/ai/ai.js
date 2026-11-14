@@ -2,7 +2,7 @@
 // action from legalActions, tries each on a copy of its own view of the state through applyAction,
 // scores the result, and plays the best. It never edits state directly and never sees the other
 // player's hand, Draw Pile or face-down Strats. Its small random tie-break comes from a seeded generator.
-import { applyAction, legalActions, opponentOf, creaturesOf, isReady, dominantOf, lastBattleDominant, boosted, actionKey, locationKey, emptySpaces, guardsOf, keywordAmount } from '../engine/game.js';
+import { applyAction, legalActions, resolveStrats, drainTriggers, opponentOf, creaturesOf, isReady, dominantOf, lastBattleDominant, boosted, actionKey, locationKey, emptySpaces, guardsOf, keywordAmount } from '../engine/game.js';
 import { isCreature } from '../engine/cards.js';
 import { RULES } from '../engine/rules.js';
 import { makeRng } from '../engine/random.js';
@@ -22,8 +22,24 @@ export function hiddenView(s, who) {
   };
 }
 
-// How good a state is for `who`.
+// A sealed Strat changes nothing yet, so a state with the AI's own pending Strats is judged partly as if they had
+// resolved: STRAT_WEIGHT of the resolved board, the rest as it stands (the discount for the delay, and the risk
+// that it fizzles or is Reacted to).
+export const STRAT_WEIGHT = 0.7;
 export function evaluate(s, who) {
+  if (s.phase === 'gameOver' || !s.strats?.some((x) => x.owner === who)) return evaluateNow(s, who);
+  const t = structuredClone(s);
+  t.reactWindow = null;
+  t.events = [];
+  t.log = [];
+  resolveStrats(t, who, 'turn');
+  t.reactWindow = null;
+  drainTriggers(t);
+  return STRAT_WEIGHT * evaluateNow(t, who) + (1 - STRAT_WEIGHT) * evaluateNow(s, who);
+}
+
+// How good a state is for `who`, as it stands.
+function evaluateNow(s, who) {
   const foe = opponentOf(who);
   if (s.phase === 'gameOver') return s.winner === who ? 1e6 : s.winner ? -1e6 : 0;
   const side = (w) => {
@@ -50,7 +66,8 @@ export function evaluate(s, who) {
     if (d) dom += (d === who ? 1 : -1) * boosted(s, RULES.perLastBattleDominance) * 1.6 * 0.8;
   }
   const me = s.players[who];
-  return side(who) - side(foe) + dom + (s.turn === who ? me.baseEnergy * 0.3 : 0) - me.exhaust.length * 0.6;
+  // Energy left this Round is worth something on either player's turn (a React or a Strat spends it too).
+  return side(who) - side(foe) + dom + (s.phase === 'battle' ? me.baseEnergy * 0.3 : 0) - me.exhaust.length * 0.6;
 }
 
 // A card's worth in hand, for choosing what to Release or mulligan.

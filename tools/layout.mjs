@@ -19,7 +19,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 's4';
+const STAGE = 's5';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -30,6 +30,8 @@ const SCENES = [
   { name: 'hover-hand', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card', 2); }, preview: true },
   { name: 'hover-board', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.slot-card', 0); }, preview: true },
   { name: 'menu', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await clickTop(p, '[data-act="hand"]', 0); } },
+  { name: 'settings', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await clickTop(p, '[data-act="settings"]', 0); }, need: '[data-region="settings"]' },
+  { name: 'attack-preview', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await clickTop(p, '[data-act="attacker"]', 0); }, need: '.preview-badge' },
   { name: 'react', query: `?seed=${SEED}&scene=react&pace=100000`, need: '[data-region="react-bar"]' },
   { name: 'lastbattle', query: `?seed=${SEED}&scene=lastbattle&pace=100000`, need: '.map.last-battle' },
   { name: 'end', query: `?seed=${SEED}&scene=end&pace=100000`, need: '[data-region="end"]' },
@@ -65,7 +67,7 @@ function inspect() {
   if (sr.left < -1 || sr.top < -1 || sr.right > innerWidth + 1 || sr.bottom > innerHeight + 1) out.push('the stage is off-screen');
   if (document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight) out.push('the page scrolls');
   // Nothing off-screen.
-  for (const el of stage.querySelectorAll('[data-region], .hand-card, .preview, .menu, .react-opt, .dialog, .slot-card, .loc-label, .side-marker, .caption, .prompt, .toast')) {
+  for (const el of stage.querySelectorAll('[data-region], .hand-card, .preview, .menu, .react-opt, .dialog, .slot-card, .loc-label, .side-marker, .caption, .prompt, .toast, .preview-badge, .gear')) {
     if (!visible(el)) continue;
     const b = box(el);
     if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
@@ -89,6 +91,8 @@ function inspect() {
     ['[data-region="react-tray"]', '[data-region="map"]'], ['[data-region="react-tray"]', '.side-marker'], ['[data-region="react-tray"]', '.me-piles .piles'], ['[data-region="react-tray"]', '.me-left .quest'],
     ['.caption', '.loc-label'], ['.prompt', '.loc-label'], ['.caption', '.prompt'], ['.caption', '.slot-card'], ['.prompt', '.slot-card'],
     ['.loc-label', '.slot-card'], ['.menu', '[data-region="map"] .slot-card.ready'],
+    ['.gear', '[data-region="piles-p2"]'], ['.gear', '[data-region="column"]'], ['.preview-badge', '.preview-badge'], ['.preview-badge', '.loc-label'],
+    ['[data-region="react-tray"]', '.me-piles .piles'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);
   const labels = one('.loc-label');
