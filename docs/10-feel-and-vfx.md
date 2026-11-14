@@ -148,3 +148,141 @@ All of this stays quiet, and it is off in low motion.
 12. **Signature moments come in V2.** Dusk, Dawn, Location placement, Quest progress, the Legendary Creature and the Last Battle get a light touch over their S5 animations here (a wash, a sweep, dust, rays, a gate of light).
 13. **Texture size.** Painted textures load at up to 512 px on their longer side (long, thin ones up to 1024), which keeps GPU memory near 100 MB on an integrated laptop GPU. The biggest effects (the Legendary shockwave, the Dusk wash) are drawn a little larger than their textures; they are soft, so it barely shows.
 14. **Damage effects are now reported.** The engine already applied a damage effect's damage, but it didn't report it as an event, so S5 never showed it. It now emits an `effect` event before the defeats it causes. This is presentation data only; no rule changed.
+
+---
+
+## 5. The V2 storyboard: signature moments
+
+Written by the design chat, 14 November 2026. As in section 3, times are at normal speed, and every texture named is in `assets/vfx/`.
+
+### 5.1 Weight pass on everyday moments (from the V1 review)
+
+In V1's clips the ordinary Martial attack and the defeat read as small next to the Wyrm. The quality bar asks for weight on every hit.
+
+- **Attacks:**
+  - slash and claw arcs about 1.5× larger, spanning the target card;
+  - a brighter `impact-flash`, and a short `metal-sparks-atlas` spray thrown away from the attacker;
+  - the target recoils about 6 px.
+- **Defeats** must be unmistakable:
+  - the card visibly burns away from the centre over 0.5 s, with `burn-away-mask` and `flames-atlas` along the edge;
+  - then a clear stream of `ash-flakes-atlas` and `embers-atlas` drifts to the Released Pile, which flashes when they arrive.
+- Never cover the numbers.
+
+### 5.2 Class and Kind signatures
+
+Each one builds on V1's attack for its Class or Kind. The final form's version is a little grander.
+
+| Series | Attack signature |
+|---|---|
+| Oathsworn (Fighter) | A crimson `slash-arc`. The Captain strikes twice, crossing arcs. |
+| Ironhide (Fighter) | A `cleave-arc` slam with a `dust-ground-ring`. The Champion adds a `shockwave-ring`. |
+| Ashen Spire (Wizard) | Apprentice: an `arcane-bolt`. Magus: an `arcane-orb` charge, then the bolt. Archmagus: `arcane-lightning` with a `rune-circle` turning under him. |
+| Hollowfoot (Rogue) | `knife-streaks-atlas` throws. The Knifemaster hops and fans three knives. |
+| Deepforge (Cleric) | A gold `hammer-sigil` slams onto the target. |
+| Thornwood (Ranger) | An `arrow` with an `arrow-trail`. The Pathfinder looses a volley of three. |
+| Gloomfang (Beast) | `claw-rake` or `bite-snap`, with `fur-tufts-atlas`. The Alpha's summon sends a `wing-gust`-style rush of air across its lane. |
+| Barrow (Undead) | A `soul-wisp` strike. The Lord adds a `spectral-wail` ring. |
+| Stonehide (Beast) | A heavy body slam with `rock-shards-atlas`, and `ember-cracks` under the target. |
+
+### 5.3 Actions
+
+| Card | React | Adapt | Strat |
+|---|---|---|---|
+| Firebolt | a small, quick bolt | the full bolt | the bolt, then an `arcane-vortex` on impact |
+| Parry | a `riposte-cross` and sparks where the blow is turned | a crimson `empower-aura` rises on the creature | |
+| Night Raid | | an `ambush-burst` of smoke on the target, which is made Spent | `poison-mist` rolls across the Location's lanes, and each enemy there is made Spent in turn |
+| Mending Prayer | a `holy-pillar` on the creature | a pillar on each of yours in the Location | a gold `heal-bloom` wash across all of yours |
+
+Every React opens with a `react-flare` at its card.
+
+### 5.4 Events
+
+1. The card rises from the hand and a `candle-flame` flares beside it.
+2. Each Released card burns in its light (`burning-card-edge`, then `burn-away-mask`).
+3. Drawn cards fly from the Draw Pile.
+4. If a Favour is met, a `laurel-of-light` wreathes the card, and a `renown-ribbon` carries the +3 Renown to the dial.
+
+Each Event also has its own touch:
+
+| Card | Its touch |
+|---|---|
+| Call to Arms | a `war-horn-blast` cone from the card toward your side |
+| Rumour of Treasure | a `scroll-open`, then a `coin-shower` |
+| Desperate Gambit | `energy-spark` bolts into the Energy pips |
+
+### 5.5 Items and the Market
+
+- **Buying:** `coin-spin-atlas` coins fly from your Gold to the Market. The Item then flies to your Bag, or to the chosen creature.
+- **Equipping a Held Item:** a `blade-runes-glint` for the Runed Blade, a `shield-sigil` for the Tower Shield.
+- **Consumed Items:** they keep their V1 effects.
+
+### 5.6 Locations
+
+- **Placement (about 1 s):**
+  1. An `ink-spread-mask` paints the region in across its lanes.
+  2. The label writes itself in with a `quill-stroke`.
+  3. A faint image of the Location's art settles in.
+- **Expiry (about 0.8 s):** a `parchment-burn-mask` burns the region away.
+
+### 5.7 Dawn and Dusk
+
+- **Dawn:**
+  1. A `dawn-sweep` crosses the table.
+  2. Energy pips refill with small `energy-spark` bursts.
+  3. Recovered Exert points glint.
+  4. New cards fly in.
+- **Dusk:**
+  1. A `dusk-wash` falls and the candles brighten.
+  2. Dominance is scored Location by Location: a `war-banner` is planted on each dominated Location, in the winner's colour.
+  3. A `renown-ribbon` flows to that player's dial.
+
+### 5.8 The Quest
+
+- **Progress:** each step stamps the tracker with a `quest-stamp`.
+- **Completion:** the tracker fills, a `crown-of-light` flares over it, and the Aldric cinematic follows.
+
+### 5.9 Cinematics
+
+There are three, and they share these rules:
+
+- The board dims, and slim letterbox bars slide in.
+- A click skips straight to the result.
+- Low motion plays a short version: a fade and a single flash, about 1 s.
+- The result is always readable at the end.
+
+**The Ashen Wyrm arrives (about 3.5 s)**
+
+1. The table darkens and a `wing-gust` sweeps across it.
+2. The card drops from above with a `shockwave-ring`, `dust-ground-ring` and a heavy shake.
+3. A `gold-dust-swirl` plays: it's a Legendary.
+4. It rears: an `arcane-orb`-style ember glow builds.
+5. `fire-breath` sweeps its Location, with a `firestorm-ring` on each enemy and the numbers rising.
+
+**Aldric the Unbroken arrives (about 3 s)**
+
+1. Lady Corwen's tracker stamps its final mark.
+2. A `scroll-open` unfurls.
+3. On Aldric's space a `gate-of-light` opens, with a `holy-pillar` and a `crown-of-light` above.
+4. The card descends through the gate and lands with a `shockwave-ring`.
+5. Its Shield sigil and Armour plates flash once.
+
+**The Last Battle begins (about 3 s)**
+
+1. A `war-horn-blast` sounds across the table.
+2. `crimson-sky` rolls over the map from the edges, and the `ember-storm` rises.
+3. A banner with the Last Battle's rules unrolls across the middle, then settles into the existing label.
+4. The scorched map art (`assets/ui/campaign-map-scorched.jpg`) is V3's job. Here the dark map stays as it is.
+
+### 5.10 Timing budget changes
+
+These are proposed, and need Elliott's approval.
+
+| Moment | V1 budget | V2 budget |
+|---|---|---|
+| The Ashen Wyrm arriving (a Legendary summon) | 0.75 s (a summon) | 3.5 s |
+| A Legendary Creature arriving | 2.5 s | 3 s |
+| The Last Battle starting | 2 s | 3 s |
+| Location placement | none | 1 s |
+| Dusk | none | about 0.6 s per dominated Location |
+
+All of them can be skipped.
