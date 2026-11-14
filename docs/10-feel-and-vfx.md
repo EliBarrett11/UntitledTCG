@@ -138,5 +138,13 @@ All of this stays quiet, and it is off in low motion.
 8. **Speed and skipping.** The speed setting scales effect times, particle speeds and gravity together, so an effect keeps its shape. Skipping a beat clears its particles within about 0.12 s and still lands its numbers.
 9. **Low motion.** It turns off shake, hit-stop, bloom flashes, distortion, lunges, the ambient table and particle trails. It keeps a quarter of the particles, and sprites fade 30% sooner.
 10. **The ambient table is CSS, not WebGL.** That way the WebGL loop stops between moments, as the quality bar asks. The candles sit at the four corners of the map, not the window's corners, where the Warlords and panels are.
-11. **Resolution follows the frame rate.** If frames run long, the effects canvas drops its resolution (to as low as half) before it drops frames. Effects are soft, so this is hard to see.
+11. **Automatic quality steps.** Full quality is the default. Each second of effects is judged by its average frame time. After three slow seconds in a row (over 20 ms), quality steps down, in this order:
+    1. bloom at half resolution;
+    2. half the particles;
+    3. the effects canvas at ¾ scale;
+    4. the effects canvas at ½ scale.
+
+    After five quick seconds (under 12 ms), it steps back up. `?vfxquality=N` holds a step; `?fps=1` shows the overlay.
 12. **Signature moments come in V2.** Dusk, Dawn, Location placement, Quest progress, the Legendary Creature and the Last Battle get a light touch over their S5 animations here (a wash, a sweep, dust, rays, a gate of light).
+13. **Texture size.** Painted textures load at up to 512 px on their longer side (long, thin ones up to 1024), which keeps GPU memory near 100 MB on an integrated laptop GPU. The biggest effects (the Legendary shockwave, the Dusk wash) are drawn a little larger than their textures; they are soft, so it barely shows.
+14. **Damage effects are now reported.** The engine already applied a damage effect's damage, but it didn't report it as an event, so S5 never showed it. It now emits an `effect` event before the defeats it causes. This is presentation data only; no rule changed.

@@ -54,6 +54,26 @@ The presenter check (AI-vs-AI with the animations on and random skips; the board
 node tools/presenter.mjs
 ```
 
+The effects check (every storyboard effect plays in real matches; missing textures fall back to stand-ins; the 2D fallback with WebGL off):
+
+```bash
+node tools/vfxcheck.mjs
+```
+
+The performance check (frame times at 1920×1080 while effects play; add `'&vfxquality=0'` to hold full quality, `'&webgl=0'` for the 2D fallback):
+
+```bash
+node tools/perf.mjs 5 60
+```
+
+The review clips (videos and frame strips of each storyboard moment, in `tools/clips/`; needs ffmpeg):
+
+```bash
+node tools/clips.mjs
+```
+
+**Measuring on your machine:** open the game with `?fps=1` for a corner overlay with the fps, the average and worst frame time over the last 5 seconds, and the effects' quality step.
+
 **Debug view:** open the page with `?debug=1` (and optionally `&seed=N`) to watch one seeded AI-vs-AI match as a text log.
 
 ## Build log
@@ -114,3 +134,26 @@ node tools/presenter.mjs
 - Monster cards: the Level badge sits clear of the claw-torn corner at every size; the neat-text test checks that no frame cuts into a badge.
 - Checks: `tools/presenter.mjs`; `tools/realinput.mjs` now plays with the animations on (normal speed, at three sizes, and once in low motion), skipping beats and dragging cards; `tools/s5shots.mjs` takes the review screenshots.
 - Readings for Elliott's approval: `docs/03-look-and-feel.md` section 8.
+
+### V1: The effects layer (14 November 2026)
+- `src/ui/vfx/`: a hand-written WebGL2 effects layer over the stage (no libraries).
+  - GPU particles: each one written once at birth, its path worked out in the vertex shader. There is a pool per texture, with additive blending for light and normal blending for solid pieces.
+  - Sprites and atlas frames from `assets/vfx/manifest.json`, tinted to the source's accent colour.
+  - Ribbons and trails along curved paths.
+  - Bloom, and a distortion pass for shockwaves and heat.
+  - Hit-stop and screen shake scaled by damage.
+  - The render loop runs only while effects are alive.
+- Effects are data: each moment is a timeline in `src/ui/vfx/library.js`; `runner.js` plays it inside a presenter beat. The speed setting scales it, a click skips it, and the numbers always land.
+- Wired to the storyboard (`docs/10-feel-and-vfx.md` section 3):
+  - attacks: Martial, Arcane, Ranger, Rogue, Beast, Undead, the Wyrm, and hitting back;
+  - defeats by Kind; summons, including Heavy and Ambush;
+  - Renown and Favour; healing; Strats sealing and resolving; Gold and Items;
+  - guards, Armour and Riposte; card effects (Firebolt, Wildfire, the Wyrm's On Summon, the Barrow Shade's drain and others);
+  - a light touch over Dusk, Dawn, Locations, Quests, the Legendary Creature and the Last Battle.
+- The quiet table (`ambient.js`): dust, fog over the Wilds, candles at the map's corners, embers in the Last Battle. It is drawn in CSS so the WebGL loop can stop; it is off in low motion.
+- Missing textures (94 of 113 delivered; `ward-sigil` and `react-flare` are used and not yet in) are drawn in code. Without WebGL2 (or with `?webgl=0`) the S5 animations play.
+- Low motion: no shake, hit-stop, flashes, distortion or lunges; a quarter of the particles; shorter fades.
+- Full quality by default. Automatic quality steps drop the bloom resolution, then the particle count, then the render scale, if frames stay over 20 ms; they step back up when there is headroom. `?fps=1` shows a frame-rate overlay.
+- The engine now also reports damage effects as an `effect` event (presentation only, no rule change), so Firebolt, Wildfire and On Summon or On Defeat damage are shown.
+- Checks: `tests/v1-vfx.test.js`, `tools/vfxcheck.mjs`, `tools/perf.mjs` (results in `tools/reports/v1-perf*.txt`: software rendering here, for reference only), `tools/clips.mjs` (clips and frame strips in `tools/clips/`).
+- Readings for Elliott's approval: `docs/10-feel-and-vfx.md` section 4.

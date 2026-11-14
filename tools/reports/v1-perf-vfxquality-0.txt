@@ -1,0 +1,6 @@
+Software rendering, for reference only (no GPU here). Performance at 1920×1080, seed 5, 60 actions, effects webgl (&vfxquality=0).
+Renderer: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver).
+Frames timed while beats played: 4051.
+Frame time: average 49.2 ms (20 fps), 95th percentile 216.6 ms, worst 316.6 ms.
+Effects buffer at the end: 1920×1080, quality step 0 (full); 76 painted textures loaded.
+60 fps target (16.7 ms average): NOT met.
