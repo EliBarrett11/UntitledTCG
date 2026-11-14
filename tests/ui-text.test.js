@@ -19,7 +19,8 @@ test('art: shown when its file exists, Art Pending otherwise (the generated art 
   const files = readdirSync(new URL('../assets/cards/', import.meta.url)).filter((f) => f.endsWith('.jpg')).map((f) => `assets/cards/${f}`).sort();
   assert.deepEqual([...ART].sort(), files);
   assert.equal(artOf(cardAtRound('firebolt', 1, 'a')), 'assets/cards/firebolt.jpg');
-  assert.equal(artOf(cardAtRound('rumour-of-treasure', 1, 'b')), null);
+  // (Every card's art has now arrived; a card whose art file isn't there shows Art Pending.)
+  assert.equal(artOf({ ...cardAtRound('oathsworn-recruit', 1, 'b'), art: 'assets/cards/not-painted-yet.jpg' }), null);
   assert.equal(artOf(cardAtRound('oathsworn-recruit', 4, 'c')), 'assets/cards/oathsworn-captain.jpg', 'each form has its own art');
 });
 

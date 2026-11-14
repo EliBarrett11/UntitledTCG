@@ -1,6 +1,6 @@
 // The quiet table between moments (storyboard K): dust motes drifting through the candlelight, a faint fog
-// over the Wilds, candles glowing at the map's corners and, in the Last Battle, embers and ash blowing across
-// the map. Drawn with CSS (the GPU composites it), so the WebGL loop can stop when no moment is playing.
+// over the Wilds, candles glowing at the map's corners and, in the Last Battle, embers, ash and the ember storm
+// blowing across the map. Drawn with CSS (the GPU composites it), so the WebGL loop can stop when no moment is playing.
 // It is redrawn with the board; each piece's animation delay follows one clock, so redraws never make it jump.
 // Off in low motion.
 
@@ -38,8 +38,9 @@ export function createAmbient({ missing = new Set() } = {}) {
       const flame = has('candle-flame') ? `background-image:url(${url('candle-flame')});background-size:contain;background-repeat:no-repeat;background-position:center` : dot(30, 'rgba(255,190,110,0.9)');
       parts.push(`<i class="amb-candle" style="left:${x}px;top:${y}px;${delay(3.2, x * 0.01 + y * 0.003)}${flip ? ';animation-direction:reverse' : ''}"><b style="${flame}"></b></i>`);
     }
-    // In the Last Battle: embers and ash blow across the map (drawn in code until ember-storm arrives).
+    // In the Last Battle: embers and ash blow across the map, with sheets of the ember storm behind them.
     if (s?.lastBattle) {
+      if (has('ember-storm')) for (let i = 0; i < 3; i++) parts.push(`<i class="amb-storm" style="top:${60 + i * 190}px;background-image:url(${url('ember-storm')});background-size:100% 100%;${delay(9 + i * 2, i * 3.1)}"></i>`);
       embers.forEach((e, i) => {
         const id = e.ash ? 'ash-flakes-atlas' : 'embers-atlas';
         const look = has(id) ? frameStyle(id, i, e.w * 2) : dot(e.w, e.ash ? 'rgba(90,80,70,0.8)' : 'rgba(255,150,60,0.95)');

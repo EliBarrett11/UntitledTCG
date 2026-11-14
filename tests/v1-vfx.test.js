@@ -83,8 +83,8 @@ test('every texture an effect names is a kit id; those not delivered yet are dra
   for (const id of Object.keys(EFFECTS)) for (const t of texturesOf(id)) used.add(t);
   for (const t of used) assert.ok(kitIds.has(t), `${t} is not in docs/08-vfx-prompts.md`);
   const missing = [...used].filter((t) => !manifest[t]);
-  // ward-sigil and react-flare are still to be made: their stand-ins are drawn in code.
-  assert.deepEqual(missing.sort(), ['react-flare', 'ward-sigil']);
+  // The kit is complete for every effect in the library (any texture still to come is drawn in code).
+  assert.deepEqual(missing, []);
 });
 
 // A stand-in for the WebGL layer and a presenter beat, with instant waits.
