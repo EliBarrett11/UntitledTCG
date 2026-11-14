@@ -2,6 +2,7 @@
 """Process Elliott's generated VFX images into assets/vfx/.
 
 Usage: python3 tools/vfx_process.py <id>=<source.png>[:solid] [...]
+  :white marks a solid object on a white or fake-checkerboard background (cut out by removing the background).
   :solid marks a solid object painted on black (cut out opaque, not turned into glow).
   :grid=RxC splits an atlas by an even grid of R rows and C columns, for pieces with loose droplets or sparks.
 - Images on a black background become transparent: brightness is used as alpha,
@@ -20,6 +21,25 @@ OUT = os.path.join(ROOT, 'assets', 'vfx')
 MAN = os.path.join(OUT, 'manifest.json')
 
 def to_rgba(im, mode=''):
+    if mode == 'white':
+        # a solid object on a white (or fake-checkerboard) background: remove the
+        # near-white region connected to the image border, keep everything else
+        from scipy import ndimage
+        rgb = np.asarray(im.convert('RGB')).astype(np.float32)
+        near = rgb.min(axis=2) > 225
+        lab, _ = ndimage.label(near)
+        edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+        bg = np.isin(lab, list(edge))
+        bg = ndimage.binary_opening(bg, iterations=1)
+        fg = ~bg
+        flab, n = ndimage.label(fg)
+        if n:
+            sizes = ndimage.sum(fg, flab, range(1, n + 1))
+            keep = np.isin(flab, [i + 1 for i, v in enumerate(sizes) if v >= 2000])
+            fg = keep
+        a = fg.astype(np.float32)
+        a = ndimage.gaussian_filter(a, 0.8)
+        return np.dstack([rgb, a * 255.0]), 'alpha'
     if mode == 'solid':
         # a solid object painted on black: opaque wherever it isn't near-black
         rgb = np.asarray(im.convert('RGB')).astype(np.float32)
@@ -92,6 +112,8 @@ def main(pairs):
         if ':grid=' in src:
             src, g = src.split(':grid=')
             grid = tuple(int(v) for v in g.split('x'))
+        if src.endswith(':white'):
+            src, mode = src[:-6], 'white'
         if src.endswith(':solid'):
             src, mode = src[:-6], 'solid'
         im = Image.open(src)

@@ -13,7 +13,7 @@
 
 **113 images in all.**
 
-**Status (14 November 2026):** complete. All 113 delivered: 106 effect textures in `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`) and 7 pieces of presentation art in `assets/ui/`. One optional replacement (the wax seal) is in `docs/09-art-still-to-make.md`.
+**Status (14 November 2026):** complete. All 113 delivered: 106 effect textures in `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`) and 7 pieces of presentation art in `assets/ui/`.
 
 ## 1. Impacts and weapon strikes
 
