@@ -1,7 +1,7 @@
-// The debug view (?debug=1, optionally &seed=N): runs one seeded AI-vs-AI match in the browser and
+// The debug view (?debug=1, optionally &seed=N): runs one seeded AI-vs-AI match with the first deck and
 // shows its text log. The engine and the AI are the same modules the tests and simulation use.
 import { defineCards } from '../engine/cards.js';
-import { PLACEHOLDER_CARDS, PLACEHOLDER_DECK } from '../data/placeholder.js';
+import { CARDS, FIRST_DECK } from '../data/cards.js';
 import { createGame, applyAction, actor } from '../engine/game.js';
 import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
@@ -22,8 +22,8 @@ export function runDebugView(params) {
     </main>`;
   const status = document.getElementById('debug-status');
   const out = document.getElementById('debug-log');
-  defineCards(PLACEHOLDER_CARDS);
-  let s = createGame(seed, { decks: { p1: PLACEHOLDER_DECK, p2: PLACEHOLDER_DECK } });
+  defineCards(CARDS);
+  let s = createGame(seed, { decks: { p1: FIRST_DECK, p2: FIRST_DECK } });
   const rng = makeRng(seed * 7919);
   let shown = 0;
   const flush = () => { out.textContent += s.log.slice(shown).map((l) => `${l}\n`).join(''); shown = s.log.length; };

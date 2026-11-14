@@ -1,8 +1,9 @@
-// Placeholder cards for S1: plainly named test cards that exercise every rule in docs/01-rulebook.md.
-// No setting, no keywords, no triggers. Plain effects only (section 12). Replaced by docs/cards.json in S2.
+// Test fixtures (S1's placeholder cards): plainly named test cards that exercise every rule in
+// docs/01-rulebook.md. The game itself plays the cards in docs/cards.json; these are for the rules tests.
 //
-// A Character or Monster series: stats { Level: [Attack, Health] }, the nearest listed Level at or below
-// applies. An Action's modes, an Event, an Item and a Campaign Order each name a target spec
+// A Character or Monster series is written compactly here: stats { Level: [Attack, Health] } (the nearest
+// listed Level at or below applies) and optional forms [{ from, name }]; series() expands it into the
+// engine's form shape. An Action's modes, an Event, an Item and a Campaign Order each name a target spec
 // ('enemy', 'own', 'ownNoHeld', 'ownDeckCard', 'attacker', 'attacked', 'none') and a list of ops.
 
 const light = { 1: [2, 2], 2: [2, 3], 3: [3, 3], 4: [3, 4], 5: [4, 4], 6: [4, 5] };
@@ -12,7 +13,24 @@ const midGuard = { 2: [2, 4], 3: [2, 5], 4: [3, 5], 5: [3, 6], 6: [4, 6], 7: [4,
 const heavy = { 3: [3, 3], 4: [3, 4], 5: [4, 5], 6: [5, 6], 7: [6, 6], 8: [6, 7] };
 const heavyGuard = { 3: [2, 5], 4: [3, 5], 5: [3, 6], 6: [4, 7], 7: [5, 7], 8: [5, 8] };
 
-export const PLACEHOLDER_CARDS = [
+// Expands the compact series shape into the engine's: forms, each with every Level it covers.
+export function series(c) {
+  if (!c.stats) return c;
+  const [lo, hi] = { Light: [1, 6], Mid: [2, 7], Heavy: [3, 8], Legendary: [8, 8] }[c.series];
+  const listed = Object.keys(c.stats).map(Number).sort((a, b) => a - b);
+  const at = (lv) => c.stats[[...listed].reverse().find((l) => l <= lv) ?? listed[0]];
+  const starts = [{ from: lo, name: c.name }, ...(c.forms ?? [])].sort((a, b) => a.from - b.from);
+  const forms = starts.map((f, i) => {
+    const to = (starts[i + 1]?.from ?? hi + 1) - 1;
+    const levels = {};
+    for (let lv = Math.max(lo, f.from); lv <= Math.min(hi, to); lv++) { const [attack, health] = at(lv); levels[lv] = { attack, health }; }
+    return { id: i ? `${c.id}-${i + 1}` : c.id, name: f.name, art: null, levels, keywords: c.keywords ?? {}, trigger: c.trigger ?? null };
+  });
+  const { stats, forms: _f, name, keywords, trigger, ...rest } = c;
+  return { ...rest, forms };
+}
+
+const RAW = [
   // --- Characters (each with a Class and a Race) ---
   { id: 'tc1', cardType: 'Character', name: 'Test Character C1 Light Swift Martial', series: 'Light', speed: 'Swift', attackKind: 'Martial', guard: null, traits: { class: 'Fighter', race: 'Human' }, stats: light },
   { id: 'tc2', cardType: 'Character', name: 'Test Character C2 Light Steady Arcane Ward', series: 'Light', speed: 'Steady', attackKind: 'Arcane', guard: 'Ward', traits: { class: 'Wizard', race: 'Elf' }, stats: lightGuard },
@@ -80,6 +98,8 @@ export const PLACEHOLDER_CARDS = [
     order: { cost: 2, target: 'own', ops: [{ op: 'activate' }] },
     legendaryCreature: { cardType: 'Character', name: 'Test Legendary Creature K1', speed: 'Swift', attackKind: 'Martial', guard: null, attack: 8, health: 10, traits: { class: 'Fighter', race: 'Dwarf' } } },
 ];
+
+export const PLACEHOLDER_CARDS = RAW.map(series);
 
 // The 40-card placeholder deck (rulebook 4): both players use a copy.
 export const PLACEHOLDER_DECK = [

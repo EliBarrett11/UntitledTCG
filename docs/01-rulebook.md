@@ -9,7 +9,7 @@ Keywords, triggers and card effects aren't listed here. They start from nothing 
 ## 1. Winning
 
 - **The first player to 100 Renown wins**, at once, at any moment, even in the middle of an action.
-- **Out of creatures:** if neither player has a Character or Monster left (in play, in hand, or in their Draw Pile), the match ends at that Round's Dusk.
+- **Out of creatures:** if neither player has a Character or Monster left (in play, in hand, or in their Draw Pile), the match ends at that Round's Dusk. It's checked at the end of Dusk, after hands are discarded. A Character or Monster in the **Discard Pile** counts as left, because the Discard Pile reshuffles into the Draw Pile, and so does a Legendary Creature waiting for a space. So the match only ends this way once every creature is Released or gone.
   - The player with more Renown wins.
   - On a tie, the player whose Warlord has taken less damage this match wins.
   - If that's tied too, it's a draw.
@@ -60,10 +60,10 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
 5. Each player gains 1 Gold.
 6. Dawn healing (from Location passives and keywords, once they exist).
 7. Cards off the battlefield take this Round's Level (section 7).
-8. Each player draws 7 cards, less one per card they Retained.
+8. Each player draws 7 cards, less one per card they Retained. When a player must draw from an empty Draw Pile, their Discard Pile is shuffled to make a new one; if both are empty, they draw nothing. (The Released Pile is never used.)
 9. Waiting Legendary Creatures arrive.
 
-In Round 1, after the draw, each player may **mulligan** once.
+**Round 1:** its Dawn runs every step (Energy, Gold, the draw). Then each player may **mulligan** once: they put any number of cards from their hand into their Discard Pile and draw as many (keeping the whole hand is allowed). Then the Battle Phase begins. Round 1's initiative is decided at random from the match's seed.
 
 ### 5.2 The Battle Phase
 - **Initiative** alternates each Round.
@@ -78,7 +78,7 @@ In Round 1, after the draw, each player may **mulligan** once.
 3. Quest progress from dominance.
 4. Location durations count down, and expired Locations are removed.
 5. "Until Dusk" effects end.
-6. Each player discards their hand, except Retained cards. Unbought Items in hand are discarded too.
+6. Each player discards their hand, except Retained cards. Unbought Items in hand are discarded too, unless they were Retained: a Retained Item stays in hand like any Retained card.
 
 ## 6. Energy
 
@@ -129,12 +129,14 @@ In Round 1, after the draw, each player may **mulligan** once.
 5. **Buy an Item** (section 10).
 6. **Place a Location** (section 9).
 7. **Play a Campaign card** as its Campaign Order (section 8.4).
-8. **Retain:** pay 1 Energy to keep one card in hand through Dusk. Each Retained card means one fewer card drawn at the next Dawn (never below 0). Any card type can be Retained. There's no limit beyond Energy and turns.
+8. **Retain:** pay 1 Energy to keep one card in hand through Dusk. Each Retained card means one fewer card drawn at the next Dawn (never below 0). Any card type can be Retained. There's no limit beyond Energy and turns. Like every Battle Phase action, Retaining ends your turn and uses 1 of the Market's Stock.
 9. **Pass.**
+
+**Choosing targets:** a card's target is chosen when it's played (an Action mode, an Event, an Item, a Campaign Order, or an On Summon as part of the Summon action). A Strat keeps that target until it resolves. Effects never pause mid-way for a new choice.
 
 ### 8.1 Attacking
 - **Targets:** any enemy Character or Monster, or the enemy Warlord, subject to guards.
-- **Trades:** the attacker deals its Attack to the target. If the target is Ready, it **hits back** with its Attack. Afterwards the attacker is Spent.
+- **Trades:** the attacker deals its Attack to the target. If the target is Ready, it **hits back** with its Attack (whether it's Ready is checked when the attack resolves, after any React). Afterwards the attacker is Spent.
 - **Defeat:** a card at 0 Health is defeated and goes to the Released Pile. Its opponent gains 2 Renown and 1 Gold, whatever caused the defeat. If your own effect defeats your own card, nobody is paid.
 - **Guards:**
   - A Shield card protects its side's other cards in the same Location (the Wilds count as one Location) from Martial attacks: a Martial attack on a protected card must target the Shield instead.
@@ -156,7 +158,7 @@ Each Action card has up to three **modes**, each with its own cost and effect.
   - when the opponent plays an Action as **Adapt**;
   - when the opponent's **Strat resolves**.
 
-  You can't React to summons, Events, Items, Locations, Campaign Orders, Retain, Pass or another React. A window opens only if you can pay for a React that has a target. You React with one card or let it happen.
+  You can't React to summons, Events, Items, Locations, Campaign Orders, Retain, Pass or another React. A window opens only if you can pay for a React that has a target. You React with one card or let it happen. A React that names "the attacker", "your creature being attacked" or "the attack" can only be played against an attack; other Reacts can be played in any React window.
 - **Timing:** the React resolves fully first. Then the committed action resolves against the new state, or fizzles, with its cost still paid, if its attacker or target is gone or the target is now guarded. A fizzled attack still makes the attacker Spent. At most one React per action.
 - **On screen:** a countdown runs (5 seconds by default; 8, 12 or 20 in a setting). When it runs out, the action happens. The timer belongs to the interface only, not the engine.
 - **"Until Dusk" effects** end at that Round's Dusk.
@@ -176,6 +178,7 @@ Each Action card has up to three **modes**, each with its own cost and effect.
 
   The Quest stays ticked and makes no further progress. If the card was already Released, the Quest still completes as normal.
 - A defeated Legendary Creature goes to the Released Pile.
+- **Quests** the engine can count: defeats, Locations dominated (each Location at a Dusk is 1; the Last Battle is 1), damage to the enemy Warlord, and Items bought from the Market.
 
 ## 9. Locations
 
@@ -190,8 +193,8 @@ Each Action card has up to three **modes**, each with its own cost and effect.
 - **Buying an Item** is an action. Buy one Item from your hand or the Market, then use it now (with its target) or store it in your **Bag** (6 spaces). A stored Item can be used from your next turn.
 - **Held Items:** one per card. Lost when that card is defeated.
 - **Consumed Items:** resolve, then leave play.
-- Used and lost Items go to the Market's pool.
-- **The Market:** one shared pool with one copy of each Item, and **one Item on sale**, always shown with its **Stock**:
+- Used and lost Items go to the Market's pool (deck copies included, so the pool can hold duplicates).
+- **The Market:** one shared pool, starting with one copy of each Item that appears in either deck, and **one Item on sale**, always shown with its **Stock**:
   - **Stock** is the number of turns it stays on sale: $1 → 8, $2 → 6, $3 → 4, $4 → 3.
   - Each turn taken by either player in the Battle Phase uses 1 Stock. React decisions and resolving Strats aren't turns; the Pass that ends the Battle Phase is.
   - At 0 Stock it returns to the pool, and a different random Item replaces it with full Stock.
@@ -212,14 +215,16 @@ Each Action card has up to three **modes**, each with its own cost and effect.
 
 ## 12. Keywords, triggers and effects
 
-**This list starts empty.** The engine must support:
-- **triggered abilities:** an event, then an effect, resolved in a queue after the action that caused them, with chains capped at 4 levels;
+The engine supports:
+- **triggered abilities:** an event, then an effect, resolved in a queue after the action that caused them, with chains capped at 4 levels (triggers caused directly by an action are level 1; each trigger that causes another adds a level; a trigger that would be level 5 doesn't resolve);
 - **keywords:** constant rules on a card, whose numbers add up from different sources;
 - **effects:** a small vocabulary of operations (damage, heal, draw, gain Energy, gain Gold, change Attack or Health until Dusk or for good, make Active or Spent, return to hand, and so on).
 
 Each keyword, trigger and effect is designed with Elliott and added here with its exact rule before it's built. **Proven designs from the old game are available as a reference** (14 keywords and 9 trigger types). Reuse one only when Elliott agrees, under a new name.
 
 **"Creature"** in card text means a Character or Monster.
+
+**Return to hand:** the card goes back to its owner's hand at this Round's Level; damage and anything it gained are lost; its Held Item goes to the Market's pool. A Legendary Creature can't be returned (it isn't a deck card).
 
 ### 12.1 Keywords (approved by Elliott, 13 November 2026)
 
@@ -241,20 +246,16 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Monsters carry a **Kind** (Beast, Undead, Dragon and so on) in place of a Class and a Race.
 2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.
 
-### Readings from S1: approved by Elliott, 13 November 2026
+(S1's readings were approved by Elliott on 13 November 2026 and are now in the rules above.)
 
-These are settled rules. S2 moves each into the section it belongs to.
+### Readings needing Elliott's approval (S2)
 
-3. **An empty Draw Pile:** when a player must draw from an empty Draw Pile, their Discard Pile is shuffled to make a new one. If both are empty, they draw nothing. (The Released Pile is never used.)
-4. **The mulligan:** a player puts any number of cards from their Round 1 hand into their Discard Pile and draws as many. Keeping the whole hand is allowed. Each player decides once.
-5. **Out of creatures:** it's checked at the end of Dusk, after hands are discarded. A Character or Monster in the **Discard Pile** counts as "left", because the Discard Pile reshuffles into the Draw Pile. A Legendary Creature waiting for a space counts too. So the match only ends this way once every creature is Released or gone.
-6. **Retained Items:** "Unbought Items in hand are discarded too" is read as applying to Items that weren't Retained. A Retained Item stays in hand, like any Retained card.
-7. **Retain is a turn:** like every Battle Phase action, it ends your turn and uses 1 of the Market's Stock.
-8. **The Market's pool:** it starts with one copy of each Item that appears in either deck. Used and lost Items (deck copies included) go to the pool too, so it can hold duplicates.
-9. **Choosing targets:** a card's target is chosen when it's played (an Action mode, an Event, an Item, a Campaign Order). A Strat keeps that target until it resolves. Effects never pause mid-way for a new choice. A trigger that needs a chosen target will need a choice step, designed with it.
-10. **Return to hand:** the card goes back to its owner's hand at this Round's Level; damage and anything it gained are lost; its Held Item goes to the Market's pool. A Legendary Creature can't be returned (it isn't a deck card).
-11. **React targets:** a React that names "the attacker" or "your card being attacked" can only be played against an attack on a Character or Monster. Other Reacts can be played in any React window.
-12. **Hitting back:** whether the target is Ready is checked when the attack resolves (after any React).
-13. **Trigger chains:** triggers caused directly by an action are level 1. Each trigger that causes another adds a level. A trigger that would be level 5 doesn't resolve.
-14. **Round 1:** its Dawn runs every step (Energy, Gold, the draw), then the mulligan, then the Battle Phase. Round 1's initiative is decided at random from the match's seed.
-15. **Quest kinds:** the engine can count defeats, Locations dominated (each Location at a Dusk is 1; the Last Battle is 1), damage to the enemy Warlord, and Items bought from the Market. The placeholder Quest is "Dominate a Location 8 times".
+3. **"In its Location" / "in a Location" in the Wilds:** for an area effect, a creature in the Wilds is in a Location of its own lane only (as in the old game). So Deepforge Priest in the Wilds heals only itself, The Ashen Wyrm in the Wilds hits only the enemy across from it, and a Location target in the Wilds (Night Raid's Strat, Mending Prayer's Adapt) covers one lane. The Wilds still count as one Location for guards (8.1). During the Last Battle, "its Location" is the whole battlefield.
+4. **A Location target** is offered once per Location that holds a matching creature (once per lane in the Wilds). A Strat with a Location target finds the creatures there when it resolves; it never fizzles. If the Location has expired by then, it covers that one lane.
+5. **Riposte timing:** it happens after the attack's damage, any hit back and any defeats. It doesn't happen if the attack fizzled (the attack didn't resolve). It does happen if the attack dealt 0 damage. A creature that Riposte defeats pays the Riposting creature's player (2 Renown, 1 Gold).
+6. **Parry's React ("the attack deals 2 less damage"):** it lowers only the attack's damage, not the hit back, before Armour, minimum 0. It works against an attack on the Warlord too.
+7. **On Summon's chosen target:** the summoned creature isn't on the battlefield when its target is chosen, so it can't choose itself (Deepforge Acolyte can't heal itself).
+8. **Tower Shield on a creature with a Ward:** it has both a Ward and a Shield.
+9. **On Defeat damage** that defeats a creature pays the On Defeat creature's owner, like any effect of theirs.
+10. **"Gain N Energy this Round"** adds Base Energy, which is lost at the end of the Round.
+11. **A creature's Level and its trigger:** Deepforge Acolyte's "L4: heal 3 instead" is stored as that Level's own trigger. The wording shown is that Level's.

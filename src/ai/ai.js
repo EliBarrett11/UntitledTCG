@@ -2,7 +2,7 @@
 // action from legalActions, tries each on a copy of its own view of the state through applyAction,
 // scores the result, and plays the best. It never edits state directly and never sees the other
 // player's hand, Draw Pile or face-down Strats. Its small random tie-break comes from a seeded generator.
-import { applyAction, legalActions, opponentOf, creaturesOf, isReady, dominantOf, lastBattleDominant, boosted, actionKey } from '../engine/game.js';
+import { applyAction, legalActions, opponentOf, creaturesOf, isReady, dominantOf, lastBattleDominant, boosted, actionKey, locationKey, emptySpaces, guardsOf, keywordAmount } from '../engine/game.js';
 import { isCreature } from '../engine/cards.js';
 import { RULES } from '../engine/rules.js';
 import { makeRng } from '../engine/random.js';
@@ -34,7 +34,10 @@ export function evaluate(s, who) {
     if (s.market.soldOut?.by === w) v += 0.4;
     for (const q of p.quests.filter((x) => !x.complete)) v += (2 * q.progress) / q.quest.need;
     v += p.waiting.length * 3;
-    for (const { card } of creaturesOf(s, w)) v += Math.max(0, card.attack) * 0.9 + card.currentHealth * 0.45 + (isReady(s, card) ? 0.5 : 0) + (card.guard ? 0.3 : 0);
+    for (const { card } of creaturesOf(s, w)) {
+      v += Math.max(0, card.attack) * 0.9 + card.currentHealth * 0.45 + (isReady(s, card) ? 0.5 : 0) + guardsOf(card).length * 0.3;
+      v += keywordAmount(card, 'armour') * 0.6 + keywordAmount(card, 'riposte') * 0.5 + (card.trigger?.on === 'defeat' ? 0.5 : 0);
+    }
     return v;
   };
   let dom = 0;
@@ -55,8 +58,24 @@ const worth = (c) => (isCreature(c) ? 1 + c.level : c.cardType === 'Event' ? 0.5
 
 // The candidate moves: every legal action, with copies of the same card collapsed and an Event's
 // Release choices narrowed to the least useful cards (and one that meets its Favour, if any).
+// The spaces worth trying for a Summon: in each Location (and in the Wilds), the leftmost empty space
+// across from an enemy creature and the leftmost one that isn't. Other spaces play the same.
+export function summonSpaces(s, who) {
+  const foe = opponentOf(who);
+  const keep = new Set();
+  const seen = new Set();
+  for (const space of emptySpaces(s, who)) {
+    const k = `${locationKey(s, space)}:${s.players[foe].row[space] ? 'faced' : 'open'}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    keep.add(space);
+  }
+  return keep;
+}
+
 export function candidates(s, who) {
   const p = s.players[who];
+  const spaces = summonSpaces(s, who);
   const byUid = Object.fromEntries([...p.hand, ...p.bag].map((c) => [c.uid, c]));
   const seen = new Set();
   const out = [];
@@ -64,6 +83,7 @@ export function candidates(s, who) {
   for (const a of legalActions(s, who)) {
     if (a.type === 'event') { (events[a.uid] ??= []).push(a); continue; }
     if (a.type === 'retain') continue;
+    if (a.type === 'summon' && !spaces.has(a.space)) continue;
     const card = byUid[a.uid];
     const key = actionKey({ ...a, uid: card ? `${card.id}:${card.level ?? ''}` : a.uid });
     if (seen.has(key)) continue;
@@ -85,7 +105,7 @@ export function candidates(s, who) {
   if (retains.length && p.baseEnergy > 1) out.push([...retains].sort((a, b) => worth(byUid[b.uid]) - worth(byUid[a.uid]))[0]);
   return out;
 }
-const meets = (c, cond) => (!cond.cardType || c.cardType === cond.cardType) && (!cond.class || c.traits?.class === cond.class) && (!cond.race || c.traits?.race === cond.race);
+const meets = (c, cond) => (!cond.cardType || c.cardType === cond.cardType) && (!cond.class || c.traits?.class === cond.class) && (!cond.race || c.traits?.race === cond.race) && (!cond.kind || c.traits?.kind === cond.kind);
 
 // The action the AI plays now. rng: a seeded generator (default: one seeded from the state).
 export function chooseAction(real, who, rng = makeRng(real.rng ^ 0x9e3779b9)) {

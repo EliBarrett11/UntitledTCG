@@ -22,7 +22,7 @@ try {
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 's1';
+const STAGE = 's2';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.json': 'application/json', '.jpg': 'image/jpeg', '.png': 'image/png',
   '.svg': 'image/svg+xml' };

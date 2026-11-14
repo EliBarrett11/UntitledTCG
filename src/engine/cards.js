@@ -1,6 +1,9 @@
-// The card library the engine plays with. Card definitions come from src/data/ (placeholder cards
-// in S1; generated from docs/cards.json from S2). defineCards() adds definitions; the engine looks
-// them up by id. A definition never changes during a match; the state holds card instances.
+// The card library the engine plays with. Definitions come from src/data/cards.js (generated from
+// docs/cards.json by tools/buildcards.mjs); tests add their own fixtures. defineCards() adds definitions;
+// the engine looks them up by id. The state holds card instances.
+//
+// A Character or Monster definition: { id, cardType, series, speed, attackKind, guard, traits, forms },
+// each form { id, name, art, levels: { Level: { attack, health, trigger?, text? } }, keywords, trigger, text }.
 import { levelFor, costFor, stockFor, RULES } from './rules.js';
 
 const LIBRARY = new Map();
@@ -18,27 +21,25 @@ export const hasCard = (id) => LIBRARY.has(id);
 export const CREATURE_TYPES = Object.freeze(['Character', 'Monster']);
 export const isCreature = (c) => !!c && CREATURE_TYPES.includes(c.cardType);
 
-// The stats at a Level: the nearest Level at or below it that the series lists.
-function statsAt(def, level) {
-  const levels = Object.keys(def.stats).map(Number).sort((a, b) => a - b);
-  const at = [...levels].reverse().find((l) => l <= level) ?? levels[0];
-  return def.stats[at];
+// The form that holds a Level, and that Level's entry.
+export function formAt(def, level) {
+  const f = def.forms.find((x) => Object.keys(x.levels).map(Number).includes(level));
+  if (!f) throw new Error(`${def.id} has no Level ${level}`);
+  return { form: f, entry: f.levels[level] };
 }
-// A series may change form (name) at certain Levels: forms [{ from: Level, name }].
-function formName(def, level) {
-  const f = [...(def.forms ?? [])].sort((a, b) => b.from - a.from).find((x) => level >= x.from);
-  return f ? f.name : def.name;
-}
+// The Levels a series covers.
+export const levelsOf = (def) => def.forms.flatMap((f) => Object.keys(f.levels).map(Number)).sort((a, b) => a - b);
 
 // A Character or Monster card at a Level.
 export function creatureAtLevel(def, level, uid) {
-  const [attack, health] = statsAt(def, level);
+  const { form, entry } = formAt(def, level);
+  const trigger = entry.trigger ?? form.trigger ?? null;
   return {
-    uid, id: def.id, cardType: def.cardType, name: formName(def, level), series: def.series, level,
+    uid, id: def.id, form: form.id, cardType: def.cardType, name: form.name, art: form.art ?? null, series: def.series, level,
     cost: costFor(level, def.series === 'Legendary'), legendary: def.series === 'Legendary',
-    attack, health, speed: def.speed, attackKind: def.attackKind, guard: def.guard ?? null,
-    traits: structuredClone(def.traits ?? {}), keywords: structuredClone(def.keywords ?? {}),
-    trigger: def.trigger ? structuredClone(def.trigger) : null,
+    attack: entry.attack, health: entry.health, speed: def.speed, attackKind: def.attackKind, guard: def.guard ?? null,
+    traits: structuredClone(def.traits ?? {}), keywords: structuredClone(form.keywords ?? {}),
+    trigger: trigger ? structuredClone(trigger) : null,
   };
 }
 
@@ -46,7 +47,8 @@ export function creatureAtLevel(def, level, uid) {
 export function cardAtRound(id, round, uid) {
   const def = cardDef(id);
   if (isCreature(def)) return creatureAtLevel(def, def.series === 'Legendary' ? RULES.legendaryLevel : levelFor(def.series, round), uid);
-  const c = { ...structuredClone(def), uid };
+  const { text, ...rest } = structuredClone(def);
+  const c = { ...rest, uid };
   if (c.cardType === 'Item') c.stock = stockFor(c.price);
   return c;
 }
@@ -55,8 +57,8 @@ export function cardAtRound(id, round, uid) {
 export function legendaryCreatureOf(campaignDef, uid) {
   const lc = campaignDef.legendaryCreature;
   return {
-    uid, id: `${campaignDef.id}:lc`, cardType: lc.cardType, name: lc.name, series: 'Legendary Creature', level: RULES.legendaryLevel,
-    cost: 0, legendaryCreature: true, attack: lc.attack, health: lc.health, speed: lc.speed, attackKind: lc.attackKind,
+    uid, id: lc.id ?? `${campaignDef.id}:lc`, form: lc.id ?? null, cardType: lc.cardType, name: lc.name, art: lc.art ?? null, series: 'Legendary Creature',
+    level: RULES.legendaryLevel, cost: 0, legendaryCreature: true, attack: lc.attack, health: lc.health, speed: lc.speed, attackKind: lc.attackKind,
     guard: lc.guard ?? null, traits: structuredClone(lc.traits ?? {}), keywords: structuredClone(lc.keywords ?? {}),
     trigger: lc.trigger ? structuredClone(lc.trigger) : null,
   };
@@ -72,9 +74,13 @@ export function deckProblems(ids) {
   for (const [id, n] of Object.entries(counts)) {
     const d = cardDef(id);
     const max = d.series === 'Legendary' || d.cardType === 'Campaign' ? 1 : RULES.maxCopies;
-    if (n > max) out.push(`${d.name}: at most ${max} ${max === 1 ? 'copy' : 'copies'} (has ${n})`);
+    if (n > max) out.push(`${nameOf(d)}: at most ${max} ${max === 1 ? 'copy' : 'copies'} (has ${n})`);
     if (d.cardType === 'Campaign') campaigns += 1;
   }
   if (campaigns > RULES.maxCampaigns) out.push(`At most ${RULES.maxCampaigns} Campaign cards (has ${campaigns})`);
   return out;
 }
+// A card's name: a series is named after its first form.
+export const nameOf = (d) => d.name ?? d.forms?.[0]?.name ?? d.id;
+// A deck list [{ id, copies }] as card ids.
+export const expandDeck = (list) => list.flatMap(({ id, copies }) => Array(copies).fill(id));

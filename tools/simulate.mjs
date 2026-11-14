@@ -1,9 +1,9 @@
 // AI-vs-AI simulation: node tools/simulate.mjs [matches=200] [firstSeed=1]
-// Plays seeded matches with the placeholder deck on both sides, through applyAction only, and reports
-// wins, draws, average Rounds, Renown by source, Last Battle and Quest numbers. It fails (exit 1) on
-// any exception, illegal state or stall.
-import { defineCards, deckProblems, isCreature } from '../src/engine/cards.js';
-import { PLACEHOLDER_CARDS, PLACEHOLDER_DECK } from '../src/data/placeholder.js';
+// Plays seeded matches with the first deck (docs/cards.json) on both sides, through applyAction only.
+// Reports wins by seat and by initiative, match length, Renown by source, the Round the Quest completes,
+// and how often each card is played. Fails (exit 1) on any exception, illegal state or stall.
+import { defineCards, deckProblems, isCreature, nameOf, cardDef } from '../src/engine/cards.js';
+import { CARDS, FIRST_DECK } from '../src/data/cards.js';
 import { createGame, applyAction, legalActions, actor, PLAYERS } from '../src/engine/game.js';
 import { chooseAction } from '../src/ai/ai.js';
 import { makeRng } from '../src/engine/random.js';
@@ -11,6 +11,8 @@ import { RULES } from '../src/engine/rules.js';
 
 export const MAX_ACTIONS_PER_ROUND = 400;
 export const MAX_ROUNDS = 60;
+
+defineCards(CARDS);
 
 // Checks that the state is one the rules allow. Returns a list of problems.
 export function stateProblems(s) {
@@ -39,8 +41,19 @@ export function stateProblems(s) {
   return out;
 }
 
-export function playMatch(seed) {
-  let s = createGame(seed, { decks: { p1: PLACEHOLDER_DECK, p2: PLACEHOLDER_DECK } });
+// The card an action plays from hand (or the Bag, or the Market), and how: { id, how } or null.
+function played(s, a) {
+  const p = s.players[a.who];
+  if (a.type === 'buyItem' && a.from === 'market') return { id: s.market.onSale.id, how: 'bought from the Market' };
+  if (a.type === 'useItem') return null;   // counted when bought
+  const card = p.hand.find((c) => c.uid === a.uid);
+  if (!card || ['retain', 'mulligan'].includes(a.type)) return null;
+  const how = { summon: 'summoned', action: a.mode, react: 'react', event: 'played', buyItem: 'bought from hand', placeLocation: 'placed', campaignOrder: 'Campaign Order' }[a.type];
+  return how ? { id: card.id, how } : null;
+}
+
+export function playMatch(seed, { deck = FIRST_DECK, tally = null } = {}) {
+  let s = createGame(seed, { decks: { p1: deck, p2: deck } });
   const rng = makeRng(seed * 7919);
   let round = s.round;
   let actions = 0;
@@ -49,6 +62,8 @@ export function playMatch(seed) {
     if (!who || !legalActions(s, who).length) throw new Error(`stall: nobody can act (phase ${s.phase}, Round ${s.round})`);
     const a = chooseAction(s, who, rng);
     if (!a) throw new Error(`stall: the AI found no action (phase ${s.phase})`);
+    const pl = tally ? played(s, a) : null;
+    if (pl) { tally[pl.id] ??= {}; tally[pl.id][pl.how] = (tally[pl.id][pl.how] ?? 0) + 1; }
     s = applyAction(s, a);
     const probs = stateProblems(s);
     if (probs.length) throw new Error(`illegal state after ${a.type}: ${probs.join('; ')}`);
@@ -59,33 +74,35 @@ export function playMatch(seed) {
   return s;
 }
 
-async function main() {
+const quantile = (xs, q) => { const b = [...xs].sort((x, y) => x - y); return b.length ? b[Math.min(b.length - 1, Math.floor(q * b.length))] : null; };
+const median = (xs) => { const b = [...xs].sort((x, y) => x - y); const n = b.length; return !n ? null : n % 2 ? b[(n - 1) / 2] : (b[n / 2 - 1] + b[n / 2]) / 2; };
+
+function main() {
   const N = Number(process.argv[2] ?? 200);
   const first = Number(process.argv[3] ?? 1);
-  defineCards(PLACEHOLDER_CARDS);
-  const problems = deckProblems(PLACEHOLDER_DECK);
-  if (problems.length) { console.error(`The placeholder deck breaks the deck rules: ${problems.join('; ')}`); process.exit(1); }
+  const problems = deckProblems(FIRST_DECK);
+  if (problems.length) { console.error(`The first deck breaks the deck rules: ${problems.join('; ')}`); process.exit(1); }
   const wins = { p1: 0, p2: 0, initiative: 0 };
   let draws = 0;
-  let rounds = 0;
+  const rounds = [];
   let lastBattles = 0;
-  let quests = 0;
   const questRounds = [];
   const how = {};
   const renown = {};
+  const tally = {};
   const failures = [];
   const t0 = Date.now();
   for (let seed = first; seed < first + N; seed++) {
     try {
-      const firstInitiative = createGame(seed, { decks: { p1: PLACEHOLDER_DECK, p2: PLACEHOLDER_DECK } }).initiative;
-      const s = playMatch(seed);
+      const firstInitiative = createGame(seed, { decks: { p1: FIRST_DECK, p2: FIRST_DECK } }).initiative;
+      const s = playMatch(seed, { tally });
       if (s.winner) wins[s.winner] += 1; else draws += 1;
       if (s.winner && s.winner === firstInitiative) wins.initiative += 1;
       how[s.result.how] = (how[s.result.how] ?? 0) + 1;
-      rounds += s.round;
+      rounds.push(s.round);
       if (s.lastBattle) lastBattles += 1;
       for (const w of PLAYERS) {
-        for (const q of s.players[w].quests) if (q.complete) { quests += 1; questRounds.push(q.completedRound); }
+        for (const q of s.players[w].quests) if (q.complete) questRounds.push(q.completedRound);
         for (const r of s.players[w].renownLog) renown[r.kind] = (renown[r.kind] ?? 0) + r.amount;
       }
     } catch (e) {
@@ -93,18 +110,31 @@ async function main() {
     }
   }
   const played = N - failures.length;
+  const decided = played - draws;
   const total = Object.values(renown).reduce((a, b) => a + b, 0);
   const pct = (x, of) => `${((100 * x) / Math.max(1, of)).toFixed(1)}%`;
   const NAMES = { warlord: 'Damage to the Warlord', defeat: 'Defeats', dominance: 'Location dominance', favour: 'Favours', quest: 'Quests', lastBattle: 'Last Battle dominance' };
-  console.log(`Simulated ${N} AI-vs-AI matches (seeds ${first}–${first + N - 1}) in ${((Date.now() - t0) / 1000).toFixed(1)} s.`);
+  console.log(`Simulated ${N} AI-vs-AI matches with the first deck (seeds ${first}–${first + N - 1}) in ${((Date.now() - t0) / 1000).toFixed(1)} s.`);
   console.log(`Finished: ${played}. Failed: ${failures.length}.`);
-  console.log(`Wins: Player 1 ${wins.p1}, Player 2 ${wins.p2}, draws ${draws}. Won by the player with Round 1 initiative: ${pct(wins.initiative, played - draws)}.`);
+  console.log(`Wins by seat: Player 1 ${wins.p1} (${pct(wins.p1, decided)}), Player 2 ${wins.p2} (${pct(wins.p2, decided)}), draws ${draws}.`);
+  console.log(`Won by the player with Round 1 initiative: ${wins.initiative} of ${decided} (${pct(wins.initiative, decided)}).`);
   console.log(`How matches ended: ${Object.entries(how).map(([k, v]) => `${k} ${v}`).join(', ')}.`);
-  console.log(`Average Rounds: ${(rounds / Math.max(1, played)).toFixed(2)}.`);
+  console.log(`Match length: average ${(rounds.reduce((a, b) => a + b, 0) / Math.max(1, played)).toFixed(2)} Rounds (median ${median(rounds)}, range ${Math.min(...rounds)}–${Math.max(...rounds)}).`);
   console.log(`The Last Battle triggered in ${lastBattles} of ${played} matches (${pct(lastBattles, played)}).`);
-  console.log(`Quests completed: ${quests} (of ${played * 2} possible), ${questRounds.length ? `average Round ${(questRounds.reduce((a, b) => a + b, 0) / questRounds.length).toFixed(1)}` : 'none'}.`);
+  console.log(`Quest (${nameOf(cardDef('lady-corwens-commission'))}): completed ${questRounds.length} times of ${played * 2} possible (${pct(questRounds.length, played * 2)}).`);
+  if (questRounds.length) console.log(`  Round completed: median ${median(questRounds)}, middle half ${quantile(questRounds, 0.25)}–${quantile(questRounds, 0.75)}, range ${Math.min(...questRounds)}–${Math.max(...questRounds)}.`);
   console.log('Renown by source:');
   for (const [k, v] of Object.entries(renown).sort((a, b) => b[1] - a[1])) console.log(`  ${(NAMES[k] ?? k).padEnd(24)} ${String(v).padStart(7)}  ${pct(v, total)}`);
+  console.log('Cards played (both players, all matches; per match in brackets):');
+  const ids = [...new Set(FIRST_DECK)];
+  for (const id of ids) {
+    const t = tally[id] ?? {};
+    const n = Object.values(t).reduce((a, b) => a + b, 0);
+    const parts = Object.entries(t).map(([k, v]) => `${k} ${v}`).join(', ');
+    console.log(`  ${nameOf(cardDef(id)).padEnd(30)} ${String(n).padStart(6)}  (${(n / Math.max(1, played)).toFixed(2)})${parts ? `  ${parts}` : ''}`);
+  }
+  const never = ids.filter((id) => !tally[id]);
+  console.log(never.length ? `Never played: ${never.map((id) => nameOf(cardDef(id))).join(', ')}.` : 'Every card was played.');
   if (failures.length) {
     console.log('\nFailures:');
     for (const f of failures.slice(0, 20)) console.log(`  ${f}`);

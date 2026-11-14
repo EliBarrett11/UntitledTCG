@@ -1,0 +1,142 @@
+// Generates src/data/cards.js from docs/cards.json (the single source of truth for cards).
+// Usage: node tools/buildcards.mjs [--check]
+//
+// It checks every card against the approved vocabulary (keywords, triggers, effect ops and targets),
+// builds each card's wording from the templates in src/engine/wording.js, and writes the card data with
+// that generated wording. Card text is never hand-typed in code. --check only verifies that
+// src/data/cards.js is up to date (exit 1 if not).
+import { readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { KEYWORDS, TRIGGERS, EFFECT_OPS, EFFECT_TARGETS, TARGET_SPECS } from '../src/engine/abilities.js';
+import { creatureLines, effectText, heldText, passiveText, questText } from '../src/engine/wording.js';
+import { SERIES_RANGE } from '../src/engine/rules.js';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const SRC = join(ROOT, 'docs', 'cards.json');
+const OUT = join(ROOT, 'src', 'data', 'cards.js');
+
+// Every problem with the data, as plain sentences.
+export function validate(data) {
+  const out = [];
+  const ops = (where, list, heldOrPassive = false) => {
+    for (const o of list ?? []) {
+      if (heldOrPassive) continue;
+      if (!EFFECT_OPS[o.op]) out.push(`${where}: unknown op "${o.op}"`);
+      if (o.to && !EFFECT_TARGETS[o.to]) out.push(`${where}: unknown target "${o.to}"`);
+    }
+  };
+  const spec = (where, t) => { if (t && !TARGET_SPECS[t]) out.push(`${where}: unknown target spec "${t}"`); };
+  const ids = new Set();
+  for (const c of data.cards) {
+    if (ids.has(c.id)) out.push(`${c.id}: duplicate id`);
+    ids.add(c.id);
+    if (c.cardType === 'Character' || c.cardType === 'Monster') {
+      const [lo, hi] = SERIES_RANGE[c.series] ?? [];
+      if (lo === undefined) out.push(`${c.id}: unknown series ${c.series}`);
+      const levels = c.forms.flatMap((f) => Object.keys(f.levels).map(Number)).sort((a, b) => a - b);
+      const want = Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
+      if (levels.join() !== want.join()) out.push(`${c.id}: Levels ${levels} should be ${want}`);
+      if (c.cardType === 'Character' && (!c.traits?.class || !c.traits?.race)) out.push(`${c.id}: a Character needs a Class and a Race`);
+      if (c.cardType === 'Monster' && !c.traits?.kind) out.push(`${c.id}: a Monster needs a Kind`);
+      for (const f of c.forms) {
+        for (const k of Object.keys(f.keywords ?? {})) if (!KEYWORDS[k]) out.push(`${f.id}: keyword "${k}" isn't approved`);
+        for (const t of [f.trigger, ...Object.values(f.levels).map((e) => e.trigger)].filter(Boolean)) {
+          if (!TRIGGERS[t.on]) out.push(`${f.id}: trigger "${t.on}" isn't approved`);
+          spec(f.id, t.target);
+          ops(f.id, t.ops);
+        }
+      }
+    }
+    if (c.cardType === 'Action') for (const [m, x] of Object.entries(c.modes)) { spec(`${c.id} ${m}`, x.target); ops(`${c.id} ${m}`, x.ops); }
+    if (c.cardType === 'Event') { spec(c.id, c.target); ops(c.id, c.ops); ops(`${c.id} Favour`, c.favour?.ops); }
+    if (c.cardType === 'Item' && c.kind === 'Consumed') { spec(c.id, c.target); ops(c.id, c.ops); }
+    if (c.cardType === 'Campaign') { spec(c.id, c.order.target); ops(`${c.id} Order`, c.order.ops); }
+  }
+  for (const [name, d] of Object.entries(data.decks)) for (const x of d.cards) if (!ids.has(x.id)) out.push(`deck ${name}: unknown card ${x.id}`);
+  return out;
+}
+
+// The generated wording for every card, in the same shape as the text in cards.json.
+export function generateText(c) {
+  switch (c.cardType) {
+    case 'Character': case 'Monster':
+      return {
+        forms: c.forms.map((f) => ({
+          id: f.id,
+          text: creatureLines(f.keywords, f.trigger),
+          levels: Object.fromEntries(Object.entries(f.levels).filter(([, e]) => e.trigger).map(([lv, e]) => [lv, creatureLines(f.keywords, e.trigger)])),
+        })),
+      };
+    case 'Action': return { modes: Object.fromEntries(Object.entries(c.modes).map(([m, x]) => [m, effectText(x.ops, x.target)])) };
+    case 'Event': return { text: effectText(c.ops, c.target), favour: effectText(c.favour.ops, c.target) };
+    case 'Item': return { text: c.kind === 'Held' ? heldText(c.ops) : effectText(c.ops, c.target) };
+    case 'Location': return { text: passiveText(c.passive.ops) };
+    case 'Campaign': return { quest: questText(c.quest), order: effectText(c.order.ops, c.order.target), legendaryCreature: creatureLines(c.legendaryCreature.keywords, c.legendaryCreature.trigger) };
+    default: throw new Error(`Unknown card type ${c.cardType}`);
+  }
+}
+// The approved text from cards.json, in the same shape.
+export function approvedText(c) {
+  switch (c.cardType) {
+    case 'Character': case 'Monster':
+      return { forms: c.forms.map((f) => ({ id: f.id, text: f.text, levels: Object.fromEntries(Object.entries(f.levels).filter(([, e]) => e.trigger).map(([lv, e]) => [lv, e.text])) })) };
+    case 'Action': return { modes: Object.fromEntries(Object.entries(c.modes).map(([m, x]) => [m, x.text])) };
+    case 'Event': return { text: c.text, favour: c.favour.text };
+    case 'Item': return { text: c.text };
+    case 'Location': return { text: c.text };
+    case 'Campaign': return { quest: c.quest.text, order: c.order.text, legendaryCreature: c.legendaryCreature.text };
+    default: throw new Error(`Unknown card type ${c.cardType}`);
+  }
+}
+
+// The card definitions the engine plays with, carrying the generated wording.
+function withGeneratedText(c) {
+  const g = generateText(c);
+  const x = structuredClone(c);
+  switch (c.cardType) {
+    case 'Character': case 'Monster':
+      x.forms.forEach((f, i) => {
+        f.text = g.forms[i].text;
+        for (const [lv, lines] of Object.entries(g.forms[i].levels)) f.levels[lv].text = lines;
+      });
+      break;
+    case 'Action': for (const m of Object.keys(x.modes)) x.modes[m].text = g.modes[m]; break;
+    case 'Event': x.text = g.text; x.favour.text = g.favour; break;
+    case 'Item': case 'Location': x.text = g.text; break;
+    case 'Campaign': x.quest.text = g.quest; x.order.text = g.order; x.legendaryCreature.text = g.legendaryCreature; break;
+    default: break;
+  }
+  return x;
+}
+
+export function build(data) {
+  const problems = validate(data);
+  if (problems.length) throw new Error(`docs/cards.json has problems:\n  ${problems.join('\n  ')}`);
+  const cards = data.cards.map(withGeneratedText);
+  const decks = Object.fromEntries(Object.entries(data.decks).map(([k, d]) => [k, { name: d.name, cards: d.cards }]));
+  return `// GENERATED by tools/buildcards.mjs from docs/cards.json. Don't edit by hand: edit docs/cards.json and rebuild.
+// Card wording here is generated from the templates in src/engine/wording.js.
+
+export const CARDS = ${JSON.stringify(cards, null, 2)};
+
+export const DECKS = ${JSON.stringify(decks, null, 2)};
+
+// The first deck as 40 card ids (both players use a copy).
+export const FIRST_DECK = DECKS.first.cards.flatMap(({ id, copies }) => Array(copies).fill(id));
+`;
+}
+
+export const loadCardsJson = () => JSON.parse(readFileSync(SRC, 'utf8'));
+
+if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
+  const js = build(loadCardsJson());
+  if (process.argv.includes('--check')) {
+    const now = readFileSync(OUT, 'utf8');
+    if (now !== js) { console.error('src/data/cards.js is out of date: run node tools/buildcards.mjs'); process.exit(1); }
+    console.log('src/data/cards.js is up to date.');
+  } else {
+    writeFileSync(OUT, js);
+    console.log(`Wrote src/data/cards.js (${loadCardsJson().cards.length} cards).`);
+  }
+}

@@ -30,6 +30,12 @@ The AI-vs-AI simulation (200 seeded matches; fails on any error, illegal state o
 node tools/simulate.mjs 200
 ```
 
+The card generator (run it after editing `docs/cards.json`; `--check` only verifies `src/data/cards.js` is up to date):
+
+```bash
+node tools/buildcards.mjs
+```
+
 **Debug view:** open the page with `?debug=1` (and optionally `&seed=N`) to watch one seeded AI-vs-AI match as a text log.
 
 ## Build log
@@ -53,3 +59,12 @@ node tools/simulate.mjs 200
 - A debug view (`?debug=1`) that plays one seeded AI-vs-AI match in the browser as a text log.
 - Vocabulary: "Legendary Hero" is now "Legendary Creature"; Traits, Race and Races added; Classes confirmed.
 - Readings that need Elliott's approval are listed in `docs/01-rulebook.md` section 13.
+
+### S2: Cards as data (14 November 2026)
+- `docs/cards.json`: the approved first deck (`docs/06-first-deck-draft.md`) as data, the single source of truth: 26 cards and the 40-card deck list, with the ids and art paths from `docs/07-art-prompts.md`, every effect as structured data in the engine's vocabulary, and the approved wording.
+- `tools/buildcards.mjs` generates `src/data/cards.js`: it checks every card against the approved keywords, triggers, ops and targets, and builds the wording from the templates in `src/engine/wording.js`.
+- The engine: Ambush, Armour X and Riposte X; On Summon (its chosen target is part of the Summon action) and On Defeat; area effects ("in its Location", "in a Location"), "the enemy across from it", "the attack deals N less damage", Held Items that give a guard, Attack, Health or a keyword.
+- `KIND`, `KINDS` (Beast, Undead, Dragon) and `CREATURE` in `vocab.js`.
+- S1's approved readings moved into the rulebook's rules text; S2's readings listed in section 13.
+- Tests: the deck rules and the data, the wording round trip, every keyword and trigger with its edge cases, and the Quest. S1's placeholder cards are now test fixtures (`tests/fixtures/placeholder.js`).
+- The simulation and the debug view play the first deck. The 200-match report is in `tools/reports/s2-simulation.txt`.

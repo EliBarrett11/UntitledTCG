@@ -84,17 +84,20 @@ export const readySpaces = (s, who) => creaturesOf(s, who).filter(({ card }) => 
 
 // 8.1: guards. A Shield protects its side's other cards in the same Location from Martial attacks;
 // a Ward from Arcane. A guard also protects its Warlord from matching attackers in its own Location.
+// A card's guards: its own, plus any a Held Item gives it ("Its holder has a Shield").
 const guardFor = (attackKind) => (attackKind === 'Martial' ? 'Shield' : 'Ward');
+export const guardsOf = (card) => [card?.guard, ...heldOps(card).filter((o) => o.op === 'guard').map((o) => o.guard)].filter(Boolean);
+export const hasGuard = (card, kind) => guardsOf(card).includes(kind);
 export function guardOf(s, side, space, attackKind) {
   const kind = guardFor(attackKind);
-  if (s.players[side].row[space]?.guard === kind) return null;
+  if (hasGuard(s.players[side].row[space], kind)) return null;
   const key = locationKey(s, space);
-  return creaturesOf(s, side).find(({ card, space: i }) => i !== space && card.guard === kind && locationKey(s, i) === key) ?? null;
+  return creaturesOf(s, side).find(({ card, space: i }) => i !== space && hasGuard(card, kind) && locationKey(s, i) === key) ?? null;
 }
 export function warlordGuard(s, who, from) {
   const a = s.players[who].row[from];
   const key = locationKey(s, from);
-  return creaturesOf(s, opponentOf(who)).find(({ card, space }) => card.guard === guardFor(a.attackKind) && locationKey(s, space) === key) ?? null;
+  return creaturesOf(s, opponentOf(who)).find(({ card, space }) => hasGuard(card, guardFor(a.attackKind)) && locationKey(s, space) === key) ?? null;
 }
 export function attackTargets(s, who, from) {
   const a = s.players[who].row[from];
@@ -153,6 +156,14 @@ export function specTargets(s, who, spec) {
     case 'own': return creaturesOf(s, who).map(({ space }) => ({ who, space }));
     case 'ownNoHeld': return creaturesOf(s, who).filter(({ card }) => !card.held).map(({ space }) => ({ who, space }));
     case 'ownDeckCard': return creaturesOf(s, who).filter(({ card }) => !card.legendaryCreature).map(({ space }) => ({ who, space }));
+    // A Location with a creature of that side in it: one target per Location (its leftmost lane); in the
+    // Wilds each lane is its own area (rulebook 12); during the Last Battle, the whole battlefield.
+    case 'enemyLocation': return areaTargets(s, foe);
+    case 'ownLocation': return areaTargets(s, who);
+    case 'attack': {
+      const p = s.reactWindow?.pending;
+      return p?.type === 'attack' && s.reactWindow.reactor === who ? [{ none: true }] : [];
+    }
     case 'attacker': {
       const p = s.reactWindow?.pending;
       return p?.type === 'attack' && s.reactWindow.reactor === who && s.players[p.who].row[p.from]?.uid === p.attackerUid ? [{ who: p.who, space: p.from }] : [];
@@ -164,9 +175,20 @@ export function specTargets(s, who, spec) {
     default: throw new Error(`Unknown target spec ${spec}`);
   }
 }
+function areaTargets(s, side) {
+  const seen = new Set();
+  const out = [];
+  for (let lane = 0; lane < RULES.lanes; lane++) {
+    const area = lanesHere(s, lane);
+    if (seen.has(area[0]) || !area.some((l) => s.players[side].row[l])) continue;
+    seen.add(area[0]);
+    out.push({ who: side, space: area[0], area: true });
+  }
+  return out;
+}
 const sameTarget = (a, b) => (a?.none && b?.none) || (!!a && !!b && a.who === b.who && a.space === b.space);
 // Records the chosen card's uid, so a later resolution can tell whether it's gone.
-const lockTarget = (s, t) => (t.none ? { none: true } : { who: t.who, space: t.space, uid: s.players[t.who].row[t.space].uid });
+const lockTarget = (s, t) => (t.none ? { none: true } : t.area ? { who: t.who, space: t.space, area: true } : { who: t.who, space: t.space, uid: s.players[t.who].row[t.space].uid });
 
 const comboOf = (arr, k) => {
   if (k === 0) return [[]];
@@ -208,7 +230,14 @@ export function legalActions(s, who, only = null) {
   if (s.phase !== 'battle') return out;
   if (want('pass') && !passBlockers(s, who).length) out.push({ type: 'pass', who });
   for (const c of p.hand) {
-    if (isCreature(c) && want('summon') && canPay(p, c.cost)) for (const space of emptySpaces(s, who)) out.push({ type: 'summon', who, uid: c.uid, space });
+    if (isCreature(c) && want('summon') && canPay(p, c.cost)) {
+      // 12.2: an On Summon that needs a chosen target: one Summon per legal target, or none if there's none.
+      const chosen = summonTargets(s, who, c);
+      for (const space of emptySpaces(s, who)) {
+        if (!chosen) out.push({ type: 'summon', who, uid: c.uid, space });
+        else for (const target of chosen) out.push({ type: 'summon', who, uid: c.uid, space, target });
+      }
+    }
     if (c.cardType === 'Action' && want('action')) {
       for (const mode of ['adapt', 'strat']) if (modeUsable(s, who, c, mode)) for (const target of specTargets(s, who, c.modes[mode].target)) out.push({ type: 'action', who, uid: c.uid, mode, target });
     }
@@ -227,6 +256,14 @@ export function legalActions(s, who, only = null) {
   if (want('attack')) for (const from of readySpaces(s, who)) for (const target of attackTargets(s, who, from)) out.push({ type: 'attack', who, from, target });
   return out;
 }
+// The targets an On Summon offers when it needs one (null when it doesn't). The summoned creature isn't on
+// the battlefield yet, so it can't choose itself. No legal target: [{ none: true }] (it arrives; nothing happens).
+export function summonTargets(s, who, card) {
+  const t = card.trigger;
+  if (!t || t.on !== 'summon' || !t.target || t.target === 'none') return null;
+  const list = specTargets(s, who, t.target);
+  return list.length ? list : [{ none: true }];
+}
 export const itemTargets = (s, who, item) => specTargets(s, who, item.kind === 'Held' ? 'ownNoHeld' : item.target ?? 'none');
 function buyOptions(s, who, item, src) {
   const p = s.players[who];
@@ -238,7 +275,7 @@ function buyOptions(s, who, item, src) {
 }
 
 // A stable key for an action, so a submitted action can be matched against the legal list.
-const tkey = (t) => (!t ? '-' : t.none ? 'none' : t.kind ? `${t.kind}:${t.space ?? ''}` : `${t.who}:${t.space}`);
+const tkey = (t) => (!t ? '-' : t.none ? 'none' : t.kind ? `${t.kind}:${t.space ?? ''}` : `${t.who}:${t.space}${t.area ? ':area' : ''}`);
 export function actionKey(a) {
   const sorted = (xs) => [...(xs ?? [])].sort().join(',');
   switch (a.type) {
@@ -283,15 +320,16 @@ const ACTIONS = {
   },
 
   // 7: pay the cost and place it in an empty space on your side. It arrives Spent, a snapshot.
-  summon(s, { who, uid, space }) {
+  summon(s, { who, uid, space, target }) {
     const p = s.players[who];
+    const t = target ? lockTarget(s, target) : null;
     const card = removeFromHand(p, uid);
     payCost(p, card.cost, s.round);
     p.row[space] = onBoard(s, card);
-    emit(s, 'summoned', { who, space, uid, name: card.name, level: card.level });
-    log(s, `${NAME[who]} summoned ${card.name} (Level ${card.level}) into lane ${space + 1} for ${card.cost} Energy.`);
+    emit(s, 'summoned', { who, space, uid, name: card.name, level: card.level, active: !p.row[space].spent });
+    log(s, `${NAME[who]} summoned ${card.name} (Level ${card.level}) into lane ${space + 1} for ${card.cost} Energy${p.row[space].spent ? '' : ' (Ambush: it arrives Active)'}.`);
     syncBonuses(s);
-    queueTrigger(s, who, space, p.row[space], 'summon');
+    queueTrigger(s, who, space, p.row[space], 'summon', { target: t });
     finishTurn(s, who);
   },
 
@@ -312,7 +350,7 @@ const ACTIONS = {
     if (mode === 'strat') {
       s.strats.push({ uid: `strat-${uid}`, owner: who, card, target: t, playedRound: s.round });
       emit(s, 'stratSealed', { who, uid: `strat-${uid}`, target: t });
-      log(s, `${NAME[who]} sealed a Strat${t.none ? '' : ` on ${s.players[t.who].row[t.space].name}`}.`);
+      log(s, `${NAME[who]} sealed a Strat${t.none ? '' : ` on ${targetName(s, t)}`}.`);
       return finishTurn(s, who);
     }
     log(s, `${NAME[who]} played ${card.name} as Adapt.`);
@@ -434,8 +472,9 @@ const ACTIONS = {
 };
 
 // A card as it stands on the battlefield.
+// 12.1 Ambush: it arrives Active rather than Spent.
 export function onBoard(s, card) {
-  return { ...card, currentHealth: card.health, spent: true, summonedRound: s.round, bonusAttack: 0, bonusHealth: 0, tempAttack: 0, tempHealth: 0, held: null };
+  return { ...card, currentHealth: card.health, spent: !hasKeyword(card, 'ambush'), summonedRound: s.round, bonusAttack: 0, bonusHealth: 0, tempAttack: 0, tempHealth: 0, held: null };
 }
 
 // --- Committing, React windows and resolving (8.2) -------------------------------------------------------
@@ -465,6 +504,9 @@ function resolvePending(s, pending) {
   finishTurn(s, pending.who);
 }
 
+// A target as words, for the log: a creature's name, or the Location (or Wilds lane) it names.
+const targetName = (s, t) => (t.area ? (s.lastBattle ? 'the Last Battle' : locationAt(s, t.space)?.name ?? `lane ${t.space + 1}`) : s.players[t.who].row[t.space]?.name ?? `lane ${t.space + 1}`);
+
 const fizzle = (s, who, what, why) => {
   emit(s, 'fizzled', { who, what });
   log(s, `${what} fizzled: ${why}.`);
@@ -472,14 +514,16 @@ const fizzle = (s, who, what, why) => {
 
 const RESOLVE = {
   // 8.1: the attacker deals its Attack; a Ready target hits back; the attacker is Spent.
-  attack(s, { who, from, target, attackerUid, targetUid }) {
+  attack(s, pending) {
+    const { who, from, target, attackerUid, targetUid } = pending;
     const foe = opponentOf(who);
     const a = s.players[who].row[from];
     if (!a || a.uid !== attackerUid) return fizzle(s, who, `${NAME[who]}'s attack`, 'the attacker is gone');
     const d = target.kind === 'creature' ? s.players[foe].row[target.space] : null;
     if (target.kind === 'creature' && (!d || d.uid !== targetUid)) { a.spent = true; return fizzle(s, who, `${a.name}'s attack`, 'its target is gone'); }
     if (!attackTargets(s, who, from).some((t) => t.kind === target.kind && t.space === target.space)) { a.spent = true; return fizzle(s, who, `${a.name}'s attack`, 'its target is guarded now'); }
-    const dmg = Math.max(0, a.attack);
+    // A React may make the attack deal less damage (minimum 0).
+    const dmg = Math.max(0, a.attack - (pending.reduce ?? 0));
     if (!d) {
       a.spent = true;
       s.players[foe].warlordDamage += dmg;
@@ -503,7 +547,17 @@ const RESOLVE = {
     if (dDown) defeat(s, foe, target.space, who);
     if (aDown) defeat(s, who, from, foe);
     if (s.phase === 'gameOver') return;
-    if (!aDown) queueTrigger(s, who, from, a, 'attack', { target });
+    // 12.1 Riposte X: after the attack resolves, if the target is still on the battlefield (Spent or not),
+    // it deals X damage to the attacker (if that is still there). Armour applies.
+    const rip = keywordAmount(d, 'riposte');
+    if (!dDown && rip > 0 && s.players[who].row[from]?.uid === a.uid) {
+      const dealt = damageCard(s, who, from, rip);
+      emit(s, 'riposte', { who: foe, space: target.space, amount: dealt });
+      log(s, `${d.name}'s Riposte deals ${dealt} to ${a.name}.`);
+      if (a.currentHealth <= 0) { defeat(s, who, from, foe); if (s.phase === 'gameOver') return; }
+    }
+    const aGone = s.players[who].row[from]?.uid !== a.uid;
+    if (!aGone) queueTrigger(s, who, from, a, 'attack', { target });
     if (!dDown && hit > 0) queueTrigger(s, foe, target.space, d, 'defend', { attacker: { who, space: from, uid: a.uid } });
   },
 
@@ -516,7 +570,7 @@ const RESOLVE = {
   },
 };
 // A chosen target is gone if its card has left that space (even if another card now stands there).
-const gone = (s, t) => !t.none && s.players[t.who].row[t.space]?.uid !== t.uid;
+const gone = (s, t) => !t.none && !t.area && s.players[t.who].row[t.space]?.uid !== t.uid;
 
 // 8.2: pending Strats resolve in the order played: the owner's at the start of their next turn, or
 // all of them at Dusk if the Battle Phase ends first. Each may open a React window; the rest wait.
@@ -561,6 +615,7 @@ export function runEffect(s, ctx, ops) {
     if (PLAYER_OPS.includes(o.op)) {
       if (o.op === 'draw') draw(s, ctx.who, n);
       if (o.op === 'energy') p.baseEnergy += n;
+      if (o.op === 'reduce' && ctx.pending?.type === 'attack') ctx.pending.reduce = (ctx.pending.reduce ?? 0) + n;
       if (o.op === 'gold') gainGold(s, ctx.who, n, ctx.name);
       continue;
     }
@@ -592,7 +647,14 @@ function effectTargets(s, ctx, o) {
   const live = (list) => list.filter((t) => s.players[t.who].row[t.space]);
   const each = (side) => creaturesOf(s, side).map(({ space }) => ({ who: side, space }));
   switch (o.to ?? 'chosen') {
-    case 'chosen': return ctx.target && !ctx.target.none && !gone(s, ctx.target) ? [ctx.target] : [];
+    case 'chosen':
+      if (ctx.target?.area) return lanesHere(s, ctx.target.space).filter((l) => s.players[ctx.target.who].row[l]).map((l) => ({ who: ctx.target.who, space: l }));
+      return ctx.target && !ctx.target.none && !gone(s, ctx.target) ? [ctx.target] : [];
+    // "In its Location": the lanes of the Location it stands (or stood) in.
+    case 'eachEnemyHere': return ctx.src ? lanesHere(s, ctx.src.space).filter((l) => s.players[foe].row[l]).map((l) => ({ who: foe, space: l })) : [];
+    case 'eachOwnHere': return ctx.src ? lanesHere(s, ctx.src.space).filter((l) => s.players[ctx.who].row[l]).map((l) => ({ who: ctx.who, space: l })) : [];
+    // On Defeat: the enemy in the lane it stood in (nothing if that space is empty).
+    case 'acrossEnemy': return ctx.src && s.players[foe].row[ctx.src.space] ? [{ who: foe, space: ctx.src.space }] : [];
     case 'self': return ctx.src && s.players[ctx.src.who].row[ctx.src.space]?.uid === ctx.src.uid ? [ctx.src] : [];
     case 'eachEnemy': return each(foe);
     case 'eachOwn': return each(ctx.who);
@@ -608,11 +670,15 @@ function effectTargets(s, ctx, o) {
   }
 }
 
+// One instance of damage. 12.1 Armour X: it takes X less (minimum 0); Armour from every source adds up.
 function damageCard(s, side, space, n) {
   const c = s.players[side].row[space];
   if (!c || n <= 0) return 0;
-  c.currentHealth -= n;
-  return n;
+  const armour = keywordAmount(c, 'armour');
+  const dealt = Math.max(0, n - armour);
+  if (armour && dealt < n) emit(s, 'armour', { who: side, space, prevented: n - dealt });
+  c.currentHealth -= dealt;
+  return dealt;
 }
 
 // 8.1: a card at 0 Health is defeated: to its owner's Released Pile; its opponent gains 2 Renown and
@@ -626,7 +692,7 @@ function defeat(s, who, space, by) {
   s.players[who].released.push(plain);
   emit(s, 'defeated', { who, space, uid: card.uid, name: card.name, by });
   log(s, `${NAME[who]}'s ${card.name} was defeated.`);
-  queueTrigger(s, who, space, card, 'defeated', { by });
+  queueTrigger(s, who, space, card, 'defeat', { by });
   if (by === who) return;
   gainGold(s, by, RULES.goldPerDefeat, `defeating ${card.name}`);
   gainRenown(s, by, RULES.perDefeat, 'defeat', `defeating ${card.name}`);
@@ -652,7 +718,7 @@ function returnToHand(s, who, space) {
 function queueTrigger(s, who, space, card, point, ctx = {}) {
   const trig = card?.trigger;
   if (!trig || trig.on !== point) return;
-  s.triggers.push({ who, space, uid: card.uid, trig, card: point === 'defeated' ? structuredClone(card) : null, point, ctx, depth: s.triggerDepth ?? 0 });
+  s.triggers.push({ who, space, uid: card.uid, trig, card: point === 'defeat' ? structuredClone(card) : null, point, ctx, depth: s.triggerDepth ?? 0 });
 }
 export function drainTriggers(s) {
   if (s.draining) return;
@@ -668,11 +734,11 @@ export function drainTriggers(s) {
         continue;
       }
       const live = s.players[t.who].row[t.space];
-      const card = t.point === 'defeated' ? t.card : live?.uid === t.uid ? live : null;
+      const card = t.point === 'defeat' ? t.card : live?.uid === t.uid ? live : null;
       if (!card) continue;
       s.triggerDepth = t.depth + 1;
       emit(s, 'trigger', { who: t.who, space: t.space, uid: t.uid, point: t.point, depth: t.depth });
-      runEffect(s, { who: t.who, name: card.name, kind: 'trigger', src: { who: t.who, space: t.space, uid: t.uid }, trig: t.ctx }, t.trig.ops);
+      runEffect(s, { who: t.who, name: card.name, kind: 'trigger', src: { who: t.who, space: t.space, uid: t.uid }, trig: t.ctx, target: t.ctx.target ?? null }, t.trig.ops);
       s.triggerDepth = 0;
     }
   } finally {
@@ -1004,11 +1070,12 @@ function beginLastBattle(s, round) {
   log(s, `The Last Battle begins (${reason}).`);
 }
 
-// 8.3: a Favour condition: { cardType }, { trait: { class | race } }, or { series }.
+// 8.3: a Favour condition: { cardType }, { class }, { race }, { kind } or { series }.
 export function meetsCondition(card, cond) {
   if (cond.cardType && card.cardType !== cond.cardType) return false;
   if (cond.class && card.traits?.class !== cond.class) return false;
   if (cond.race && card.traits?.race !== cond.race) return false;
+  if (cond.kind && card.traits?.kind !== cond.kind) return false;
   if (cond.series && card.series !== cond.series) return false;
   return true;
 }

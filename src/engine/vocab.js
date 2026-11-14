@@ -78,11 +78,14 @@ export const STATS = freeze({
   speed: 'Speed',
 });
 
-// Traits: a Character's identity tags, at least a Class and a Race. (Monsters' traits are an open question.)
+// Traits: a card's identity tags. A Character has a Class and a Race; a Monster has a Kind.
 export const TRAIT = 'Trait';
 export const TRAITS = 'Traits';
 export const CLASS = 'Class';
 export const RACE = 'Race';
+export const KIND = 'Kind';
+// In card text, "creature" means a Character or Monster.
+export const CREATURE = 'creature';
 
 export const CLASSES = freeze({
   fighter: 'Fighter',
@@ -98,6 +101,12 @@ export const RACES = freeze({
   dwarf: 'Dwarf',
   orc: 'Orc',
   halfling: 'Halfling',
+});
+
+export const KINDS = freeze({
+  beast: 'Beast',
+  undead: 'Undead',
+  dragon: 'Dragon',
 });
 
 export const RESOURCES = freeze({
@@ -137,6 +146,6 @@ export const TERMS = freeze({
 
 export const VOCAB = freeze({
   GAME, CARD_TYPES, CAMPAIGN, LEGENDARY, ACTION_MODES, EVENT_PARTS, ITEM_KINDS,
-  PHASES, ROUND, SPEEDS, ATTACK_KINDS, GUARDS, SERIES, STATS, TRAIT, TRAITS, CLASS, CLASSES, RACE, RACES,
+  PHASES, ROUND, SPEEDS, ATTACK_KINDS, GUARDS, SERIES, STATS, TRAIT, TRAITS, CLASS, CLASSES, RACE, RACES, KIND, KINDS, CREATURE,
   RESOURCES, PLACES, MARKET_TERMS, TERMS,
 });

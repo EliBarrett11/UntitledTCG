@@ -1,8 +1,8 @@
 // Shared helpers for the rules tests: build a match, then stage exact positions.
 // Tests may set up state directly; every move under test goes through applyAction.
 import assert from 'node:assert/strict';
-import { defineCards, cardAtRound, creatureAtLevel, cardDef } from '../src/engine/cards.js';
-import { PLACEHOLDER_CARDS, PLACEHOLDER_DECK } from '../src/data/placeholder.js';
+import { defineCards, cardAtRound, creatureAtLevel, cardDef, levelsOf } from '../src/engine/cards.js';
+import { PLACEHOLDER_CARDS, PLACEHOLDER_DECK, series } from './fixtures/placeholder.js';
 import { createGame, applyAction, legalActions, onBoard, syncBonuses, actionKey } from '../src/engine/game.js';
 
 defineCards(PLACEHOLDER_CARDS);
@@ -24,14 +24,14 @@ defineCards([
   { id: 'x-dawn-trigger', cardType: 'Character', name: 'X Dawn Trigger', series: 'Light', speed: 'Slow', attackKind: 'Martial', traits: { class: 'Fighter', race: 'Human' }, stats: { 1: [1, 9] },
     trigger: { on: 'dawn', ops: [{ op: 'gold', amount: 1 }] } },
   { id: 'x-chain', cardType: 'Character', name: 'X Chain', series: 'Light', speed: 'Slow', attackKind: 'Martial', traits: { class: 'Fighter', race: 'Human' }, stats: { 1: [1, 1] },
-    trigger: { on: 'defeated', ops: [{ op: 'damage', amount: 1, to: 'eachEnemy' }] } },
+    trigger: { on: 'defeat', ops: [{ op: 'damage', amount: 1, to: 'eachEnemy' }] } },
   { id: 'x-keyword', cardType: 'Character', name: 'X Keyword', series: 'Light', speed: 'Slow', attackKind: 'Martial', traits: { class: 'Fighter', race: 'Human' }, stats: { 1: [1, 9] },
     keywords: { testKeyword: 1 } },
   { id: 'x-held-keyword', cardType: 'Item', name: 'X Held Keyword', price: 1, kind: 'Held', ops: [{ op: 'keyword', keyword: 'testKeyword', amount: 2 }] },
   { id: 'x-campaign-defeat', cardType: 'Campaign', name: 'X Campaign Defeat',
     quest: { kind: 'defeat', need: 1, text: 'Defeat 1 enemy' }, order: { cost: 1, target: 'none', ops: [{ op: 'draw', amount: 1 }] },
     legendaryCreature: { cardType: 'Monster', name: 'X Legendary Creature', speed: 'Slow', attackKind: 'Martial', attack: 8, health: 10 } },
-]);
+].map(series));
 
 export { PLACEHOLDER_DECK, cardDef, applyAction, legalActions, actionKey };
 
@@ -70,7 +70,7 @@ export function blank(seed = 1, { turn = 'p1', round = 3 } = {}) {
 let n = 0;
 export function put(s, who, space, id, { level = null, spent = false, ...over } = {}) {
   const def = cardDef(id);
-  const c = onBoard(s, creatureAtLevel(def, level ?? Number(Object.keys(def.stats)[0]), `${who}-t${n++}`));
+  const c = onBoard(s, creatureAtLevel(def, level ?? levelsOf(def)[0], `${who}-t${n++}`));
   Object.assign(c, { spent }, over);
   if (over.health && over.currentHealth === undefined) c.currentHealth = over.health;
   s.players[who].row[space] = c;

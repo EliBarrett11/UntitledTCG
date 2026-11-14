@@ -2,18 +2,18 @@
 import { test, run, assert, blank, put, give, act, endPhase } from './helpers.js';
 import { KEYWORDS, TRIGGERS, MAX_CHAIN, EFFECT_OPS } from '../src/engine/abilities.js';
 import { keywordAmount, hasKeyword, runEffect, drainTriggers } from '../src/engine/game.js';
-import { PLACEHOLDER_CARDS } from '../src/data/placeholder.js';
+import { PLACEHOLDER_CARDS } from './fixtures/placeholder.js';
 
-test('12: the approved keyword and trigger lists start empty', () => {
-  assert.deepEqual(Object.keys(KEYWORDS), []);
-  assert.deepEqual(Object.keys(TRIGGERS), []);
+test('12: the approved lists hold exactly what Elliott approved: Ambush, Armour, Riposte; On Summon, On Defeat', () => {
+  assert.deepEqual(Object.keys(KEYWORDS).sort(), ['ambush', 'armour', 'riposte']);
+  assert.deepEqual(Object.keys(TRIGGERS).sort(), ['defeat', 'summon']);
   assert.ok(Object.isFrozen(KEYWORDS) && Object.isFrozen(TRIGGERS));
 });
 
 test('12: no placeholder card uses a keyword or a trigger, and only plain effects', () => {
   const plain = new Set(Object.keys(EFFECT_OPS));
   for (const c of PLACEHOLDER_CARDS) {
-    assert.ok(!c.trigger && !c.keywords, c.name);
+    assert.ok(c.forms ? c.forms.every((f) => !f.trigger && !Object.keys(f.keywords).length) : true, c.id);
     const lists = [c.ops, c.favour?.ops, c.order?.ops, ...Object.values(c.modes ?? {}).map((m) => m.ops), c.cardType === 'Item' && c.kind === 'Consumed' ? c.ops : null].filter(Boolean);
     for (const ops of lists) for (const o of ops) assert.ok(plain.has(o.op), `${c.name}: ${o.op}`);
   }
