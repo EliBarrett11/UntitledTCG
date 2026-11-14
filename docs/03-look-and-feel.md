@@ -43,6 +43,8 @@ Do not include any text, letters, logos, borders, frames, card layouts or waterm
 
 ## 3. Cards
 
+**Approved card design (Elliott, 14 November 2026):** `docs/mockups/cards-s4-types.html` (the seven frames at Full size), `cards-s4-finishes.html` (foil on final forms, Legendaries and Legendary Creatures) and `cards-s4-sizes.html` (Full, Mini, Token, Chip and the token states), each with a `.png` screenshot. **No flavour text:** cards carry only their rules; a vanilla card leaves the space empty.
+
 - **Sizes:** Full (340 px wide, 5:7) for hovering, the Codex and choices; Mini (200 px) for the hand and the Market; Token (~164 px) for cards on the board; Chip (24–40 px) for trackers and the log.
 - **Frames:** near-rectangular, one distinctive silhouette per card type (02-card-types.md section 2). A dark edge, a fine metal hairline (brass or iron), with the colour kept to a few accents.
 - **Stat tabs** sit flush in the bottom corners, with clear icons for Attack and Health, and for Martial, Arcane, Shield and Ward.
@@ -69,7 +71,7 @@ Do not include any text, letters, logos, borders, frames, card layouts or waterm
 - **Previews:** before you commit an attack or effect, the board shows the result (damage, defeats, Renown).
 - **A ? overlay** lists the keys and a searchable rules page.
 
-## 6. Readings needing Elliott's approval (S3)
+## 6. Readings from S3: approved by Elliott, 14 November 2026
 
 The docs don't settle these interface details; S3 uses the simplest reading.
 
