@@ -1,6 +1,6 @@
 # Art still to make
 
-**What this is:** every image still outstanding, with its ready-to-paste prompt. Updated 14 November 2026: all 37 card illustrations, all 7 pieces of presentation art (in `assets/ui/`) and 104 of 113 VFX textures are in.
+**What this is:** every image still outstanding, with its ready-to-paste prompt. Updated 14 November 2026: all 37 card illustrations, all 7 pieces of presentation art (in `assets/ui/`) and 104 of 106 effect textures are in (111 of the kit's 113 images).
 
 **How to deliver:** send the images to the design chat. It processes and files them and updates this list. Until an image arrives, the game draws a stand-in, so nothing is blocked.
 
