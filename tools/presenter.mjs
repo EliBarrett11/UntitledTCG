@@ -31,7 +31,7 @@ for (const run of RUNS) {
   const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
   const errors = [];
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
-  page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`console: ${m.text()}`); });
+  page.on('console', (m) => { if ((m.type() === 'error' || m.type() === 'warning') && !/GL Driver Message|GPU stall due to ReadPixels/.test(m.text())) errors.push(`console: ${m.text()}`); });
   await page.goto(`http://127.0.0.1:${server.address().port}/?seed=${SEED}&autoplay=1&pace=120&${run.query}`, { waitUntil: 'networkidle' });
   const problems = [];
   let checks = 0;

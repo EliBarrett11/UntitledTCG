@@ -116,3 +116,27 @@ Gold gained or spent shows as `coin-spin-atlas` coins flying to or from the Gold
 - In the Last Battle, embers and ash blow across the map (drawn in code until `ember-storm` arrives).
 
 All of this stays quiet, and it is off in low motion.
+
+---
+
+## 4. Readings needing Elliott's approval (V1)
+
+1. **Distortion bends the effects, not the board.** The WebGL layer sits over the board as a separate canvas and cannot read the board's pixels. So shockwaves and heat shimmer warp the effects themselves (sparks, flames, rings), and a painted `shockwave-ring` shows the wave over the board. Bending the board itself would mean drawing the whole board in WebGL (a V3 or V6 question).
+2. **Armour shows at the impact.** The engine reports Armour just before the attack (or effect) it softens. With the effects layer, the `armour-plates` shimmer and an "Armour −N" note now play at that attack's impact, not as a beat of their own. Without WebGL it stays a separate beat, as in S5.
+3. **Guards.** The rules have no "redirect" moment: a Shield or Ward guard is simply the only creature that can be attacked. So the guard's sigil flashes when an attack lands on a guard that guards against that attack (Shield against Martial, Ward against Arcane). `ward-sigil` isn't delivered yet; a ring drawn in code stands in.
+4. **Hidden information.** An enemy Strat's letter and wax seal are plain red, not its Class colour, because its card is hidden. Your own Strats take their Class colour.
+5. **Styles by card.** These looks are presentation data in `src/ui/vfx/library.js`, keyed by card id:
+   - the Ashen Wyrm breathes fire;
+   - the Archmagus (the Apprentice's top form) throws lightning;
+   - the Stonehide Basilisk shatters into stone;
+   - Deepforge heals add the hammer sigil, Mending Prayer the holy pillar, Healer's Salve the salve glow;
+   - Firebolt, Flask of Wildfire, Draught of Vigour, Night Raid, Barrow Shade, Runed Blade and Tower Shield have their own effects.
+
+   Beasts alternate claws and bite at random. Clerics and Undead take their own tints (gold, spectral teal).
+6. **Hit-stop sits on top of the budget.** Hit-stop freezes the moment for 60–120 ms (scaled by damage), so a heavy attack runs up to about 1.37 s. The checks allow 12% over each budget for this.
+7. **Clarity.** The S5 arrow still draws from attacker to target under the effects, and damage numbers stay above the effects canvas. The ink splash under a number lasts at most 0.56 s, and the effects never sit on a card's stats.
+8. **Speed and skipping.** The speed setting scales effect times, particle speeds and gravity together, so an effect keeps its shape. Skipping a beat clears its particles within about 0.12 s and still lands its numbers.
+9. **Low motion.** It turns off shake, hit-stop, bloom flashes, distortion, lunges, the ambient table and particle trails. It keeps a quarter of the particles, and sprites fade 30% sooner.
+10. **The ambient table is CSS, not WebGL.** That way the WebGL loop stops between moments, as the quality bar asks. The candles sit at the four corners of the map, not the window's corners, where the Warlords and panels are.
+11. **Resolution follows the frame rate.** If frames run long, the effects canvas drops its resolution (to as low as half) before it drops frames. Effects are soft, so this is hard to see.
+12. **Signature moments come in V2.** Dusk, Dawn, Location placement, Quest progress, the Legendary Creature and the Last Battle get a light touch over their S5 animations here (a wash, a sweep, dust, rays, a gate of light).

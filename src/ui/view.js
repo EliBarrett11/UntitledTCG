@@ -314,7 +314,7 @@ function settingsPanel(ui) {
     <div class="set-row">${['slow', 'normal', 'fast'].map((v) => opt('speed', v, v[0].toUpperCase() + v.slice(1), st.speed === v)).join('')}</div>
     <div class="label">LOW MOTION</div>
     <div class="set-row">${opt('lowMotion', '0', 'Off', !st.lowMotion)}${opt('lowMotion', '1', 'On', st.lowMotion)}</div>
-    <div class="muted small">No tilt, sheen, embers or ribbons; short fades instead.</div>
+    <div class="muted small">No shake, tilt, sheen or ribbons; fewer sparks and short fades.</div>
     <div class="label">REACT TIMER</div>
     <div class="set-row">${[5, 8, 12, 20].map((v) => opt('reactSeconds', v, `${v} s`, st.reactSeconds === v)).join('')}</div>
     <button type="button" class="btn" data-act="settings">Close</button>

@@ -298,3 +298,25 @@ body.debug #viewport { position: static; }
 .low-motion .sheen, .low-motion .embers, .low-motion .ribbon, .low-motion .spark { display: none !important; }
 .low-motion .card-full { transform: none !important; }
 .low-motion .candle::before { animation: none; }
+
+/* --- V1: the effects layer ---------------------------------------------------------------------------------- */
+/* The WebGL canvas covers the stage (its buffer follows the stage's size on screen); numbers stay above it. */
+#vfx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 87; }
+/* A defeated card burns away from the centre. */
+@property --burn { syntax: '<percentage>'; inherits: false; initial-value: -15%; }
+.burning { -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent var(--burn), #000 calc(var(--burn) + 12%)); mask-image: radial-gradient(circle at 50% 50%, transparent var(--burn), #000 calc(var(--burn) + 12%)); }
+/* The quiet table: dust, fog over the Wilds, candles, and in the Last Battle, embers blowing across. */
+.ambient { position: absolute; inset: 0; overflow: hidden; border-radius: 10px; pointer-events: none; z-index: 1; }
+.ambient i { position: absolute; display: block; pointer-events: none; animation-iteration-count: infinite; background-repeat: no-repeat; }
+.amb-mote { opacity: 0; animation-name: amb-drift; animation-timing-function: linear; }
+@keyframes amb-drift { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: 0.5; } 50% { transform: translate(70px, -40px); opacity: 0.32; } 85% { opacity: 0.45; } 100% { transform: translate(140px, -90px); opacity: 0; } }
+.amb-fog { top: 236px; height: 190px; opacity: 0.2; animation-name: amb-fog; animation-timing-function: ease-in-out; animation-direction: alternate; }
+@keyframes amb-fog { from { transform: translateX(-30px); opacity: 0.12; } to { transform: translateX(30px); opacity: 0.24; } }
+.amb-candle { width: 48px; height: 80px; animation-name: amb-flicker; animation-timing-function: ease-in-out; transform-origin: 50% 90%; }
+.amb-candle::before { content: ''; position: absolute; left: -36px; top: -24px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(255,170,80,0.28), rgba(255,140,60,0.08) 45%, transparent 70%); }
+.amb-candle b { position: absolute; left: 14px; top: 8px; width: 20px; height: 48px; display: block; }
+@keyframes amb-flicker { 0%, 100% { opacity: 0.55; transform: scale(1, 1); } 30% { opacity: 0.72; transform: scale(1.04, 1.08); } 55% { opacity: 0.5; transform: scale(0.98, 0.95); } 80% { opacity: 0.66; transform: scale(1.02, 1.03); } }
+.amb-ember { left: -30px; opacity: 0; animation-name: amb-blow; animation-timing-function: linear; }
+.amb-ember.ash { filter: brightness(0.35); }
+@keyframes amb-blow { 0% { transform: translate(0, 0) rotate(0deg); opacity: 0; } 10% { opacity: 0.9; } 85% { opacity: 0.7; } 100% { transform: translate(1580px, -140px) rotate(540deg); opacity: 0; } }
+body.low-motion .ambient { display: none; }

@@ -9,6 +9,9 @@
 import { renderCard, cardBack } from './cards.js';
 import { accentOf, esc, HUMAN, AI } from './text.js';
 import { handLayout } from './view.js';
+import { hasGuard } from '../engine/game.js';
+import { runEffect } from './vfx/runner.js';
+import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName } from './vfx/library.js';
 
 const STAGE_W = 1920;
 const NAME = { [HUMAN]: 'You', [AI]: 'The enemy' };
@@ -18,7 +21,7 @@ const POSS = { [HUMAN]: 'Your', [AI]: "The enemy's" };
 export const T = { summon: 750, attack: 1250, hit: 650, defeat: 950, renown: 750, gold: 450, strat: 900, stratResolve: 2000, legendary: 2500,
   location: 950, card: 900, banner: 1000, dominance: 900, lastBattle: 2000, trigger: 600, quest: 600, small: 450 };
 
-export function createPresenter(stage, { settings, onBeat }) {
+export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   let current = null;   // the beat being played: { skip() }
   let started = 0;
   let done = 0;
@@ -61,6 +64,7 @@ export function createPresenter(stage, { settings, onBeat }) {
     });
     ctx.skip = () => {
       ctx.skipping = true;
+      try { ctx.onSkip?.(); } catch { /* ignore */ }
       for (const a of ctx.anims) { try { a.finish(); } catch { /* ignore */ } }
       for (const t of ctx.timers) clearTimeout(t);
       for (const w of ctx.wakers) w();
@@ -156,6 +160,43 @@ export function createPresenter(stage, { settings, onBeat }) {
     await Promise.all(parts);
   }
 
+  // --- The effects layer (stage V1) ------------------------------------------------------------------------------
+  // A card arcing from one place to another (a summon: from the hand to its space), gone as it lands.
+  async function arcIn(ctx, html, from, to, { dur = 300, scaleTo = 0.82 } = {}) {
+    const w = 200; const h = 280;
+    const el = add(html, from.cx - w / 2, from.cy - h / 2, 'ghost');
+    const dx = to.cx - from.cx; const dy = to.cy - from.cy;
+    if (settings().lowMotion) {
+      await ctx.anim(el, [{ opacity: 0, transform: `translate(${dx}px, ${dy}px) scale(${scaleTo})` }, { opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(${scaleTo})` }], { duration: dur });
+    } else {
+      await ctx.anim(el, [
+        { transform: 'translate(0,0) rotate(-4deg) scale(1)', opacity: 0.4 },
+        { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 90}px) rotate(3deg) scale(${(1 + scaleTo) / 2 * 1.06})`, opacity: 1, offset: 0.5 },
+        { transform: `translate(${dx}px, ${dy - 14}px) rotate(0deg) scale(${scaleTo * 1.04})`, opacity: 1 },
+      ], { duration: dur, easing: 'cubic-bezier(.3,.6,.4,1)' });
+    }
+    el.remove();
+  }
+  // Places shared by many effects.
+  function anchors(extra = {}) {
+    const el = (x) => (x ? box(x) : null);
+    const map = q('[data-region="map"]');
+    const mb = map ? box(map) : { x: 24, y: 128, w: 1532, h: 644, cx: 790, cy: 450 };
+    return {
+      centre: { ...centre, w: 300, h: 300, x: centre.cx - 150, y: centre.cy - 150 },
+      mapL: { cx: mb.x + 10, cy: mb.cy, x: mb.x, y: mb.y, w: 40, h: mb.h },
+      mapR: { cx: mb.x + mb.w - 10, cy: mb.cy, x: mb.x + mb.w - 40, y: mb.y, w: 40, h: mb.h },
+      ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, v instanceof Element ? el(v) : v])),
+    };
+  }
+  // (body data-effect names the effect playing, with its flags: for the checks and the clip recorder.)
+  const fxRun = (ctx, id, env) => {
+    document.body.dataset.effect = id;
+    document.body.dataset.effectFlags = Object.entries(env.flags ?? {}).filter(([, v]) => v).map(([k]) => k).join(' ');
+    return runEffect(ctx, vfx, id, env);
+  };
+  const SIDE_TINT = { [HUMAN]: '#ffd98a', [AI]: '#a9c6ff' };
+
   // --- The beats for one action ------------------------------------------------------------------------------
   // prev and next are the states before and after; the board shows next. held: numbers shown at their old
   // values until their beat lands.
@@ -167,7 +208,7 @@ export function createPresenter(stage, { settings, onBeat }) {
     const cardIn = (st, uid) => [...st.players[HUMAN].hand, ...st.players[AI].hand].find((c) => c.uid === uid);
     let focus = centre;
     let lastAttack = null;
-    const B = (kind, caption, run) => beats.push({ kind, caption, run });
+    const B = (kind, caption, run, gl) => beats.push({ kind, caption, run, gl });
     const where = (who, space) => { const el = cell(who, space); return el ? box(el) : centre; };
     const handPos = (who, uid) => {
       if (who === AI) return { cx: 720, cy: 60 };
@@ -177,7 +218,24 @@ export function createPresenter(stage, { settings, onBeat }) {
     };
     const setText = (el, v) => { if (el) el.textContent = String(v); };
 
-    for (const e of events) {
+    const gl = !!vfx?.on;
+    // With the effects layer, Armour shows at the impact of the attack, Riposte or effect that follows it.
+    const armourAt = new Map();
+    const merged = new Set();
+    if (gl) {
+      let run = [];
+      events.forEach((e, i) => {
+        if (e.type === 'armour') { run.push(i); return; }
+        if (run.length && ['attack', 'riposte', 'effect'].includes(e.type)) { armourAt.set(i, run.map((j) => events[j])); run.forEach((j) => merged.add(j)); }
+        run = [];
+      });
+    }
+    const armourFor = (ei, who, space) => (armourAt.get(ei) ?? []).filter((a) => a.who === who && a.space === space).reduce((n, a) => n + a.prevented, 0);
+    // Where a card's effect comes from: the creature, or the card just shown (a React, an Event, a Strat).
+    let castFrom = null;
+    const pileBox = (who) => (pileEl(who, 3) ? box(pileEl(who, 3)) : centre);
+
+    for (const [ei, e] of events.entries()) {
       switch (e.type) {
         case 'summoned': {
           const card = next.players[e.who].row[e.space] ?? cardIn(prev, e.uid);
@@ -187,6 +245,19 @@ export function createPresenter(stage, { settings, onBeat }) {
             focus = where(e.who, e.space);
             await slide(ctx, renderCard(card, { size: 'mini' }), handPos(e.who, e.uid), focus, { scaleTo: 0.82 });
             if (t) { t.style.opacity = ''; await ctx.anim(t, [{ transform: 'translateY(-10px)', opacity: 0.6 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 220, fill: 'none' }); }
+          }, async (ctx) => {
+            const t = token(e.who, e.space);
+            if (t) t.style.opacity = '0';
+            focus = where(e.who, e.space);
+            const from = handPos(e.who, e.uid);
+            await fxRun(ctx, 'summon', {
+              anchors: anchors({ src: from, dst: focus }), els: { dst: t }, tint: card ? accentOf(card) : '#c7a15a',
+              flags: { heavy: card?.series === 'Heavy', ambush: !!(e.active && card?.keywords?.ambush) },
+              hooks: {
+                arcIn: () => (card ? arcIn(ctx, renderCard(card, { size: 'mini' }), from, focus, { dur: 300 }) : null),
+                arrive: () => { if (t) t.style.opacity = ''; },
+              },
+            });
           });
           break;
         }
@@ -198,6 +269,15 @@ export function createPresenter(stage, { settings, onBeat }) {
             const glow = add('', focus.cx, focus.y - 40, 'pillar');
             await ctx.anim(glow, [{ opacity: 0, transform: 'translateX(-50%) scaleY(0.2)' }, { opacity: 1, transform: 'translateX(-50%) scaleY(1)', offset: 0.4 }, { opacity: 0.8, offset: 0.7 }, { opacity: 0 }], { duration: 1500 });
             if (t) { t.style.opacity = ''; await ctx.anim(t, [{ transform: 'translateY(-40px) scale(1.15)', opacity: 0, filter: 'brightness(2)' }, { transform: 'translateY(0) scale(1)', opacity: 1, filter: 'brightness(1)' }], { duration: 900, fill: 'none' }); }
+          }, async (ctx) => {
+            const t = token(e.who, e.space);
+            focus = where(e.who, e.space);
+            if (t) t.style.opacity = '0';
+            const c = next.players[e.who].row[e.space];
+            await fxRun(ctx, 'legendary', {
+              anchors: anchors({ dst: focus }), els: { dst: t }, tint: c ? accentOf(c) : '#c9a64a',
+              hooks: { arrive: () => { if (t) t.style.opacity = ''; } },
+            });
           });
           break;
         }
@@ -230,6 +310,38 @@ export function createPresenter(stage, { settings, onBeat }) {
               e.back ? ink(ctx, `−${e.back}`, fromBox, 'dmg') : null,
               arrowDone,
             ]);
+          }, async (ctx) => {
+            const fromBox = where(e.who, e.from);
+            const toEl = d ? cell(foe, e.target.space) : warlordEl(foe);
+            const toBox = toEl ? box(toEl) : centre;
+            focus = toBox;
+            const colour = a ? accentOf(a) : '#c7a15a';
+            const av = attackVars(a);
+            const guardKind = a?.attackKind === 'Arcane' ? 'Ward' : 'Shield';
+            const armour = d ? armourFor(ei, foe, e.target.space) : 0;
+            const armourBack = armourFor(ei, e.who, e.from);
+            const tb = d ? token(foe, e.target.space) : null;
+            const ab = token(e.who, e.from) ?? q(`[data-ghost="${e.who}:${e.from}"]`);
+            await fxRun(ctx, attackEffectFor(a), {
+              anchors: anchors({ src: fromBox, dst: toBox }), els: { src: ab, dst: tb ?? toEl },
+              tint: colour, tint2: d ? accentOf(d) : colour, amount: e.amount,
+              flags: { ...av.flags, back: !!e.back, armour: armour > 0, armourBack: armourBack > 0, guard: !!(d && hasGuard(d, guardKind)) },
+              vars: { ...av.vars, slash2: d ? attackVars(d).vars.slash2 : 'slash-arc', guardSigil: guardKind === 'Shield' ? 'shield-sigil' : 'ward-sigil' },
+              hooks: {
+                arrow: () => { arrow(ctx, fromBox, toBox, colour); },
+                land: () => {
+                  if (tb) setText(tb.querySelector('.tab-h span'), next.players[foe].row[e.target.space]?.currentHealth ?? 0);
+                  ink(ctx, `−${e.amount}`, toBox, 'dmg');
+                  if (armour) ink(ctx, `Armour −${armour}`, { cx: toBox.cx, cy: toBox.cy + 44 }, 'info');
+                },
+                landBack: () => {
+                  const t2 = token(e.who, e.from);
+                  if (t2) setText(t2.querySelector('.tab-h span'), next.players[e.who].row[e.from]?.currentHealth ?? 0);
+                  ink(ctx, `−${e.back}`, fromBox, 'dmg');
+                  if (armourBack) ink(ctx, `Armour −${armourBack}`, { cx: fromBox.cx, cy: fromBox.cy + 44 }, 'info');
+                },
+              },
+            });
           });
           break;
         }
@@ -239,12 +351,34 @@ export function createPresenter(stage, { settings, onBeat }) {
             const from = where(e.who, e.space);
             const to = lastAttack ? where(lastAttack.who, lastAttack.from) : centre;
             await Promise.all([tag(ctx, 'RIPOSTE', from), arrow(ctx, from, to, '#c7a15a'), ink(ctx, `−${e.amount}`, to, 'dmg')]);
+          }, async (ctx) => {
+            const from = where(e.who, e.space);
+            const to = lastAttack ? where(lastAttack.who, lastAttack.from) : centre;
+            const rc = prevCard(e.who, e.space);
+            const armour = lastAttack ? armourFor(ei, lastAttack.who, lastAttack.from) : 0;
+            await fxRun(ctx, 'riposte', {
+              anchors: anchors({ src: from, dst: to }), els: { src: token(e.who, e.space), dst: lastAttack ? token(lastAttack.who, lastAttack.from) : null },
+              tint: rc ? accentOf(rc) : '#c7a15a', amount: e.amount,
+              hooks: {
+                tag: () => tag(ctx, 'RIPOSTE', from),
+                land: () => {
+                  const t2 = lastAttack ? token(lastAttack.who, lastAttack.from) : null;
+                  if (t2) setText(t2.querySelector('.tab-h span'), next.players[lastAttack.who].row[lastAttack.from]?.currentHealth ?? 0);
+                  ink(ctx, `−${e.amount}`, to, 'dmg');
+                  if (armour) ink(ctx, `Armour −${armour}`, { cx: to.cx, cy: to.cy + 44 }, 'info');
+                },
+              },
+            });
           });
           void foe;
           break;
         }
         case 'armour':
-          B('armour', `Armour: ${e.prevented} damage prevented.`, async (ctx) => { await ink(ctx, `Armour −${e.prevented}`, where(e.who, e.space), 'info'); });
+          if (merged.has(ei)) break;
+          B('armour', `Armour: ${e.prevented} damage prevented.`, async (ctx) => { await ink(ctx, `Armour −${e.prevented}`, where(e.who, e.space), 'info'); }, async (ctx) => {
+            const at = where(e.who, e.space);
+            await fxRun(ctx, 'armour', { anchors: anchors({ dst: at }), hooks: { land: () => ink(ctx, `Armour −${e.prevented}`, at, 'info') } });
+          });
           break;
         case 'defeated': {
           const c = prevCard(e.who, e.space) ?? { name: e.name };
@@ -254,6 +388,22 @@ export function createPresenter(stage, { settings, onBeat }) {
             ghost.dataset.ghost = `${e.who}:${e.space}`;
             await crumble(ctx, ghost, pileEl(e.who, 3));
             ghost.remove();
+          }, async (ctx) => {
+            const at = where(e.who, e.space);
+            focus = at;
+            const env = {
+              anchors: anchors({ dst: at, pile: pileBox(e.who) }), els: { pile: pileEl(e.who, 3) },
+              tint: prevCard(e.who, e.space) ? accentOf(c) : '#b8521c', flags: attackVars(c).flags,
+              hooks: {
+                ghost: () => {
+                  const g = add(prevCard(e.who, e.space) ? renderCard({ ...c, currentHealth: 0 }, { size: 'token', live: true }) : '', at.cx - 82, at.y, 'ghost ghost-token');
+                  g.dataset.ghost = `${e.who}:${e.space}`;
+                  env.els.ghost = g;
+                },
+              },
+            };
+            await fxRun(ctx, 'defeat', env);
+            env.els.ghost?.remove();
           });
           break;
         }
@@ -262,6 +412,11 @@ export function createPresenter(stage, { settings, onBeat }) {
           B('returned', `${POSS[e.who]} ${e.name} returns to ${e.who === HUMAN ? 'your' : 'their'} hand.`, async (ctx) => {
             if (!c) return;
             await slide(ctx, renderCard(c, { size: 'token', live: true }), where(e.who, e.space), e.who === HUMAN ? { cx: 760, cy: 930 } : { cx: 720, cy: 60 }, { size: 'token', scaleTo: 0.7 });
+          }, async (ctx) => {
+            const at = where(e.who, e.space);
+            await fxRun(ctx, 'returned', { anchors: anchors({ dst: at }), hooks: {
+              slide: () => (c ? slide(ctx, renderCard(c, { size: 'token', live: true }), at, e.who === HUMAN ? { cx: 760, cy: 930 } : { cx: 720, cy: 60 }, { size: 'token', scaleTo: 0.7 }) : null),
+            } });
           });
           break;
         }
@@ -281,13 +436,44 @@ export function createPresenter(stage, { settings, onBeat }) {
             focus = where(e.targets[0].who, e.targets[0].space);
             await Promise.all(runs);
             void verb;
+          }, async (ctx) => {
+            const srcInfo = cardByName(e.name);
+            const onRow = [next, prev].map((st) => st.players[e.who].row.findIndex((x) => x && x.name === e.name)).find((i) => i >= 0);
+            const srcCard = onRow != null ? next.players[e.who].row[onRow] ?? prev.players[e.who].row[onRow] : null;
+            const src = onRow != null ? where(e.who, onRow) : castFrom ?? (e.who === HUMAN ? { cx: 760, cy: 930, w: 200, h: 280 } : { cx: 720, cy: 60, w: 200, h: 280 });
+            const targets = e.targets.map((t) => ({ box: where(t.who, t.space), el: token(t.who, t.space) }));
+            focus = targets[0].box;
+            const id = effectFor(e.op, e.name);
+            const armour = e.targets.reduce((n, t) => n + armourFor(ei, t.who, t.space), 0);
+            await fxRun(ctx, id, {
+              anchors: anchors({ src, dst: targets[0].box }), els: { dst: targets[0].el }, targets,
+              tint: srcCard ? accentOf(srcCard) : srcInfo ? accentOf(srcInfo.def) : '#c7a15a', amount: e.amount,
+              flags: { ...healFlags(e.name), lightning: srcCard ? attackVars(srcCard).flags.lightning : false, armour: armour > 0 },
+              vars: { slash: 'impact-flash', burst: 'arcane-vortex', bolt: 'arcane-bolt' },
+              hooks: {
+                land: () => {
+                  for (const t of e.targets) {
+                    const at = where(t.who, t.space);
+                    const tk = token(t.who, t.space);
+                    if (tk && (e.op === 'damage' || e.op === 'heal')) setText(tk.querySelector('.tab-h span'), next.players[t.who].row[t.space]?.currentHealth ?? 0);
+                    ink(ctx, label(e.op), at, e.op === 'damage' ? 'dmg' : e.op === 'heal' ? 'heal' : 'info');
+                    const arm = armourFor(ei, t.who, t.space);
+                    if (arm) ink(ctx, `Armour −${arm}`, { cx: at.cx, cy: at.cy + 44 }, 'info');
+                  }
+                },
+              },
+            });
           });
           break;
         }
         case 'trigger': {
           const c = e.point === 'defeat' ? prevCard(e.who, e.space) : next.players[e.who].row[e.space] ?? prevCard(e.who, e.space);
           const name = { summon: 'On Summon', defeat: 'On Defeat', dawn: 'At Dawn', attack: 'On Attack', defend: 'On Defend' }[e.point] ?? 'Trigger';
-          B('trigger', `${POSS[e.who]} ${c?.name ?? 'creature'}: ${name}.`, async (ctx) => { await tag(ctx, name.toUpperCase(), where(e.who, e.space)); });
+          B('trigger', `${POSS[e.who]} ${c?.name ?? 'creature'}: ${name}.`, async (ctx) => { await tag(ctx, name.toUpperCase(), where(e.who, e.space)); }, async (ctx) => {
+            const at = where(e.who, e.space);
+            focus = at;
+            await fxRun(ctx, 'trigger', { anchors: anchors({ dst: at }), tint: c ? accentOf(c) : '#c7a15a', hooks: { tag: () => tag(ctx, name.toUpperCase(), at) } });
+          });
           break;
         }
         case 'renown': {
@@ -300,6 +486,13 @@ export function createPresenter(stage, { settings, onBeat }) {
             await ribbon(ctx, focus, dial, e.who === HUMAN ? '#ffd98a' : '#a9c6ff');
             setText(dial, after);
             if (dial) await Promise.all([pulse(ctx, warlordEl(e.who)), ink(ctx, `+${e.amount} Renown`, box(dial), 'renown')]);
+          }, async (ctx) => {
+            const dial = dialEl(e.who);
+            setText(dial, before);
+            await fxRun(ctx, e.kind === 'favour' ? 'renown.favour' : 'renown', {
+              anchors: anchors({ src: focus, dial: dial ? box(dial) : centre }), tint: e.who === HUMAN ? '#ffd98a' : '#a9c6ff',
+              hooks: { tick: () => { setText(dial, after); if (dial) { pulse(ctx, warlordEl(e.who)); ink(ctx, `+${e.amount} Renown`, box(dial), 'renown'); } } },
+            });
           });
           break;
         }
@@ -313,6 +506,13 @@ export function createPresenter(stage, { settings, onBeat }) {
             if (g) { g.lastChild.textContent = String(before); }
             if (g) await ink(ctx, `+${e.amount} Gold`, box(g), 'gold');
             if (g) g.lastChild.textContent = String(after);
+          }, async (ctx) => {
+            const g = goldEl(e.who);
+            if (g) g.lastChild.textContent = String(before);
+            await fxRun(ctx, 'gold.gain', {
+              anchors: anchors({ src: focus, gold: g ? box(g) : centre }), vars: { coins: Math.min(6, e.amount * 2) },
+              hooks: { tick: () => { if (g) { g.lastChild.textContent = String(after); ink(ctx, `+${e.amount} Gold`, box(g), 'gold'); } } },
+            });
           });
           break;
         }
@@ -321,6 +521,12 @@ export function createPresenter(stage, { settings, onBeat }) {
             const to = e.target.none ? (e.who === HUMAN ? { cx: 160, cy: 840 } : { cx: 160, cy: 60 }) : where(e.target.who, e.target.space);
             focus = to;
             await slide(ctx, cardBack('back-ghost'), handPos(e.who, e.uid.replace(/^strat-/, '')), to, { size: 'pile', scaleTo: 1 });
+          }, async (ctx) => {
+            const to = e.target.none ? (e.who === HUMAN ? { cx: 160, cy: 840 } : { cx: 160, cy: 60 }) : where(e.target.who, e.target.space);
+            focus = to;
+            // Your own Strat takes its Class colour; the enemy's stays plain red wax (its card is hidden).
+            const own = e.who === HUMAN ? cardIn(prev, e.uid.replace(/^strat-/, '')) : null;
+            await fxRun(ctx, 'strat.seal', { anchors: anchors({ hand: handPos(e.who, e.uid.replace(/^strat-/, '')), dst: to }), tint: own ? accentOf(own) : '#8a1a1e' });
           });
           break;
         }
@@ -331,6 +537,22 @@ export function createPresenter(stage, { settings, onBeat }) {
             const el = add(html, 690, 230, 'ghost reveal');
             await ctx.anim(el, [{ transform: 'perspective(800px) rotateY(90deg) scale(0.8)', opacity: 0 }, { transform: 'perspective(800px) rotateY(0deg) scale(1)', opacity: 1, offset: 0.3 }, { transform: 'perspective(800px) rotateY(0deg) scale(1)', opacity: 1, offset: 0.85 }, { opacity: 0 }], { duration: 2000 });
             el.remove();
+          }, async (ctx) => {
+            const t = strat?.target;
+            const at = t && !t.none && !t.kind && t.who ? where(t.who, t.space) : { cx: 790, cy: 370, x: 690, y: 230, w: 200, h: 280 };
+            const reveal = { cx: 790, cy: 370, x: 690, y: 230, w: 200, h: 280 };
+            castFrom = reveal;
+            const env = {
+              anchors: anchors({ dst: at, reveal }), tint: strat ? accentOf(strat.card) : '#8a1a1e',
+              hooks: {
+                reveal: async () => {
+                  const el = add(strat ? renderCard(strat.card, { size: 'mini' }) : '', 690, 230, 'ghost reveal');
+                  await ctx.anim(el, [{ transform: 'perspective(800px) rotateY(90deg) scale(0.8)', opacity: 0 }, { transform: 'perspective(800px) rotateY(0deg) scale(1)', opacity: 1, offset: 0.25 }, { transform: 'perspective(800px) rotateY(0deg) scale(1)', opacity: 1, offset: 0.85 }, { opacity: 0 }], { duration: 1500 });
+                  el.remove();
+                },
+              },
+            };
+            await fxRun(ctx, 'strat.resolve', env);
           });
           break;
         }
@@ -338,6 +560,9 @@ export function createPresenter(stage, { settings, onBeat }) {
           const c = cardIn(prev, e.uid);
           B('react', `${NAME[e.who]} Reacted with ${e.name}.`, async (ctx) => {
             if (c) await slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 450 });
+          }, async (ctx) => {
+            castFrom = anchors().centre;
+            await fxRun(ctx, 'react', { anchors: anchors(), tint: c ? accentOf(c) : '#c7a15a', hooks: { slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 450 }) : null) } });
           });
           break;
         }
@@ -347,6 +572,14 @@ export function createPresenter(stage, { settings, onBeat }) {
             const runs = e.released.map((u) => { const r = cardIn(prev, u); return r ? slide(ctx, renderCard(r, { size: 'mini' }), handPos(e.who, u), pileEl(e.who, 3) ? box(pileEl(e.who, 3)) : centre, { scaleTo: 0.3 }) : null; });
             if (c) runs.push(slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }));
             await Promise.all(runs);
+          }, async (ctx) => {
+            castFrom = anchors().centre;
+            focus = centre;
+            await fxRun(ctx, 'event', { anchors: anchors(), tint: c ? accentOf(c) : '#7a3b70', hooks: { slide: () => {
+              const runs = e.released.map((u) => { const r = cardIn(prev, u); return r ? slide(ctx, renderCard(r, { size: 'mini' }), handPos(e.who, u), pileEl(e.who, 3) ? box(pileEl(e.who, 3)) : centre, { scaleTo: 0.3 }) : null; });
+              if (c) runs.push(slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }));
+              return Promise.all(runs);
+            } } });
           });
           break;
         }
@@ -356,44 +589,85 @@ export function createPresenter(stage, { settings, onBeat }) {
             const from = e.from === 'market' ? (q('.market-card') ? box(q('.market-card')) : { cx: 1750, cy: 700 }) : handPos(e.who, e.uid);
             const to = e.then === 'store' ? (q(`[data-region="piles-${e.who}"] .bag`) ? box(q(`[data-region="piles-${e.who}"] .bag`)) : centre) : centre;
             if (c) await slide(ctx, renderCard(c, { size: 'mini' }), from, to, { scaleTo: e.then === 'store' ? 0.3 : 1, hold: e.then === 'store' ? 0 : 300 });
+          }, async (ctx) => {
+            const from = e.from === 'market' ? (q('.market-card') ? box(q('.market-card')) : { cx: 1750, cy: 700 }) : handPos(e.who, e.uid);
+            const to = e.then === 'store' ? (q(`[data-region="piles-${e.who}"] .bag`) ? box(q(`[data-region="piles-${e.who}"] .bag`)) : centre) : centre;
+            if (e.then !== 'store') castFrom = anchors().centre;
+            const g = goldEl(e.who);
+            const price = c?.price ?? 0;
+            const before = held.gold[e.who];
+            held.gold[e.who] -= price;
+            const after = held.gold[e.who];
+            if (g) g.lastChild.textContent = String(before);
+            await fxRun(ctx, 'item.bought', {
+              anchors: anchors({ gold: g ? box(g) : centre, market: from }), vars: { coins: Math.min(6, price * 2) },
+              hooks: {
+                tick: () => { if (g) { g.lastChild.textContent = String(after); if (price) ink(ctx, `−${price} Gold`, box(g), 'gold'); } },
+                slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), from, to, { scaleTo: e.then === 'store' ? 0.3 : 1, hold: e.then === 'store' ? 0 : 300 }) : null),
+              },
+            });
           });
           break;
         }
         case 'itemUsed':
-          if (e.kind === 'Held') B('item', `${e.name} is now held.`, async (ctx) => { if (e.target && !e.target.none) await tag(ctx, e.name.toUpperCase(), where(e.who, e.target.space)); });
+          if (e.kind === 'Held') B('item', `${e.name} is now held.`, async (ctx) => { if (e.target && !e.target.none) await tag(ctx, e.name.toUpperCase(), where(e.who, e.target.space)); }, async (ctx) => {
+            if (!e.target || e.target.none) return;
+            const at = where(e.who, e.target.space);
+            const info = cardByName(e.name);
+            await fxRun(ctx, heldEffectFor(e.name), { anchors: anchors({ dst: at }), tint: info ? accentOf(info.def) : '#9a6a3a', hooks: { tag: () => tag(ctx, e.name.toUpperCase(), at) } });
+          });
           break;
         case 'locationPlaced': {
           B('location', `${NAME[e.who]} placed ${e.name} over lanes ${e.start + 1}–${e.start + e.width}.`, async (ctx) => {
             const els = [...stage.querySelectorAll(`[data-loc="${e.uid}"]`)];
             await Promise.all(els.map((el) => ctx.anim(el, [{ clipPath: 'inset(0 100% 0 0)', opacity: 0.4 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }], { duration: 950, easing: 'ease-out', fill: 'none' })));
+          }, async (ctx) => {
+            const a = cell(e.who, e.start); const b = cell(e.who, e.start + e.width - 1);
+            const ba = a ? box(a) : centre; const bb = b ? box(b) : centre;
+            const dst = { x: ba.x, y: 340, w: bb.x + bb.w - ba.x, h: 160, cx: (ba.x + bb.x + bb.w) / 2, cy: 450 };
+            await fxRun(ctx, 'location', { anchors: anchors({ dst }), hooks: { reveal: () => {
+              const els = [...stage.querySelectorAll(`[data-loc="${e.uid}"]`)];
+              return Promise.all(els.map((el) => ctx.anim(el, [{ clipPath: 'inset(0 100% 0 0)', opacity: 0.4 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }], { duration: 950, easing: 'ease-out', fill: 'none' })));
+            } } });
           });
           break;
         }
         case 'campaignOrder': {
           const c = cardIn(prev, e.uid);
-          B('card', `${NAME[e.who]} gave ${e.name}'s Campaign Order.`, async (ctx) => { if (c) await slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }); });
+          B('card', `${NAME[e.who]} gave ${e.name}'s Campaign Order.`, async (ctx) => { if (c) await slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }); }, async (ctx) => {
+            castFrom = anchors().centre;
+            await fxRun(ctx, 'event', { anchors: anchors(), tint: c ? accentOf(c) : '#6d4aa0', hooks: { slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }) : null) } });
+          });
           break;
         }
         case 'questProgress':
-          B('quest', `${NAME[e.who]}: Quest ${Math.min(e.progress, e.need)} of ${e.need}.`, async (ctx) => { await pulse(ctx, q(`[data-region="quest-${e.who}"]`), '#a283dc'); });
+          B('quest', `${NAME[e.who]}: Quest ${Math.min(e.progress, e.need)} of ${e.need}.`, async (ctx) => { await pulse(ctx, q(`[data-region="quest-${e.who}"]`), '#a283dc'); }, async (ctx) => {
+            const qe = q(`[data-region="quest-${e.who}"]`);
+            await fxRun(ctx, 'quest', { anchors: anchors({ dst: qe ? box(qe) : centre }), hooks: { pulse: () => pulse(ctx, qe, '#a283dc') } });
+          });
           break;
         case 'questComplete':
-          B('quest', `${POSS[e.who]} Quest for ${e.name} is complete!`, async (ctx) => { await Promise.all([pulse(ctx, q(`[data-region="quest-${e.who}"]`), '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]); });
+          B('quest', `${POSS[e.who]} Quest for ${e.name} is complete!`, async (ctx) => { await Promise.all([pulse(ctx, q(`[data-region="quest-${e.who}"]`), '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]); }, async (ctx) => {
+            const qe = q(`[data-region="quest-${e.who}"]`);
+            await fxRun(ctx, 'quest', { anchors: anchors({ dst: qe ? box(qe) : centre }), flags: { complete: true }, hooks: { pulse: () => Promise.all([pulse(ctx, qe, '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]) } });
+          });
           break;
         case 'fizzled':
-          B('fizzle', `${e.what} fizzled.`, async (ctx) => { await ink(ctx, 'fizzled', focus, 'info'); });
+          B('fizzle', `${e.what} fizzled.`, async (ctx) => { await ink(ctx, 'fizzled', focus, 'info'); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ink(ctx, 'fizzled', focus, 'info') } }); });
           break;
         case 'pass':
-          B('pass', e.endsPhase ? `${NAME[e.who]} passed: the Battle Phase ends.` : `${NAME[e.who]} passed.`, async (ctx) => { await ctx.wait(300); });
+          B('pass', e.endsPhase ? `${NAME[e.who]} passed: the Battle Phase ends.` : `${NAME[e.who]} passed.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ctx.wait(300) } }); });
           break;
         case 'retained':
-          B('retain', `${NAME[e.who]} Retained a card.`, async (ctx) => { await ctx.wait(300); });
+          B('retain', `${NAME[e.who]} Retained a card.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ctx.wait(300) } }); });
           break;
         case 'decline':
-          B('decline', `${NAME[e.who]} let it happen.`, async (ctx) => { await ctx.wait(200); });
+          B('decline', `${NAME[e.who]} let it happen.`, async (ctx) => { await ctx.wait(200); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ctx.wait(200) } }); });
           break;
         case 'dusk':
-          B('dusk', `Round ${e.round} · Dusk.`, async (ctx) => { await banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk'); });
+          B('dusk', `Round ${e.round} · Dusk.`, async (ctx) => { await banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk'); }, async (ctx) => {
+            await fxRun(ctx, 'dusk', { anchors: anchors(), hooks: { banner: () => banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk') } });
+          });
           break;
         case 'dominance': {
           const l = prevLoc.get(e.uid) ?? next.locations.find((x) => x.uid === e.uid);
@@ -406,6 +680,17 @@ export function createPresenter(stage, { settings, onBeat }) {
             el.style.width = `${bb.x + bb.w - ba.x}px`;
             focus = { cx: (ba.x + bb.x + bb.w) / 2, cy: e.who === HUMAN ? 640 : 250 };
             await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
+          }, async (ctx) => {
+            if (!l) return;
+            const a = cell(e.who, l.start); const b = cell(e.who, l.start + l.width - 1);
+            if (!a || !b) return;
+            const ba = box(a); const bb = box(b);
+            focus = { cx: (ba.x + bb.x + bb.w) / 2, cy: e.who === HUMAN ? 640 : 250, w: bb.x + bb.w - ba.x, h: 230 };
+            await fxRun(ctx, 'dominance', { anchors: anchors({ dst: focus }), sideTint: SIDE_TINT[e.who], hooks: { highlight: () => {
+              const el = add('', ba.x, 136, `dominate ${e.who === HUMAN ? 'mine' : 'theirs'}`);
+              el.style.width = `${bb.x + bb.w - ba.x}px`;
+              return ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
+            } } });
           });
           break;
         }
@@ -415,16 +700,30 @@ export function createPresenter(stage, { settings, onBeat }) {
             el.style.width = '1520px';
             focus = { cx: 790, cy: e.who === HUMAN ? 640 : 250 };
             await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
+          }, async (ctx) => {
+            focus = { cx: 790, cy: e.who === HUMAN ? 640 : 250, w: 1520, h: 230 };
+            await fxRun(ctx, 'dominance', { anchors: anchors({ dst: focus }), sideTint: SIDE_TINT[e.who], hooks: { highlight: () => {
+              const el = add('', 30, 136, `dominate ${e.who === HUMAN ? 'mine' : 'theirs'}`);
+              el.style.width = '1520px';
+              return ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
+            } } });
           });
           break;
         case 'lastBattle':
           B('lastBattle', 'The Last Battle begins!', async (ctx) => {
             const wash = add('', 24, 128, 'wash');
             await Promise.all([ctx.anim(wash, [{ opacity: 0 }, { opacity: 0.85, offset: 0.5 }, { opacity: 0 }], { duration: 2000 }), banner(ctx, 'THE LAST BATTLE', 'All Renown +50% · dominance at Dusk +5', 'last')]);
+          }, async (ctx) => {
+            await fxRun(ctx, 'lastBattle', { anchors: anchors(), hooks: { banner: () => {
+              const wash = add('', 24, 128, 'wash');
+              return Promise.all([ctx.anim(wash, [{ opacity: 0 }, { opacity: 0.85, offset: 0.5 }, { opacity: 0 }], { duration: 2000 }), banner(ctx, 'THE LAST BATTLE', 'All Renown +50% · dominance at Dusk +5', 'last')]);
+            } } });
           });
           break;
         case 'dawn':
-          if (e.round > 1) B('dawn', `Round ${e.round} · Dawn.`, async (ctx) => { await banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'); });
+          if (e.round > 1) B('dawn', `Round ${e.round} · Dawn.`, async (ctx) => { await banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'); }, async (ctx) => {
+            await fxRun(ctx, 'dawn', { anchors: anchors(), hooks: { banner: () => banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn') } });
+          });
           break;
         default: break;
       }
@@ -464,7 +763,7 @@ export function createPresenter(stage, { settings, onBeat }) {
       current = ctx;
       started += 1;
       onBeat?.({ kind: b.kind, caption: b.caption, started, done });
-      try { await b.run(ctx); } catch (err) { console.warn('beat failed', b.kind, err); }
+      try { await (vfx?.on && b.gl ? b.gl(ctx) : b.run(ctx)); } catch (err) { console.warn('beat failed', b.kind, err); }
       done += 1;
       current = null;
       onBeat?.({ kind: null, caption: b.caption, started, done });

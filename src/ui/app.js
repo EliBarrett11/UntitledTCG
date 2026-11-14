@@ -10,6 +10,7 @@ import { render, fitLabels } from './view.js';
 import { renderCard } from './cards.js';
 import { displayLine, HUMAN, AI, esc } from './text.js';
 import { createPresenter } from './presenter.js';
+import { createVfx } from './vfx/index.js';
 import { outcome, diff, badgeFor, summary } from './preview.js';
 
 defineCards(CARDS);
@@ -53,7 +54,11 @@ export function startApp(params) {
   let presenting = false;
   let suppressClick = false;
   let skips = 0;
+  // The effects layer (stage V1); without WebGL it is off and the S5 animations play.
+  const vfx = createVfx(stage, { settings: () => settings, params });
+  document.body.dataset.vfx = vfx.on ? 'webgl' : '2d';
   const presenter = createPresenter(stage, {
+    vfx,
     settings: () => settings,
     onBeat: ({ kind, caption, started, done }) => {
       document.body.dataset.beat = kind ?? '';
@@ -75,6 +80,7 @@ export function startApp(params) {
     s = createGame(seed, { decks: { p1: FIRST_DECK, p2: FIRST_DECK } });
     rng = makeRng(seed * 7919);
     ui = freshUi();
+    vfx.clear();
     ui.log = s.log.map(displayLine);
     const scene = params.get('scene');
     if (scene) fastForward(scene);
@@ -333,6 +339,7 @@ export function startApp(params) {
   function draw() {
     if (!ui.sel && !ui.menu) { ui.picks = basePicks(); ui.handSel = null; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = ui.attacker ?? null; }
     stage.innerHTML = render(s, ui);
+    vfx.attach(s);
     fitLabels(stage);
     fitLog();
     document.fonts.ready.then(fitLog);
@@ -568,12 +575,13 @@ export function startApp(params) {
   const fit = () => {
     const scale = Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H);
     stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    vfx.resize();
   };
   window.addEventListener('resize', fit);
   fit();
   newMatch();
   // Dev hooks for the checks (they read; they never change the match).
-  window.__match = { get seed() { return seed; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems };
+  window.__match = { get seed() { return seed; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats() };
 }
 
 export { esc };
