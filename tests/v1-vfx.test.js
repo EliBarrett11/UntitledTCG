@@ -35,12 +35,16 @@ test('every creature in the first deck (each form) and the Legendary Creature re
   const byId = (id) => CARDS.find((d) => d.id === id);
   const c = (id, form) => ({ ...byId(id), form: form ?? id });
   assert.equal(attackEffectFor(c('the-ashen-wyrm')), 'attack.wyrm');
-  assert.equal(attackEffectFor(c('thornwood-scout')), 'attack.ranger');
-  assert.equal(attackEffectFor(c('hollowfoot-cutpurse')), 'attack.rogue');
+  assert.equal(attackEffectFor(c('thornwood-scout')), 'attack.thornwood');
+  assert.equal(attackEffectFor(c('hollowfoot-cutpurse')), 'attack.hollowfoot');
   assert.equal(attackEffectFor(c('gloomfang-wolf')), 'attack.beast');
-  assert.equal(attackEffectFor(c('barrow-shade')), 'attack.undead');
-  assert.equal(attackEffectFor(c('ashen-spire-apprentice')), 'attack.arcane');
-  assert.equal(attackEffectFor(c('oathsworn-recruit')), 'attack.martial');
+  assert.equal(attackEffectFor(c('barrow-shade')), 'attack.barrow');
+  assert.equal(attackEffectFor(c('ashen-spire-apprentice')), 'attack.spire');
+  assert.equal(attackEffectFor(c('oathsworn-recruit')), 'attack.oathsworn');
+  // (V2: each series has its own signature; Class and Kind remain the fallback for new cards.)
+  assert.equal(attackEffectFor({ traits: { class: 'Ranger' } }), 'attack.ranger');
+  assert.equal(attackEffectFor({ traits: { kind: 'Undead' } }), 'attack.undead');
+  assert.equal(attackEffectFor({ attackKind: 'Arcane', traits: { class: 'Wizard' } }), 'attack.arcane');
   assert.ok(attackVars(c('ashen-spire-apprentice', 'archmagus-of-the-ashen-spire')).flags.lightning);
   assert.equal(attackVars({ series: 'Heavy' }).vars.slash, 'cleave-arc');
   assert.ok(attackVars(c('stonehide-basilisk')).flags.stone);
@@ -51,7 +55,7 @@ test('every presenter beat type has an effect, and every card effect resolves', 
   assert.ok(kinds.size >= 25);
   for (const k of kinds) { assert.ok(BEAT_EFFECTS[k], `beat ${k} has no effect`); assert.ok(EFFECTS[BEAT_EFFECTS[k]], `beat ${k}: ${BEAT_EFFECTS[k]}`); }
   for (const op of ['damage', 'heal', 'tempAttack', 'attack', 'health', 'tempHealth', 'spend', 'activate', 'returnHand']) assert.ok(EFFECTS[effectFor(op, 'Nobody')], op);
-  assert.equal(effectFor('damage', 'Firebolt'), 'spell.firebolt');
+  assert.equal(effectFor('damage', 'Firebolt', 'adapt'), 'spell.firebolt');
   assert.equal(effectFor('damage', 'Flask of Wildfire'), 'item.wildfire');
   assert.equal(effectFor('damage', 'The Ashen Wyrm'), 'wyrm.onsummon');
   assert.equal(effectFor('damage', 'Barrow Lord'), 'shade.drain');

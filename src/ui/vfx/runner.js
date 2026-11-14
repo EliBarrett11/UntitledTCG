@@ -58,9 +58,27 @@ export async function runEffect(ctx, vfx, id, env) {
     if (n === 'dstR') return mk(a.dst, (a.dst?.w ?? 0) * 0.45);
     if (n === 'revealL') return mk(a.reveal, -150);
     if (n === 'revealR') return mk(a.reveal, 150);
+    const up = (b, dy) => (b ? { ...b, cy: b.cy + dy, y: b.y + dy } : null);
+    if (n === 'dstUp') return up(a.dst, -220);
+    if (n === 'bannerUp') return up(a.banner, -200);
+    // The span of all targets (a Location's lanes), and its two ends.
+    if (n === 'span' || n === 'spanL' || n === 'spanR') {
+      const bs = (env.targets ?? []).map((t) => t.box);
+      if (!bs.length) return a.dst ?? a.centre;
+      const x0 = Math.min(...bs.map((b) => b.x)); const x1 = Math.max(...bs.map((b) => b.x + b.w));
+      const y0 = Math.min(...bs.map((b) => b.y)); const y1 = Math.max(...bs.map((b) => b.y + b.h));
+      const sp = { x: x0, y: y0, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 };
+      if (n === 'spanL') return { ...sp, cx: x0 - 60 };
+      if (n === 'spanR') return { ...sp, cx: x1 + 60 };
+      return sp;
+    }
     return a[n] ?? a.dst ?? a.centre;
   };
-  const targetsOf = (s) => (s._each && env.targets?.length ? env.targets.map((t) => t.box) : [box(s.on ?? 'dst', s)]);
+  // A step's targets: every target (each: true), a named list (each: 'released'), or its one anchor.
+  const targetsOf = (s) => {
+    if (typeof s._each === 'string') return (env.lists?.[s._each] ?? []).map((t) => t.box ?? t);
+    return s._each && env.targets?.length ? env.targets.map((t) => t.box) : [box(s.on ?? 'dst', s)];
+  };
   const colourOf = (t) => (t === 'accent' ? env.tint : t === 'accent2' ? env.tint2 ?? env.tint : t === 'gold' ? GOLD : t === 'side' ? env.sideTint : t);
   const texOf = (s, t = s.tex) => (t?.startsWith('$') ? s._vars?.[t.slice(1)] ?? env.vars?.[t.slice(1)] ?? null : t);
   const col = (s) => { const c = s.tint ? hexRgb(colourOf(s.tint)) : [1, 1, 1]; return [...c, s.alpha ?? 1]; };
@@ -70,8 +88,8 @@ export async function runEffect(ctx, vfx, id, env) {
     const tex = vfx.texture(texOf(s));
     if (!tex) return;
     const asp = vfx.frameAspect(tex, s.frame ?? 0);
-    const w = (s.size ?? (s.sizeK ?? 1) * (at.w || 160));
-    const h = (s.h ?? w / asp) * (s.flat ?? 1);
+    const w = s.sizeSpan ? s.sizeSpan * (at.w || 160) : (s.size ?? (s.sizeK ?? 1) * (at.w || 160));
+    const h = (s.h ?? w / asp) * (s.flat ?? 1) * (s.flipY ? -1 : 1);
     const [s0, s1] = s.scale ?? [1, 1];
     const src = box('src', s); const dst = box('dst', s);
     let rot = 0;
@@ -79,6 +97,8 @@ export async function runEffect(ctx, vfx, id, env) {
     else if (s.rot === 'from') rot = angleTo(dst, src);
     else if (s.rot === 'random') rot = r() * Math.PI * 2;
     else if (typeof s.rot === 'number') rot = rad(s.rot);
+    else if (typeof s.rot === 'string' && s.rot.startsWith('$')) rot = rad(Number(s._vars?.[s.rot.slice(1)] ?? env.vars?.[s.rot.slice(1)] ?? 0));
+    rot += rad(s.rotAdd ?? 0);
     const life = s.life * f * (low ? 0.7 : 1);
     vfx.spawn(tex, {
       x: at.cx + (s.dx ?? 0), y: at.cy + (s.dy ?? 0), w: w * s0, h: h * s0, scaleEnd: s1 / s0, curve: s.curve === 'out' ? 1 : 0,
@@ -140,6 +160,7 @@ export async function runEffect(ctx, vfx, id, env) {
       }
       case 'emit': {
         const rate = (s.rate ?? 30) * (low ? 0.25 : 1) * ps / f;
+        const home = s.home ? box(s.home, s) : null;
         const path = s.path ? [box(s.path[0], s), box(s.path[1], s)] : null;
         for (const t of path ? [null] : tgts) {
           vfx.emitter({ rate, dur: s.dur * f, group, spawn: (k) => {
@@ -155,7 +176,7 @@ export async function runEffect(ctx, vfx, id, env) {
               return;
             }
             const [x, y] = areaPoint(s, t);
-            particle(s, x, y);
+            particle(s, x, y, { home });
           } });
         }
         return;
@@ -271,6 +292,7 @@ export async function runEffect(ctx, vfx, id, env) {
 function domMotion(ctx, s, env, box, low) {
   const el = s.el === 'pile' ? env.els?.pile : env.els?.[s._swap ? (s.el === 'src' ? 'dst' : s.el === 'dst' ? 'src' : s.el) : s.el];
   if (!el) return null;
+  if (Array.isArray(el)) return Promise.all(el.map((one) => domMotion(ctx, { ...s }, { ...env, els: { ...env.els, [s.el]: one } }, box, low)));
   const d = s.dur;
   if (s.name === 'burn') {
     el.classList.add('burning');
@@ -298,6 +320,15 @@ function domMotion(ctx, s, env, box, low) {
       return ctx.anim(el, [{ transform: 'translate(0,0)' }, { transform: `translate(${-dx * 0.03}px, ${-dy * 0.03 - 6}px) scale(1.03)`, offset: 0.35 }, { transform: `translate(${dx * 0.04}px, ${dy * 0.04}px)`, offset: 0.55 }, { transform: 'translate(0,0)' }], { duration: d, fill: 'none' });
     case 'lift':
       return ctx.anim(el, [{ transform: 'translateY(0)' }, { transform: 'translateY(-8px) rotate(-1.5deg)', offset: 0.35 }, { transform: 'translateY(0)' }], { duration: d, fill: 'none' });
+    // The target recoils about 6 px away from the attacker, and flashes.
+    case 'knock': {
+      const l = Math.hypot(dx, dy) || 1;
+      const kx = (dx / l) * 6; const ky = (dy / l) * 6;
+      return ctx.anim(el, [{ transform: 'translate(0,0)', filter: 'brightness(1)' }, { transform: `translate(${kx}px, ${ky}px)`, filter: 'brightness(1.8)', offset: 0.2 }, { transform: `translate(${kx * 0.4}px, ${ky * 0.4}px)`, offset: 0.55 }, { transform: 'translate(0,0)', filter: 'brightness(1)' }], { duration: d, fill: 'none' });
+    }
+    // A quick hop (the Knifemaster).
+    case 'hop':
+      return ctx.anim(el, [{ transform: 'translateY(0)' }, { transform: 'translateY(-26px) rotate(-3deg)', offset: 0.35, easing: 'cubic-bezier(.2,.8,.4,1)' }, { transform: 'translateY(2px)', offset: 0.75 }, { transform: 'translateY(0)' }], { duration: d, fill: 'none' });
     case 'shudder':
       return ctx.anim(el, [{ transform: 'translate(0,0)', filter: 'brightness(1)' }, { transform: 'translate(-5px,1px)', filter: 'brightness(1.7)', offset: 0.2 }, { transform: 'translate(4px,-1px)', offset: 0.45 }, { transform: 'translate(-2px,0)', offset: 0.7 }, { transform: 'translate(0,0)', filter: 'brightness(1)' }], { duration: d, fill: 'none' });
     case 'slam':
