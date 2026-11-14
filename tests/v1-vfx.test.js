@@ -2,7 +2,9 @@
 // beat has an effect, durations keep to the timing budget, every texture is a real kit id (or has a stand-in),
 // and every effect finishes, at every speed and when skipped, with its numbers still landing.
 import { readFileSync } from 'node:fs';
-import { test, run, assert } from './helpers.js';
+import { test, run, assert, blank, put, give, act } from './helpers.js';
+import { defineCards } from '../src/engine/cards.js';
+import { legalActions } from '../src/engine/game.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
 import { EFFECTS, BEAT_EFFECTS, BUDGET, BUDGET_SLACK, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, texturesOf, longestRun } from '../src/ui/vfx/library.js';
 import { runEffect, flatten } from '../src/ui/vfx/runner.js';
@@ -11,6 +13,7 @@ const root = new URL('..', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
 const manifest = JSON.parse(read('assets/vfx/manifest.json')).textures;
 const kitIds = new Set([...read('docs/08-vfx-prompts.md').matchAll(/### \d+\. `([a-z0-9-]+)`/g)].map((m) => m[1]));
+defineCards(CARDS);
 const OPS = new Set(['sprite', 'burst', 'emit', 'ribbon', 'projectile', 'beam', 'wave', 'heat', 'shake', 'hitstop', 'flash', 'dom', 'call', 'use']);
 
 test('every creature in the first deck (each form) and the Legendary Creature resolves to an attack effect', () => {
@@ -153,6 +156,22 @@ test('low motion: no shake, no hit-stop, a quarter of the particles', async () =
   assert.equal(low.shakes, 0);
   assert.equal(low.freezes, 0);
   assert.ok(low.spawns <= full.spawns * 0.5, `${low.spawns} of ${full.spawns}`);
+});
+
+test('a damage effect is reported (for the presenter) before the defeat it causes; nothing else changes', () => {
+  const s = blank();
+  put(s, 'p2', 3, 'oathsworn-recruit', { spent: true, currentHealth: 2 });
+  const fire = give(s, 'p1', 'firebolt');
+  const a = legalActions(s, 'p1', 'action').find((x) => x.uid === fire && x.mode === 'adapt' && x.target.who === 'p2');
+  const t = act(s, a);
+  const types = t.events.map((e) => e.type);
+  const i = types.indexOf('effect');
+  assert.ok(i >= 0 && i < types.indexOf('defeated'), types.join(' '));
+  const e = t.events[i];
+  assert.equal(e.op, 'damage');
+  assert.equal(e.name, 'Firebolt');
+  assert.deepEqual(e.targets.map((x) => [x.who, x.space, x.dealt]), [['p2', 3, 3]]);
+  assert.equal(t.players.p2.row[3], null);
 });
 
 run('v1-vfx');

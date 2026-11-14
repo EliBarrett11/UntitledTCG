@@ -622,6 +622,8 @@ export function runEffect(s, ctx, ops) {
     const targets = effectTargets(s, ctx, o);
     if (o.op === 'damage') {
       const hits = targets.map((t) => ({ ...t, dealt: damageCard(s, t.who, t.space, n) }));
+      // (Reported for the presenter, before the defeats it causes.)
+      if (hits.length) emit(s, 'effect', { who: ctx.who, name: ctx.name, op: o.op, amount: n, targets: hits });
       for (const t of hits) if (t.dealt > 0 && s.players[t.who].row[t.space]?.currentHealth <= 0) defeat(s, t.who, t.space, ctx.who);
       continue;
     }

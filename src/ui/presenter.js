@@ -430,7 +430,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               const at = where(t.who, t.space);
               const tk = token(t.who, t.space);
               if (tk && (e.op === 'damage' || e.op === 'heal')) setText(tk.querySelector('.tab-h span'), next.players[t.who].row[t.space]?.currentHealth ?? 0);
-              runs.push(ink(ctx, label(e.op), at, e.op === 'damage' ? 'dmg' : e.op === 'heal' ? 'heal' : 'info'));
+              runs.push(ink(ctx, e.op === 'damage' ? `−${t.dealt ?? e.amount}` : label(e.op), at, e.op === 'damage' ? 'dmg' : e.op === 'heal' ? 'heal' : 'info'));
               if (e.op === 'damage') { const fl = add('', at.x, at.y, 'flash'); fl.style.width = `${at.w}px`; fl.style.height = `${at.h}px`; fl.style.setProperty('--c', '#ff7a4a'); runs.push(ctx.anim(fl, [{ opacity: 0.7 }, { opacity: 0 }], { duration: 380 })); }
             }
             focus = where(e.targets[0].who, e.targets[0].space);
@@ -456,7 +456,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                     const at = where(t.who, t.space);
                     const tk = token(t.who, t.space);
                     if (tk && (e.op === 'damage' || e.op === 'heal')) setText(tk.querySelector('.tab-h span'), next.players[t.who].row[t.space]?.currentHealth ?? 0);
-                    ink(ctx, label(e.op), at, e.op === 'damage' ? 'dmg' : e.op === 'heal' ? 'heal' : 'info');
+                    ink(ctx, e.op === 'damage' ? `−${t.dealt ?? e.amount}` : label(e.op), at, e.op === 'damage' ? 'dmg' : e.op === 'heal' ? 'heal' : 'info');
                     const arm = armourFor(ei, t.who, t.space);
                     if (arm) ink(ctx, `Armour −${arm}`, { cx: at.cx, cy: at.cy + 44 }, 'info');
                   }
