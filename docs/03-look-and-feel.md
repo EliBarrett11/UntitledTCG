@@ -97,7 +97,7 @@ The docs don't settle these interface details; S3 uses the simplest reading.
 7. **Chips in the log:** each log line shows a Chip of the card it names (the longest card name in the line). The Quest trackers show their Legendary Creature as a Chip.
 8. **Card names in Cinzel:** the mockups' HTML names Cinzel for card names (as on the approved board). Their PNGs show a fallback serif, because the font hadn't loaded when they were captured. The cards use Cinzel, served from `assets/fonts/`.
 
-## 8. Readings needing Elliott's approval (S5)
+## 8. Readings from S5: approved by Elliott, 14 November 2026
 
 1. **How actions are shown:** the board is drawn from the new state at once, and the presenter animates the change over it: cards that left are shown as ghosts, and numbers that changed (Health, Renown, Gold) stay at their old values until their beat lands. When the beats end (or are skipped), the board is drawn again from the state.
 2. **Beat order and what's animated:** beats follow the order the engine reports. Dawn shows a banner; its Gold and the new hand simply appear. Dusk shows a banner, then each dominated Location lights up in turn, followed by its Renown.

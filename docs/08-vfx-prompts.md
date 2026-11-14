@@ -13,6 +13,8 @@
 
 **113 images in all.**
 
+**Status (14 November 2026):** 19 delivered and processed into `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`): shield-sigil, armour-plates, firestorm-ring, wing-gust, spectral-wail, bone-shards-atlas, spirit-rise, soul-wisp, grave-mist, ember-cracks, rock-shards-atlas, fur-tufts-atlas, feathers-atlas, autumn-leaves-atlas, splinters-atlas, arrow-trail, arrow, lantern-glint, poison-mist.
+
 ## 1. Impacts and weapon strikes
 
 The core of every attack. Used by all Classes and Kinds, tinted in the engine to the attacker's accent colour.

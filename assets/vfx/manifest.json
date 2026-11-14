@@ -1,0 +1,503 @@
+{
+ "about": "VFX textures. blend: light = painted on black (additive or normal), alpha = solid object.",
+ "textures": {
+  "armour-plates": {
+   "file": "assets/vfx/armour-plates.webp",
+   "w": 926,
+   "h": 881,
+   "blend": "light"
+  },
+  "arrow": {
+   "file": "assets/vfx/arrow.webp",
+   "w": 1024,
+   "h": 143,
+   "blend": "alpha"
+  },
+  "arrow-trail": {
+   "file": "assets/vfx/arrow-trail.webp",
+   "w": 1024,
+   "h": 136,
+   "blend": "light"
+  },
+  "autumn-leaves-atlas": {
+   "file": "assets/vfx/autumn-leaves-atlas.webp",
+   "w": 1024,
+   "h": 947,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 2,
+     "y": 2,
+     "w": 277,
+     "h": 300
+    },
+    {
+     "x": 301,
+     "y": 25,
+     "w": 207,
+     "h": 277
+    },
+    {
+     "x": 527,
+     "y": 14,
+     "w": 206,
+     "h": 300
+    },
+    {
+     "x": 756,
+     "y": 4,
+     "w": 266,
+     "h": 311
+    },
+    {
+     "x": 39,
+     "y": 328,
+     "w": 174,
+     "h": 310
+    },
+    {
+     "x": 245,
+     "y": 331,
+     "w": 278,
+     "h": 292
+    },
+    {
+     "x": 543,
+     "y": 333,
+     "w": 214,
+     "h": 294
+    },
+    {
+     "x": 796,
+     "y": 336,
+     "w": 209,
+     "h": 297
+    },
+    {
+     "x": 250,
+     "y": 646,
+     "w": 267,
+     "h": 288
+    },
+    {
+     "x": 786,
+     "y": 649,
+     "w": 224,
+     "h": 294
+    },
+    {
+     "x": 23,
+     "y": 659,
+     "w": 208,
+     "h": 283
+    },
+    {
+     "x": 540,
+     "y": 653,
+     "w": 211,
+     "h": 292
+    }
+   ]
+  },
+  "bone-shards-atlas": {
+   "file": "assets/vfx/bone-shards-atlas.webp",
+   "w": 1024,
+   "h": 737,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 9,
+     "y": 19,
+     "w": 166,
+     "h": 318
+    },
+    {
+     "x": 218,
+     "y": 13,
+     "w": 180,
+     "h": 323
+    },
+    {
+     "x": 427,
+     "y": 9,
+     "w": 161,
+     "h": 336
+    },
+    {
+     "x": 631,
+     "y": 10,
+     "w": 170,
+     "h": 332
+    },
+    {
+     "x": 854,
+     "y": 2,
+     "w": 161,
+     "h": 339
+    },
+    {
+     "x": 2,
+     "y": 413,
+     "w": 178,
+     "h": 321
+    },
+    {
+     "x": 833,
+     "y": 414,
+     "w": 187,
+     "h": 318
+    },
+    {
+     "x": 214,
+     "y": 419,
+     "w": 176,
+     "h": 313
+    },
+    {
+     "x": 422,
+     "y": 419,
+     "w": 172,
+     "h": 310
+    },
+    {
+     "x": 606,
+     "y": 431,
+     "w": 200,
+     "h": 294
+    }
+   ]
+  },
+  "ember-cracks": {
+   "file": "assets/vfx/ember-cracks.webp",
+   "w": 951,
+   "h": 897,
+   "blend": "light"
+  },
+  "feathers-atlas": {
+   "file": "assets/vfx/feathers-atlas.webp",
+   "w": 1024,
+   "h": 951,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 7,
+     "y": 14,
+     "w": 236,
+     "h": 440
+    },
+    {
+     "x": 294,
+     "y": 3,
+     "w": 166,
+     "h": 447
+    },
+    {
+     "x": 509,
+     "y": 36,
+     "w": 264,
+     "h": 404
+    },
+    {
+     "x": 815,
+     "y": 34,
+     "w": 206,
+     "h": 415
+    },
+    {
+     "x": 561,
+     "y": 505,
+     "w": 171,
+     "h": 443
+    },
+    {
+     "x": 805,
+     "y": 516,
+     "w": 209,
+     "h": 423
+    },
+    {
+     "x": 3,
+     "y": 566,
+     "w": 227,
+     "h": 336
+    },
+    {
+     "x": 263,
+     "y": 535,
+     "w": 253,
+     "h": 404
+    }
+   ]
+  },
+  "firestorm-ring": {
+   "file": "assets/vfx/firestorm-ring.webp",
+   "w": 910,
+   "h": 867,
+   "blend": "light"
+  },
+  "fur-tufts-atlas": {
+   "file": "assets/vfx/fur-tufts-atlas.webp",
+   "w": 1024,
+   "h": 709,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 4,
+     "y": 12,
+     "w": 191,
+     "h": 290
+    },
+    {
+     "x": 214,
+     "y": 9,
+     "w": 186,
+     "h": 297
+    },
+    {
+     "x": 417,
+     "y": 13,
+     "w": 177,
+     "h": 284
+    },
+    {
+     "x": 616,
+     "y": 3,
+     "w": 192,
+     "h": 305
+    },
+    {
+     "x": 811,
+     "y": 14,
+     "w": 204,
+     "h": 292
+    },
+    {
+     "x": 7,
+     "y": 407,
+     "w": 186,
+     "h": 288
+    },
+    {
+     "x": 224,
+     "y": 425,
+     "w": 172,
+     "h": 281
+    },
+    {
+     "x": 413,
+     "y": 428,
+     "w": 200,
+     "h": 271
+    },
+    {
+     "x": 635,
+     "y": 425,
+     "w": 174,
+     "h": 279
+    },
+    {
+     "x": 846,
+     "y": 436,
+     "w": 171,
+     "h": 265
+    }
+   ]
+  },
+  "grave-mist": {
+   "file": "assets/vfx/grave-mist.webp",
+   "w": 1024,
+   "h": 263,
+   "blend": "light"
+  },
+  "lantern-glint": {
+   "file": "assets/vfx/lantern-glint.webp",
+   "w": 829,
+   "h": 828,
+   "blend": "light"
+  },
+  "poison-mist": {
+   "file": "assets/vfx/poison-mist.webp",
+   "w": 1024,
+   "h": 451,
+   "blend": "light"
+  },
+  "rock-shards-atlas": {
+   "file": "assets/vfx/rock-shards-atlas.webp",
+   "w": 962,
+   "h": 1024,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 4,
+     "y": 3,
+     "w": 253,
+     "h": 259
+    },
+    {
+     "x": 365,
+     "y": 18,
+     "w": 250,
+     "h": 225
+    },
+    {
+     "x": 690,
+     "y": 32,
+     "w": 268,
+     "h": 193
+    },
+    {
+     "x": 4,
+     "y": 302,
+     "w": 253,
+     "h": 216
+    },
+    {
+     "x": 351,
+     "y": 295,
+     "w": 266,
+     "h": 220
+    },
+    {
+     "x": 684,
+     "y": 285,
+     "w": 275,
+     "h": 233
+    },
+    {
+     "x": 3,
+     "y": 570,
+     "w": 253,
+     "h": 205
+    },
+    {
+     "x": 346,
+     "y": 560,
+     "w": 260,
+     "h": 223
+    },
+    {
+     "x": 708,
+     "y": 560,
+     "w": 241,
+     "h": 212
+    },
+    {
+     "x": 28,
+     "y": 815,
+     "w": 242,
+     "h": 206
+    },
+    {
+     "x": 705,
+     "y": 816,
+     "w": 238,
+     "h": 202
+    },
+    {
+     "x": 359,
+     "y": 855,
+     "w": 221,
+     "h": 137
+    }
+   ]
+  },
+  "shield-sigil": {
+   "file": "assets/vfx/shield-sigil.webp",
+   "w": 808,
+   "h": 903,
+   "blend": "light"
+  },
+  "soul-wisp": {
+   "file": "assets/vfx/soul-wisp.webp",
+   "w": 619,
+   "h": 810,
+   "blend": "light"
+  },
+  "spectral-wail": {
+   "file": "assets/vfx/spectral-wail.webp",
+   "w": 1024,
+   "h": 950,
+   "blend": "light"
+  },
+  "spirit-rise": {
+   "file": "assets/vfx/spirit-rise.webp",
+   "w": 387,
+   "h": 1024,
+   "blend": "light"
+  },
+  "splinters-atlas": {
+   "file": "assets/vfx/splinters-atlas.webp",
+   "w": 1024,
+   "h": 1014,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 3,
+     "y": 42,
+     "w": 488,
+     "h": 158
+    },
+    {
+     "x": 560,
+     "y": 2,
+     "w": 461,
+     "h": 194
+    },
+    {
+     "x": 46,
+     "y": 243,
+     "w": 388,
+     "h": 153
+    },
+    {
+     "x": 551,
+     "y": 253,
+     "w": 460,
+     "h": 143
+    },
+    {
+     "x": 600,
+     "y": 433,
+     "w": 358,
+     "h": 159
+    },
+    {
+     "x": 74,
+     "y": 467,
+     "w": 354,
+     "h": 137
+    },
+    {
+     "x": 51,
+     "y": 645,
+     "w": 374,
+     "h": 170
+    },
+    {
+     "x": 572,
+     "y": 625,
+     "w": 424,
+     "h": 173
+    },
+    {
+     "x": 55,
+     "y": 867,
+     "w": 367,
+     "h": 139
+    },
+    {
+     "x": 567,
+     "y": 871,
+     "w": 414,
+     "h": 140
+    }
+   ]
+  },
+  "wing-gust": {
+   "file": "assets/vfx/wing-gust.webp",
+   "w": 1024,
+   "h": 521,
+   "blend": "light"
+  }
+ }
+}
