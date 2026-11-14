@@ -257,6 +257,12 @@
     }
    ]
   },
+  "bite-snap": {
+   "file": "assets/vfx/bite-snap.webp",
+   "w": 745,
+   "h": 832,
+   "blend": "light"
+  },
   "bone-shards-atlas": {
    "file": "assets/vfx/bone-shards-atlas.webp",
    "w": 1024,
@@ -343,10 +349,198 @@
    "h": 1024,
    "blend": "light"
   },
+  "claw-rake": {
+   "file": "assets/vfx/claw-rake.webp",
+   "w": 878,
+   "h": 921,
+   "blend": "light"
+  },
+  "cleave-arc": {
+   "file": "assets/vfx/cleave-arc.webp",
+   "w": 1024,
+   "h": 734,
+   "blend": "light"
+  },
+  "drain-wisps": {
+   "file": "assets/vfx/drain-wisps.webp",
+   "w": 528,
+   "h": 1024,
+   "blend": "light"
+  },
+  "dust-burst": {
+   "file": "assets/vfx/dust-burst.webp",
+   "w": 1024,
+   "h": 837,
+   "blend": "light"
+  },
+  "dust-ground-ring": {
+   "file": "assets/vfx/dust-ground-ring.webp",
+   "w": 1024,
+   "h": 234,
+   "blend": "light"
+  },
   "ember-cracks": {
    "file": "assets/vfx/ember-cracks.webp",
    "w": 951,
    "h": 897,
+   "blend": "light"
+  },
+  "embers-atlas": {
+   "file": "assets/vfx/embers-atlas.webp",
+   "w": 1024,
+   "h": 810,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 15,
+     "y": 33,
+     "w": 71,
+     "h": 71
+    },
+    {
+     "x": 184,
+     "y": 16,
+     "w": 94,
+     "h": 108
+    },
+    {
+     "x": 374,
+     "y": 16,
+     "w": 91,
+     "h": 98
+    },
+    {
+     "x": 566,
+     "y": 8,
+     "w": 76,
+     "h": 111
+    },
+    {
+     "x": 738,
+     "y": 28,
+     "w": 112,
+     "h": 76
+    },
+    {
+     "x": 951,
+     "y": 37,
+     "w": 57,
+     "h": 62
+    },
+    {
+     "x": 9,
+     "y": 251,
+     "w": 85,
+     "h": 96
+    },
+    {
+     "x": 396,
+     "y": 247,
+     "w": 59,
+     "h": 94
+    },
+    {
+     "x": 564,
+     "y": 252,
+     "w": 84,
+     "h": 95
+    },
+    {
+     "x": 752,
+     "y": 244,
+     "w": 74,
+     "h": 105
+    },
+    {
+     "x": 201,
+     "y": 258,
+     "w": 72,
+     "h": 81
+    },
+    {
+     "x": 941,
+     "y": 257,
+     "w": 74,
+     "h": 72
+    },
+    {
+     "x": 15,
+     "y": 488,
+     "w": 73,
+     "h": 72
+    },
+    {
+     "x": 208,
+     "y": 464,
+     "w": 61,
+     "h": 118
+    },
+    {
+     "x": 372,
+     "y": 473,
+     "w": 92,
+     "h": 88
+    },
+    {
+     "x": 561,
+     "y": 482,
+     "w": 88,
+     "h": 79
+    },
+    {
+     "x": 746,
+     "y": 482,
+     "w": 95,
+     "h": 89
+    },
+    {
+     "x": 934,
+     "y": 478,
+     "w": 86,
+     "h": 96
+    },
+    {
+     "x": 10,
+     "y": 702,
+     "w": 88,
+     "h": 94
+    },
+    {
+     "x": 202,
+     "y": 719,
+     "w": 67,
+     "h": 66
+    },
+    {
+     "x": 374,
+     "y": 703,
+     "w": 88,
+     "h": 102
+    },
+    {
+     "x": 563,
+     "y": 711,
+     "w": 84,
+     "h": 79
+    },
+    {
+     "x": 755,
+     "y": 697,
+     "w": 81,
+     "h": 101
+    },
+    {
+     "x": 947,
+     "y": 717,
+     "w": 62,
+     "h": 67
+    }
+   ]
+  },
+  "empower-aura": {
+   "file": "assets/vfx/empower-aura.webp",
+   "w": 583,
+   "h": 1024,
    "blend": "light"
   },
   "feathers-atlas": {
@@ -405,11 +599,85 @@
     }
    ]
   },
+  "fire-breath": {
+   "file": "assets/vfx/fire-breath.webp",
+   "w": 1024,
+   "h": 421,
+   "blend": "light"
+  },
+  "fire-burst": {
+   "file": "assets/vfx/fire-burst.webp",
+   "w": 1024,
+   "h": 977,
+   "blend": "light"
+  },
   "firestorm-ring": {
    "file": "assets/vfx/firestorm-ring.webp",
    "w": 910,
    "h": 867,
    "blend": "light"
+  },
+  "flame-tongue": {
+   "file": "assets/vfx/flame-tongue.webp",
+   "w": 496,
+   "h": 1024,
+   "blend": "light"
+  },
+  "flames-atlas": {
+   "file": "assets/vfx/flames-atlas.webp",
+   "w": 1024,
+   "h": 820,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 65,
+     "y": 11,
+     "w": 90,
+     "h": 333
+    },
+    {
+     "x": 280,
+     "y": 12,
+     "w": 160,
+     "h": 333
+    },
+    {
+     "x": 532,
+     "y": 5,
+     "w": 181,
+     "h": 343
+    },
+    {
+     "x": 779,
+     "y": 48,
+     "w": 225,
+     "h": 297
+    },
+    {
+     "x": 273,
+     "y": 454,
+     "w": 179,
+     "h": 362
+    },
+    {
+     "x": 7,
+     "y": 497,
+     "w": 199,
+     "h": 317
+    },
+    {
+     "x": 523,
+     "y": 481,
+     "w": 214,
+     "h": 332
+    },
+    {
+     "x": 763,
+     "y": 465,
+     "w": 257,
+     "h": 345
+    }
+   ]
   },
   "fur-tufts-atlas": {
    "file": "assets/vfx/fur-tufts-atlas.webp",
@@ -637,6 +905,62 @@
    "h": 1024,
    "blend": "light"
   },
+  "ink-splatter-atlas": {
+   "file": "assets/vfx/ink-splatter-atlas.webp",
+   "w": 1024,
+   "h": 629,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 10,
+     "y": 27,
+     "w": 229,
+     "h": 273
+    },
+    {
+     "x": 266,
+     "y": 10,
+     "w": 230,
+     "h": 281
+    },
+    {
+     "x": 525,
+     "y": 29,
+     "w": 225,
+     "h": 266
+    },
+    {
+     "x": 791,
+     "y": 24,
+     "w": 223,
+     "h": 267
+    },
+    {
+     "x": 14,
+     "y": 365,
+     "w": 216,
+     "h": 252
+    },
+    {
+     "x": 275,
+     "y": 378,
+     "w": 225,
+     "h": 240
+    },
+    {
+     "x": 530,
+     "y": 375,
+     "w": 236,
+     "h": 237
+    },
+    {
+     "x": 780,
+     "y": 365,
+     "w": 228,
+     "h": 254
+    }
+   ]
+  },
   "knife-streaks-atlas": {
    "file": "assets/vfx/knife-streaks-atlas.webp",
    "w": 1024,
@@ -687,10 +1011,72 @@
    "h": 828,
    "blend": "light"
   },
+  "lunge-streak": {
+   "file": "assets/vfx/lunge-streak.webp",
+   "w": 1024,
+   "h": 236,
+   "blend": "light"
+  },
+  "metal-sparks-atlas": {
+   "file": "assets/vfx/metal-sparks-atlas.webp",
+   "w": 895,
+   "h": 1024,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 29,
+     "y": 11,
+     "w": 342,
+     "h": 318
+    },
+    {
+     "x": 519,
+     "y": 31,
+     "w": 343,
+     "h": 289
+    },
+    {
+     "x": 10,
+     "y": 407,
+     "w": 395,
+     "h": 193
+    },
+    {
+     "x": 494,
+     "y": 408,
+     "w": 391,
+     "h": 208
+    },
+    {
+     "x": 38,
+     "y": 712,
+     "w": 297,
+     "h": 301
+    },
+    {
+     "x": 503,
+     "y": 704,
+     "w": 359,
+     "h": 303
+    }
+   ]
+  },
   "poison-mist": {
    "file": "assets/vfx/poison-mist.webp",
    "w": 1024,
    "h": 451,
+   "blend": "light"
+  },
+  "ready-rim": {
+   "file": "assets/vfx/ready-rim.webp",
+   "w": 733,
+   "h": 1024,
+   "blend": "light"
+  },
+  "riposte-cross": {
+   "file": "assets/vfx/riposte-cross.webp",
+   "w": 934,
+   "h": 648,
    "blend": "light"
   },
   "rock-shards-atlas": {
@@ -865,6 +1251,18 @@
    "h": 903,
    "blend": "light"
   },
+  "shockwave-ring": {
+   "file": "assets/vfx/shockwave-ring.webp",
+   "w": 959,
+   "h": 942,
+   "blend": "light"
+  },
+  "slash-arc": {
+   "file": "assets/vfx/slash-arc.webp",
+   "w": 1024,
+   "h": 498,
+   "blend": "light"
+  },
   "smoke-atlas": {
    "file": "assets/vfx/smoke-atlas.webp",
    "w": 1024,
@@ -1018,6 +1416,12 @@
      "h": 140
     }
    ]
+  },
+  "summon-sigil": {
+   "file": "assets/vfx/summon-sigil.webp",
+   "w": 987,
+   "h": 952,
+   "blend": "light"
   },
   "wing-gust": {
    "file": "assets/vfx/wing-gust.webp",

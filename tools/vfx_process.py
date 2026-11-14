@@ -3,6 +3,7 @@
 
 Usage: python3 tools/vfx_process.py <id>=<source.png>[:solid] [...]
   :solid marks a solid object painted on black (cut out opaque, not turned into glow).
+  :grid=RxC splits an atlas by an even grid of R rows and C columns, for pieces with loose droplets or sparks.
 - Images on a black background become transparent: brightness is used as alpha,
   and colour is un-premultiplied, so they work with normal and additive blending.
 - Images that already have transparency are kept as they are.
@@ -68,12 +69,29 @@ def frames(alpha, minarea=400):
     rects.sort(key=lambda r: (round(r[1] / (h / 8)), r[0]))
     return [{'x': r[0], 'y': r[1], 'w': r[2] - r[0], 'h': r[3] - r[1]} for r in rects]
 
+def grid_frames(alpha, rows, cols):
+    """Split an atlas into an even rows x cols grid, trimming each cell to its piece."""
+    h, w = alpha.shape
+    out = []
+    for r in range(rows):
+        for c in range(cols):
+            y0, y1 = r * h // rows, (r + 1) * h // rows
+            x0, x1 = c * w // cols, (c + 1) * w // cols
+            ys, xs = np.nonzero(alpha[y0:y1, x0:x1] > 8)
+            if len(xs):
+                out.append({'x': int(x0 + xs.min()), 'y': int(y0 + ys.min()), 'w': int(xs.max() - xs.min() + 1), 'h': int(ys.max() - ys.min() + 1)})
+    return out
+
 def main(pairs):
     os.makedirs(OUT, exist_ok=True)
     man = json.load(open(MAN)) if os.path.exists(MAN) else {'about': 'VFX textures. blend: light = painted on black (additive or normal), alpha = solid object.', 'textures': {}}
     for p in pairs:
         tid, src = p.split('=', 1)
         mode = ''
+        grid = None
+        if ':grid=' in src:
+            src, g = src.split(':grid=')
+            grid = tuple(int(v) for v in g.split('x'))
         if src.endswith(':solid'):
             src, mode = src[:-6], 'solid'
         im = Image.open(src)
@@ -91,7 +109,8 @@ def main(pairs):
         img.save(path, 'WEBP', quality=88, method=6)
         entry = {'file': f'assets/vfx/{tid}.webp', 'w': img.width, 'h': img.height, 'blend': blend}
         if tid.endswith('-atlas'):
-            entry['frames'] = frames(np.asarray(img.getchannel('A')))
+            a = np.asarray(img.getchannel('A'))
+            entry['frames'] = grid_frames(a, *grid) if grid else frames(a)
         man['textures'][tid] = entry
         print(f"{tid}: {img.width}x{img.height} {blend} {os.path.getsize(path)//1024} KB" + (f" frames={len(entry['frames'])}" if 'frames' in entry else ''))
     man['textures'] = dict(sorted(man['textures'].items()))
