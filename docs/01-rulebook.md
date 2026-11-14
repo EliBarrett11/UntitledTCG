@@ -248,7 +248,7 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 
 (S1's readings were approved by Elliott on 13 November 2026 and are now in the rules above.)
 
-### Readings needing Elliott's approval (S2)
+### Readings from S2: approved by Elliott, 14 November 2026
 
 3. **"In its Location" / "in a Location" in the Wilds:** for an area effect, a creature in the Wilds is in a Location of its own lane only (as in the old game). So Deepforge Priest in the Wilds heals only itself, The Ashen Wyrm in the Wilds hits only the enemy across from it, and a Location target in the Wilds (Night Raid's Strat, Mending Prayer's Adapt) covers one lane. The Wilds still count as one Location for guards (8.1). During the Last Battle, "its Location" is the whole battlefield.
 4. **A Location target** is offered once per Location that holds a matching creature (once per lane in the Wilds). A Strat with a Location target finds the creatures there when it resolves; it never fizzles. If the Location has expired by then, it covers that one lane.

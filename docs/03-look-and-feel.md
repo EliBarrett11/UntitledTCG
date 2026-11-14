@@ -29,6 +29,8 @@ Do not include any text, letters, logos, borders, frames, card layouts or waterm
 
 ## 2. The board: a war-table map
 
+**Approved mockup (Elliott, 14 November 2026):** `docs/mockups/board-s3.html` and its screenshot `board-s3.png`. It's the reference for layout, mood and proportions; its card faces are stand-ins until S4.
+
 - **The scene:** a commander's war table, seen from slightly above, lit by candles and a low lantern. Leather, iron fittings, scattered tokens, a dagger pinning a corner.
 - **The battlefield:** a painted campaign map spread across the table.
   - The 9 lanes run across the map, one space per side.
