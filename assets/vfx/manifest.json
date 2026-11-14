@@ -257,6 +257,12 @@
     }
    ]
   },
+  "banner-cut": {
+   "file": "assets/vfx/banner-cut.webp",
+   "w": 1024,
+   "h": 959,
+   "blend": "light"
+  },
   "bite-snap": {
    "file": "assets/vfx/bite-snap.webp",
    "w": 745,
@@ -447,10 +453,34 @@
    "h": 966,
    "blend": "alpha"
   },
+  "crown-of-light": {
+   "file": "assets/vfx/crown-of-light.webp",
+   "w": 919,
+   "h": 869,
+   "blend": "light"
+  },
+  "dawn-sweep": {
+   "file": "assets/vfx/dawn-sweep.webp",
+   "w": 1024,
+   "h": 352,
+   "blend": "light"
+  },
+  "dial-flare": {
+   "file": "assets/vfx/dial-flare.webp",
+   "w": 999,
+   "h": 994,
+   "blend": "light"
+  },
   "drain-wisps": {
    "file": "assets/vfx/drain-wisps.webp",
    "w": 528,
    "h": 1024,
+   "blend": "light"
+  },
+  "dusk-wash": {
+   "file": "assets/vfx/dusk-wash.webp",
+   "w": 1024,
+   "h": 735,
    "blend": "light"
   },
   "dust-burst": {
@@ -464,6 +494,158 @@
    "w": 1024,
    "h": 234,
    "blend": "light"
+  },
+  "dust-motes-atlas": {
+   "file": "assets/vfx/dust-motes-atlas.webp",
+   "w": 1024,
+   "h": 711,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 11,
+     "y": 11,
+     "w": 90,
+     "h": 90
+    },
+    {
+     "x": 209,
+     "y": 16,
+     "w": 77,
+     "h": 85
+    },
+    {
+     "x": 385,
+     "y": 14,
+     "w": 88,
+     "h": 89
+    },
+    {
+     "x": 569,
+     "y": 12,
+     "w": 76,
+     "h": 89
+    },
+    {
+     "x": 746,
+     "y": 14,
+     "w": 75,
+     "h": 78
+    },
+    {
+     "x": 931,
+     "y": 18,
+     "w": 76,
+     "h": 88
+    },
+    {
+     "x": 21,
+     "y": 216,
+     "w": 76,
+     "h": 80
+    },
+    {
+     "x": 208,
+     "y": 217,
+     "w": 80,
+     "h": 79
+    },
+    {
+     "x": 380,
+     "y": 216,
+     "w": 87,
+     "h": 83
+    },
+    {
+     "x": 559,
+     "y": 215,
+     "w": 92,
+     "h": 81
+    },
+    {
+     "x": 745,
+     "y": 226,
+     "w": 79,
+     "h": 66
+    },
+    {
+     "x": 925,
+     "y": 220,
+     "w": 86,
+     "h": 74
+    },
+    {
+     "x": 23,
+     "y": 418,
+     "w": 84,
+     "h": 80
+    },
+    {
+     "x": 205,
+     "y": 419,
+     "w": 80,
+     "h": 83
+    },
+    {
+     "x": 380,
+     "y": 412,
+     "w": 93,
+     "h": 75
+    },
+    {
+     "x": 569,
+     "y": 413,
+     "w": 74,
+     "h": 80
+    },
+    {
+     "x": 744,
+     "y": 420,
+     "w": 87,
+     "h": 79
+    },
+    {
+     "x": 919,
+     "y": 419,
+     "w": 92,
+     "h": 74
+    },
+    {
+     "x": 23,
+     "y": 610,
+     "w": 74,
+     "h": 90
+    },
+    {
+     "x": 203,
+     "y": 605,
+     "w": 83,
+     "h": 89
+    },
+    {
+     "x": 384,
+     "y": 603,
+     "w": 79,
+     "h": 91
+    },
+    {
+     "x": 560,
+     "y": 616,
+     "w": 90,
+     "h": 84
+    },
+    {
+     "x": 749,
+     "y": 622,
+     "w": 73,
+     "h": 77
+    },
+    {
+     "x": 930,
+     "y": 616,
+     "w": 80,
+     "h": 72
+    }
+   ]
   },
   "ember-cracks": {
    "file": "assets/vfx/ember-cracks.webp",
@@ -765,6 +947,18 @@
     }
    ]
   },
+  "fog-of-war": {
+   "file": "assets/vfx/fog-of-war.webp",
+   "w": 1024,
+   "h": 311,
+   "blend": "light"
+  },
+  "foil-streak": {
+   "file": "assets/vfx/foil-streak.webp",
+   "w": 1024,
+   "h": 480,
+   "blend": "light"
+  },
   "folded-letter": {
    "file": "assets/vfx/folded-letter.webp",
    "w": 765,
@@ -839,6 +1033,12 @@
     }
    ]
   },
+  "gate-of-light": {
+   "file": "assets/vfx/gate-of-light.webp",
+   "w": 567,
+   "h": 1024,
+   "blend": "light"
+  },
   "glass-shards-atlas": {
    "file": "assets/vfx/glass-shards-atlas.webp",
    "w": 1024,
@@ -912,6 +1112,12 @@
    "w": 715,
    "h": 730,
    "blend": "alpha"
+  },
+  "gold-dust-swirl": {
+   "file": "assets/vfx/gold-dust-swirl.webp",
+   "w": 766,
+   "h": 746,
+   "blend": "light"
   },
   "grave-mist": {
    "file": "assets/vfx/grave-mist.webp",
@@ -1319,6 +1525,12 @@
    "h": 451,
    "blend": "light"
   },
+  "quest-stamp": {
+   "file": "assets/vfx/quest-stamp.webp",
+   "w": 1016,
+   "h": 707,
+   "blend": "light"
+  },
   "quill-stroke": {
    "file": "assets/vfx/quill-stroke.webp",
    "w": 1024,
@@ -1329,6 +1541,116 @@
    "file": "assets/vfx/ready-rim.webp",
    "w": 733,
    "h": 1024,
+   "blend": "light"
+  },
+  "renown-motes-atlas": {
+   "file": "assets/vfx/renown-motes-atlas.webp",
+   "w": 1019,
+   "h": 1024,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 11,
+     "y": 13,
+     "w": 177,
+     "h": 179
+    },
+    {
+     "x": 285,
+     "y": 16,
+     "w": 172,
+     "h": 177
+    },
+    {
+     "x": 559,
+     "y": 11,
+     "w": 176,
+     "h": 182
+    },
+    {
+     "x": 829,
+     "y": 12,
+     "w": 178,
+     "h": 183
+    },
+    {
+     "x": 14,
+     "y": 283,
+     "w": 173,
+     "h": 185
+    },
+    {
+     "x": 287,
+     "y": 285,
+     "w": 173,
+     "h": 183
+    },
+    {
+     "x": 560,
+     "y": 284,
+     "w": 174,
+     "h": 184
+    },
+    {
+     "x": 833,
+     "y": 284,
+     "w": 173,
+     "h": 183
+    },
+    {
+     "x": 13,
+     "y": 557,
+     "w": 175,
+     "h": 183
+    },
+    {
+     "x": 287,
+     "y": 558,
+     "w": 174,
+     "h": 184
+    },
+    {
+     "x": 557,
+     "y": 556,
+     "w": 176,
+     "h": 185
+    },
+    {
+     "x": 830,
+     "y": 557,
+     "w": 176,
+     "h": 183
+    },
+    {
+     "x": 12,
+     "y": 828,
+     "w": 176,
+     "h": 182
+    },
+    {
+     "x": 286,
+     "y": 828,
+     "w": 174,
+     "h": 183
+    },
+    {
+     "x": 558,
+     "y": 830,
+     "w": 175,
+     "h": 183
+    },
+    {
+     "x": 830,
+     "y": 831,
+     "w": 176,
+     "h": 180
+    }
+   ]
+  },
+  "renown-ribbon": {
+   "file": "assets/vfx/renown-ribbon.webp",
+   "w": 1024,
+   "h": 316,
    "blend": "light"
   },
   "riposte-cross": {
@@ -1509,6 +1831,12 @@
    "h": 767,
    "blend": "light"
   },
+  "scroll-open": {
+   "file": "assets/vfx/scroll-open.webp",
+   "w": 1024,
+   "h": 579,
+   "blend": "alpha"
+  },
   "shield-sigil": {
    "file": "assets/vfx/shield-sigil.webp",
    "w": 808,
@@ -1685,6 +2013,12 @@
    "file": "assets/vfx/summon-sigil.webp",
    "w": 987,
    "h": 952,
+   "blend": "light"
+  },
+  "victory-rays": {
+   "file": "assets/vfx/victory-rays.webp",
+   "w": 961,
+   "h": 886,
    "blend": "light"
   },
   "war-banner": {

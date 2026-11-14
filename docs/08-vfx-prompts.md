@@ -13,7 +13,7 @@
 
 **113 images in all.**
 
-**Status (14 November 2026):** 79 of 113 delivered and processed into `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`): ambush-burst, arcane-bolt, arcane-lightning, arcane-orb, arcane-vortex, armour-plates, arrow, arrow-trail, ash-flakes-atlas, autumn-leaves-atlas, bite-snap, blade-runes-glint, bone-shards-atlas, burn-away-mask, burning-card-edge, candle-flame, candle-snuff, claw-rake, cleave-arc, coin-shower, coin-spin-atlas, compass-rose, crimson-draught-splash, drain-wisps, dust-burst, dust-ground-ring, ember-cracks, embers-atlas, empower-aura, feathers-atlas, fire-breath, fire-burst, firestorm-ring, flame-tongue, flames-atlas, folded-letter, fur-tufts-atlas, glass-shards-atlas, gold-coin, grave-mist, halo-ring, hammer-sigil, heal-bloom, heal-motes-atlas, holy-pillar, impact-flash, impact-glints-atlas, ink-splatter-atlas, ink-spread-mask, knife-streaks-atlas, lantern-glint, laurel-of-light, liquid-fire-splash, lunge-streak, metal-sparks-atlas, parchment-burn-mask, poison-mist, quill-stroke, ready-rim, riposte-cross, rock-shards-atlas, rune-circle, rune-glyphs-atlas, salve-glow, shield-sigil, shockwave-ring, slash-arc, smoke-atlas, smoke-puff, smoke-tendrils, soul-wisp, spectral-wail, spirit-rise, splinters-atlas, summon-sigil, war-banner, wax-seal, wax-seal-shards-atlas, wing-gust.
+**Status (14 November 2026):** 94 of 113 delivered and processed into `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`). **What's still missing, with prompts: `docs/09-art-still-to-make.md`.**
 
 ## 1. Impacts and weapon strikes
 

@@ -2,7 +2,7 @@
 
 **For Elliott to generate with ChatGPT.** One prompt per image, 37 in all. Save each image as `assets/cards/<id>.jpg`, using the id shown (about 5:7; Locations at 16:9). The game shows Art Pending until each one arrives.
 
-**Art status (14 November 2026):** 36 of 37 delivered. Still to come: **Rumour of Treasure**. Locations are 16:9 (1672×941); the card shows a centred 5:7 crop of them.
+**Art status (14 November 2026):** 36 of 37 delivered. Still to come: **Rumour of Treasure** (also listed in `docs/09-art-still-to-make.md`). Locations are 16:9 (1672×941); the card shows a centred 5:7 crop of them.
 
 **Series:** generate them in order. For each later form, attach the previous form's image and say "the same figure as the attached image", so the character grows recognisably.
 
