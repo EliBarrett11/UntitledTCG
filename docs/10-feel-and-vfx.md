@@ -123,7 +123,7 @@ All of this stays quiet, and it is off in low motion.
 
 1. **Distortion bends the effects, not the board.** The WebGL layer sits over the board as a separate canvas and cannot read the board's pixels. So shockwaves and heat shimmer warp the effects themselves (sparks, flames, rings), and a painted `shockwave-ring` shows the wave over the board. Bending the board itself would mean drawing the whole board in WebGL (a V3 or V6 question).
 2. **Armour shows at the impact.** The engine reports Armour just before the attack (or effect) it softens. With the effects layer, the `armour-plates` shimmer and an "Armour −N" note now play at that attack's impact, not as a beat of their own. Without WebGL it stays a separate beat, as in S5.
-3. **Guards.** The rules have no "redirect" moment: a Shield or Ward guard is simply the only creature that can be attacked. So the guard's sigil flashes when an attack lands on a guard that guards against that attack (Shield against Martial, Ward against Arcane). `ward-sigil` isn't delivered yet; a ring drawn in code stands in.
+3. **Guards.** The rules have no "redirect" moment: a Shield or Ward guard is simply the only creature that can be attacked. So the guard's sigil flashes when an attack lands on a guard that guards against that attack (Shield against Martial, Ward against Arcane).
 4. **Hidden information.** An enemy Strat's letter and wax seal are plain red, not its Class colour, because its card is hidden. Your own Strats take their Class colour.
 5. **Styles by card.** These looks are presentation data in `src/ui/vfx/library.js`, keyed by card id:
    - the Ashen Wyrm breathes fire;

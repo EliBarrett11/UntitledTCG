@@ -150,8 +150,8 @@ node tools/clips.mjs
   - Renown and Favour; healing; Strats sealing and resolving; Gold and Items;
   - guards, Armour and Riposte; card effects (Firebolt, Wildfire, the Wyrm's On Summon, the Barrow Shade's drain and others);
   - a light touch over Dusk, Dawn, Locations, Quests, the Legendary Creature and the Last Battle.
-- The quiet table (`ambient.js`): dust, fog over the Wilds, candles at the map's corners, embers in the Last Battle. It is drawn in CSS so the WebGL loop can stop; it is off in low motion.
-- Missing textures (94 of 113 delivered; `ward-sigil` and `react-flare` are used and not yet in) are drawn in code. Without WebGL2 (or with `?webgl=0`) the S5 animations play.
+- The quiet table (`ambient.js`): dust, fog over the Wilds, candles at the map's corners, and embers, ash and the ember storm in the Last Battle. It is drawn in CSS so the WebGL loop can stop; it is off in low motion.
+- Every texture the effects use is now delivered. Any texture that is missing or fails to load is drawn in code instead, never an error. Without WebGL2 (or with `?webgl=0`) the S5 animations play.
 - Low motion: no shake, hit-stop, flashes, distortion or lunges; a quarter of the particles; shorter fades.
 - Full quality by default. Automatic quality steps drop the bloom resolution, then the particle count, then the render scale, if frames stay over 20 ms; they step back up when there is headroom. `?fps=1` shows a frame-rate overlay.
 - The engine now also reports damage effects as an `effect` event (presentation only, no rule change), so Firebolt, Wildfire and On Summon or On Defeat damage are shown.
