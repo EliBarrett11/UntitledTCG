@@ -13,7 +13,7 @@
 
 **113 images in all.**
 
-**Status (14 November 2026):** 19 delivered and processed into `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`): shield-sigil, armour-plates, firestorm-ring, wing-gust, spectral-wail, bone-shards-atlas, spirit-rise, soul-wisp, grave-mist, ember-cracks, rock-shards-atlas, fur-tufts-atlas, feathers-atlas, autumn-leaves-atlas, splinters-atlas, arrow-trail, arrow, lantern-glint, poison-mist.
+**Status (14 November 2026):** 39 of 113 delivered and processed into `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`): ambush-burst, arcane-bolt, arcane-lightning, arcane-orb, arcane-vortex, armour-plates, arrow, arrow-trail, ash-flakes-atlas, autumn-leaves-atlas, bone-shards-atlas, burn-away-mask, burning-card-edge, candle-snuff, ember-cracks, feathers-atlas, firestorm-ring, fur-tufts-atlas, grave-mist, halo-ring, hammer-sigil, heal-bloom, heal-motes-atlas, holy-pillar, knife-streaks-atlas, lantern-glint, poison-mist, rock-shards-atlas, rune-circle, rune-glyphs-atlas, shield-sigil, smoke-atlas, smoke-puff, smoke-tendrils, soul-wisp, spectral-wail, spirit-rise, splinters-atlas, wing-gust.
 
 ## 1. Impacts and weapon strikes
 

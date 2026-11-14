@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Process Elliott's generated VFX images into assets/vfx/.
 
-Usage: python3 tools/vfx_process.py <id>=<source.png> [...]
+Usage: python3 tools/vfx_process.py <id>=<source.png>[:solid] [...]
+  :solid marks a solid object painted on black (cut out opaque, not turned into glow).
 - Images on a black background become transparent: brightness is used as alpha,
   and colour is un-premultiplied, so they work with normal and additive blending.
 - Images that already have transparency are kept as they are.
@@ -17,7 +18,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'assets', 'vfx')
 MAN = os.path.join(OUT, 'manifest.json')
 
-def to_rgba(im):
+def to_rgba(im, mode=''):
+    if mode == 'solid':
+        # a solid object painted on black: opaque wherever it isn't near-black
+        rgb = np.asarray(im.convert('RGB')).astype(np.float32)
+        mx = rgb.max(axis=2)
+        a = np.clip((mx - 10.0) / 70.0, 0, 1)
+        return np.dstack([rgb, a * 255.0]), 'alpha'
     if im.mode == 'RGBA':
         a = np.asarray(im)[..., 3]
         if a.min() < 250:
@@ -66,8 +73,11 @@ def main(pairs):
     man = json.load(open(MAN)) if os.path.exists(MAN) else {'about': 'VFX textures. blend: light = painted on black (additive or normal), alpha = solid object.', 'textures': {}}
     for p in pairs:
         tid, src = p.split('=', 1)
+        mode = ''
+        if src.endswith(':solid'):
+            src, mode = src[:-6], 'solid'
         im = Image.open(src)
-        arr, blend = to_rgba(im)
+        arr, blend = to_rgba(im, mode)
         img = Image.fromarray(arr.round().astype(np.uint8), 'RGBA')
         bbox = img.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox()
         if bbox:
