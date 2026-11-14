@@ -13,7 +13,7 @@
 
 **113 images in all.**
 
-**Status (14 November 2026):** 111 of 113 delivered (104 of 106 effect textures, all 7 pieces of presentation art) and processed into `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`). Presentation art is in `assets/ui/` (card-back, war-table, campaign-map, campaign-map-scorched, title-key-art, banner-crimson, banner-blue). **What's still missing, with prompts: `docs/09-art-still-to-make.md`.**
+**Status (14 November 2026):** complete. All 113 delivered: 106 effect textures in `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`) and 7 pieces of presentation art in `assets/ui/`. One optional replacement (the wax seal) is in `docs/09-art-still-to-make.md`.
 
 ## 1. Impacts and weapon strikes
 

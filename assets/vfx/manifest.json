@@ -49,6 +49,12 @@
    "h": 136,
    "blend": "light"
   },
+  "arrowhead": {
+   "file": "assets/vfx/arrowhead.webp",
+   "w": 912,
+   "h": 508,
+   "blend": "alpha"
+  },
   "ash-flakes-atlas": {
    "file": "assets/vfx/ash-flakes-atlas.webp",
    "w": 1024,
@@ -663,6 +669,12 @@
    "file": "assets/vfx/ember-cracks.webp",
    "w": 951,
    "h": 897,
+   "blend": "light"
+  },
+  "ember-storm": {
+   "file": "assets/vfx/ember-storm.webp",
+   "w": 1024,
+   "h": 552,
    "blend": "light"
   },
   "embers-atlas": {
