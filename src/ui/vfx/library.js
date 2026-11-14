@@ -1,6 +1,6 @@
-// The effects library (stage V1): every moment is data, a timeline of steps, so a new Class, Kind or card
+// The effects library (stages V1 and V2): every moment is data, a timeline of steps, so a new Class, Kind or card
 // gets its effect by adding an entry here, never new engine code. The storyboard is docs/10-feel-and-vfx.md
-// section 3; timings are ms at normal speed (the speed setting scales them).
+// sections 3 (V1) and 5 (V2: signature moments); timings are ms at normal speed (the speed setting scales them).
 //
 // A step: { at, op, ...params, if }. Ops (run by runner.js):
 //   sprite      a texture at an anchor: size (px) or sizeK (× the anchor's width), scale [from, to], curve,
@@ -13,36 +13,61 @@
 //   beam        a texture stretched from → to (life, h)
 //   wave        a distortion shockwave; heat: a heat shimmer
 //   shake       screen shake (px scaled by damage); hitstop: a brief freeze (ms scaled by damage); flash: bloom
-//   dom         a motion of a card on the board: strike, lift, recoil, shudder, slam, burn, pulse
+//   dom         a motion of a card on the board: strike, lift, recoil, knock, hop, shudder, slam, burn, pulse
 //   call        a hook from the presenter (numbers landing, cards arriving): never skipped
 //   use         another effect's steps, at this time (swap: from and to swapped; scale: smaller)
-// Anchors: src, dst, each (every target), dial, gold, pile, centre, hand, market. '$name' reads env.vars.
+// Anchors: src, dst, each (every target), dial, gold, pile, centre, hand, market, span (all targets), and
+// any the presenter adds. each: true runs a step on every target; each: 'name' on the list env.lists.name.
+// '$name' reads env.vars. A cinematic is a run of beats (see the presenter) with letterbox bars.
 // Ranges [a, b] pick at random; for shake, hitstop and flash, [a, b] is scaled by the damage dealt.
 import { CARDS } from '../../data/cards.js';
+import { signatureEffects } from './signature.js';
 
 // The timing budget at normal speed (docs/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
-export const BUDGET = { attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 2500, lastBattle: 2000, renown: 800 };
+// V2 (section 5.10, proposed): the Ashen Wyrm's arrival 3.5 s, a Legendary Creature 3 s, the Last Battle 3 s,
+// a Location placed 1 s (gone 0.8 s), and about 0.6 s per dominated Location at Dusk.
+export const BUDGET = { attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800,
+  wyrm: 3500, location: 1000, locationGone: 800, dominance: 600 };
 export const BUDGET_SLACK = 0.12;
+export const GOLD = '#f2c46a';
 
 const IMPACT = [
   { at: 0, op: 'hitstop', ms: [60, 120] },
-  { at: 0, op: 'sprite', tex: '$slash', on: 'dst', sizeK: 1.5, scale: [0.85, 1.1], curve: 'out', life: 300, fadeIn: 0.05, fadeOut: 0.45, rot: 'toward', tint: 'accent', tintK: 0.8, alpha: 1.4 },
-  { at: 0, op: 'sprite', tex: 'impact-flash', on: 'dst', sizeK: 1.4, scale: [0.5, 1.2], curve: 'out', life: 260, fadeOut: 0.3, tint: 'accent', tintK: 0.35, alpha: 1.3 },
-  { at: 0, op: 'burst', tex: 'metal-sparks-atlas', on: 'dst', n: 14, speed: [380, 900], angle: 'away', spread: 120, life: [260, 520], size: [18, 42], gravity: 900, drag: 2.5, align: true, tint: 'accent', tintK: 0.3 },
+  // (V2 weight pass: arcs about 1.5× larger, spanning the card; a brighter flash; a short spray thrown away
+  // from the attacker; the target recoils about 6 px.)
+  { at: 0, op: 'sprite', tex: '$slash', on: 'dst', sizeK: 2.25, scale: [0.85, 1.1], curve: 'out', life: 320, fadeIn: 0.05, fadeOut: 0.45, rot: 'toward', tint: 'accent', tintK: 0.8, alpha: 1.6 },
+  { at: 0, op: 'sprite', tex: 'impact-flash', on: 'dst', sizeK: 1.9, scale: [0.5, 1.25], curve: 'out', life: 280, fadeOut: 0.3, tint: 'accent', tintK: 0.3, alpha: 2.0 },
+  { at: 0, op: 'burst', tex: 'metal-sparks-atlas', on: 'dst', n: 18, speed: [500, 1150], angle: 'away', spread: 70, life: [180, 380], size: [18, 44], gravity: 900, drag: 2.5, align: true, tint: 'accent', tintK: 0.3 },
   { at: 0, op: 'burst', tex: 'impact-glints-atlas', on: 'dst', n: 6, speed: [40, 160], spread: 360, life: [200, 380], size: [30, 70], tint: 'accent', tintK: 0.3 },
   { at: 0, op: 'sprite', tex: 'shockwave-ring', on: 'dst', sizeK: 1.0, scale: [0.4, 1.9], curve: 'out', life: 420, fadeOut: 0.2, tint: 'accent', tintK: 0.4, alpha: 0.8 },
   { at: 0, op: 'wave', on: 'dst', radius: 260, strength: 10, dur: 420 },
   { at: 0, op: 'shake', px: [2, 6], dur: 260 },
   { at: 0, op: 'flash', k: [0.35, 0.9], dur: 220 },
-  { at: 0, op: 'dom', name: 'shudder', el: 'dst', dur: 220 },
+  { at: 0, op: 'dom', name: 'knock', el: 'dst', dur: 260 },
   { at: 0, op: 'sprite', tex: 'armour-plates', on: 'dst', sizeK: 1.1, scale: [0.9, 1.05], life: 450, fadeIn: 0.15, fadeOut: 0.4, alpha: 1.1, if: 'armour' },
   { at: 30, op: 'call', fn: 'land' },
   { at: 50, op: 'burst', tex: 'ink-splatter-atlas', on: 'dst', n: 2, speed: [10, 50], spread: 360, life: [420, 560], size: [50, 80], tint: '#5a0a0c', tintK: 0.9, alpha: 0.75, fadeIn: 0.05, fadeOut: 0.35, dy: -10 },
 ];
-const MAGIC_IMPACT = IMPACT.map((s) => (s.tex === '$slash' ? { ...s, tex: '$burst', rot: 'random', sizeK: 1.3, scale: [0.4, 1.2] } : s.op === 'burst' && s.tex === 'metal-sparks-atlas' ? { ...s, tex: 'embers-atlas', gravity: -200, n: 12 } : s));
+const MAGIC_IMPACT = IMPACT.map((s) => (s.tex === '$slash' ? { ...s, tex: '$burst', rot: 'random', sizeK: 1.6, scale: [0.4, 1.2] } : s.op === 'burst' && s.tex === 'metal-sparks-atlas' ? { ...s, tex: 'embers-atlas', gravity: -200, n: 14, spread: 160 } : s));
+// A small hit (a quick React bolt): a flash, a few sparks, the number.
+const SMALL_IMPACT = [
+  { at: 0, op: 'hitstop', ms: [40, 60] },
+  { at: 0, op: 'sprite', tex: 'impact-flash', on: 'dst', sizeK: 1.1, scale: [0.5, 1.1], curve: 'out', life: 220, fadeOut: 0.3, tint: 'accent', tintK: 0.3, alpha: 1.6 },
+  { at: 0, op: 'burst', tex: 'embers-atlas', on: 'dst', n: 8, speed: [200, 500], spread: 360, life: [200, 380], size: [12, 26], drag: 3 },
+  { at: 0, op: 'shake', px: [1, 3], dur: 160 },
+  { at: 0, op: 'dom', name: 'knock', el: 'dst', dur: 200 },
+  { at: 20, op: 'call', fn: 'land' },
+];
 // Anticipation shared by every attack: the guard's sigil, if the target is a guard against this attack.
 const GUARD = [{ at: 120, op: 'sprite', tex: '$guardSigil', on: 'dst', sizeK: 1.15, scale: [1.3, 1], curve: 'out', life: 420, fadeIn: 0.15, fadeOut: 0.5, alpha: 1.2, if: 'guard' }];
 const SETTLE = [{ at: 650, op: 'burst', tex: 'dust-motes-atlas', on: 'src', n: 6, speed: [20, 70], angle: 'up', spread: 140, life: [500, 700], size: [10, 26], alpha: 0.6 }];
+// The opening of a melee attack: the arrow, the attacker's motion, its ready rim, the guard's sigil.
+const START = (name, frac) => [
+  { at: 0, op: 'call', fn: 'arrow' },
+  { at: 0, op: 'dom', name, el: 'src', to: 'dst', frac, dur: 1250 },
+  { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 360, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9, alpha: 1.1 },
+  ...GUARD,
+];
 
 export const EFFECTS = {
   // --- A. A Martial attack ---------------------------------------------------------------------------------------
@@ -58,6 +83,7 @@ export const EFFECTS = {
   ] },
   'impact.hit': { duration: 500, steps: IMPACT },
   'impact.magic': { duration: 500, steps: MAGIC_IMPACT },
+  'impact.small': { duration: 300, steps: SMALL_IMPACT },
 
   // --- B. An Arcane attack ------------------------------------------------------------------------------------
   'attack.arcane': { budget: 'attack', duration: 1250, steps: [
@@ -169,20 +195,24 @@ export const EFFECTS = {
   ] },
 
   // --- D. A defeat ---------------------------------------------------------------------------------------------------
+  // V2 weight pass: the card visibly burns away from the centre over 0.5 s (a charred, burnt-through card over it,
+  // flames along the edge), then a clear stream of ash and embers drifts to the Released Pile, which flashes.
   defeat: { budget: 'defeat', duration: 1000, steps: [
     { at: 0, op: 'call', fn: 'ghost' },
-    { at: 0, op: 'dom', name: 'shudder', el: 'ghost', dur: 140 },
-    { at: 0, op: 'sprite', tex: 'ember-cracks', on: 'dst', sizeK: 1.05, life: 640, fadeIn: 0.2, fadeOut: 0.6, alpha: 1.2 },
-    { at: 120, op: 'dom', name: 'burn', el: 'ghost', dur: 520 },
-    { at: 120, op: 'emit', tex: 'flames-atlas', on: 'dst', ring: [-0.15, 1.1], rate: 110, dur: 480, speed: [10, 50], angle: 'up', spread: 60, life: [200, 340], size: [30, 56], gravity: -260, if: '!undead' },
-    { at: 120, op: 'emit', tex: 'spirit-rise', on: 'dst', rate: 14, dur: 420, speed: [60, 140], angle: 'up', spread: 30, life: [500, 700], size: [70, 110], h: 180, tint: '#bfe8e0', tintK: 0.5, alpha: 0.9, if: 'undead' },
-    { at: 160, op: 'burst', tex: 'fur-tufts-atlas', on: 'dst', n: 8, speed: [80, 260], spread: 360, life: [600, 820], size: [24, 40], gravity: 200, drag: 2, spin: [-200, 200], if: 'beast' },
-    { at: 160, op: 'burst', tex: 'rock-shards-atlas', on: 'dst', n: 14, speed: [200, 560], spread: 360, life: [520, 760], size: [22, 46], gravity: 1300, drag: 1, spin: [-400, 400], if: 'stone' },
+    { at: 0, op: 'dom', name: 'shudder', el: 'ghost', dur: 120 },
+    { at: 0, op: 'sprite', tex: 'ember-cracks', on: 'card', size: 164, h: 230, life: 300, fadeIn: 0.2, fadeOut: 0.5, alpha: 1.3 },
+    { at: 110, op: 'dom', name: 'burn', el: 'ghost', dur: 500 },
+    { at: 110, op: 'sprite', tex: 'burn-away-mask', on: 'card', size: 168, h: 236, scale: [1, 1.06], life: 600, fadeIn: 0.25, fadeOut: 0.6 },
+    { at: 110, op: 'sprite', tex: 'burning-card-edge', on: 'card', size: 180, h: 250, life: 560, fadeIn: 0.2, fadeOut: 0.5, alpha: 1.2 },
+    { at: 110, op: 'emit', tex: 'flames-atlas', on: 'card', ring: [-0.1, 1.05], rate: 140, dur: 480, speed: [10, 50], angle: 'up', spread: 60, life: [200, 340], size: [30, 60], gravity: -260, if: '!undead' },
+    { at: 110, op: 'emit', tex: 'spirit-rise', on: 'card', rate: 14, dur: 420, speed: [60, 140], angle: 'up', spread: 30, life: [500, 700], size: [70, 110], h: 180, tint: '#bfe8e0', tintK: 0.5, alpha: 0.9, if: 'undead' },
+    { at: 160, op: 'burst', tex: 'fur-tufts-atlas', on: 'card', n: 8, speed: [80, 260], spread: 360, life: [600, 820], size: [24, 40], gravity: 200, drag: 2, spin: [-200, 200], if: 'beast' },
+    { at: 160, op: 'burst', tex: 'rock-shards-atlas', on: 'card', n: 14, speed: [200, 560], spread: 360, life: [520, 760], size: [22, 46], gravity: 1300, drag: 1, spin: [-400, 400], if: 'stone' },
     { at: 160, op: 'shake', px: [2, 2], dur: 200, if: 'stone' },
-    { at: 400, op: 'burst', tex: 'ash-flakes-atlas', on: 'dst', area: 'card', n: 26, life: [520, 620], size: [10, 22], home: 'pile', spin: [-300, 300], tint: '#2a2420', tintK: 0.6 },
-    { at: 400, op: 'burst', tex: 'embers-atlas', on: 'dst', area: 'card', n: 18, life: [480, 600], size: [10, 20], home: 'pile' },
-    { at: 960, op: 'dom', name: 'pulse', el: 'pile', dur: 400 },
-    { at: 960, op: 'sprite', tex: 'embers-atlas', on: 'pile', size: 60, life: 260, fadeOut: 0.3, alpha: 0.9 },
+    { at: 380, op: 'emit', tex: 'ash-flakes-atlas', on: 'card', area: 'card', rate: 70, dur: 260, life: [420, 520], size: [12, 24], home: 'pile', spin: [-300, 300], tint: '#2a2420', tintK: 0.6 },
+    { at: 380, op: 'emit', tex: 'embers-atlas', on: 'card', area: 'card', rate: 60, dur: 260, life: [400, 500], size: [12, 22], home: 'pile' },
+    { at: 900, op: 'dom', name: 'pulse', el: 'pile', dur: 400 },
+    { at: 900, op: 'sprite', tex: 'dial-flare', on: 'pile', size: 110, scale: [0.4, 1.1], curve: 'out', life: 320, fadeOut: 0.4, tint: '#ff9a50', tintK: 0.6, alpha: 1.4 },
   ] },
 
   // --- E. A summon -------------------------------------------------------------------------------------------------------
@@ -197,10 +227,13 @@ export const EFFECTS = {
     { at: 300, op: 'wave', on: 'dst', radius: 260, strength: 8, dur: 420, if: 'heavy' },
     { at: 300, op: 'shake', px: [3, 3], dur: 220, if: 'heavy' },
     { at: 300, op: 'hitstop', ms: [50, 50], if: 'heavy' },
+    { at: 250, op: 'beam', tex: 'wing-gust', from: 'laneA', to: 'laneB', life: 420, h: 220, fadeIn: 0.1, fadeOut: 0.5, alpha: 1.0, if: 'gust' },
+    { at: 250, op: 'emit', tex: 'dust-motes-atlas', path: ['laneA', 'laneB'], rate: 60, dur: 300, speed: [40, 140], spread: 360, life: [300, 500], size: [10, 22], alpha: 0.7, if: 'gust' },
     { at: 300, op: 'sprite', tex: 'ambush-burst', on: 'dst', sizeK: 1.8, scale: [0.5, 1.2], curve: 'out', life: 450, fadeOut: 0.5, alpha: 0.9, if: 'ambush' },
     { at: 300, op: 'burst', tex: 'smoke-atlas', on: 'dst', n: 6, speed: [80, 220], spread: 360, life: [350, 450], size: [80, 140], drag: 3, alpha: 0.7, if: 'ambush' },
   ] },
-  legendary: { budget: 'legendary', duration: 2500, steps: [
+  // A Legendary Creature with no cinematic of its own (Aldric and the Wyrm have theirs: 5.9).
+  legendary: { duration: 2500, steps: [
     { at: 0, op: 'sprite', tex: 'gate-of-light', on: 'dst', size: 260, h: 560, dy: -80, scale: [0.3, 1], curve: 'out', life: 1600, fadeIn: 0.2, fadeOut: 0.6, tint: 'accent', tintK: 0.3, alpha: 1.2 },
     { at: 0, op: 'emit', tex: 'embers-atlas', on: 'dst', rate: 40, dur: 1200, speed: [40, 140], angle: 'up', spread: 60, life: [600, 1000], size: [10, 22], gravity: -80 },
     { at: 0, op: 'flash', k: [0.4, 0.4], dur: 600 },
@@ -224,7 +257,7 @@ export const EFFECTS = {
     { at: 500, op: 'call', fn: 'tick' },
   ] },
   'renown.favour': { budget: 'renown', duration: 800, steps: [
-    { at: 0, op: 'sprite', tex: 'laurel-of-light', on: 'centre', size: 300, scale: [0.7, 1], curve: 'out', life: 420, fadeIn: 0.25, fadeOut: 0.5, alpha: 1.2 },
+    { at: 0, op: 'sprite', tex: 'laurel-of-light', on: 'centre', size: 300, scale: [0.9, 1], life: 300, fadeOut: 0.6, alpha: 0.8 },
     { at: 200, op: 'ribbon', tex: 'renown-ribbon', from: 'centre', to: 'dial', bend: 120, width: 46, travel: 420, lag: 200, tint: 'gold', tintK: 0.5, alpha: 1.3,
       motes: { tex: 'renown-motes-atlas', rate: 70, speed: [10, 60], life: [300, 500], size: [12, 26] } },
     { at: 600, op: 'sprite', tex: 'dial-flare', on: 'dial', size: 170, scale: [0.4, 1.1], curve: 'out', life: 200, fadeOut: 0.4, tint: 'gold', tintK: 0.4, alpha: 1.3 },
@@ -362,71 +395,81 @@ export const EFFECTS = {
     { at: 0, op: 'sprite', tex: 'rune-circle', on: 'dst', sizeK: 1.0, scale: [0.6, 1], curve: 'out', life: 600, fadeIn: 0.2, fadeOut: 0.5, spin: 40, tint: 'accent', tintK: 0.7, alpha: 0.9 },
     { at: 0, op: 'call', fn: 'tag', wait: true },
   ] },
-  react: { duration: 1100, steps: [
-    { at: 0, op: 'sprite', tex: 'react-flare', on: 'centre', size: 320, scale: [0.5, 1.1], curve: 'out', life: 500, fadeIn: 0.15, fadeOut: 0.5, tint: 'accent', tintK: 0.6, alpha: 1.1 },
-    { at: 0, op: 'call', fn: 'slide', wait: true },
-  ] },
-  event: { duration: 1100, steps: [
-    { at: 0, op: 'call', fn: 'slide', wait: true },
-    { at: 350, op: 'sprite', tex: 'lantern-glint', on: 'centre', size: 300, life: 600, fadeIn: 0.25, fadeOut: 0.5, tint: 'accent', tintK: 0.5, alpha: 0.9 },
-  ] },
-  location: { duration: 950, steps: [
-    { at: 0, op: 'call', fn: 'reveal', wait: true },
-    { at: 0, op: 'emit', tex: 'dust-motes-atlas', on: 'dst', area: 'wide', rate: 40, dur: 600, speed: [10, 40], angle: 'up', spread: 90, life: [500, 800], size: [10, 24], alpha: 0.6 },
-  ] },
+  // 5.8: each step stamps the tracker; completion fills it and a crown of light flares over it.
   quest: { duration: 700, steps: [
-    { at: 0, op: 'call', fn: 'pulse', wait: true },
-    { at: 0, op: 'sprite', tex: 'quest-stamp', on: 'dst', size: 120, scale: [1.6, 1], curve: 'out', life: 600, fadeIn: 0.1, fadeOut: 0.5, alpha: 0.9, if: 'complete' },
+    { at: 0, op: 'call', fn: 'pulse' },
+    { at: 0, op: 'sprite', tex: 'quest-stamp', on: 'stamp', size: 70, scale: [2, 1], curve: 'out', life: 600, fadeIn: 0.05, fadeOut: 0.5, alpha: 1.3, if: '!complete' },
+    { at: 60, op: 'shake', px: [1, 1], dur: 100, if: '!complete' },
+    { at: 0, op: 'sprite', tex: 'quest-stamp', on: 'dst', size: 140, scale: [1.8, 1], curve: 'out', life: 650, fadeIn: 0.05, fadeOut: 0.5, alpha: 1.3, if: 'complete' },
+    { at: 150, op: 'sprite', tex: 'crown-of-light', on: 'dst', size: 200, dy: -40, scale: [0.6, 1], curve: 'out', life: 550, fadeIn: 0.2, fadeOut: 0.5, alpha: 1.3, if: 'complete' },
   ] },
+  // 5.7 Dusk: a wash falls and the candles brighten (then each dominated Location is scored: dominance.scored).
   dusk: { duration: 1000, steps: [
-    { at: 0, op: 'sprite', tex: 'dusk-wash', on: 'centre', size: 1500, h: 760, life: 1000, fadeIn: 0.3, fadeOut: 0.4, alpha: 0.6 },
+    { at: 0, op: 'sprite', tex: 'dusk-wash', on: 'centre', size: 1500, h: 760, life: 1000, fadeIn: 0.3, fadeOut: 0.4, alpha: 0.7 },
+    { at: 0, op: 'call', fn: 'candles' },
     { at: 0, op: 'call', fn: 'banner', wait: true },
   ] },
+  // 5.7 Dawn: a sweep crosses the table, Energy pips refill with sparks, recovered Exert glints (new cards fly in
+  // as 'draw' beats).
   dawn: { duration: 1000, steps: [
-    { at: 0, op: 'projectile', tex: 'dawn-sweep', from: 'mapL', to: 'mapR', dur: 900, size: 900, h: 300, alpha: 0.7 },
-    { at: 0, op: 'call', fn: 'banner', wait: true },
-  ] },
-  dominance: { duration: 900, steps: [
-    { at: 0, op: 'call', fn: 'highlight', wait: true },
-    { at: 100, op: 'sprite', tex: 'victory-rays', on: 'dst', size: 340, life: 700, fadeIn: 0.25, fadeOut: 0.5, spin: 10, tint: 'side', tintK: 0.5, alpha: 0.6 },
-  ] },
-  lastBattle: { budget: 'lastBattle', duration: 2000, steps: [
-    { at: 0, op: 'call', fn: 'banner', wait: true },
-    { at: 0, op: 'emit', tex: 'embers-atlas', on: 'mapL', area: 'tall', rate: 90, dur: 1500, speed: [380, 620], angle: 0, spread: 20, life: [1400, 1800], size: [10, 22], gravity: -40 },
-    { at: 0, op: 'emit', tex: 'ash-flakes-atlas', on: 'mapL', area: 'tall', rate: 40, dur: 1500, speed: [300, 480], angle: 0, spread: 20, life: [1600, 2000], size: [8, 18], spin: [-200, 200], tint: '#2a2420', tintK: 0.6 },
-    { at: 300, op: 'shake', px: [3, 3], dur: 500 },
+    { at: 0, op: 'projectile', tex: 'dawn-sweep', from: 'mapL', to: 'mapR', dur: 900, size: 900, h: 300, alpha: 0.8 },
+    { at: 0, op: 'call', fn: 'banner' },
+    { at: 300, op: 'sprite', tex: 'energy-spark', each: 'pips', size: 46, scale: [0.4, 1.2], curve: 'out', life: 320, fadeOut: 0.4, alpha: 1.5, stagger: 40 },
+    { at: 450, op: 'sprite', tex: 'lantern-glint', each: 'exerts', size: 60, scale: [0.4, 1.1], curve: 'out', life: 380, fadeOut: 0.4, alpha: 1.3, stagger: 60 },
   ] },
   quiet: { duration: 300, steps: [{ at: 0, op: 'call', fn: 'wait', wait: true }] },
 };
+// V2's signature moments (signature.js), merged in.
+Object.assign(EFFECTS, signatureEffects({ START, GUARD, SETTLE, GOLD }));
 
 // Every presenter beat has an effect (docs/10-feel-and-vfx.md section 3). Some are chosen per card below.
 export const BEAT_EFFECTS = {
   summon: 'summon', legendary: 'legendary', attack: 'attack.martial', riposte: 'riposte', armour: 'armour', defeat: 'defeat', returned: 'returned',
   effect: 'effect.damage', trigger: 'trigger', renown: 'renown', gold: 'gold.gain', strat: 'strat.seal', stratResolve: 'strat.resolve', react: 'react',
-  event: 'event', item: 'item.bought', location: 'location', card: 'event', quest: 'quest', fizzle: 'quiet', pass: 'quiet', retain: 'quiet',
-  decline: 'quiet', dusk: 'dusk', dominance: 'dominance', lastBattle: 'lastBattle', dawn: 'dawn',
+  event: 'event', item: 'item.bought', location: 'location', locationGone: 'location.gone', card: 'event', quest: 'quest', fizzle: 'quiet',
+  pass: 'quiet', retain: 'quiet', decline: 'quiet', dusk: 'dusk', dominance: 'dominance.scored', lastBattle: 'cine.last', dawn: 'dawn',
+  draw: 'draw', energy: 'energy',
+};
+// The cinematics (5.9): the effect for each, its low-motion version, and its budget.
+export const CINEMATICS = {
+  wyrm: { full: 'cine.wyrm', low: 'cine.wyrm.low', budget: 'wyrm' },
+  aldric: { full: 'cine.aldric', low: 'cine.aldric.low', budget: 'legendary', opening: 'cine.aldric.quest' },
+  last: { full: 'cine.last', low: 'cine.last.low', budget: 'lastBattle' },
 };
 
 // --- Styles per card, Class and Kind -------------------------------------------------------------------------------------------
 // By card id (or form id): how its effects look. Presentation data only; no card text.
 export const CARD_STYLE = {
-  'the-ashen-wyrm': { attack: 'attack.wyrm', trigger: 'wyrm.onsummon' },
-  'archmagus-of-the-ashen-spire': { lightning: true },
-  'stonehide-basilisk': { defeat: 'stone' },
-  'deepforge-acolyte': { heal: 'hammer' },
-  'mending-prayer': { heal: 'pillar' },
+  // 5.2: each series' attack signature.
+  'oathsworn-recruit': { attack: 'attack.oathsworn' },
+  'ironhide-brawler': { attack: 'attack.ironhide' },
+  'ashen-spire-apprentice': { attack: 'attack.spire', heal: null },
+  'hollowfoot-cutpurse': { attack: 'attack.hollowfoot' },
+  'deepforge-acolyte': { attack: 'attack.deepforge', heal: 'hammer' },
+  'thornwood-scout': { attack: 'attack.thornwood' },
+  'gloomfang-wolf': { attack: 'attack.beast', summonGust: 'gloomfang-alpha' },
+  'barrow-shade': { attack: 'attack.barrow', damage: 'shade.drain' },
+  'stonehide-basilisk': { attack: 'attack.stonehide', defeat: 'stone' },
+  'the-ashen-wyrm': { attack: 'attack.wyrm', trigger: 'wyrm.onsummon', cinematic: 'wyrm' },
+  'aldric-the-unbroken': { attack: 'attack.oathsworn', final: true, cinematic: 'aldric' },
+  // 5.3: Actions, by mode.
+  firebolt: { react: 'firebolt.react', adapt: 'spell.firebolt', strat: 'firebolt.strat' },
+  parry: { adapt: 'parry.adapt', reactFlag: 'parry' },
+  'night-raid': { adapt: 'nightraid.adapt', strat: 'nightraid.strat' },
+  'mending-prayer': { react: 'heal', adapt: 'heal', strat: 'mending.strat', heal: 'pillar' },
+  // 5.4: Events' own touches.
+  'call-to-arms': { event: 'horn' },
+  'rumour-of-treasure': { event: 'scroll' },
+  'desperate-gambit': { event: 'gambit' },
+  // Items.
   'healers-salve': { heal: 'salve' },
-  firebolt: { damage: 'spell.firebolt' },
   'flask-of-wildfire': { damage: 'item.wildfire' },
   'draught-of-vigour': { activate: 'item.draught' },
-  'night-raid': { spend: 'effect.spend' },
-  'barrow-shade': { damage: 'shade.drain' },
   'runed-blade': { held: 'item.held.blade' },
   'tower-shield': { held: 'item.held.shield' },
 };
 const BY_CLASS = { Ranger: 'attack.ranger', Rogue: 'attack.rogue' };
 const BY_KIND = { Beast: 'attack.beast', Undead: 'attack.undead' };
-export const GOLD = '#f2c46a';
 
 // Base card id and form id for a card name (effect events name their source).
 const NAMES = new Map();
@@ -435,8 +478,15 @@ for (const d of CARDS) {
   for (const f of d.forms ?? []) NAMES.set(f.name, { id: d.id, form: f.id, def: d });
   if (d.legendaryCreature) NAMES.set(d.legendaryCreature.name, { id: d.legendaryCreature.id, form: d.legendaryCreature.id, def: d.legendaryCreature });
 }
+const DEFS = new Map(CARDS.map((d) => [d.id, d]));
 export const cardByName = (name) => NAMES.get(name) ?? null;
 const styleOf = (card) => ({ ...(CARD_STYLE[card?.id] ?? {}), ...(card?.form && card.form !== card.id ? CARD_STYLE[card.form] ?? {} : {}) });
+// Which form a creature is in: 0 for the first; final for the last of two or more (or a Legendary Creature's own).
+export function formTier(card) {
+  const forms = DEFS.get(card?.id)?.forms ?? [];
+  const i = Math.max(0, forms.findIndex((f) => f.id === (card?.form ?? card?.id)));
+  return { tier: i, final: (forms.length > 1 && i === forms.length - 1) || !!styleOf(card).final };
+}
 
 // The attack effect for a creature (an instance on the battlefield, or a card definition).
 export function attackEffectFor(card) {
@@ -448,27 +498,31 @@ export function attackEffectFor(card) {
   if (BY_CLASS[cls]) return BY_CLASS[cls];
   return card?.attackKind === 'Arcane' ? 'attack.arcane' : 'attack.martial';
 }
-// Flags and textures for an attack: slash or burst texture, the bolt, heavy, Undead, stone...
+// Flags and textures for an attack: slash or burst texture, the bolt, heavy, Undead, stone, the form...
 export function attackVars(card, rand = Math.random) {
   const st = styleOf(card);
   const kind = card?.traits?.kind;
   const heavy = card?.series === 'Heavy' || card?.legendary;
+  const { tier, final } = formTier(card);
+  const spire = card?.id === 'ashen-spire-apprentice';
   const slash = kind === 'Beast' ? (rand() < 0.5 ? 'claw-rake' : 'bite-snap') : heavy ? 'cleave-arc' : 'slash-arc';
   return {
     vars: { slash, slash2: kind === 'Beast' ? 'claw-rake' : 'slash-arc', burst: 'arcane-vortex', bolt: 'arcane-bolt' },
-    flags: { heavy: !!heavy, lightning: !!st.lightning, undead: kind === 'Undead', beast: kind === 'Beast', stone: st.defeat === 'stone' },
+    flags: { heavy: !!heavy, final, tier, orb: spire && tier >= 1, lightning: spire && tier >= 2, undead: kind === 'Undead', beast: kind === 'Beast', stone: st.defeat === 'stone',
+      gust: !!st.summonGust && card?.form === st.summonGust },
   };
 }
-// The effect for an 'effect' event (by its op and its source card's style).
-export function effectFor(op, sourceName) {
+// The effect for an 'effect' event: by its source card's mode (React, Adapt, Strat), its op, and its style.
+export function effectFor(op, sourceName, kind = null) {
   const src = cardByName(sourceName);
   const st = src ? styleOf({ id: src.id, form: src.form }) : {};
+  if (kind && st[kind] && ['react', 'adapt', 'strat'].includes(kind)) return st[kind];
   switch (op) {
-    case 'damage': return st.damage ?? (src?.id && CARD_STYLE[src.id]?.trigger) ?? 'effect.damage';
+    case 'damage': return st.damage ?? st.trigger ?? 'effect.damage';
     case 'heal': return 'heal';
     case 'tempAttack': case 'attack': return 'effect.empower';
     case 'health': case 'tempHealth': return 'effect.fortify';
-    case 'spend': return st.spend ?? 'effect.spend';
+    case 'spend': return 'effect.spend';
     case 'activate': return st.activate ?? 'effect.activate';
     case 'returnHand': return 'effect.return';
     default: return 'effect.damage';
@@ -483,6 +537,19 @@ export function heldEffectFor(itemName) {
   const src = cardByName(itemName);
   return (src && CARD_STYLE[src.id]?.held) ?? 'item.held.shield';
 }
+// An Event's own touch (5.4), and a React card's flag (Parry turns the blow).
+export function eventFlags(name) {
+  const src = cardByName(name);
+  const t = src ? CARD_STYLE[src.id]?.event : null;
+  return { horn: t === 'horn', scroll: t === 'scroll', gambit: t === 'gambit' };
+}
+export function reactFlags(name) {
+  const src = cardByName(name);
+  const f = src ? CARD_STYLE[src.id]?.reactFlag : null;
+  return f ? { [f]: true } : {};
+}
+// The cinematic a creature's arrival starts, if any.
+export function cinematicFor(card) { return styleOf(card).cinematic ?? null; }
 
 // Every texture an effect may use (for preloading), following 'use' and '$vars'.
 export function texturesOf(id, seen = new Set()) {
@@ -490,7 +557,7 @@ export function texturesOf(id, seen = new Set()) {
   const out = new Set();
   if (!def || seen.has(id)) return out;
   seen.add(id);
-  const vars = ['slash-arc', 'cleave-arc', 'claw-rake', 'bite-snap', 'arcane-vortex', 'arcane-bolt', 'fire-burst', 'spectral-wail', 'impact-flash', 'shield-sigil', 'ward-sigil'];
+  const vars = ['slash-arc', 'cleave-arc', 'claw-rake', 'bite-snap', 'arcane-vortex', 'arcane-bolt', 'fire-burst', 'spectral-wail', 'soul-wisp', 'impact-flash', 'shield-sigil', 'ward-sigil'];
   for (const s of def.steps) {
     if (s.op === 'use') { for (const t of texturesOf(s.id, seen)) out.add(t); continue; }
     for (const t of [s.tex, s.trail?.tex, s.motes?.tex]) if (t) (t.startsWith('$') ? vars : [t]).forEach((x) => out.add(x));
