@@ -30,6 +30,7 @@ export const ART = new Set([
   "assets/cards/oathsworn-captain.jpg",
   "assets/cards/oathsworn-recruit.jpg",
   "assets/cards/parry.jpg",
+  "assets/cards/rumour-of-treasure.jpg",
   "assets/cards/runed-blade.jpg",
   "assets/cards/spire-magus.jpg",
   "assets/cards/stonehide-basilisk.jpg",

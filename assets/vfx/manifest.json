@@ -453,6 +453,12 @@
    "h": 966,
    "blend": "alpha"
   },
+  "crimson-sky": {
+   "file": "assets/vfx/crimson-sky.webp",
+   "w": 1024,
+   "h": 580,
+   "blend": "light"
+  },
   "crown-of-light": {
    "file": "assets/vfx/crown-of-light.webp",
    "w": 919,
@@ -463,6 +469,12 @@
    "file": "assets/vfx/dawn-sweep.webp",
    "w": 1024,
    "h": 352,
+   "blend": "light"
+  },
+  "defeat-cracks": {
+   "file": "assets/vfx/defeat-cracks.webp",
+   "w": 881,
+   "h": 896,
    "blend": "light"
   },
   "dial-flare": {
@@ -811,6 +823,12 @@
    "h": 1024,
    "blend": "light"
   },
+  "energy-spark": {
+   "file": "assets/vfx/energy-spark.webp",
+   "w": 695,
+   "h": 571,
+   "blend": "light"
+  },
   "feathers-atlas": {
    "file": "assets/vfx/feathers-atlas.webp",
    "w": 1024,
@@ -1033,6 +1051,12 @@
     }
    ]
   },
+  "fuse-spark": {
+   "file": "assets/vfx/fuse-spark.webp",
+   "w": 603,
+   "h": 735,
+   "blend": "light"
+  },
   "gate-of-light": {
    "file": "assets/vfx/gate-of-light.webp",
    "w": 567,
@@ -1133,8 +1157,8 @@
   },
   "hammer-sigil": {
    "file": "assets/vfx/hammer-sigil.webp",
-   "w": 792,
-   "h": 1015,
+   "w": 876,
+   "h": 1024,
    "blend": "light"
   },
   "heal-bloom": {
@@ -1401,6 +1425,12 @@
    "h": 1024,
    "blend": "light"
   },
+  "ink-trail": {
+   "file": "assets/vfx/ink-trail.webp",
+   "w": 1024,
+   "h": 127,
+   "blend": "alpha"
+  },
   "knife-streaks-atlas": {
    "file": "assets/vfx/knife-streaks-atlas.webp",
    "w": 1024,
@@ -1535,6 +1565,12 @@
    "file": "assets/vfx/quill-stroke.webp",
    "w": 1024,
    "h": 361,
+   "blend": "light"
+  },
+  "react-flare": {
+   "file": "assets/vfx/react-flare.webp",
+   "w": 898,
+   "h": 817,
    "blend": "light"
   },
   "ready-rim": {
@@ -1837,6 +1873,12 @@
    "h": 579,
    "blend": "alpha"
   },
+  "selection-glow": {
+   "file": "assets/vfx/selection-glow.webp",
+   "w": 750,
+   "h": 686,
+   "blend": "light"
+  },
   "shield-sigil": {
    "file": "assets/vfx/shield-sigil.webp",
    "w": 808,
@@ -2021,11 +2063,29 @@
    "h": 886,
    "blend": "light"
   },
+  "victory-sparks": {
+   "file": "assets/vfx/victory-sparks.webp",
+   "w": 618,
+   "h": 1024,
+   "blend": "light"
+  },
   "war-banner": {
    "file": "assets/vfx/war-banner.webp",
    "w": 494,
    "h": 1024,
    "blend": "alpha"
+  },
+  "war-horn-blast": {
+   "file": "assets/vfx/war-horn-blast.webp",
+   "w": 1024,
+   "h": 518,
+   "blend": "light"
+  },
+  "ward-sigil": {
+   "file": "assets/vfx/ward-sigil.webp",
+   "w": 776,
+   "h": 807,
+   "blend": "light"
   },
   "wax-seal": {
    "file": "assets/vfx/wax-seal.webp",
@@ -2036,44 +2096,44 @@
   "wax-seal-shards-atlas": {
    "file": "assets/vfx/wax-seal-shards-atlas.webp",
    "w": 1024,
-   "h": 838,
+   "h": 817,
    "blend": "alpha",
    "frames": [
     {
-     "x": 12,
-     "y": 14,
-     "w": 292,
-     "h": 393
+     "x": 10,
+     "y": 10,
+     "w": 331,
+     "h": 361
     },
     {
-     "x": 355,
-     "y": 11,
-     "w": 261,
-     "h": 388
-    },
-    {
-     "x": 722,
+     "x": 341,
      "y": 22,
-     "w": 269,
-     "h": 368
+     "w": 341,
+     "h": 381
+    },
+    {
+     "x": 682,
+     "y": 36,
+     "w": 331,
+     "h": 354
     },
     {
      "x": 30,
-     "y": 475,
-     "w": 279,
-     "h": 352
+     "y": 418,
+     "w": 264,
+     "h": 369
     },
     {
-     "x": 352,
-     "y": 482,
-     "w": 307,
-     "h": 328
+     "x": 347,
+     "y": 434,
+     "w": 335,
+     "h": 373
     },
     {
-     "x": 713,
-     "y": 469,
-     "w": 301,
-     "h": 354
+     "x": 682,
+     "y": 431,
+     "w": 332,
+     "h": 362
     }
    ]
   },

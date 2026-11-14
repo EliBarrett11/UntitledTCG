@@ -13,7 +13,7 @@
 
 **113 images in all.**
 
-**Status (14 November 2026):** 94 of 113 delivered and processed into `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`). **What's still missing, with prompts: `docs/09-art-still-to-make.md`.**
+**Status (14 November 2026):** 104 of 113 delivered and processed into `assets/vfx/` (listed in `assets/vfx/manifest.json`, made by `tools/vfx_process.py`). Presentation art is in `assets/ui/` (card-back, war-table, campaign-map, campaign-map-scorched, title-key-art, banner-crimson, banner-blue). **What's still missing, with prompts: `docs/09-art-still-to-make.md`.**
 
 ## 1. Impacts and weapon strikes
 
