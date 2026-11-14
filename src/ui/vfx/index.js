@@ -19,8 +19,9 @@ export function createVfx(stage, { settings, params }) {
   canvas.setAttribute('aria-hidden', 'true');
   const ambient = createAmbient({ missing });
   let shakeUntil = 0; let shakePx = 0; let shakeT0 = 0;
-  // Dev aids for performance work: ?vfxhdr=0 (an 8-bit scene buffer), ?vfxbloom=0 (no bloom).
-  const options = { hdr: params?.get('vfxhdr') !== '0', bloom: params?.get('vfxbloom') !== '0' };
+  // The scene buffer is 8-bit (half-float cost a sixth more frame time for little gain). Dev aids for
+  // performance work: ?vfxhdr=1 (a half-float scene buffer), ?vfxbloom=0 (no bloom).
+  const options = { hdr: params?.get('vfxhdr') === '1', bloom: params?.get('vfxbloom') !== '0' };
   const r = off ? null : createRenderer(canvas, {
     options,
     onFrame: {
