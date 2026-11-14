@@ -180,7 +180,7 @@ function compile(gl, vs, fs) {
 }
 
 // Returns null if WebGL2 can't be used here (the caller then falls back to the 2D animations).
-export function createRenderer(canvas, { onFrame } = {}) {
+export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   let gl;
   try { gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }); } catch { gl = null; }
   if (!gl) return null;
@@ -188,7 +188,8 @@ export function createRenderer(canvas, { onFrame } = {}) {
   try {
     progs = { particle: compile(gl, PARTICLE_VS, PARTICLE_FS), ribbon: compile(gl, RIBBON_VS, RIBBON_FS), blur: compile(gl, QUAD_VS, BLUR_FS), composite: compile(gl, QUAD_VS, COMPOSITE_FS) };
   } catch (err) { console.warn('effects layer: shaders failed, using the 2D animations', err); return null; }
-  const hdr = !!gl.getExtension('EXT_color_buffer_float') || !!gl.getExtension('EXT_color_buffer_half_float');
+  const hdr = options.hdr !== false && (!!gl.getExtension('EXT_color_buffer_float') || !!gl.getExtension('EXT_color_buffer_half_float'));
+  const useBloom = options.bloom !== false;
 
   // A unit quad (two triangles) shared by particles and full-screen passes.
   const quad = gl.createBuffer();
@@ -538,6 +539,7 @@ export function createRenderer(canvas, { onFrame } = {}) {
     gl.disable(gl.BLEND);
     // 2. Bloom: the scene, downsampled and blurred.
     const Bl = progs.blur;
+    if (useBloom) {
     gl.useProgram(Bl.p);
     gl.uniform1i(Bl.u.uTex, 0);
     gl.bindVertexArray(quadVao);
@@ -554,6 +556,8 @@ export function createRenderer(canvas, { onFrame } = {}) {
     gl.bindTexture(gl.TEXTURE_2D, bloomB.tex);
     gl.uniform2f(Bl.u.uDir, 1 / bw, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+    gl.bindVertexArray(quadVao);
     // 3. Composite to the canvas, with distortion.
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, W, H);
@@ -565,7 +569,7 @@ export function createRenderer(canvas, { onFrame } = {}) {
     gl.uniform1i(C.u.uScene, 0);
     gl.uniform1i(C.u.uBloom, 1);
     const fk = flashK > 0 ? flashK * Math.max(0, 1 - (t - flashT0) / flashDur) : 0;
-    gl.uniform1f(C.u.uBloomK, bloomBase + fk * 2.2);
+    gl.uniform1f(C.u.uBloomK, useBloom ? bloomBase + fk * 2.2 : 0);
     gl.uniform1f(C.u.uTime, t);
     const wv = new Float32Array(16); const ww = new Float32Array(4);
     for (let i = waves.length - 1; i >= 0; i--) if (waves[i].t0 + waves[i].dur < t) waves.splice(i, 1);
