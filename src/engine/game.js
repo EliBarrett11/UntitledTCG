@@ -613,8 +613,8 @@ export function runEffect(s, ctx, ops) {
     const p = s.players[ctx.who];
     const n = o.amount ?? 0;
     if (PLAYER_OPS.includes(o.op)) {
-      if (o.op === 'draw') draw(s, ctx.who, n);
-      if (o.op === 'energy') p.baseEnergy += n;
+      if (o.op === 'draw') draw(s, ctx.who, n, { name: ctx.name, kind: ctx.kind });
+      if (o.op === 'energy') { p.baseEnergy += n; emit(s, 'energy', { who: ctx.who, amount: n, name: ctx.name, kind: ctx.kind }); }
       if (o.op === 'reduce' && ctx.pending?.type === 'attack') ctx.pending.reduce = (ctx.pending.reduce ?? 0) + n;
       if (o.op === 'gold') gainGold(s, ctx.who, n, ctx.name);
       continue;
@@ -623,7 +623,7 @@ export function runEffect(s, ctx, ops) {
     if (o.op === 'damage') {
       const hits = targets.map((t) => ({ ...t, dealt: damageCard(s, t.who, t.space, n) }));
       // (Reported for the presenter, before the defeats it causes.)
-      if (hits.length) emit(s, 'effect', { who: ctx.who, name: ctx.name, op: o.op, amount: n, targets: hits });
+      if (hits.length) emit(s, 'effect', { who: ctx.who, name: ctx.name, kind: ctx.kind, op: o.op, amount: n, targets: hits });
       for (const t of hits) if (t.dealt > 0 && s.players[t.who].row[t.space]?.currentHealth <= 0) defeat(s, t.who, t.space, ctx.who);
       continue;
     }
@@ -641,7 +641,7 @@ export function runEffect(s, ctx, ops) {
         default: throw new Error(`Unknown op ${o.op}`);
       }
     }
-    emit(s, 'effect', { who: ctx.who, name: ctx.name, op: o.op, amount: n, targets });
+    emit(s, 'effect', { who: ctx.who, name: ctx.name, kind: ctx.kind, op: o.op, amount: n, targets });
   }
 }
 function effectTargets(s, ctx, o) {
@@ -979,17 +979,25 @@ function dawn(s, round) {
 }
 
 // Draw n cards. An empty Draw Pile is refilled by shuffling in the Discard Pile; if both are empty, stop.
-function draw(s, who, n) {
+// (The cards drawn are reported for the presenter, with what drew them.)
+function draw(s, who, n, by = {}) {
   const p = s.players[who];
-  for (let i = 0; i < n; i++) {
-    if (!p.drawPile.length) {
-      if (!p.discard.length) return;
-      p.drawPile = shuffle(s, p.discard.map((c) => (isCreature(c) ? cardAtRound(c.id, s.round, c.uid) : c)));
-      p.discard = [];
-      emit(s, 'reshuffled', { who });
-      log(s, `${NAME[who]} shuffled their Discard Pile into a new Draw Pile.`);
+  const drawn = [];
+  try {
+    for (let i = 0; i < n; i++) {
+      if (!p.drawPile.length) {
+        if (!p.discard.length) return;
+        p.drawPile = shuffle(s, p.discard.map((c) => (isCreature(c) ? cardAtRound(c.id, s.round, c.uid) : c)));
+        p.discard = [];
+        emit(s, 'reshuffled', { who });
+        log(s, `${NAME[who]} shuffled their Discard Pile into a new Draw Pile.`);
+      }
+      const c = p.drawPile.shift();
+      p.hand.push(c);
+      drawn.push(c.uid);
     }
-    p.hand.push(p.drawPile.shift());
+  } finally {
+    if (drawn.length) emit(s, 'drew', { who, uids: drawn, ...by });
   }
 }
 

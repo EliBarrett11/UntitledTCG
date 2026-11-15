@@ -156,6 +156,8 @@ export function createVfx(stage, { settings, params }) {
       if (r) r.lowMotion = !!settings().lowMotion;
     },
     texture,
+    // A painted texture's file, for CSS masks (null if it is missing).
+    textureUrl: (id) => (state.manifest[id] && !missing.has(id) ? state.manifest[id].file : null),
     spawn: (...a) => r.spawn(...a), ribbon: (...a) => r.ribbon(...a), wave: (o) => r.wave(o), shimmer: (o) => r.shimmer(o), flash: (k, d) => r.flash(k, d),
     emitter: (e) => r.emitter(e), kill: (g) => r.kill(g), release: (g) => r.release(g), freeze: (ms) => r.freeze(ms),
     frameAspect: (id, f) => r.frameAspect(id, f), frameCount: (id) => r.frameCount(id),

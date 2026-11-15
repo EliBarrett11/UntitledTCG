@@ -7,11 +7,11 @@
 // attacker's accent colour; numbers rise and fade like ink; a defeat crumbles into ash and embers towards the
 // Released Pile; Renown flows to the Warlord's dial as a ribbon of light.
 import { renderCard, cardBack } from './cards.js';
-import { accentOf, esc, HUMAN, AI } from './text.js';
-import { handLayout } from './view.js';
+import { accentOf, esc, HUMAN, AI, artOf, tintOf } from './text.js';
+import { handLayout, LANE_W } from './view.js';
 import { hasGuard } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
-import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName } from './vfx/library.js';
+import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS } from './vfx/library.js';
 
 const STAGE_W = 1920;
 const NAME = { [HUMAN]: 'You', [AI]: 'The enemy' };
@@ -196,6 +196,91 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     return runEffect(ctx, vfx, id, env);
   };
   const SIDE_TINT = { [HUMAN]: '#ffd98a', [AI]: '#a9c6ff' };
+  // The Warlords' colours, for banners planted at Dusk (yours crimson, the enemy's blue).
+  const BANNER_TINT = { [HUMAN]: '#c0303a', [AI]: '#3a66c8' };
+  const boxOf = (el) => (el ? box(el) : null);
+  const boxesOf = (sel) => [...stage.querySelectorAll(sel)].map((el) => box(el));
+
+  // --- Cinematics (5.9) -------------------------------------------------------------------------------------------
+  // The board dims around the moment and slim letterbox bars slide in; the caption sits in the lower bar. A click
+  // skips the rest of the cinematic straight to its result; low motion plays a short version.
+  let lastCaption = '';
+  let cine = null;   // the cinematic playing: { name, skip }
+  function cineOpen(f = centre) {
+    let dim = stage.querySelector('.cine-dim');
+    if (!dim) {
+      dim = document.createElement('div');
+      dim.className = 'cine-dim';
+      const top = document.createElement('div'); top.className = 'cine-bar top';
+      const bot = document.createElement('div'); bot.className = 'cine-bar bottom';
+      bot.innerHTML = '<span class="cine-caption"></span>';
+      stage.append(dim, top, bot);
+      const lm = settings().lowMotion;
+      dim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: lm ? 150 : 350, fill: 'forwards' });
+      if (!lm) {
+        top.animate([{ transform: 'translateY(-100%)' }, { transform: 'translateY(0)' }], { duration: 350, easing: 'ease-out', fill: 'forwards' });
+        bot.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 350, easing: 'ease-out', fill: 'forwards' });
+      }
+    }
+    cineFocus(f);
+    cineCaption(lastCaption);
+  }
+  function cineFocus(f) {
+    const dim = stage.querySelector('.cine-dim');
+    if (dim && f) { dim.style.setProperty('--fx', `${Math.round(f.cx)}px`); dim.style.setProperty('--fy', `${Math.round(f.cy)}px`); }
+  }
+  function cineCaption(text) { const el = stage.querySelector('.cine-caption'); if (el) el.textContent = text ?? ''; }
+  function cineClose() {
+    for (const el of stage.querySelectorAll('.cine-dim, .cine-bar')) {
+      const a = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' });
+      a.finished.then(() => el.remove(), () => el.remove());
+    }
+  }
+  // A card dropping in from above (the Wyrm), or descending slowly through light (Aldric); gone as it lands.
+  async function dropIn(ctx, card, to, { from = -760, dur = 300, fade = false } = {}) {
+    const w = 200; const h = 280;
+    const el = add(card ? renderCard(card, { size: 'mini' }) : '', to.cx - w / 2, to.cy - h / 2, 'ghost');
+    await ctx.anim(el, [
+      { transform: `translateY(${from}px) scale(1.25)`, opacity: fade ? 0 : 1, filter: fade ? 'brightness(2.2)' : 'none' },
+      { transform: 'translateY(-10px) scale(0.84)', opacity: 1, filter: 'brightness(1)', offset: 0.85 },
+      { transform: 'translateY(0) scale(0.82)', opacity: 1 },
+    ], { duration: dur, easing: fade ? 'cubic-bezier(.3,.1,.3,1)' : 'cubic-bezier(.6,0,.9,.5)' });
+    el.remove();
+  }
+  // The Last Battle's banner: unrolls across the middle, then settles into the map's label.
+  async function lbBanner(ctx, short = false) {
+    const el = add('<div class="banner-title">THE LAST BATTLE</div><div class="banner-sub">All Renown +50% · dominance at Dusk +5</div>', 790, 450, 'banner cine-banner');
+    if (short) { await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.3 }, { opacity: 1, offset: 0.7 }, { opacity: 0 }], { duration: 800 }); el.remove(); return; }
+    const lbl = q('.lb-label');
+    const to = lbl ? box(lbl) : { cx: 790, cy: 440 };
+    await ctx.anim(el, [{ transform: 'translate(-50%,-50%) scaleX(0.02)', opacity: 1 }, { transform: 'translate(-50%,-50%) scaleX(1)', opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.2,.8,.3,1)' });
+    await ctx.wait(800);
+    await ctx.anim(el, [{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 }, { transform: `translate(-50%,-50%) translate(${to.cx - 790}px, ${to.cy - 450}px) scale(0.7)`, opacity: 0 }], { duration: 600, easing: 'ease-in' });
+    el.remove();
+  }
+  // Cards fly from the Draw Pile into the hand (yours face up, the enemy's as backs).
+  async function flyDrawn(ctx, who, uids) {
+    const pile = q(`[data-region="piles-${who}"] .pile:nth-child(1) .pile-card`);
+    const from = pile ? box(pile) : (who === HUMAN ? { cx: 1215, cy: 1010 } : { cx: 1184, cy: 57 });
+    const runs = [];
+    if (who === HUMAN) {
+      uids.forEach((u, i) => {
+        const el = q(`.hand-card[data-uid="${u}"]`);
+        if (!el) return;
+        const b = box(el);
+        el.style.opacity = '';
+        runs.push(ctx.anim(el, [{ transform: `translate(${from.cx - b.cx}px, ${from.cy - b.cy}px) scale(0.3) rotate(-8deg)`, opacity: 0.3 }, { transform: getComputedStyle(el).transform === 'none' ? 'none' : getComputedStyle(el).transform, opacity: 1 }], { duration: 420, delay: i * 90, fill: 'none', easing: 'cubic-bezier(.2,.7,.2,1)' }));
+      });
+    } else {
+      const hand = q('[data-region="enemy-hand"]');
+      const to = hand ? box(hand) : { cx: 720, cy: 60 };
+      uids.forEach((u, i) => {
+        const el = add(cardBack('back-ghost'), from.cx - 23, from.cy - 32, 'ghost');
+        runs.push(ctx.anim(el, [{ transform: 'translate(0,0) scale(1)', opacity: 0.9 }, { transform: `translate(${to.cx - from.cx}px, ${to.cy - from.cy}px) scale(0.8)`, opacity: 0.2 }], { duration: 380, delay: i * 80 }).then(() => el.remove()));
+      });
+    }
+    await Promise.all(runs);
+  }
 
   // --- The beats for one action ------------------------------------------------------------------------------
   // prev and next are the states before and after; the board shows next. held: numbers shown at their old
@@ -208,7 +293,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     const cardIn = (st, uid) => [...st.players[HUMAN].hand, ...st.players[AI].hand].find((c) => c.uid === uid);
     let focus = centre;
     let lastAttack = null;
-    const B = (kind, caption, run, gl) => beats.push({ kind, caption, run, gl });
+    // (A beat may belong to a cinematic: cine names it; the first and last beats open and close it.)
+    let activeCine = null;
+    const B = (kind, caption, run, gl, extra = {}) => beats.push({ kind, caption, run, gl, ...(activeCine && !extra.cine ? { cine: activeCine } : {}), ...extra });
     const where = (who, space) => { const el = cell(who, space); return el ? box(el) : centre; };
     const handPos = (who, uid) => {
       if (who === AI) return { cx: 720, cy: 60 };
@@ -234,6 +321,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     // Where a card's effect comes from: the creature, or the card just shown (a React, an Event, a Strat).
     let castFrom = null;
     const pileBox = (who) => (pileEl(who, 3) ? box(pileEl(who, 3)) : centre);
+    // A dominance's Renown is shown with it (the banner, then the ribbon): that renown event is merged in.
+    const mergedRenown = new Set();
 
     for (const [ei, e] of events.entries()) {
       switch (e.type) {
@@ -245,20 +334,38 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             focus = where(e.who, e.space);
             await slide(ctx, renderCard(card, { size: 'mini' }), handPos(e.who, e.uid), focus, { scaleTo: 0.82 });
             if (t) { t.style.opacity = ''; await ctx.anim(t, [{ transform: 'translateY(-10px)', opacity: 0.6 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 220, fill: 'none' }); }
-          }, async (ctx) => {
+          }, cinematicFor(card) === 'wyrm' ? async (ctx) => {
+            // 5.9: the Ashen Wyrm arrives (a cinematic; its On Summon breath follows in it).
+            const t = token(e.who, e.space);
+            if (t) t.style.opacity = '0';
+            focus = where(e.who, e.space);
+            await fxRun(ctx, settings().lowMotion ? CINEMATICS.wyrm.low : CINEMATICS.wyrm.full, {
+              anchors: anchors({ dst: focus }), els: { dst: t }, tint: accentOf(card),
+              hooks: {
+                cineOpen: () => cineOpen(focus),
+                drop: () => dropIn(ctx, card, focus, { dur: 300 }),
+                arrive: () => { if (t) t.style.opacity = ''; },
+                fadeIn: () => { if (t) { t.style.opacity = ''; return ctx.anim(t, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, fill: 'none' }); } return null; },
+              },
+            });
+          } : async (ctx) => {
             const t = token(e.who, e.space);
             if (t) t.style.opacity = '0';
             focus = where(e.who, e.space);
             const from = handPos(e.who, e.uid);
+            const lane = cell(e.who, e.space);
+            const lb = lane ? box(lane) : focus;
+            const av = attackVars(card);
             await fxRun(ctx, 'summon', {
-              anchors: anchors({ src: from, dst: focus }), els: { dst: t }, tint: card ? accentOf(card) : '#c7a15a',
-              flags: { heavy: card?.series === 'Heavy', ambush: !!(e.active && card?.keywords?.ambush) },
+              anchors: anchors({ src: from, dst: focus, laneA: { ...lb, cy: 170 }, laneB: { ...lb, cy: 730 } }), els: { dst: t }, tint: card ? accentOf(card) : '#c7a15a',
+              flags: { heavy: card?.series === 'Heavy', ambush: !!(e.active && card?.keywords?.ambush), gust: av.flags.gust },
               hooks: {
                 arcIn: () => (card ? arcIn(ctx, renderCard(card, { size: 'mini' }), from, focus, { dur: 300 }) : null),
                 arrive: () => { if (t) t.style.opacity = ''; },
               },
             });
-          });
+          }, cinematicFor(card) === 'wyrm' ? { cine: 'wyrm', cineFirst: true } : {});
+          if (cinematicFor(card) === 'wyrm') activeCine = 'wyrm';
           break;
         }
         case 'legendaryArrived': {
@@ -274,11 +381,34 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             focus = where(e.who, e.space);
             if (t) t.style.opacity = '0';
             const c = next.players[e.who].row[e.space];
+            const name = cinematicFor(c);
+            if (name === 'aldric') {
+              // 5.9: Aldric the Unbroken arrives through a gate of light (a cinematic).
+              const opened = !!stage.querySelector('.cine-dim');
+              const id = settings().lowMotion && !opened ? CINEMATICS.aldric.low : CINEMATICS.aldric.full;
+              await fxRun(ctx, id, {
+                anchors: anchors({ dst: focus }), els: { dst: t }, tint: accentOf(c),
+                hooks: {
+                  cineOpen: () => cineOpen(focus),
+                  descend: () => dropIn(ctx, c, focus, { from: -300, dur: 700, fade: true }),
+                  arrive: () => { if (t) t.style.opacity = ''; },
+                  fadeIn: () => { if (t) { t.style.opacity = ''; return ctx.anim(t, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, fill: 'none' }); } return null; },
+                },
+              });
+              return;
+            }
             await fxRun(ctx, 'legendary', {
               anchors: anchors({ dst: focus }), els: { dst: t }, tint: c ? accentOf(c) : '#c9a64a',
               hooks: { arrive: () => { if (t) t.style.opacity = ''; } },
             });
-          });
+          }, (() => {
+            const c = next.players[e.who].row[e.space];
+            if (cinematicFor(c) !== 'aldric') return {};
+            // The Quest's completion opened it (if it came in this action); this beat closes it.
+            const opened = activeCine === 'aldric';
+            activeCine = null;
+            return { cine: 'aldric', cineFirst: !opened, cineLast: true };
+          })());
           break;
         }
         case 'attack': {
@@ -443,7 +573,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const src = onRow != null ? where(e.who, onRow) : castFrom ?? (e.who === HUMAN ? { cx: 760, cy: 930, w: 200, h: 280 } : { cx: 720, cy: 60, w: 200, h: 280 });
             const targets = e.targets.map((t) => ({ box: where(t.who, t.space), el: token(t.who, t.space) }));
             focus = targets[0].box;
-            const id = effectFor(e.op, e.name);
+            const id = effectFor(e.op, e.name, e.kind);
             const armour = e.targets.reduce((n, t) => n + armourFor(ei, t.who, t.space), 0);
             await fxRun(ctx, id, {
               anchors: anchors({ src, dst: targets[0].box }), els: { dst: targets[0].el }, targets,
@@ -461,22 +591,31 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                     if (arm) ink(ctx, `Armour −${arm}`, { cx: at.cx, cy: at.cy + 44 }, 'info');
                   }
                 },
+                // One target after another (Night Raid's Strat makes each enemy Spent in turn).
+                landEach: async () => {
+                  for (const t of e.targets) {
+                    ink(ctx, label(e.op), where(t.who, t.space), 'info');
+                    await ctx.wait(160);
+                  }
+                },
               },
             });
           });
           break;
         }
         case 'trigger': {
+          const inCine = !!activeCine;
           const c = e.point === 'defeat' ? prevCard(e.who, e.space) : next.players[e.who].row[e.space] ?? prevCard(e.who, e.space);
           const name = { summon: 'On Summon', defeat: 'On Defeat', dawn: 'At Dawn', attack: 'On Attack', defend: 'On Defend' }[e.point] ?? 'Trigger';
           B('trigger', `${POSS[e.who]} ${c?.name ?? 'creature'}: ${name}.`, async (ctx) => { await tag(ctx, name.toUpperCase(), where(e.who, e.space)); }, async (ctx) => {
             const at = where(e.who, e.space);
             focus = at;
-            await fxRun(ctx, 'trigger', { anchors: anchors({ dst: at }), tint: c ? accentOf(c) : '#c7a15a', hooks: { tag: () => tag(ctx, name.toUpperCase(), at) } });
+            await fxRun(ctx, inCine ? 'trigger.cine' : 'trigger', { anchors: anchors({ dst: at }), tint: c ? accentOf(c) : '#c7a15a', hooks: { tag: () => tag(ctx, name.toUpperCase(), at) } });
           });
           break;
         }
         case 'renown': {
+          if (mergedRenown.has(ei)) break;
           const before = held.renown[e.who];
           held.renown[e.who] += e.amount;
           const after = held.renown[e.who];
@@ -562,7 +701,11 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             if (c) await slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 450 });
           }, async (ctx) => {
             castFrom = anchors().centre;
-            await fxRun(ctx, 'react', { anchors: anchors(), tint: c ? accentOf(c) : '#c7a15a', hooks: { slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 450 }) : null) } });
+            // Where the blow lands (for Parry): the attacked creature, or the Warlord.
+            const pd = prev.reactWindow?.pending;
+            const blow = pd?.type === 'attack' ? (pd.target.kind === 'creature' ? where(e.who, pd.target.space) : boxOf(warlordEl(e.who))) : null;
+            await fxRun(ctx, 'react', { anchors: anchors({ blow: blow ?? centre }), tint: c ? accentOf(c) : '#c7a15a', flags: blow ? reactFlags(e.name) : {},
+              hooks: { slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 450 }) : null) } });
           });
           break;
         }
@@ -573,13 +716,46 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             if (c) runs.push(slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }));
             await Promise.all(runs);
           }, async (ctx) => {
-            castFrom = anchors().centre;
-            focus = centre;
-            await fxRun(ctx, 'event', { anchors: anchors(), tint: c ? accentOf(c) : '#7a3b70', hooks: { slide: () => {
-              const runs = e.released.map((u) => { const r = cardIn(prev, u); return r ? slide(ctx, renderCard(r, { size: 'mini' }), handPos(e.who, u), pileEl(e.who, 3) ? box(pileEl(e.who, 3)) : centre, { scaleTo: 0.3 }) : null; });
-              if (c) runs.push(slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }));
-              return Promise.all(runs);
-            } } });
+            // 5.4: the card rises and a candle flares beside it; the Released cards burn in its light; its touch.
+            const cardBox = { cx: 790, cy: 400, x: 690, y: 260, w: 200, h: 280 };
+            castFrom = cardBox;
+            focus = cardBox;
+            const down = e.who === HUMAN;
+            const env = {
+              anchors: anchors({ card: cardBox, candle: { cx: cardBox.x - 46, cy: cardBox.cy - 20, w: 60, h: 120 }, pile: pileBox(e.who),
+                horn: { cx: 790, cy: down ? cardBox.y + cardBox.h + 200 : cardBox.y - 200 } }),
+              tint: c ? accentOf(c) : '#7a3b70', flags: { ...eventFlags(e.name), favour: !!e.favour }, vars: { hornRot: down ? 90 : -90 },
+              lists: { released: [] }, els: { released: [] },
+              hooks: {
+                rise: () => {
+                  if (!c) return null;
+                  const from = handPos(e.who, e.uid);
+                  env.cardEl = add(renderCard(c, { size: 'mini' }), cardBox.x, cardBox.y, 'ghost');
+                  return ctx.anim(env.cardEl, [{ transform: `translate(${from.cx - cardBox.cx}px, ${from.cy - cardBox.cy}px) scale(0.7) rotate(-4deg)`, opacity: 0.4 }, { transform: 'translate(0, -8px) scale(1.02)', opacity: 1, offset: 0.8 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: 'cubic-bezier(.2,.7,.2,1)' });
+                },
+                released: () => {
+                  e.released.forEach((u, i) => {
+                    const r = cardIn(prev, u);
+                    if (!r) return;
+                    const side = i % 2 ? 1 : -1;
+                    const cx = cardBox.cx + side * (190 + Math.floor(i / 2) * 130);
+                    const el = add(renderCard(r, { size: 'mini' }), cx - 100, cardBox.cy - 140, 'ghost released-ghost');
+                    el.style.transform = 'scale(0.6)';
+                    env.els.released.push(el);
+                    env.lists.released.push({ cx, cy: cardBox.cy, x: cx - 60, y: cardBox.cy - 84, w: 120, h: 168 });
+                  });
+                },
+                drop: () => {
+                  for (const el of env.els.released) el.remove();
+                  if (!env.cardEl) return null;
+                  const to = pileBox(e.who);
+                  return ctx.anim(env.cardEl, [{ transform: 'none', opacity: 1 }, { transform: `translate(${to.cx - cardBox.cx}px, ${to.cy - cardBox.cy}px) scale(0.25)`, opacity: 0 }], { duration: 240, easing: 'ease-in' }).then(() => env.cardEl.remove());
+                },
+              },
+            };
+            await fxRun(ctx, 'event', env);
+            for (const el of env.els.released) el.remove();
+            env.cardEl?.remove();
           });
           break;
         }
@@ -591,8 +767,11 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             if (c) await slide(ctx, renderCard(c, { size: 'mini' }), from, to, { scaleTo: e.then === 'store' ? 0.3 : 1, hold: e.then === 'store' ? 0 : 300 });
           }, async (ctx) => {
             const from = e.from === 'market' ? (q('.market-card') ? box(q('.market-card')) : { cx: 1750, cy: 700 }) : handPos(e.who, e.uid);
-            const to = e.then === 'store' ? (q(`[data-region="piles-${e.who}"] .bag`) ? box(q(`[data-region="piles-${e.who}"] .bag`)) : centre) : centre;
-            if (e.then !== 'store') castFrom = anchors().centre;
+            // 5.5: then the Item flies to your Bag, or to the creature it's used on.
+            const used = events.slice(ei + 1).find((x) => x.type === 'itemUsed' && x.uid === e.uid);
+            const onCreature = used?.target && !used.target.none && used.target.who ? where(used.target.who, used.target.space) : null;
+            const to = e.then === 'store' ? (q(`[data-region="piles-${e.who}"] .bag`) ? box(q(`[data-region="piles-${e.who}"] .bag`)) : centre) : onCreature ?? centre;
+            if (e.then !== 'store') castFrom = to;
             const g = goldEl(e.who);
             const price = c?.price ?? 0;
             const before = held.gold[e.who];
@@ -603,7 +782,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               anchors: anchors({ gold: g ? box(g) : centre, market: from }), vars: { coins: Math.min(6, price * 2) },
               hooks: {
                 tick: () => { if (g) { g.lastChild.textContent = String(after); if (price) ink(ctx, `−${price} Gold`, box(g), 'gold'); } },
-                slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), from, to, { scaleTo: e.then === 'store' ? 0.3 : 1, hold: e.then === 'store' ? 0 : 300 }) : null),
+                slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), from, to, { scaleTo: e.then === 'store' || onCreature ? 0.35 : 1, hold: e.then === 'store' || onCreature ? 0 : 300 }) : null),
               },
             });
           });
@@ -625,10 +804,31 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const a = cell(e.who, e.start); const b = cell(e.who, e.start + e.width - 1);
             const ba = a ? box(a) : centre; const bb = b ? box(b) : centre;
             const dst = { x: ba.x, y: 340, w: bb.x + bb.w - ba.x, h: 160, cx: (ba.x + bb.x + bb.w) / 2, cy: 450 };
-            await fxRun(ctx, 'location', { anchors: anchors({ dst }), hooks: { reveal: () => {
-              const els = [...stage.querySelectorAll(`[data-loc="${e.uid}"]`)];
-              return Promise.all(els.map((el) => ctx.anim(el, [{ clipPath: 'inset(0 100% 0 0)', opacity: 0.4 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }], { duration: 950, easing: 'ease-out', fill: 'none' })));
-            } } });
+            // 5.6: ink spreads across the lanes, the label writes itself in, the art settles in faintly.
+            const region = q(`.loc[data-loc="${e.uid}"]`);
+            const lbl = q(`.loc-label[data-loc="${e.uid}"]`);
+            const rb = region ? box(region) : dst;
+            const lb = lbl ? box(lbl) : { ...dst, cy: 440 };
+            const ink = vfx?.textureUrl?.('ink-spread-mask');
+            await fxRun(ctx, 'location', {
+              anchors: anchors({ dst: rb, labelL: { ...lb, cx: lb.x }, labelR: { ...lb, cx: lb.x + lb.w } }),
+              hooks: {
+                paint: () => {
+                  if (lbl) ctx.anim(lbl, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 100% 0 0)' }], { duration: 380, fill: 'none' });
+                  if (!region) return null;
+                  const art = region.querySelector('.loc-art');
+                  if (art) ctx.anim(art, [{ opacity: 0 }, { opacity: 0 }, { opacity: 0.22 }], { duration: 900, fill: 'none' });
+                  if (!ink || settings().lowMotion) return ctx.anim(region, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, fill: 'none' });
+                  for (const k of ['maskImage', 'webkitMaskImage']) region.style[k] = `url(${ink})`;
+                  for (const k of ['maskRepeat', 'webkitMaskRepeat']) region.style[k] = 'no-repeat';
+                  for (const k of ['maskPosition', 'webkitMaskPosition']) region.style[k] = 'center';
+                  return ctx.anim(region, [{ maskSize: '0% 0%', webkitMaskSize: '0% 0%' }, { maskSize: '330% 330%', webkitMaskSize: '330% 330%' }], { duration: 650, easing: 'ease-out', fill: 'none' }).then(() => {
+                    for (const k of ['maskImage', 'webkitMaskImage', 'maskRepeat', 'webkitMaskRepeat', 'maskPosition', 'webkitMaskPosition']) region.style[k] = '';
+                  });
+                },
+                write: () => (lbl ? ctx.anim(lbl, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: 420, easing: 'linear', fill: 'none' }) : null),
+              },
+            });
           });
           break;
         }
@@ -642,16 +842,76 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         }
         case 'questProgress':
           B('quest', `${NAME[e.who]}: Quest ${Math.min(e.progress, e.need)} of ${e.need}.`, async (ctx) => { await pulse(ctx, q(`[data-region="quest-${e.who}"]`), '#a283dc'); }, async (ctx) => {
+            // 5.8: each step stamps the tracker.
             const qe = q(`[data-region="quest-${e.who}"]`);
-            await fxRun(ctx, 'quest', { anchors: anchors({ dst: qe ? box(qe) : centre }), hooks: { pulse: () => pulse(ctx, qe, '#a283dc') } });
+            const segs = q(`[data-region="quest-${e.who}"] .segs`);
+            const sb = segs ? box(segs) : (qe ? box(qe) : centre);
+            const k = Math.min(e.progress, e.need);
+            const stamp = { ...sb, cx: sb.x + ((k - 0.5) / e.need) * sb.w, w: 40, h: 40 };
+            await fxRun(ctx, 'quest', { anchors: anchors({ dst: qe ? box(qe) : centre, stamp }), hooks: { pulse: () => pulse(ctx, qe, '#a283dc') } });
           });
           break;
-        case 'questComplete':
+        case 'questComplete': {
+          // Does Aldric (or another Legendary Creature with a cinematic) arrive in this same action?
+          const aldricNext = !!vfx?.on && events.slice(ei + 1).some((x) => x.type === 'legendaryArrived' && x.who === e.who && cinematicFor(next.players[x.who].row[x.space]) === 'aldric');
           B('quest', `${POSS[e.who]} Quest for ${e.name} is complete!`, async (ctx) => { await Promise.all([pulse(ctx, q(`[data-region="quest-${e.who}"]`), '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]); }, async (ctx) => {
             const qe = q(`[data-region="quest-${e.who}"]`);
-            await fxRun(ctx, 'quest', { anchors: anchors({ dst: qe ? box(qe) : centre }), flags: { complete: true }, hooks: { pulse: () => Promise.all([pulse(ctx, qe, '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]) } });
+            const qb = qe ? box(qe) : centre;
+            if (aldricNext) {
+              // 5.8 and 5.9: the tracker's final mark opens Aldric's cinematic.
+              await fxRun(ctx, settings().lowMotion ? CINEMATICS.aldric.low : CINEMATICS.aldric.opening, { anchors: anchors({ dst: qb }),
+                hooks: { cineOpen: () => cineOpen(qb), pulse: () => pulse(ctx, qe, '#c2a6ee'), fadeIn: () => pulse(ctx, qe, '#c2a6ee') } });
+              return;
+            }
+            await fxRun(ctx, 'quest', { anchors: anchors({ dst: qb }), flags: { complete: true }, hooks: { pulse: () => Promise.all([pulse(ctx, qe, '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]) } });
+          }, aldricNext ? { cine: 'aldric', cineFirst: true } : {});
+          if (aldricNext) activeCine = 'aldric';
+          break;
+        }
+        // Cards drawn (by an Event, an Order, a trigger, or at Dawn) fly from the Draw Pile.
+        case 'drew': {
+          const n = e.uids.length;
+          B('draw', `${NAME[e.who]} ${e.who === HUMAN ? 'draw' : 'draws'} ${n} card${n === 1 ? '' : 's'}${e.name ? ` (${e.name})` : ''}.`, async () => {
+            if (e.who === HUMAN) for (const u of e.uids) { const el = q(`.hand-card[data-uid="${u}"]`); if (el) el.style.opacity = ''; }
+          }, async (ctx) => {
+            const pile = q(`[data-region="piles-${e.who}"] .pile:nth-child(1) .pile-card`);
+            await fxRun(ctx, 'draw', { anchors: anchors({ drawPile: pile ? box(pile) : centre }), hooks: { fly: () => flyDrawn(ctx, e.who, e.uids) } });
           });
           break;
+        }
+        // Energy gained (Desperate Gambit): sparks fly into the Energy pips.
+        case 'energy': {
+          B('energy', `${NAME[e.who]}: +${e.amount} Energy (${e.name}).`, async (ctx) => { await ctx.wait(200); }, async (ctx) => {
+            const pips = e.who === HUMAN ? boxesOf('.energy-panel .pips .pip.on').slice(-e.amount) : [];
+            const targets = (pips.length ? pips : [boxOf(warlordEl(e.who)) ?? centre]).map((b) => ({ box: b }));
+            await fxRun(ctx, 'energy', { anchors: anchors({ src: castFrom ?? centre, dst: targets[0].box }), targets });
+          });
+          break;
+        }
+        // A Location expires at Dusk: it burns away like parchment.
+        case 'locationRemoved': {
+          const l = prevLoc.get(e.uid);
+          B('locationGone', `${e.name} expires: its lanes are the Wilds again.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => {
+            if (!l) return;
+            const x = 24 + l.start * LANE_W + 4; const w = l.width * LANE_W - 8;
+            const dst = { x, y: 136, w, h: 622, cx: x + w / 2, cy: 447 };
+            const env = {
+              anchors: anchors({ dst }), els: {},
+              hooks: {
+                ghost: () => {
+                  const art = artOf(l.card);
+                  const g = add(art ? `<img class="loc-art" src="${esc(art)}" alt="">` : '', x, 136, 'loc-ghost');
+                  g.style.width = `${w}px`;
+                  g.style.setProperty('--tint', tintOf(l.card.id));
+                  env.els.ghost = g;
+                },
+              },
+            };
+            await fxRun(ctx, 'location.gone', env);
+            env.els.ghost?.remove();
+          });
+          break;
+        }
         case 'fizzled':
           B('fizzle', `${e.what} fizzled.`, async (ctx) => { await ink(ctx, 'fizzled', focus, 'info'); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ink(ctx, 'fizzled', focus, 'info') } }); });
           break;
@@ -666,11 +926,15 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           break;
         case 'dusk':
           B('dusk', `Round ${e.round} · Dusk.`, async (ctx) => { await banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk'); }, async (ctx) => {
-            await fxRun(ctx, 'dusk', { anchors: anchors(), hooks: { banner: () => banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk') } });
+            await fxRun(ctx, 'dusk', { anchors: anchors(), hooks: { banner: () => banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk'), candles: () => stage.querySelector('.ambient')?.classList.add('dusk-bright') } });
           });
           break;
         case 'dominance': {
           const l = prevLoc.get(e.uid) ?? next.locations.find((x) => x.uid === e.uid);
+          // Its Renown (the next event) is shown with it.
+          const rn = events[ei + 1]?.type === 'renown' && events[ei + 1].kind === 'dominance' && events[ei + 1].who === e.who ? events[ei + 1] : null;
+          let rBefore = null; let rAfter = null;
+          if (rn && vfx?.on) { mergedRenown.add(ei + 1); rBefore = held.renown[e.who]; held.renown[e.who] += rn.amount; rAfter = held.renown[e.who]; }
           B('dominance', `${NAME[e.who]} ${e.who === HUMAN ? 'dominate' : 'dominates'} ${l?.name ?? 'a Location'}.`, async (ctx) => {
             if (!l) return;
             const a = cell(e.who, l.start); const b = cell(e.who, l.start + l.width - 1);
@@ -686,11 +950,19 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             if (!a || !b) return;
             const ba = box(a); const bb = box(b);
             focus = { cx: (ba.x + bb.x + bb.w) / 2, cy: e.who === HUMAN ? 640 : 250, w: bb.x + bb.w - ba.x, h: 230 };
-            await fxRun(ctx, 'dominance', { anchors: anchors({ dst: focus }), sideTint: SIDE_TINT[e.who], hooks: { highlight: () => {
-              const el = add('', ba.x, 136, `dominate ${e.who === HUMAN ? 'mine' : 'theirs'}`);
-              el.style.width = `${bb.x + bb.w - ba.x}px`;
-              return ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
-            } } });
+            // 5.7: a banner planted on the Location in the winner's colour; its Renown flows to the dial.
+            const dial = dialEl(e.who);
+            if (dial && rBefore !== null) setText(dial, rBefore);
+            const flag = { cx: ba.x + 34, cy: 452, w: 70, h: 145 };
+            await fxRun(ctx, 'dominance.scored', { anchors: anchors({ dst: focus, banner: flag, dial: dial ? box(dial) : centre }), sideTint: BANNER_TINT[e.who], flags: { renown: !!rn },
+              hooks: {
+                highlight: () => {
+                  const el = add('', ba.x, 136, `dominate ${e.who === HUMAN ? 'mine' : 'theirs'}`);
+                  el.style.width = `${bb.x + bb.w - ba.x}px`;
+                  return ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 600 });
+                },
+                tick: () => { if (rn && dial) { setText(dial, rAfter); pulse(ctx, warlordEl(e.who)); ink(ctx, `+${rn.amount} Renown`, box(dial), 'renown'); } },
+              } });
           });
           break;
         }
@@ -702,10 +974,10 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
           }, async (ctx) => {
             focus = { cx: 790, cy: e.who === HUMAN ? 640 : 250, w: 1520, h: 230 };
-            await fxRun(ctx, 'dominance', { anchors: anchors({ dst: focus }), sideTint: SIDE_TINT[e.who], hooks: { highlight: () => {
+            await fxRun(ctx, 'dominance.scored', { anchors: anchors({ dst: focus, banner: { cx: 790, cy: 452, w: 70, h: 145 } }), sideTint: BANNER_TINT[e.who], hooks: { highlight: () => {
               const el = add('', 30, 136, `dominate ${e.who === HUMAN ? 'mine' : 'theirs'}`);
               el.style.width = '1520px';
-              return ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
+              return ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 600 });
             } } });
           });
           break;
@@ -714,20 +986,29 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const wash = add('', 24, 128, 'wash');
             await Promise.all([ctx.anim(wash, [{ opacity: 0 }, { opacity: 0.85, offset: 0.5 }, { opacity: 0 }], { duration: 2000 }), banner(ctx, 'THE LAST BATTLE', 'All Renown +50% · dominance at Dusk +5', 'last')]);
           }, async (ctx) => {
-            await fxRun(ctx, 'lastBattle', { anchors: anchors(), hooks: { banner: () => {
-              const wash = add('', 24, 128, 'wash');
-              return Promise.all([ctx.anim(wash, [{ opacity: 0 }, { opacity: 0.85, offset: 0.5 }, { opacity: 0 }], { duration: 2000 }), banner(ctx, 'THE LAST BATTLE', 'All Renown +50% · dominance at Dusk +5', 'last')]);
-            } } });
-          });
+            // 5.9: the Last Battle begins (a cinematic): a war horn, a crimson sky from the edges, the ember storm, the
+            // banner unrolling and settling into the map's label.
+            const c0 = { ...centre, w: 400, h: 400, x: 590, y: 250 };
+            await fxRun(ctx, settings().lowMotion ? CINEMATICS.last.low : CINEMATICS.last.full, {
+              anchors: anchors({ hornL: { cx: 24 + 560, cy: 450 }, skyL0: { cx: -320, cy: 450 }, skyL1: { cx: 360, cy: 450 }, skyR0: { cx: 1880, cy: 450 }, skyR1: { cx: 1200, cy: 450 },
+                mapBottom: { cx: 790, cy: 780, x: 40, y: 770, w: 1500, h: 20 }, centre: c0 }),
+              hooks: { cineOpen: () => cineOpen(c0), banner: () => lbBanner(ctx), bannerShort: () => lbBanner(ctx, true) },
+            });
+          }, { cine: 'last', cineFirst: true, cineLast: true });
           break;
         case 'dawn':
           if (e.round > 1) B('dawn', `Round ${e.round} · Dawn.`, async (ctx) => { await banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'); }, async (ctx) => {
-            await fxRun(ctx, 'dawn', { anchors: anchors(), hooks: { banner: () => banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn') } });
+            // 5.7: the sweep, Energy pips refilling with sparks, recovered Exert glinting (new cards fly in next).
+            const recovered = Math.max(0, prev.players[HUMAN].exhaust.length - next.players[HUMAN].exhaust.length);
+            const exerts = boxesOf('.energy-panel .pip.exert.on');
+            await fxRun(ctx, 'dawn', { anchors: anchors(), lists: { pips: boxesOf('.energy-panel .pips .pip.on'), exerts: recovered ? exerts.slice(-recovered) : [] },
+              hooks: { banner: () => banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn') } });
           });
           break;
         default: break;
       }
     }
+    if (activeCine && beats.length) beats[beats.length - 1].cineLast = true;
     return beats;
   }
   function tag(ctx, text, at) {
@@ -737,7 +1018,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
 
   // Before the first beat: numbers still show their old values (Renown, Gold, Health) and new creatures are
   // hidden, until their beats land. The final redraw shows the state as it is.
-  function prepare(prev, next) {
+  function prepare(prev, next, events = []) {
+    // Cards drawn in this action wait in the Draw Pile until their 'draw' beat (with the effects layer).
+    if (vfx?.on) for (const e of events) if (e.type === 'drew' && e.who === HUMAN) for (const u of e.uids) { const el = q(`.hand-card[data-uid="${u}"]`); if (el) el.style.opacity = '0'; }
     for (const who of [HUMAN, AI]) {
       const d = dialEl(who);
       if (d) d.textContent = String(prev.players[who].renown);
@@ -757,24 +1040,34 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   // Plays the beats for one action; resolves when all have played (or been skipped).
   async function play(prev, next, events) {
     const beats = beatsFor(prev, next, events);
-    if (beats.length) prepare(prev, next);
+    if (beats.length) prepare(prev, next, events);
     for (const b of beats) {
       const ctx = beatCtx();
+      // A cinematic: skipped (a click) or in low motion, its later beats only land their results.
+      if (vfx?.on && b.cine) {
+        if (b.cineFirst) cine = { name: b.cine, skip: false };
+        if (cine?.skip || (settings().lowMotion && !b.cineFirst)) ctx.skipping = true;
+      }
       current = ctx;
       started += 1;
-      onBeat?.({ kind: b.kind, caption: b.caption, started, done });
+      lastCaption = b.caption;
+      cineCaption(b.caption);
+      onBeat?.({ kind: b.kind, caption: b.caption, started, done, cine: vfx?.on ? b.cine ?? null : null });
       try { await (vfx?.on && b.gl ? b.gl(ctx) : b.run(ctx)); } catch (err) { console.warn('beat failed', b.kind, err); }
       done += 1;
       current = null;
+      if (vfx?.on && b.cine && b.cineLast) { cineClose(); cine = null; }
       onBeat?.({ kind: null, caption: b.caption, started, done });
     }
+    if (cine) { cineClose(); cine = null; }
     const layer = fx();
     if (layer) layer.innerHTML = '';
     return beats.length;
   }
   return {
     play,
-    skip: () => { if (current) current.skip(); },
+    // A click skips the current beat; within a cinematic, it skips to the cinematic's result.
+    skip: () => { if (cine) cine.skip = true; if (current) current.skip(); },
     get busy() { return !!current; },
     get counts() { return { started, done }; },
   };

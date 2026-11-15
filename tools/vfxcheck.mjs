@@ -20,8 +20,13 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(readFileSync(join(root, 'assets/vfx/manifest.json'), 'utf8')).textures;
 // The storyboard's effects (docs/10-feel-and-vfx.md section 3) that a real match must play.
-const STORYBOARD = ['attack.martial', 'attack.arcane', 'attack.ranger', 'attack.rogue', 'attack.beast', 'attack.undead', 'defeat', 'summon', 'renown', 'heal', 'strat.seal', 'strat.resolve', 'gold.gain', 'item.bought'];
-const ALSO = ['attack.wyrm', 'wyrm.onsummon', 'renown.favour', 'riposte', 'item.wildfire', 'item.draught', 'item.held.blade', 'item.held.shield', 'spell.firebolt', 'shade.drain', 'legendary'];
+// V1 (section 3) and V2 (section 5): each series' attack, the Actions' modes, Events, Locations, Dawn and Dusk, the
+// Quest and the cinematics.
+const STORYBOARD = ['attack.oathsworn', 'attack.ironhide', 'attack.spire', 'attack.hollowfoot', 'attack.deepforge', 'attack.thornwood', 'attack.beast', 'attack.barrow',
+  'attack.stonehide', 'defeat', 'summon', 'renown', 'heal', 'strat.seal', 'strat.resolve', 'gold.gain', 'item.bought', 'react', 'event', 'draw', 'location',
+  'location.gone', 'dawn', 'dusk', 'dominance.scored', 'quest', 'firebolt.strat', 'nightraid.strat', 'cine.wyrm', 'cine.last'];
+const ALSO = ['attack.wyrm', 'wyrm.onsummon', 'renown.favour', 'riposte', 'item.wildfire', 'item.draught', 'item.held.blade', 'item.held.shield', 'spell.firebolt', 'firebolt.react',
+  'shade.drain', 'parry.adapt', 'nightraid.adapt', 'mending.strat', 'energy', 'cine.aldric', 'cine.aldric.quest'];
 // Chromium's own notices about software GPU readbacks are not page problems.
 const noise = (t) => /GL Driver Message|GPU stall due to ReadPixels|Automatic fallback to software WebGL/.test(t);
 
@@ -66,8 +71,9 @@ async function match(browser, query, { actions = 400, route = null, label }) {
 const browser = await chromium.launch();
 // 1. Coverage.
 const seen = new Set();
-for (const seed of [5, 7, 11, 3, 21, 8, 13]) {
-  const r = await match(browser, `?seed=${seed}&autoplay=1&pace=30&speed=fast&lowmotion=0`, { label: `coverage, seed ${seed}` });
+const PREFER = 'prefer=night-raid:strat,firebolt:strat,call-to-arms:favour';
+for (const q of ['seed=5', 'seed=7', `seed=11&${PREFER}`, 'seed=3&scene=quest', `seed=21&${PREFER}`, 'seed=8', `seed=13&scene=quest&${PREFER}`]) {
+  const r = await match(browser, `?${q}&autoplay=1&pace=30&speed=fast&lowmotion=0`, { label: `coverage, ${q}` });
   for (const e of r.seen) seen.add(e);
   if (STORYBOARD.every((e) => seen.has(e)) && ALSO.every((e) => seen.has(e))) break;
 }

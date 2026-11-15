@@ -286,3 +286,44 @@ These are proposed, and need Elliott's approval.
 | Dusk | none | about 0.6 s per dominated Location |
 
 All of them can be skipped.
+
+---
+
+## 6. Readings needing Elliott's approval (V2)
+
+1. **The timing budget in section 5.10, as proposed, now in use:**
+   - the Ashen Wyrm's arrival 3.5 s, its On Summon breath included;
+   - a Legendary Creature 3 s;
+   - the Last Battle 3 s;
+   - a Location placed 1 s, expiring 0.8 s;
+   - about 0.6 s per dominated Location at Dusk.
+
+   The checks allow 12% over each, for hit-stop.
+2. **Cinematic boundaries:**
+   - The Wyrm's cinematic covers the whole action that summons it: the arrival, its On Summon trigger (a brief tag inside the cinematic) and the breath with its results.
+   - Aldric's cinematic opens on the Quest's final stamp when he arrives in the same action. If he arrives later, it opens on his arrival.
+   - The Last Battle's is its one beat.
+   - A click anywhere skips the rest of the cinematic, and every number still lands.
+3. **Low motion:**
+   - A cinematic's short version is a fade and a single flash, about 1 s.
+   - The cinematic's later beats (the breath, Aldric's landing) then land their results at once.
+4. **Letterbox bars:** 34 px at the top and 46 px at the bottom, with the caption in the lower bar. They are kept slim so the Renown dials stay visible.
+5. **Final forms:** "a little grander on the final form" applies to the last of a series' forms:
+   - the Captain, the Champion, the Archmagus, the Knifemaster, the Pathfinder, the Alpha, the Lord and the Elder;
+   - Aldric uses the Oathsworn signature at its grandest.
+
+   The Spire Magus (the middle form) adds the orb charge, as the table asks. Clerics' attacks are the Deepforge hammer.
+6. **Engine reports for presentation only** (no rule changed):
+   - effect events now carry the source's mode (React, Adapt, Strat, Event, trigger, Item);
+   - drawing reports a `drew` event with the cards drawn, so they fly from the Draw Pile;
+   - gaining Energy reports an `energy` event.
+7. **Draws are their own beats.** Each draw (an Event's, an Order's, a trigger's, and Dawn's for each player) is a short beat of about 0.65 s. Your drawn cards wait in the Draw Pile until it plays.
+8. **Dominance and its Renown are one beat:** the banner is planted, then the ribbon flows to the dial. Banners are crimson for you and blue for the enemy, the Warlords' colours. Each stays up for about 1.7 s, so the banners stand together through Dusk's scoring. A banner stands at the left end of its Location's band between the rows, and for that short time it can overlap the edge of the Location's label.
+9. **The Event's card** rises to the middle of the table. Released cards burn beside it, alternating left and right.
+10. **Parry's React:** the turned blow shows where the attack lands (the attacked creature, or the Warlord).
+11. **Mending Prayer:** React and Adapt both use the holy pillar (one creature, or each of yours in the Location); Strat washes all of yours in gold.
+12. **Night Raid's Strat** makes each enemy Spent in turn: 0.16 s apart, each with its own "Spent".
+13. **Defeats:** the painted burnt-through card (`burn-away-mask`) and burning edge sit over the card while it burns from the centre. Ash and embers then stream to the Released Pile, which flares when they arrive.
+14. **Location expiry** burns a copy of the region away. The board beneath already shows the Wilds.
+15. **Signature effects live in `src/ui/vfx/signature.js`,** as data in the same format, merged into the library. `library.js` holds the shared pieces, the resolvers and V1's effects.
+16. **`?prefer=card:mode` (dev aid only):** the autoplay AI makes those plays when they're legal (Night Raid as a Strat, Call to Arms with a Favour), so the review clips can show them. It never changes the match any other way.

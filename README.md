@@ -157,3 +157,24 @@ node tools/clips.mjs
 - The engine now also reports damage effects as an `effect` event (presentation only, no rule change), so Firebolt, Wildfire and On Summon or On Defeat damage are shown.
 - Checks: `tests/v1-vfx.test.js`, `tools/vfxcheck.mjs`, `tools/perf.mjs` (results in `tools/reports/v1-perf*.txt`: software rendering here, for reference only), `tools/clips.mjs` (clips and frame strips in `tools/clips/`).
 - Readings for Elliott's approval: `docs/10-feel-and-vfx.md` section 4.
+
+### V2: Signature moments (14 November 2026)
+- The weight pass (5.1): arcs about 1.5× larger, spanning the target; a brighter flash; a short spray of sparks thrown away from the attacker; the target recoils 6 px. A defeated card visibly burns away from the centre, under a burnt-through card and a burning edge. A stream of ash and embers then drifts to the Released Pile, which flares.
+- A signature attack for every series (5.2), a little grander on each final form:
+  - Oathsworn crimson arcs (the Captain crosses two); Ironhide's cleave slam (the Champion's shockwave);
+  - Ashen Spire's bolt, the Magus's orb charge, and the Archmagus's lightning over a turning rune circle;
+  - Hollowfoot's knives (the Knifemaster hops and fans three); Deepforge's gold hammer;
+  - Thornwood's arrow (the Pathfinder's volley); Gloomfang's claws or bite (the Alpha's summon gust);
+  - Barrow's soul wisp (the Lord's wail); Stonehide's body slam; the Wyrm's breath.
+- Actions (5.3): each mode its own effect, and a React flare. Firebolt has a quick bolt, the full bolt, and bolt plus vortex. Parry turns the blow, or raises a crimson aura. Night Raid has a smoke burst, or poison mist with each enemy made Spent in turn. Mending Prayer has pillars, or a gold wash.
+- Events (5.4): the card rises with a candle; Released cards burn in its light; drawn cards fly from the Draw Pile; a Favour's laurel. Each Event's touch: Call to Arms' war horn, Rumour of Treasure's scroll and coins, Desperate Gambit's sparks into the Energy pips.
+- The Market and Items (5.5): coins fly to the Market, then the Item flies to your Bag or to the creature.
+- Locations (5.6): ink spreads across the lanes, the label writes itself in with a quill, the art settles in. An expiring Location burns away like parchment.
+- Dawn and Dusk (5.7): the dawn sweep, Energy pips sparking, recovered Exert glinting, new cards flying in. At Dusk a wash falls and the candles brighten; each dominated Location gets a banner planted in the winner's colour, and its Renown flows to the dial.
+- The Quest (5.8): each step stamps the tracker; completion fills it with a crown of light.
+- Three cinematics (5.9): the Ashen Wyrm, Aldric the Unbroken, and the Last Battle beginning. Each has letterbox bars and a dimmed board; a click skips to the result, and low motion plays a short version of about 1 s.
+- The engine also reports draws, Energy gained and each effect's mode, for the presenter only (no rule changed).
+- Dev aids: `?prefer=card:mode` (the autoplay AI makes those plays when legal, for the clips) and `?scene=quest`.
+- Checks: `tests/v2-signature.test.js`; the effects check now requires the V2 moments to play in real matches; `node tools/clips.mjs` records the V2 clips (`node tools/clips.mjs v1` for V1's).
+- Readings for Elliott's approval, including the timing budget in 5.10: `docs/10-feel-and-vfx.md` section 6.
+

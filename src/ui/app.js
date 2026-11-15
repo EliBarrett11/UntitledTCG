@@ -3,7 +3,7 @@
 // clicked, then (one field at a time) the space, the leftmost lane, the cards to Release, the target.
 import { defineCards, cardAtRound, cardDef } from '../engine/cards.js';
 import { CARDS, FIRST_DECK } from '../data/cards.js';
-import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lanesOf, passBlockers } from '../engine/game.js';
+import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lanesOf, passBlockers, meetsCondition } from '../engine/game.js';
 import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
 import { render, fitLabels } from './view.js';
@@ -100,6 +100,7 @@ export function startApp(params) {
       react: () => s.reactWindow?.reactor === HUMAN,
       lastbattle: () => s.lastBattle && s.phase === 'battle' && !s.reactWindow && actor(s) === HUMAN,
       end: () => s.phase === 'gameOver',
+      quest: () => s.phase === 'battle' && !s.reactWindow && Object.values(s.players).some((p) => (p.quests ?? []).some((qq) => !qq.complete && qq.progress >= qq.quest.need - 2)),
     }[scene];
     if (!done) return;
     for (let i = 0; i < 4000 && !done() && s.phase !== 'gameOver'; i++) apply(chooseAction(s, actor(s), rng));
@@ -158,9 +159,29 @@ export function startApp(params) {
     draw();
   }
 
+  // Dev aid for the review clips (?prefer=night-raid:strat,call-to-arms:favour): when such a play is legal, the
+  // AI makes it. It only picks among legal actions; it never changes the match any other way.
+  const prefer = (params.get('prefer') ?? '').split(',').filter(Boolean).map((x) => x.split(':'));
+  function preferred(who) {
+    if (!prefer.length) return null;
+    const hand = s.players[who].hand;
+    const idOf = (uid) => hand.find((c) => c.uid === uid)?.id;
+    for (const a of legalActions(s, who)) {
+      for (const [id, how] of prefer) {
+        if (idOf(a.uid) !== id) continue;
+        if (a.type === 'action' && a.mode === how) return a;
+        if (a.type === 'react' && how === 'react') return a;
+        if (a.type === 'event' && how === 'favour') {
+          const card = hand.find((c) => c.uid === a.uid);
+          if (card?.favour && a.release.some((u) => meetsCondition(hand.find((c) => c.uid === u), card.favour.condition))) return a;
+        }
+      }
+    }
+    return null;
+  }
   function aiStep(who = AI) {
     if (actor(s) !== who || presenting) return;
-    const a = chooseAction(s, who, rng);
+    const a = preferred(who) ?? chooseAction(s, who, rng);
     const r = apply(a);
     ui.caption = captionFor(a, r.lines);
     present(r);

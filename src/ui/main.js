@@ -1,6 +1,7 @@
 // The page: a match against the AI on the first deck (?seed=N to replay one; ?debug=1 for the text-log
-// debug match). Dev aids: ?pace=ms (the AI's pause per action), ?scene=mid|react|lastbattle|end,
-// ?sheet=full|all (every card, for the contact sheet and the neat-text test).
+// debug match). Dev aids: ?pace=ms (the AI's pause per action), ?scene=mid|react|lastbattle|quest|end,
+// ?sheet=full|all (every card, for the contact sheet and the neat-text test), ?prefer=card:mode,... (the autoplay
+// AI makes those plays when legal: for the review clips), ?autoplay=1, ?speed, ?lowmotion, ?webgl=0, ?fps=1.
 import { GAME } from '../engine/vocab.js';
 
 const params = new URLSearchParams(location.search);

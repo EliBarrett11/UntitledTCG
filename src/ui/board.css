@@ -324,3 +324,19 @@ body.low-motion .ambient { display: none; }
 .fps-overlay { position: fixed; left: 6px; top: 6px; z-index: 1000; pointer-events: none; font: 12px/1.3 ui-monospace, Menlo, Consolas, monospace; color: #e8f5d0; background: rgba(0,0,0,0.72); padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
 .amb-storm { left: -700px; width: 700px; height: 300px; opacity: 0; animation-name: amb-storm; animation-timing-function: linear; }
 @keyframes amb-storm { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 0.35; } 85% { opacity: 0.3; } 100% { transform: translateX(2240px); opacity: 0; } }
+
+/* --- V2: signature moments ------------------------------------------------------------------------------------ */
+/* Cinematics: the board dims around the moment, slim letterbox bars, the caption in the lower bar. */
+.cine-dim { position: absolute; inset: 0; z-index: 86; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at var(--fx, 790px) var(--fy, 450px), rgba(6,3,2,0) 130px, rgba(6,3,2,0.35) 260px, rgba(6,3,2,0.66) 520px); }
+.cine-bar { position: absolute; left: 0; right: 0; z-index: 89; pointer-events: none; background: #050302; }
+.cine-bar.top { top: 0; height: 34px; }
+.cine-bar.bottom { bottom: 0; height: 46px; display: flex; align-items: center; justify-content: center; }
+.cine-caption { font-size: 18px; color: #f3e6c8; letter-spacing: 1px; text-shadow: 0 1px 4px #000; white-space: nowrap; }
+.cine-banner { transform: translate(-50%, -50%); min-width: 760px; z-index: 2; }
+/* A Location's region burning away at expiry. */
+.loc-ghost { position: absolute; height: 622px; border-radius: 14px; overflow: hidden; background: var(--tint); border: 2px solid rgba(43,29,18,0.55); opacity: 0.85; }
+.loc-ghost .loc-art { opacity: 0.22; }
+/* At Dusk the candles brighten. */
+.ambient.dusk-bright .amb-candle { animation-duration: 1.6s; filter: brightness(1.6); }
+.ambient.dusk-bright .amb-candle::before { background: radial-gradient(circle, rgba(255,170,80,0.45), rgba(255,140,60,0.14) 45%, transparent 70%); }
