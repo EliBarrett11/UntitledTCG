@@ -19,6 +19,16 @@
 /* Wells (cost, Level, price) and their numbers */
 .cv-well, .cv-num { position: absolute; display: flex; align-items: center; justify-content: center; font-family: Cinzel, serif; font-weight: 700; color: #f4ead2; text-shadow: 0 1px 2px #000; line-height: 1; }
 .cv-level.legend { flex-direction: column; justify-content: flex-start; padding-top: 2px; }
+/* Stage G: "LVL" in tiny capitals under the Level (dark on the gold at Prime); LEGEND stays for Legendaries. */
+.cv-level:not(.legend) { flex-direction: column; justify-content: center; gap: 0; }
+.cv-level:not(.legend) > span:first-child { line-height: 20px; margin-top: 2px; }
+.cv-level:not(.legend) > .cv-lv { margin-top: 1px; line-height: 1; letter-spacing: 1.4px; opacity: .85; }
+.cv-level.prime > .cv-lv { color: #1a0f08; }
+/* Stage G: Energy is crystal cyan (the crystal itself is drawn in the card's frame); Gold is a gold coin. */
+.cv-well.crystal { color: #f4fdff; text-shadow: 0 0 2px #04394a, 0 1px 1px #02222d, 0 0 8px rgba(120,230,255,.8); }
+.cv-well.coin { color: #2a1704; text-shadow: none; }
+.en-word { color: #8fe8ff; font-weight: 700; text-shadow: 0 0 6px rgba(90,220,255,.5); white-space: nowrap; }
+.crys-i { display: inline-block; width: .72em; height: .86em; vertical-align: -0.1em; margin-right: 2px; filter: drop-shadow(0 0 3px rgba(90,220,255,.7)); }
 .cv-level.prime > span { color: #1a0f08; text-shadow: none; }
 .cv-level.legend > span:first-child { height: 26px; display: flex; align-items: center; }
 .cv-lv { font-size: 7.5px; letter-spacing: 1px; font-weight: 600; color: #bfa36a; margin-top: 1px; }
@@ -53,7 +63,8 @@
 .cv-mode.last { border-bottom: none; }
 .cv-mode-name { width: 58px; flex-shrink: 0; text-align: left; font-family: Cinzel, serif; font-weight: 700; font-size: 10.5px; letter-spacing: 2px; }
 .cv-mode-text { flex: 1; text-align: left; }
-.cv-mode-cost { display: flex; align-items: center; gap: 2px; margin-left: 6px; font-family: Cinzel, serif; font-weight: 700; font-size: 13px; color: #f0b85a; }
+.cv-mode-cost { display: flex; align-items: center; gap: 3px; margin-left: 6px; font-family: Cinzel, serif; font-weight: 700; font-size: 13px; color: #8fe8ff; text-shadow: 0 0 6px rgba(90,220,255,.6); }
+.cv-mode-cost .crys-i { width: 10px; height: 12px; margin: 0; }
 /* The Event's Favour box */
 .cv-favour { width: 100%; box-sizing: border-box; border: 1px solid rgba(201,119,184,0.45); border-radius: 4px; padding: 6px 10px; background: rgba(122,59,112,0.14); font-size: 13.5px; }
 .cv-favour-head { font-family: Cinzel, serif; font-weight: 700; font-size: 10px; letter-spacing: 2.2px; color: #c977b8; }

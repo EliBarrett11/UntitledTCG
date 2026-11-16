@@ -55,12 +55,12 @@ test('foil (stage P): the Prime Level, the Legendary and the Legendary Creature;
   assert.equal(isFoil({ ...creatureAtLevel(captain, 4, 'j'), primeSummon: true }), true);
 });
 
-test('one Level well (stage F): the Level alone; gold with a star at Prime, on every size; LEGEND keeps its star', () => {
+test('one Level well (stages F and G): the Level and "LVL"; gold with a star at Prime, on every size; LEGEND keeps its star', () => {
   const captain = cardDef('oathsworn-recruit');   // Prime at Level 5
   const well = (html) => html.match(/<div class="cv-well cv-level[^"]*"[^>]*>(.*?)<\/div>/);
   for (const size of ['full', 'mini', 'token']) {
     const off = renderCard(creatureAtLevel(captain, 4, 'a'), { size });
-    assert.equal(well(off)[1].replace(/<[^>]+>/g, ''), '4', `${size}: only the number`);
+    assert.equal(well(off)[1].replace(/<[^>]+>/g, ''), '4LVL', `${size}: the number and LVL`);
     assert.ok(!/\bLV\b/.test(off) && !off.includes('PAST PRIME') && !off.includes('cv-ptag'), `${size}: no LV, no tags`);
     assert.ok(!off.includes('class="cv-star"'), `${size}: no star off Prime`);
     const at = renderCard(creatureAtLevel(captain, 5, 'b'), { size });
@@ -71,6 +71,29 @@ test('one Level well (stage F): the Level alone; gold with a star at Prime, on e
   assert.ok(!token(false).includes('class="cv-star"'), 'summoned at another Level: a plain well, even at the Prime Level');
   const lc = renderCard(legendaryCreatureOf(cardDef('lady-corwens-commission'), 'lc'), { size: 'full' });
   assert.ok(lc.includes('LEGEND') && lc.includes('class="cv-star"'), 'LEGEND, with the star');
+});
+
+test('stage G: Energy costs are crystals, an Item\'s price a gold coin; Events and Locations show no cost', () => {
+  const wells = (html) => [...html.matchAll(/<div class="cv-well nowrap ?([a-z ]*)"[^>]*>([^<]*)<\/div>/g)].map((m) => [m[1].trim(), m[2]]);
+  const at = (id) => renderCard(cardAtRound(id, 1, id), { size: 'full' });
+  assert.deepEqual(wells(renderCard(creatureAtLevel(cardDef('oathsworn-recruit'), 4, 'a'), { size: 'full' })).filter(([k]) => k === 'crystal'), [['crystal', '2']]);
+  assert.deepEqual(wells(at('firebolt')), [['crystal', '1–3']]);
+  assert.deepEqual(wells(at('tower-shield')), [['coin', '2']]);
+  assert.deepEqual(wells(at('lady-corwens-commission')), [['crystal', String(cardDef('lady-corwens-commission').order.cost)]], 'the Campaign\'s crystal is its Order\'s cost');
+  assert.deepEqual(wells(at('rumour-of-treasure')), [], 'an Event costs no Energy');
+  assert.deepEqual(wells(at('ironroot-pass')), [], 'a Location costs no Energy');
+  for (const size of ['full', 'mini']) assert.ok(renderCard(cardAtRound('firebolt', 1, 'f'), { size }).includes('crystal'), size);
+});
+
+test('stage G: an Event\'s text starts with its effect ("Event · Release N" is on the type line); "N Energy" shows its crystal', () => {
+  for (const id of ['call-to-arms', 'rumour-of-treasure', 'desperate-gambit']) {
+    const html = renderCard(cardAtRound(id, 1, id), { size: 'full' });
+    assert.ok(!/other cards? from your hand/.test(html), id);
+    assert.ok(/EVENT · RELEASE \d/.test(html.replace(/<[^>]+>/g, '')), `${id}: the type line`);
+  }
+  const camp = renderCard(cardAtRound('lady-corwens-commission', 1, 'c'), { size: 'full' });
+  assert.match(camp, /<span class="en-word"><svg class="crys-i"[^]*?<\/svg>2 Energy<\/span>/);
+  assert.ok(renderCard(cardAtRound('firebolt', 1, 'f'), { size: 'full' }).includes('cv-mode-cost nowrap"><svg class="crys-i"'));
 });
 
 test('the series line (stage F): LEVELS, six rings, NOW on this Round\'s Level, the Prime in gold', () => {

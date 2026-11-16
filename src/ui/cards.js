@@ -11,7 +11,7 @@ import { RULES, levelFor } from '../engine/rules.js';
 import { KEYWORDS, TRIGGERS } from '../engine/abilities.js';
 import { CARDS } from '../data/cards.js';
 import { chosenTargetWords } from '../engine/wording.js';
-import { esc, artOf, creatureLines, printedOf, accentOf, defText, costBadge } from './text.js';
+import { esc, artOf, creatureLines, printedOf, accentOf, defText, costBadge, energyHtml, CRYSTAL_ICON } from './text.js';
 
 // --- Small icons used outside cards (the Gold counter) ---------------------------------------------------
 const P = {
@@ -154,6 +154,18 @@ const nameSize = (name, max, width) => Math.max(11, Math.min(max, Math.floor(wid
 let defsN = 0;
 const pct = (y) => `${((100 * y) / H).toFixed(1)}%`;
 const box = (x, y, w, h) => `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
+// Stage G: Energy is crystal cyan. A faceted crystal (a hexagon with a light top facet, a dark edge and a soft
+// cyan glow) holds every Energy cost; an Item's Gold price is a gold coin, so the two never look alike.
+const crystal = (cx, cy, r, id) => {
+  const k = 0.866 * r;
+  const pts = [[cx, cy - r], [cx + k, cy - r / 2], [cx + k, cy + r / 2], [cx, cy + r], [cx - k, cy + r / 2], [cx - k, cy - r / 2]].map((p) => p.join(',')).join(' ');
+  const top = [[cx, cy - r], [cx + k, cy - r / 2], [cx, cy], [cx - k, cy - r / 2]].map((p) => p.join(',')).join(' ');
+  return `<linearGradient id="${id}" x1="0" y1="0" x2=".55" y2="1"><stop offset="0" stop-color="#d9fbff"/><stop offset=".2" stop-color="#5fd8f7"/><stop offset=".48" stop-color="#0f86b3"/><stop offset=".76" stop-color="#053d55"/><stop offset="1" stop-color="#2bbde6"/></linearGradient>`
+    + `<polygon points="${pts}" fill="rgba(90,220,255,.55)" style="filter:blur(5px)"/><polygon points="${pts}" fill="url(#${id})" stroke="#021a22" stroke-width="2"/>`
+    + `<polygon points="${top}" fill="rgba(255,255,255,.55)"/><polygon points="${pts}" fill="none" stroke="rgba(200,250,255,.55)" stroke-width="1"/>`;
+};
+const coin = (cx, cy, r, id) => `<radialGradient id="${id}" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#fff3c4"/><stop offset=".45" stop-color="#f0c55a"/><stop offset="1" stop-color="#a8741f"/></radialGradient>`
+  + `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id})" stroke="#3a2208" stroke-width="2.5"/><circle cx="${cx}" cy="${cy}" r="${r - 4}" fill="none" stroke="rgba(120,80,20,.6)" stroke-width="2"/>`;
 const well = (cx, cy, r, ring, br) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#0b0806" stroke="${br}" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="${r - 4}" fill="none" stroke="${ring}" stroke-width="1" opacity=".8"/>`;
 
 // The stat tabs flush in the bottom corners; each tab's inner corner shows its type.
@@ -201,7 +213,7 @@ function tabNum(cls, x, y, n, trend, px, title, label) {
 // About how many lines a run of text takes in the rules box (Alegreya Sans 14.5 px, 288 px wide).
 const linesOf = (s, perLine = 44) => Math.max(1, Math.ceil(String(s).replace(/<[^>]+>/g, '').length / perLine));
 const KW = (t) => `<div class="cv-kw nowrap" data-z="text">${esc(t)}</div>`;
-const RULE = (html, cls = '') => `<div class="cv-rule ${cls}" data-z="text">${html}</div>`;
+const RULE = (html, cls = '') => `<div class="cv-rule ${cls}" data-z="text">${energyHtml(html)}</div>`;
 
 // The rules for a Full card, and roughly how tall they are (to place the panel line).
 function fullRules(c, opts) {
@@ -221,7 +233,7 @@ function fullRules(c, opts) {
   }
   switch (c.cardType) {
     case 'Action': {
-      const rows = Object.entries(c.modes).map(([m, x], i, all) => `<div class="cv-mode${i === all.length - 1 ? ' last' : ''}" data-z="text"><span class="cv-mode-name nowrap" style="color:${MODE_COL[m]}">${m.toUpperCase()}</span><span class="cv-mode-text">${esc(x.text)}</span><span class="cv-mode-cost nowrap">${gi('en', 11, '#f0b85a')}${x.cost}</span></div>`);
+      const rows = Object.entries(c.modes).map(([m, x], i, all) => `<div class="cv-mode${i === all.length - 1 ? ' last' : ''}" data-z="text"><span class="cv-mode-name nowrap" style="color:${MODE_COL[m]}">${m.toUpperCase()}</span><span class="cv-mode-text">${esc(x.text)}</span><span class="cv-mode-cost nowrap">${CRYSTAL_ICON}${x.cost}</span></div>`);
       const lines = Object.values(c.modes).reduce((n, x) => n + linesOf(x.text, 30), 0);
       add(`<div class="cv-modes">${rows.join('')}</div>`, lines, Object.keys(c.modes).length * 12);
       // One target for every mode: its words, from the wording templates.
@@ -231,7 +243,7 @@ function fullRules(c, opts) {
       break;
     }
     case 'Event': {
-      const t = `Release ${c.release} other card${c.release === 1 ? '' : 's'} from your hand. ${defText(c)}`;
+      const t = defText(c);
       add(RULE(esc(t)), linesOf(t));
       const f = `Release ${c.favour.conditionText}: ${c.favour.text} +${RULES.perFavour} Renown.`;
       add(`<div class="cv-favour" data-z="text"><div class="cv-favour-head nowrap">FAVOUR</div><div>Release ${esc(c.favour.conditionText)}: ${esc(c.favour.text)} <b>+${RULES.perFavour} Renown.</b></div></div>`, linesOf(f, 40), 30);
@@ -252,7 +264,7 @@ function fullRules(c, opts) {
     }
     case 'Campaign': {
       const o = `Order · ${c.order.cost} Energy: ${c.order.text}`;
-      add(RULE(`<b>Order</b> · ${c.order.cost} Energy: ${esc(c.order.text)}`), linesOf(o));
+      add(RULE(`<b>Order</b> · ${energyHtml(`${c.order.cost} Energy`)}: ${esc(c.order.text)}`), linesOf(o));
       const qt = `Quest · ${c.quest.text}`;
       add(RULE(`<b>Quest</b> · ${esc(c.quest.text)}`), linesOf(qt));
       const need = c.quest.need;
@@ -278,7 +290,7 @@ function miniLine(c) {
     return kw.length ? KW(kw.join(' · ')) : '';
   }
   switch (c.cardType) {
-    case 'Action': return `<div class="cv-rule nowrap" data-z="text">${Object.entries(c.modes).map(([m, x]) => `<span class="cv-mini-mode" style="color:${MODE_COL[m]}">${m.toUpperCase()}</span> ${x.cost}`).join(' · ')}</div>`;
+    case 'Action': return `<div class="cv-rule nowrap" data-z="text">${Object.entries(c.modes).map(([m, x]) => `<span class="cv-mini-mode" style="color:${MODE_COL[m]}">${m.toUpperCase()}</span> <span class="en-word">${x.cost}</span>`).join(' · ')}</div>`;
     case 'Event': return RULE(`<b>Release ${c.release}</b> · ${esc(defText(c))}`);
     case 'Item': return RULE(`${c.kind === 'Held' ? '<b>Held</b> · ' : ''}${esc(defText(c))}`);
     case 'Location': return RULE(esc(defText(c)));
@@ -354,9 +366,11 @@ export function renderCard(c, opts = {}) {
   if (creature) {
     // The cost well (top-left socket) and the Level well (top-right socket).
     if (!token) {
-      s += well(30, 30, 22, '#f0b85a', br);
+      // (A Legendary Creature arrives free: its well keeps the star, as before.)
+      if (isLC(c)) s += well(30, 30, 22, '#f0b85a', br);
+      else s += crystal(30, 30, 25, `cyc${n}`);
       const cost = isLC(c) ? '★' : c.cost;
-      h += `<div class="cv-well nowrap" data-z="badge" data-socket style="${box(8, 8, 44, 44)};font-size:${isLC(c) ? 20 : String(cost).length < 2 ? 24 : 18}px">${cost}</div>`;
+      h += `<div class="cv-well nowrap${isLC(c) ? '' : ' crystal'}" data-z="badge" data-socket style="${box(8, 8, 44, 44)};font-size:${isLC(c) ? 20 : String(cost).length < 2 ? 24 : 18}px">${cost}</div>`;
     }
     // The Level well (stage F: the Level alone; gold at Prime, with the star on its lower left).
     const gold = primeWell(c);
@@ -365,7 +379,7 @@ export function renderCard(c, opts = {}) {
       s += `<circle cx="${W - 30}" cy="30" r="26" fill="rgba(255,196,80,.35)" style="filter:blur(5px)"/><circle cx="${W - 30}" cy="30" r="22" fill="url(#cpw${n})" stroke="#1a0f08" stroke-width="3"/><circle cx="${W - 30}" cy="30" r="22.6" fill="none" stroke="#fff1c4" stroke-width="1.4"/>`;
     } else s += well(W - 30, 30, 22, '#c2a36a', br);
     const lv = isLC(c) ? '★' : c.level;
-    h += `<div class="cv-well cv-level nowrap${gold ? ' prime' : isLC(c) ? ' legend' : ''}" data-z="badge" data-socket ${gold ? 'data-prime="1"' : ''} style="${box(W - 52, 8, 44, 44)}"><span style="font-size:${isLC(c) ? 20 : 24}px">${lv}</span>${isLC(c) ? '<span class="cv-lv">LEGEND</span>' : ''}</div>`;
+    h += `<div class="cv-well cv-level nowrap${gold ? ' prime' : ''}${isLC(c) ? ' legend' : ''}" data-z="badge" data-socket ${gold ? 'data-prime="1"' : ''} style="${box(W - 52, 8, 44, 44)}"><span style="font-size:${isLC(c) ? 20 : 21}px">${lv}</span><span class="cv-lv">${isLC(c) ? 'LEGEND' : 'LVL'}</span></div>`;
     if (gold || isLC(c)) s += `<g class="cv-star" transform="translate(${W - 58},36) scale(${20 / 24})"><path d="${STAR_PATH}" fill="#ffe08a" stroke="#5a3a0c" stroke-width="1.4"/></g>`;
     // The stat tabs.
     const g = guards(c);
@@ -386,12 +400,14 @@ export function renderCard(c, opts = {}) {
     h += `<div class="cv-speed" data-z="badge" style="${box(W / 2 - 50, H - 44, 100, 36)}" aria-label="${esc(c.speed)}"><svg width="${cw + 4}" height="16" viewBox="-2 -1 ${cw + 4} 16" aria-hidden="true">${chev}</svg>${token ? '' : `<span class="nowrap">${esc(c.speed.toUpperCase())}</span>`}</div>`;
   } else {
     // The cost (or price) well, where the card type's outline seats it.
-    const badge = type === 'Campaign' ? null : costBadge(c);
+    // (Stage G: only cards that cost Energy show it, in a crystal; an Item's price is a gold coin. The Campaign's
+    // crystal is its Order's cost. Events and Locations cost no Energy and show no well.)
+    const badge = costBadge(c);
     if (badge) {
-      const [cx, cy] = { Action: [W / 2, 22], Event: [36, 50], Item: [32, 32], Location: [40, 46] }[type] ?? [36, 50];
-      const item = type === 'Item';
-      s += well(cx, cy, 21, item ? '#f0d590' : '#f0b85a', br);
-      h += `<div class="cv-well nowrap" data-z="badge" ${type === 'Action' ? 'data-socket' : ''} style="${box(cx - 21, cy - 21, 42, 42)};font-size:${badge.text.length < 3 ? 22 : 17}px;color:${item ? '#f0d590' : '#f4ead2'}">${esc(badge.text)}</div>`;
+      const [cx, cy] = { Action: [W / 2, 22], Item: [32, 32], Campaign: [36, 58] }[type] ?? [36, 50];
+      const item = badge.kind === 'gold';
+      s += item ? coin(cx, cy, 21, `cco${n}`) : crystal(cx, cy, 24, `cyc${n}`);
+      h += `<div class="cv-well nowrap ${item ? 'coin' : 'crystal'}" data-z="badge" ${type === 'Action' ? 'data-socket' : ''} style="${box(cx - 21, cy - 21, 42, 42)};font-size:${badge.text.length < 3 ? 22 : 16}px">${esc(badge.text)}</div>`;
     }
   }
 

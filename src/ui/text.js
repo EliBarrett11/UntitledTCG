@@ -120,11 +120,15 @@ export function bodyLines(c) {
 export function costBadge(c) {
   if (isCreature(c)) return c.legendaryCreature ? null : { kind: 'energy', text: String(c.cost) };
   if (c.cardType === 'Action') { const cs = Object.values(c.modes).map((m) => m.cost); const lo = Math.min(...cs); const hi = Math.max(...cs); return { kind: 'energy', text: lo === hi ? `${lo}` : `${lo}–${hi}` }; }
-  if (c.cardType === 'Event' || c.cardType === 'Location') return { kind: 'energy', text: '0' };
+  if (c.cardType === 'Event' || c.cardType === 'Location') return null;   // (stage G: they cost no Energy, so no well)
   if (c.cardType === 'Campaign') return { kind: 'energy', text: String(c.order.cost) };
   if (c.cardType === 'Item') return { kind: 'gold', text: String(c.price) };
   return null;
 }
+
+// Stage G: "N Energy" in any text (already escaped HTML) shows its crystal, in the Energy colour.
+export const CRYSTAL_ICON = '<svg class="crys-i" viewBox="0 0 20 24" aria-hidden="true"><polygon points="10,0 19,6 19,18 10,24 1,18 1,6" fill="#19a9d6" stroke="#04394a" stroke-width="1.5"/><polygon points="10,0 19,6 10,12 1,6" fill="#c9f6ff" opacity=".85"/></svg>';
+export const energyHtml = (html) => String(html).replace(/(?<![\w>])(\+?\d+(?:–\d+)?) (Base )?Energy\b/g, `<span class="en-word">${CRYSTAL_ICON}$1 $2Energy</span>`);
 
 // The engine's log, as the human sees it.
 export function displayLine(line) {

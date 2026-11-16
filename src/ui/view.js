@@ -6,7 +6,7 @@ import { isReady, locationAt, lanesOf, lanesHere, creaturesOf } from '../engine/
 import { cardDef } from '../engine/cards.js';
 import { renderCard, cardBack, icon, chipFor, STAR_PATH } from './cards.js';
 import { legendaryCreatureOf, cardAtRound } from '../engine/cards.js';
-import { chipCardFor } from './text.js';
+import { chipCardFor, energyHtml } from './text.js';
 import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText } from './text.js';
 import { endScreen } from './screens.js';
 
@@ -178,7 +178,7 @@ function column(s, ui) {
       </div>`
     : `<div class="sold-out">${m.soldOut ? 'SOLD OUT' : 'NOTHING ON SALE'}<div class="muted small">${m.soldOut ? `Restocks after ${m.soldOut.by === HUMAN ? 'your' : 'the enemy\'s'} next turn` : ''}</div></div>`;
   const stockRing = item ? `<div class="stock">${dial(m.stock, stockFull, 34, 26).replace('$', `<b>${m.stock}</b>`)}Stock · turns left</div>` : '';
-  const log = ui.log.slice(-7).reverse().map((l, i) => { const c = chipCardFor(l); return `<div class="log-line${i === 0 ? ' latest' : ''}">${c ? chipFor(c, 24) : '<span class="log-dot"></span>'}<span>${esc(l)}</span></div>`; }).join('');
+  const log = ui.log.slice(-7).reverse().map((l, i) => { const c = chipCardFor(l); return `<div class="log-line${i === 0 ? ' latest' : ''}">${c ? chipFor(c, 24) : '<span class="log-dot"></span>'}<span>${energyHtml(esc(l))}</span></div>`; }).join('');
   const passable = ui.picks?.pass;
   return `<div class="column" data-region="column">
     <div class="panel round-panel">
@@ -241,7 +241,7 @@ function menu(ui) {
   const { x, items, title } = ui.menu;
   return `<div class="menu" style="left:${Math.round(Math.max(8, Math.min(1572 - 300, x - 50)))}px" data-region="menu">
     <div class="menu-title">${esc(title)}</div>
-    ${items.map((it, i) => `<button type="button" class="menu-item" data-act="menu" data-i="${i}">${esc(it.label)}${it.sub ? `<span>${esc(it.sub)}</span>` : ''}</button>`).join('')}
+    ${items.map((it, i) => `<button type="button" class="menu-item" data-act="menu" data-i="${i}">${esc(it.label)}${it.sub ? `<span>${energyHtml(esc(it.sub))}</span>` : ''}</button>`).join('')}
     <button type="button" class="menu-item cancel" data-act="cancel">Cancel <span>Esc</span></button>
   </div>`;
 }
@@ -283,7 +283,7 @@ export function render(s, ui) {
   <div class="me-left">${sealedStrats(s, HUMAN)}${quest(s, HUMAN)}${warlord(s, HUMAN, ui)}</div>
   ${hand(s, ui)}
   <div class="me-piles">${piles(s, HUMAN, ui)}</div>
-  ${ui.prompt ? `<div class="prompt" data-region="prompt">${esc(ui.prompt)}</div>` : ''}
+  ${ui.prompt ? `<div class="prompt" data-region="prompt">${energyHtml(esc(ui.prompt))}</div>` : ''}
   ${ui.caption ? `<div class="caption" data-region="caption">${esc(ui.caption)}</div>` : ''}
   ${column(s, ui)}
   ${menu(ui)}

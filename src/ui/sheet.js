@@ -41,6 +41,7 @@ export function runSheet(params) {
   const cell = (label, html) => `<div class="sheet-cell"><div class="sheet-label">${esc(label)}</div>${html}</div>`;
   let html = '';
   if (mode.startsWith('v4-')) { document.body.innerHTML = compareSheet(mode.slice(3)); document.body.dataset.done = 'true'; return; }
+  if (mode === 'g-types') { document.body.innerHTML = typesSheet(); document.body.dataset.done = 'true'; return; }
   if (mode === 'prime') { document.body.innerHTML = primeSheet(params.get('series') ?? 'oathsworn-recruit', Number(params.get('round') ?? 2)); document.body.dataset.done = 'true'; return; }
   if (mode === 'foil') {
     const foil = cards.filter((c) => (c.form === 'oathsworn-captain' && c.level === 7) || c.legendary || c.legendaryCreature === true);
@@ -123,4 +124,14 @@ function primeSheet(id, round) {
   return `<div id="cmp" style="width:2280px;height:1060px;box-sizing:border-box;padding:150px 60px 0;position:relative;${BG}">
     <div style="display:flex;gap:24px">${cols}</div>
     <div style="position:absolute;left:60px;top:760px">${seriesLine(cardAtRound(id, round, 'strip'), round)}</div></div>`;
+}
+
+// Stage G (?sheet=g-types): one card of each type, in the layout of docs/mockups/feedback-v2/m9-cards.png, for the
+// side-by-side comparison (tools/gcompare.mjs).
+function typesSheet() {
+  const list = [['Character', creatureAtLevel(cardDef('oathsworn-recruit'), 4, 'g1')], ['Action', cardAtRound('firebolt', 1, 'g2')], ['Event', cardAtRound('rumour-of-treasure', 1, 'g3')],
+    ['Item', cardAtRound('tower-shield', 1, 'g4')], ['Location', cardAtRound('ironroot-pass', 1, 'g5')], ['Campaign', cardAtRound('lady-corwens-commission', 1, 'g6')]];
+  return `<div id="cmp" style="position:relative;width:2280px;height:640px;background:#120c08">
+    <div style="position:absolute;left:40px;top:28px;font:700 26px Cinzel,serif;letter-spacing:5px;color:#f1d9a0">ENERGY IS CRYSTAL CYAN · ONLY CARDS THAT COST ENERGY SHOW IT</div>
+    <div style="position:absolute;left:40px;top:90px;display:flex;gap:30px">${list.map(([t, c]) => `<div><div style="font:700 14px Cinzel,serif;letter-spacing:3px;color:rgba(232,220,192,.7);text-align:center;margin-bottom:10px">${t.toUpperCase()}</div>${renderCard(c, { size: 'full' })}</div>`).join('')}</div></div>`;
 }
