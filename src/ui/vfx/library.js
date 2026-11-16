@@ -44,7 +44,7 @@ const IMPACT = [
   { at: 0, op: 'shake', px: [2, 6], dur: 260 },
   { at: 0, op: 'flash', k: [0.35, 0.9], dur: 220 },
   { at: 0, op: 'dom', name: 'knock', el: 'dst', dur: 260 },
-  { at: 0, op: 'sprite', tex: 'armour-plates', on: 'dst', sizeK: 1.1, scale: [0.9, 1.05], life: 450, fadeIn: 0.15, fadeOut: 0.4, alpha: 1.1, if: 'armour' },
+  { at: 0, op: 'sprite', tex: 'armour-plates', on: 'dstHp', size: 104, scale: [0.9, 1.05], life: 450, fadeIn: 0.15, fadeOut: 0.4, alpha: 1.2, if: 'armour' },
   { at: 30, op: 'call', fn: 'land' },
   { at: 50, op: 'burst', tex: 'ink-splatter-atlas', on: 'dst', n: 2, speed: [10, 50], spread: 360, life: [420, 560], size: [50, 80], tint: '#5a0a0c', tintK: 0.9, alpha: 0.75, fadeIn: 0.05, fadeOut: 0.35, dy: -10 },
 ];
@@ -59,7 +59,8 @@ const SMALL_IMPACT = [
   { at: 20, op: 'call', fn: 'land' },
 ];
 // Anticipation shared by every attack: the guard's sigil, if the target is a guard against this attack.
-const GUARD = [{ at: 120, op: 'sprite', tex: '$guardSigil', on: 'dst', sizeK: 1.15, scale: [1.3, 1], curve: 'out', life: 420, fadeIn: 0.15, fadeOut: 0.5, alpha: 1.2, if: 'guard' }];
+// (Card design v4: the guard shows on the Health tab, where its symbol is.)
+const GUARD = [{ at: 120, op: 'sprite', tex: '$guardSigil', on: 'dstHp', size: 96, scale: [1.5, 1], curve: 'out', life: 420, fadeIn: 0.15, fadeOut: 0.5, alpha: 1.3, if: 'guard' }];
 const SETTLE = [{ at: 650, op: 'burst', tex: 'dust-motes-atlas', on: 'src', n: 6, speed: [20, 70], angle: 'up', spread: 140, life: [500, 700], size: [10, 26], alpha: 0.6 }];
 // The opening of a melee attack: the arrow, the attacker's motion, its ready rim, the guard's sigil.
 const START = (name, frac) => [
@@ -174,13 +175,13 @@ export const EFFECTS = {
     { at: 80, op: 'burst', tex: 'metal-sparks-atlas', on: 'src', n: 8, speed: [300, 700], angle: 'from', spread: 120, life: [200, 420], size: [16, 34], gravity: 900, drag: 2.5, align: true },
     { at: 80, op: 'shake', px: [1, 3], dur: 180 },
     { at: 80, op: 'dom', name: 'shudder', el: 'src', dur: 180 },
-    { at: 80, op: 'sprite', tex: 'armour-plates', on: 'src', sizeK: 1.0, life: 400, fadeIn: 0.15, fadeOut: 0.4, if: 'armourBack' },
+    { at: 80, op: 'sprite', tex: 'armour-plates', on: 'srcHp', size: 100, life: 400, fadeIn: 0.15, fadeOut: 0.4, if: 'armourBack' },
     { at: 100, op: 'call', fn: 'landBack' },
   ] },
 
   // --- J. Guards and keywords ------------------------------------------------------------------------------------
   riposte: { duration: 700, steps: [
-    { at: 0, op: 'sprite', tex: 'riposte-cross', on: 'src', sizeK: 1.2, scale: [1.4, 1], curve: 'out', life: 450, fadeIn: 0.1, fadeOut: 0.5, tint: 'accent', tintK: 0.5, alpha: 1.3 },
+    { at: 0, op: 'sprite', tex: 'riposte-cross', on: 'srcAtk', size: 120, scale: [1.5, 1], curve: 'out', life: 450, fadeIn: 0.1, fadeOut: 0.5, tint: 'accent', tintK: 0.5, alpha: 1.4 },
     { at: 0, op: 'call', fn: 'tag' },
     { at: 150, op: 'beam', tex: 'lunge-streak', from: 'src', to: 'dst', frac: 0.9, life: 200, h: 60, tint: 'accent', tintK: 0.6 },
     { at: 300, op: 'sprite', tex: 'slash-arc', on: 'dst', sizeK: 1.2, scale: [0.8, 1], curve: 'out', life: 260, fadeOut: 0.4, rot: 'toward', tint: 'accent', tintK: 0.8, alpha: 1.2 },
@@ -190,7 +191,7 @@ export const EFFECTS = {
     { at: 320, op: 'call', fn: 'land' },
   ] },
   armour: { duration: 450, steps: [
-    { at: 0, op: 'sprite', tex: 'armour-plates', on: 'dst', sizeK: 1.1, scale: [0.9, 1.05], life: 450, fadeIn: 0.15, fadeOut: 0.4, alpha: 1.1 },
+    { at: 0, op: 'sprite', tex: 'armour-plates', on: 'dstHp', size: 104, scale: [0.9, 1.05], life: 450, fadeIn: 0.15, fadeOut: 0.4, alpha: 1.2 },
     { at: 0, op: 'call', fn: 'land' },
   ] },
 

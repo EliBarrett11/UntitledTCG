@@ -303,7 +303,15 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       const pos = handLayout(prev.players[HUMAN].hand.length)[i];
       return pos ? { cx: pos.x + 100, cy: 786 + 140 } : { cx: 760, cy: 930 };
     };
-    const setText = (el, v) => { if (el) el.textContent = String(v); };
+    // A number landing; a stat on a card flashes as it changes (card design v4: the tab's number).
+    const setText = (el, v) => {
+      if (!el) return;
+      el.textContent = String(v);
+      const tab = el.closest?.('.tab');
+      if (tab && vfx?.on && !settings().lowMotion) tab.animate([{ filter: 'brightness(1)', transform: 'scale(1)' }, { filter: 'brightness(2.2) drop-shadow(0 0 6px #ffb070)', transform: 'scale(1.25)', offset: 0.3 }, { filter: 'brightness(1)', transform: 'scale(1)' }], { duration: 500 });
+    };
+    // A creature's stat tabs on the board (for effects on the Health or Attack tab).
+    const tabAt = (who, lane, which) => { const el = q(`[data-cell="${who}:${lane}"] .slot-card .${which}`); return el ? box(el) : undefined; };
 
     const gl = !!vfx?.on;
     // With the effects layer, Armour shows at the impact of the attack, Riposte or effect that follows it.
@@ -453,7 +461,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const tb = d ? token(foe, e.target.space) : null;
             const ab = token(e.who, e.from) ?? q(`[data-ghost="${e.who}:${e.from}"]`);
             await fxRun(ctx, attackEffectFor(a), {
-              anchors: anchors({ src: fromBox, dst: toBox }), els: { src: ab, dst: tb ?? toEl },
+              anchors: anchors({ src: fromBox, dst: toBox, srcHp: tabAt(e.who, e.from, 'tab-h'), srcAtk: tabAt(e.who, e.from, 'tab-a'),
+                dstHp: d ? tabAt(foe, e.target.space, 'tab-h') : undefined, dstAtk: d ? tabAt(foe, e.target.space, 'tab-a') : undefined }), els: { src: ab, dst: tb ?? toEl },
               tint: colour, tint2: d ? accentOf(d) : colour, amount: e.amount,
               flags: { ...av.flags, back: !!e.back, armour: armour > 0, armourBack: armourBack > 0, guard: !!(d && hasGuard(d, guardKind)) },
               vars: { ...av.vars, slash2: d ? attackVars(d).vars.slash2 : 'slash-arc', guardSigil: guardKind === 'Shield' ? 'shield-sigil' : 'ward-sigil' },
@@ -487,7 +496,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const rc = prevCard(e.who, e.space);
             const armour = lastAttack ? armourFor(ei, lastAttack.who, lastAttack.from) : 0;
             await fxRun(ctx, 'riposte', {
-              anchors: anchors({ src: from, dst: to }), els: { src: token(e.who, e.space), dst: lastAttack ? token(lastAttack.who, lastAttack.from) : null },
+              anchors: anchors({ src: from, dst: to, srcAtk: tabAt(e.who, e.space, 'tab-a'), dstHp: lastAttack ? tabAt(lastAttack.who, lastAttack.from, 'tab-h') : undefined }),
+              els: { src: token(e.who, e.space), dst: lastAttack ? token(lastAttack.who, lastAttack.from) : null },
               tint: rc ? accentOf(rc) : '#c7a15a', amount: e.amount,
               hooks: {
                 tag: () => tag(ctx, 'RIPOSTE', from),
@@ -507,7 +517,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           if (merged.has(ei)) break;
           B('armour', `Armour: ${e.prevented} damage prevented.`, async (ctx) => { await ink(ctx, `Armour −${e.prevented}`, where(e.who, e.space), 'info'); }, async (ctx) => {
             const at = where(e.who, e.space);
-            await fxRun(ctx, 'armour', { anchors: anchors({ dst: at }), hooks: { land: () => ink(ctx, `Armour −${e.prevented}`, at, 'info') } });
+            await fxRun(ctx, 'armour', { anchors: anchors({ dst: at, dstHp: tabAt(e.who, e.space, 'tab-h') }), hooks: { land: () => ink(ctx, `Armour −${e.prevented}`, at, 'info') } });
           });
           break;
         case 'defeated': {
@@ -529,6 +539,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                   const g = add(prevCard(e.who, e.space) ? renderCard({ ...c, currentHealth: 0 }, { size: 'token', live: true }) : '', at.cx - 82, at.y, 'ghost ghost-token');
                   g.dataset.ghost = `${e.who}:${e.space}`;
                   env.els.ghost = g;
+                  env.anchors.card = box(g);
                 },
               },
             };
@@ -904,6 +915,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                   g.style.width = `${w}px`;
                   g.style.setProperty('--tint', tintOf(l.card.id));
                   env.els.ghost = g;
+                  env.anchors.card = box(g);
                 },
               },
             };

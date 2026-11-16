@@ -40,6 +40,7 @@ export function runSheet(params) {
   const cards = allInstances();
   const cell = (label, html) => `<div class="sheet-cell"><div class="sheet-label">${esc(label)}</div>${html}</div>`;
   let html = '';
+  if (mode.startsWith('v4-')) { document.body.innerHTML = compareSheet(mode.slice(3)); document.body.dataset.done = 'true'; return; }
   if (mode === 'foil') {
     const foil = cards.filter((c) => (c.form === 'oathsworn-captain' && c.level === 7) || c.legendary || c.legendaryCreature === true);
     html = `<div class="sheet-grid">${foil.map((c) => cell(c.name, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>`)).join('')}</div>`;
@@ -61,4 +62,42 @@ export function runSheet(params) {
   }
   document.body.innerHTML = `<main id="sheet">${html}</main>`;
   document.body.dataset.done = 'true';
+}
+
+// The approved mockups' own cards, drawn by the game's renderer in the mockups' layout (?sheet=v4-types,
+// v4-stats, v4-finishes, v4-board), for the side-by-side comparison (tools/compare.mjs).
+const at = (id, lv) => creatureAtLevel(cardDef(id), lv, `cmp-${id}-${lv}`);
+const live = (c, extra = {}) => ({ ...onBoard({ round: 1 }, c), spent: false, ...extra });
+function compareSheet(which) {
+  const BG = 'background:radial-gradient(ellipse at 50% 30%,#2a2119 0%,#130f0b 60%,#080605 100%)';
+  const lab = (t, s, w = 340) => `<div style="width:${w}px;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="font-family:Cinzel,serif;font-weight:600;font-size:13px;letter-spacing:.22em;color:#c9b07a">${t}</div><div style="font-family:'Alegreya Sans',sans-serif;font-size:14px;color:#9c8862">${s}</div></div>`;
+  const col = (h, t, s, w = 340) => `<div style="display:flex;flex-direction:column;align-items:center;gap:22px">${h}${lab(t, s, w)}</div>`;
+  const page = (n, w, gap, cols, h = 70 + 476 + 22 + 44 + 60) => `<div id="cmp" style="width:${w}px;height:${h}px;box-sizing:border-box;padding:70px 70px 0;display:flex;gap:${gap}px;${BG}">${cols}</div>`;
+  const full = (c) => renderCard(c, { size: 'full' });
+  if (which === 'types') {
+    const cards = [[at('oathsworn-recruit', 5), 'CHARACTER', 'Sockets cut into the top corners'], [at('barrow-shade', 6), 'MONSTER', 'Claw rips in the top edge'],
+      [cardAtRound('firebolt', 1, 'f'), 'ACTION', 'A notch that seats the cost'], [cardAtRound('call-to-arms', 1, 'c'), 'EVENT', 'A low arch · Favour box'],
+      [cardAtRound('runed-blade', 1, 'r'), 'ITEM', 'A punched eyelet'], [cardAtRound('emberfall-ruins', 1, 'e'), 'LOCATION', 'Scroll rolls'],
+      [cardAtRound('lady-corwens-commission', 1, 'l'), 'CAMPAIGN', 'A central peak · Quest dots']];
+    return page('types', 7 * 340 + 6 * 56 + 140, 56, cards.map(([c, t, s], i) => col(i === 6 ? renderCard(c, { size: 'full', quest: { progress: 3 } }) : full(c), t, s)).join(''));
+  }
+  if (which === 'stats') {
+    const cards = [[at('oathsworn-recruit', 5), 'MARTIAL · SHIELD', 'Blade-cut Attack tab · stepped Shield tab'], [at('ashen-spire-apprentice', 6), 'ARCANE · WARD', 'Round Attack tab · ringed Ward tab'],
+      [at('gloomfang-wolf', 3), 'MARTIAL · NO GUARD', 'Blade-cut Attack tab · plain Health tab'], [at('barrow-shade', 6), 'ARCANE · NO GUARD', 'Round Attack tab · plain Health tab']];
+    return page('stats', 4 * 340 + 3 * 56 + 140, 56, cards.map(([c, t, s]) => col(full(c), t, s)).join(''));
+  }
+  if (which === 'finishes') {
+    const cards = [[at('oathsworn-recruit', 7), 'FINAL FORM', 'Captain at Level 7 · gold line, holo'], [cardAtRound('the-ashen-wyrm', 1, 'w'), 'LEGENDARY', 'Cost 5 · one per deck'],
+      [legendaryCreatureOf(cardDef('lady-corwens-commission'), 'a'), 'LEGENDARY CREATURE', '★ for cost and Level']];
+    return page('finishes', 3 * 340 + 2 * 56 + 140, 56, cards.map(([c, t, s]) => col(full(c), t, s)).join(''));
+  }
+  const cap = live(at('oathsworn-recruit', 5));
+  const wolf = live(at('gloomfang-wolf', 3));
+  const barrow = live(at('barrow-shade', 6));
+  const spire = live(at('ashen-spire-apprentice', 6));
+  const toks = [[renderCard(cap, { size: 'token', live: true }), 'Plain'],
+    [`<div class="slot-card ready">${renderCard({ ...wolf, attack: wolf.attack + 1, bonusAttack: 1 }, { size: 'token', live: true })}</div>`, 'Ready · Attack ▲'],
+    [`<div class="slot-card spent">${renderCard({ ...barrow, currentHealth: barrow.health - 3, spent: true }, { size: 'token', live: true })}</div>`, 'Spent · damaged'],
+    [renderCard(spire, { size: 'token', live: true }), 'Ward guard']];
+  return page('board', 4 * 164 + 3 * 30 + 140, 30, toks.map(([h, l]) => col(h, l, '', 164)).join(''), 70 + 230 + 22 + 44 + 60);
 }

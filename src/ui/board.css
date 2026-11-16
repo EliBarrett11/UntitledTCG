@@ -63,7 +63,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0806; }
 .quest-line { font-size: 11px; color: var(--muted); line-height: 1.25; }
 
 .enemy-hand { display: flex; align-items: center; padding-left: 14px; }
-.back { border-radius: 5px; border: 1px solid var(--brass); background: repeating-linear-gradient(45deg, #3a2414 0 6px, #2a190e 6px 12px); box-shadow: 0 2px 4px rgba(0,0,0,0.6); }
+/* A face-down card: the painted back, in the cards' rounded outline (radius 10 of 340), with a brass hairline. */
+.back { border-radius: 2.9% / 2.1%; border: 1px solid #c2a36a; background: #0b0806 url('../../assets/ui/card-back.jpg') center / cover no-repeat; box-shadow: 0 0 0 1px #050302, 0 2px 4px rgba(0,0,0,0.6); box-sizing: border-box; }
 .back-small { width: 40px; height: 56px; margin-left: -14px; }
 .back-chip { width: 18px; height: 25px; display: inline-block; vertical-align: middle; }
 .enemy-count { white-space: nowrap; }
@@ -119,15 +120,16 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0806; }
 .map.last-battle .empty-slot { border-color: rgba(232,220,192,0.25); }
 .cell.target { cursor: pointer; }
 .cell.target .empty-slot { background: rgba(240,200,110,0.18); box-shadow: 0 0 0 3px var(--target), 0 0 18px 4px rgba(240,200,110,0.7); }
-.cell.target .slot-card { box-shadow: 0 0 0 3px var(--target), 0 0 18px 4px rgba(240,200,110,0.7); }
+.cell.target .slot-card .card { filter: drop-shadow(0 0 3px var(--target)) drop-shadow(0 0 9px rgba(240,200,110,0.8)); }
 .cell[data-act="attacker"] { cursor: pointer; }
 .slot-card { position: relative; width: 164px; height: 230px; border-radius: 10px; transition: transform 0.25s; }
 .slot-card.spent { transform: rotate(-4deg); }
-.slot-card.spent .card { opacity: 0.6; filter: saturate(0.4); }
-.slot-card.ready { box-shadow: 0 0 0 3px var(--brass), 0 0 24px 6px rgba(240,200,110,0.6); }
-.slot-card.can-attack { box-shadow: 0 0 0 3px #f6dc8a, 0 0 28px 8px rgba(255,214,120,0.85); }
-.slot-card.selected { box-shadow: 0 0 0 4px #fff2c4, 0 0 30px 8px rgba(255,230,150,0.95); }
-.slot-card.target { cursor: pointer; box-shadow: 0 0 0 3px #ff9d6b, 0 0 24px 6px rgba(255,120,70,0.8); }
+.slot-card.spent .card { filter: saturate(0.25) brightness(0.7) drop-shadow(0 6px 10px rgba(0,0,0,0.55)); }
+.slot-card.ready .card { filter: drop-shadow(0 0 7px rgba(255,205,110,0.85)) drop-shadow(0 0 2px rgba(255,220,150,0.9)); }
+.slot-card.can-attack .card { filter: drop-shadow(0 0 3px #f6dc8a) drop-shadow(0 0 10px rgba(255,214,120,0.95)); }
+.slot-card.selected .card { filter: drop-shadow(0 0 3px #fff2c4) drop-shadow(0 0 12px rgba(255,230,150,1)); }
+.slot-card.target { cursor: pointer; }
+.slot-card.target .card { filter: drop-shadow(0 0 3px #ff9d6b) drop-shadow(0 0 10px rgba(255,120,70,0.9)); }
 .tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 10px; letter-spacing: 2px; padding: 2px 8px; border-radius: 3px; font-weight: 700; z-index: 5; white-space: nowrap; }
 .tag-ready { background: var(--brass); color: var(--ink); }
 .tag-spent { background: #3a2a1a; color: var(--parch); }

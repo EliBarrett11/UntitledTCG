@@ -1,7 +1,8 @@
-// The neat-text test: every card, at every Level of every form, at Full, Mini and Token size (Tokens in
+// The neat-text test (card design v4): every card, at every Level of every form, at Full, Mini and Token size (Tokens in
 // three board states: plain; raised, Ready and holding an Item; Spent and damaged), plus Chips at 24, 32 and
 // 40 px. It fails on any text that overflows its box, wraps where it shouldn't (costs, stats, chips, the
-// type line), is cut off or shortened with "…", leaves its card, or overlaps a badge or other text.
+// type line), is cut off or shortened with "…", leaves its card or its text box, or overlaps a badge or other
+// text, and when the card's outline or a socket cuts into text or a number (checked against the SVG outline).
 //
 // Usage: node tools/cardtext.mjs
 // Needs Playwright with Chromium (a dev tool only; never a runtime dependency).
@@ -55,10 +56,10 @@ const result = await page.evaluate(() => {
     const box = r(card);
     const texts = [...card.querySelectorAll('[data-z="text"]')];
     const badges = [...card.querySelectorAll('[data-z="badge"]')];
-    for (const el of [...texts, ...badges, ...card.querySelectorAll('.name, .rule, .type, .sub, .mode-text, .favour-text')]) {
+    for (const el of [...texts, ...badges, ...card.querySelectorAll('.cv-name, .cv-rule, .cv-type, .cv-mode-text, .cv-favour')]) {
       if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) problems.push(`${label}: text overflows its box: "${el.textContent.trim().slice(0, 40)}"`);
     }
-    for (const el of card.querySelectorAll('.nowrap, .type, .tab, .gem, .price-coin, .notch-cost, .seal, .pill, .held-band, .guard-badge, .legend-banner')) {
+    for (const el of card.querySelectorAll('.nowrap, .cv-type, .tab, .cv-well, .cv-kw, .cv-small, .cv-chips span, .cv-held, .cv-retained, .cv-mode-name, .cv-mode-cost')) {
       if (!singleLine(el)) problems.push(`${label}: wraps where it shouldn't: "${el.textContent.trim().slice(0, 40)}"`);
     }
     // The text block stays inside the card and clear of its top (the frame's shape and the badges).
@@ -75,19 +76,30 @@ const result = await page.evaluate(() => {
     for (let i = 0; i < badges.length; i++) for (let j = i + 1; j < badges.length; j++) {
       if (overlap(r(badges[i]), r(badges[j]))) problems.push(`${label}: two badges overlap: "${badges[i].textContent.trim().slice(0, 20)}" / "${badges[j].textContent.trim().slice(0, 20)}"`);
     }
-    // The frame's shape never cuts into a badge on the panel (the Monster's claw-torn corner, the Action's notch...).
-    const panel = card.querySelector('.card-panel');
-    const pb = r(panel);
-    const pts = (getComputedStyle(panel).clipPath.match(/polygon\((.*)\)/)?.[1] ?? '').split(',').map((p) => p.trim().split(/\s+/).map((v, k) => (parseFloat(v) / 100) * (k ? pb.height : pb.width) + (k ? pb.top : pb.left)));
-    const inPoly = (x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i]; const [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
-    if (pts.length > 2) for (const b of badges) {
-      if (!panel.contains(b)) continue;
-      const bb = r(b);
-      const corners = [[bb.left + 1, bb.top + 1], [bb.right - 1, bb.top + 1], [bb.left + 1, bb.bottom - 1], [bb.right - 1, bb.bottom - 1], [(bb.left + bb.right) / 2, bb.top + 1]];
-      if (corners.some(([x, y]) => !inPoly(x, y))) problems.push(`${label}: the frame cuts into a badge: "${b.textContent.trim().slice(0, 20)}"`);
+    // Every text sits inside its text box (the rules box keeps its lines off the tabs and the panel line).
+    for (const boxEl of card.querySelectorAll('.cv-rules')) {
+      const bb = r(boxEl);
+      for (const el of boxEl.querySelectorAll('[data-z="text"]')) if (!inside(r(el), bb)) problems.push(`${label}: text leaves its text box: "${el.textContent.trim().slice(0, 40)}"`);
     }
-    const body = card.querySelector('.body');
-    if (body && r(body).top < box.top + 8) problems.push(`${label}: the text block reaches the top edge`);
+    // The outline never cuts into text or a number: text stays inside the inner line, numbers inside the outline
+    // (except the wells that sit in their sockets, drawn over the outline).
+    const cv = card.querySelector('.cv');
+    const cb = r(cv);
+    const k = cb.width / 340;
+    const ctx = document.createElement('canvas').getContext('2d');
+    const outer = new Path2D(cv.dataset.outline);
+    const innerP = new Path2D(cv.dataset.inner);
+    const corners = (bb) => [[bb.left + 1, bb.top + 1], [bb.right - 1, bb.top + 1], [bb.left + 1, bb.bottom - 1], [bb.right - 1, bb.bottom - 1]].map(([x, y]) => [(x - cb.left) / k, (y - cb.top) / k]);
+    const textRect = (el) => { const range = document.createRange(); range.selectNodeContents(el); const rs = [...range.getClientRects()].filter((x) => x.width > 0); if (!rs.length) return null; return { left: Math.min(...rs.map((x) => x.left)), right: Math.max(...rs.map((x) => x.right)), top: Math.min(...rs.map((x) => x.top)), bottom: Math.max(...rs.map((x) => x.bottom)) }; };
+    for (const el of texts) {
+      const tr = textRect(el);
+      if (tr && corners(tr).some(([x, y]) => !ctx.isPointInPath(innerP, x, y))) problems.push(`${label}: the outline cuts into text: "${el.textContent.trim().slice(0, 30)}"`);
+    }
+    for (const b of badges) {
+      if (b.hasAttribute('data-socket')) continue;
+      const tr = textRect(b) ?? r(b);
+      if (corners(tr).some(([x, y]) => !ctx.isPointInPath(outer, x, y))) problems.push(`${label}: the outline cuts into a number or badge: "${b.textContent.trim().slice(0, 20)}"`);
+    }
   }
   let chips = 0;
   for (const holder of document.querySelectorAll('[data-sheet-chip]')) {

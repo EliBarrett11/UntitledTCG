@@ -1,4 +1,5 @@
-// The card renderer: one function for every card and size, frames by type, foil, wording from the card data.
+// The card renderer (card design v4): one function for every card and size, one outline per card type, foil,
+// wording from the card data.
 import { test, run, assert } from './helpers.js';
 import { defineCards, cardAtRound, creatureAtLevel, cardDef, legendaryCreatureOf } from '../src/engine/cards.js';
 import { CARDS } from '../src/data/cards.js';
@@ -17,20 +18,27 @@ test('every card renders at Full, Mini, Token (creatures) and Chip size', () => 
   }
 });
 
-test('seven frames, one per card type; the Monster has an iron hairline', () => {
+test('seven outlines, one per card type, each drawn from its own SVG path', () => {
   assert.deepEqual(Object.keys(FRAMES).sort(), ['Action', 'Campaign', 'Character', 'Event', 'Item', 'Location', 'Monster']);
+  assert.equal(new Set(Object.values(FRAMES)).size, 7);
   for (const id of ['oathsworn-recruit', 'gloomfang-wolf', 'firebolt', 'call-to-arms', 'runed-blade', 'ironroot-pass', 'lady-corwens-commission']) {
     const c = cardAtRound(id, 1, 'x');
-    assert.ok(renderCard(c).includes(`frame-${c.cardType.toLowerCase()}`), id);
+    const html = renderCard(c);
+    assert.ok(html.includes(`frame-${c.cardType.toLowerCase()}`), id);
+    assert.ok(html.includes(`clip-path:path('${FRAMES[c.cardType]}')`), `${id}: the art is clipped to its outline`);
   }
-  assert.ok(renderCard(cardAtRound('gloomfang-wolf', 1, 'w')).includes('background:#8d939b'));
+  // The Location's scroll rolls; the Monster's claw rips.
+  assert.ok(renderCard(cardAtRound('ironroot-pass', 1, 'l')).includes('rx="8"'));
+  assert.ok(FRAMES.Monster.includes('L216,17'));
 });
 
-test('the Location\'s deckled edge is fixed: the same outline on every render', async () => {
-  const again = await import(`../src/ui/cards.js?again=${Date.now()}`);
-  assert.equal(again.FRAMES.Location, FRAMES.Location);
-  const loc = cardAtRound('ironroot-pass', 1, 'l');
-  assert.equal(renderCard(loc), renderCard(loc));
+test('the stat tabs show the attack and guard: blade or orb corner, step, ring or plain', () => {
+  const tabs = (id, lv) => renderCard(creatureAtLevel(cardDef(id), lv, 't'));
+  assert.ok(tabs('oathsworn-recruit', 5).includes('L73,433'), 'Martial: a blade cut');
+  assert.ok(tabs('barrow-shade', 6).includes('A26,26 0 0 1 73,443'), 'Arcane: an orb curve');
+  assert.ok(tabs('oathsworn-recruit', 5).includes('L293,429 L280,429'), 'Shield: a heraldic step');
+  assert.ok(tabs('ashen-spire-apprentice', 5).includes('A26,26 0 0 1 267,443'), 'Ward: a scooped ring');
+  assert.ok(tabs('gloomfang-wolf', 1).includes('Q267,417 267,427'), 'no guard: plain');
 });
 
 test('foil: a series\' final form at its top Level, the Legendary and the Legendary Creature', () => {
@@ -41,11 +49,13 @@ test('foil: a series\' final form at its top Level, the Legendary and the Legend
   assert.equal(isFoil(cardAtRound('the-ashen-wyrm', 1, 'd')), true);
   assert.equal(isFoil(legendaryCreatureOf(cardDef('lady-corwens-commission'), 'e')), true);
   assert.equal(isFoil(cardAtRound('lady-corwens-commission', 1, 'f')), false);
-  assert.ok(renderCard(creatureAtLevel(captain, 7, 'g')).includes('class="sheen"'));
+  assert.ok(renderCard(creatureAtLevel(captain, 7, 'g')).includes('class="holo"'));
+  assert.ok(!renderCard(creatureAtLevel(captain, 5, 'h')).includes('class="holo"'));
 });
 
 test('the wording on every card is the generated wording (no card text typed by hand)', () => {
-  const plain = (s) => s.replace(/\*\*/g, '').replace(/&#39;|'/g, "'");
+  // (A trigger reads as its name in bold, a dot, then the effect: "On Summon · 2 damage…".)
+  const plain = (s) => s.replace(/^\*\*(.+?):\*\* /, '$1 · ').replace(/\*\*/g, '').replace(/&#39;|'/g, "'");
   const strip = (html) => html.replace(/<[^>]+>/g, '').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ');
   for (const def of CARDS) {
     const c = cardAtRound(def.id, 1, 'w');
@@ -57,10 +67,10 @@ test('the wording on every card is the generated wording (no card text typed by 
   }
 });
 
-test('a Legendary Creature shows FREE and ★; a board creature shows its current stats', () => {
+test('a Legendary Creature shows ★ for cost and Level; a board creature shows its current stats', () => {
   const lc = legendaryCreatureOf(cardDef('lady-corwens-commission'), 'lc');
   const html = renderCard(lc, { size: 'full' });
-  assert.ok(html.includes('FREE') && html.includes('LEGEND'));
+  assert.ok(html.includes('>★</div>') && html.includes('LEGEND'));
   const wolf = { ...creatureAtLevel(cardDef('gloomfang-wolf'), 1, 'w'), currentHealth: 1, bonusAttack: 1, attack: 4, tempAttack: 0 };
   const t = renderCard(wolf, { size: 'token', live: true });
   assert.ok(t.includes('4<span class="mark">▲</span>'));

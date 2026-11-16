@@ -17,6 +17,8 @@ const CHOSEN = {
   enemyLocation: 'each enemy creature in a Location',
   ownLocation: 'each of your creatures in a Location',
 };
+// The words for a chosen target (for a card face's "Target" line).
+export const chosenTargetWords = (spec) => CHOSEN[spec] ?? null;
 const TO = {
   self: 'it',
   eachEnemy: 'each enemy creature',
