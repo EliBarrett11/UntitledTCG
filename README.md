@@ -284,3 +284,34 @@ node tools/compare.mjs
   - `tools/pcompare.mjs` puts each mockup beside the game; `tools/clips.mjs p` records the Prime summon;
   - `tools/simulate.mjs` reports the spread of match length, the summons at Prime and the Retains for a Prime.
 - V3's readings are approved. Stage P's readings for Elliott's approval: `docs/01-rulebook.md` section 13 (rules) and `docs/03-look-and-feel.md` section 10 (look).
+
+### F: Play-test feedback 1 (16 November 2026)
+- Built to the approved feedback mockups (`docs/mockups/feedback-v1/`); their sketches are now part of the game's own code and styles.
+- **One Level well:**
+  - the Prime, Past Prime and Prime-in-Round tags and the "LV" label are gone; the top-right well shows only the Level;
+  - at Prime it turns gold with a dark number, a soft gold glow and a small gold star, on every size (Full, Mini, the hover preview, board tokens);
+  - a token summoned at Prime keeps it; Aldric keeps LEGEND, with the star; the foil still follows Prime.
+- **Prime in hand:** a gold edge glow and a "★ PRIME" tab standing above the card's top edge.
+- **The series line** replaces the curve strip in the hover preview and the Codex: "LEVELS", six rings, "NOW" on this Round's Level, and the Prime in gold with a star.
+- **Dragging** a card from hand hides its preview at once, until it's dropped or the drag is cancelled (Escape cancels a drag).
+- **React moments on the battlefield** (`src/ui/react.js`, `react.css`). For an enemy attack, Adapt or resolving Strat:
+  - everything else dims and blurs, and the cards involved are lifted, with ember and pale glows;
+  - the arrow shows the action, with the damage halfway along;
+  - the results are shown where they happen ("☠ DEFEATED", Health changes, "+N RENOWN" by the Warlord), from the engine's own preview;
+  - the headline (countdown ring, title, who does what, and why) and the plates sit in free board space;
+  - hovering a plate previews its result on the board; the keys 1–9 pick a plate and Escape lets it happen;
+  - the dimming lifts smoothly afterwards.
+- **The targeting arrow** (`src/ui/arrow.js`) is a curved ember ribbon with travelling sparks, a blade head and a reticle that tightens over a legal target. It draws out from the source and follows the pointer. Once a target is chosen, no line stays: the attack beats no longer draw one.
+- **Animation:**
+  - **The defeat fix:** a defeated card now stays fully visible through the hit and its whole burn-away (a ghost of it stands in its place from the start of the action) and is removed only when the burn ends.
+  - **Attacks:** a clearer wind-up and follow-through, 36 sparks, a crack mark and a rattle on the hit card, and springy damage numbers.
+  - **Defeats:** cracks spreading, embers along the edges, a glowing burn line sweeping up the card, ash to the Released Pile, and a last wisp of smoke.
+  - **Summons** settle as they land, and **healing** numbers spring too.
+  - Low motion keeps the fades and the burn-away.
+- **Checks:**
+  - the card render tests cover the new well and the series line;
+  - the presenter check watches every defeated card: in the page and fully visible until its burn-away ends;
+  - the layout check adds React moments for an attack, an Adapt, a Strat and a hovered plate, plus the series line;
+  - the real-input check checks the preview stays hidden through real drags, and cancels some with Escape;
+  - `tools/fcompare.mjs` puts the mockups beside the game; `tools/fclips.mjs` records the attack and defeat, a React moment, and the targeting arrow.
+- Stage P's readings are approved. Stage F's readings for Elliott's approval: `docs/03-look-and-feel.md` section 11.
