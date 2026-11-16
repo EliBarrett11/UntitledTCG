@@ -1,5 +1,7 @@
 # Art prompts: Prime Summons (proposal, 16 November 2026)
 
+**Art status (16 November 2026): all 17 delivered** and saved in assets/cards/.
+
 **For Elliott to generate with ChatGPT, once the Prime Summons proposal (docs/12) is approved.** 17 images. Save each as `assets/cards/<id>.jpg` at about 5:7. Where a reference is named, attach that existing image and keep the figure recognisable. The game shows Art Pending until each arrives.
 
 ## 1. Cinderwick Prodigy → `assets/cards/cinderwick-prodigy.jpg`
