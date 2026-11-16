@@ -32,7 +32,11 @@ const SCENES = [
   { name: 'menu', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await clickTop(p, '[data-act="hand"]', 0); } },
   { name: 'settings', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await clickTop(p, '[data-act="settings"]', 0); }, need: '[data-region="settings"]' },
   { name: 'attack-preview', query: '?seed=2&scene=mid&pace=100000', steps: async (p) => { await clickTop(p, '[data-act="attacker"]', 0); }, need: '.preview-badge' },
-  { name: 'react', query: `?seed=${SEED}&scene=react&pace=100000`, need: '[data-region="react-bar"]' },
+  // Stage F: a React moment of each kind (an attack, an Adapt, a resolving Strat), and a plate's preview on hover.
+  { name: 'react', query: `?seed=${SEED}&scene=react-attack&pace=100000&timer=off`, need: '[data-region="react-moment"][data-kind="attack"]' },
+  { name: 'react-hover', query: `?seed=${SEED}&scene=react-attack&pace=100000&timer=off`, steps: async (p) => { await hoverTop(p, '.rx-plate[data-i="0"]', 0); }, need: '.rx.previewing' },
+  { name: 'react-adapt', query: '?seed=2&scene=react-adapt&pace=100000&timer=off', need: '[data-region="react-moment"][data-kind="adapt"]' },
+  { name: 'react-strat', query: '?seed=5&scene=react-strat&pace=100000&timer=off', need: '[data-region="react-moment"][data-kind="strat"]' },
   { name: 'lastbattle', query: `?seed=${SEED}&scene=lastbattle&pace=100000`, need: '.map.last-battle' },
   { name: 'end', query: `?seed=${SEED}&scene=end&pace=100000`, need: '[data-region="end"]' },
   // Stage V3's screens around a match.
@@ -78,13 +82,13 @@ function inspect() {
   if (sr.left < -1 || sr.top < -1 || sr.right > innerWidth + 1 || sr.bottom > innerHeight + 1) out.push('the stage is off-screen');
   if (document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight) out.push('the page scrolls');
   // Nothing off-screen.
-  for (const el of stage.querySelectorAll('[data-region], .hand-card, .preview, .menu, .react-opt, .dialog, .slot-card, .loc-label, .side-marker, .caption, .prompt, .toast, .preview-badge, .gear, .scr-btn, .end-panel, .end-head, .end-heroes, .end-buttons, .title-block, .setup-side, .setup-mid')) {
+  for (const el of stage.querySelectorAll('[data-region], .hand-card, .preview, .menu, .react-opt, .dialog, .slot-card, .loc-label, .side-marker, .caption, .prompt, .toast, .preview-badge, .gear, .scr-btn, .end-panel, .end-head, .end-heroes, .end-buttons, .title-block, .setup-side, .setup-mid, .rx-panel, .rx-plate, .rx-chip, .rx-dmg, .rx-lift:not(.opt)')) {
     if (!visible(el)) continue;
     const b = box(el);
     if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
   }
   // No text clipped or cut off.
-  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .opening-text')) {
+  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b')) {
     if (!visible(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
@@ -98,12 +102,11 @@ function inspect() {
     ['[data-region="topbar"]', '[data-region="map"]'], ['[data-region="topbar"]', '[data-region="column"]'], ['[data-region="map"]', '[data-region="column"]'],
     ['.hand-card', '.me-piles .piles'], ['.hand-card', '.me-left .quest'], ['.hand-card', '.me-left .warlord'], ['.hand-card', '[data-region="column"]'],
     ['.side-marker', '[data-region="map"]'], ['.side-marker', '.hand-card'], ['.side-marker', '.me-left .quest'],
-    ['[data-region="react-bar"]', '.warlord-enemy'], ['[data-region="react-bar"]', '[data-region="quest-p2"]'], ['[data-region="react-bar"]', '[data-region="piles-p2"]'],
-    ['[data-region="react-tray"]', '[data-region="map"]'], ['[data-region="react-tray"]', '.side-marker'], ['[data-region="react-tray"]', '.me-piles .piles'], ['[data-region="react-tray"]', '.me-left .quest'],
+    // (Stage F: in a React moment, the plates and headline never cover a card involved, a mark or each other.)
+    ['.rx-panel', '.rx-lift:not(.opt)'], ['.rx-panel', '.rx-lift.opt'], ['.rx-panel', '.rx-chip'], ['.rx-panel', '.rx-dmg'], ['.rx-chip', '.rx-chip'], ['.rx-plate', '.rx-plate'],
     ['.caption', '.loc-label'], ['.prompt', '.loc-label'], ['.caption', '.prompt'], ['.caption', '.slot-card'], ['.prompt', '.slot-card'],
     ['.loc-label', '.slot-card'], ['.menu', '[data-region="map"] .slot-card.ready'],
     ['.gear', '[data-region="piles-p2"]'], ['.gear', '[data-region="column"]'], ['.preview-badge', '.preview-badge'], ['.preview-badge', '.loc-label'],
-    ['[data-region="react-tray"]', '.me-piles .piles'],
     ['.end-panel', '.end-panel'], ['.end-panel', '.end-heroes'], ['.end-panel', '.end-heroes-label'], ['.end-how', '.end-panel'], ['.end-buttons', '.hero-note'],
     ['.loc-label', '.slot-card'], ['.preview .series-line', '.preview .card'],
     ['.prime-tab', '.hand-card .cv-well'], ['.prime-tab', '.hand-card .cv-name'], ['.prime-tab', '[data-region="map"]'], ['.end-panel', '.end-head'], ['.end-heroes', '.end-buttons'], ['.hero', '.hero'],

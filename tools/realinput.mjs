@@ -79,7 +79,7 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
     throw new Error(`a click had no effect: ${what} at (${Math.round(p.x)}, ${Math.round(p.y)}); ${why}`);
   }
   const count = (sel) => page.evaluate((s) => document.querySelectorAll(s).length, sel);
-  const state = () => page.evaluate(() => ({ ...document.body.dataset, end: !!document.querySelector('[data-region="end"]'), mull: !!document.querySelector('[data-region="mulligan"]'), react: !!document.querySelector('[data-region="react-bar"]') }));
+  const state = () => page.evaluate(() => ({ ...document.body.dataset, end: !!document.querySelector('[data-region="end"]'), mull: !!document.querySelector('[data-region="mulligan"]'), react: !!document.querySelector('[data-region="react-moment"]') }));
 
   // Drag a hand card onto one of the places it lights up (or onto the map, for a card with no target).
   async function dragHand(index) {
