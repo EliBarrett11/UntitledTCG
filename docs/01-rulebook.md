@@ -24,6 +24,7 @@ Keywords, triggers and card effects aren't listed here. They start from nothing 
 | Completing an Event's Favour | +3 |
 | Completing a Campaign's Quest | +2 |
 | Dominating the Last Battle at Dusk | +5 |
+| Summoning a Character or Monster at its Prime (7.1) | +1 |
 
 During the Last Battle, all Renown earned is increased by half, rounded up (1 → 2, 3 → 5, 5 → 8).
 
@@ -114,11 +115,25 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
   - **Speed:** Slow, Steady or Swift.
   - **Attack kind:** Martial or Arcane.
   - **Guard** (optional): Shield (against Martial) or Ward (against Arcane).
-- **Summoning** (an action): pay the cost and place it in an empty space on your side. It arrives **Spent**.
+- **Summoning** (an action): pay the cost and place it in an empty space on your side. It arrives **Spent**. Summoned at its Prime Level, it gives its player +1 Renown (7.1).
 - **Active, Ready and Spent:**
   - Active cards can act this Round.
   - A **Ready** card is one of the fastest Active cards on both sides: the highest Speed among all Active cards. Only Ready cards can attack.
   - A Spent card can't attack or hit back until the next Dawn.
+
+### 7.1 Prime (approved by Elliott, 16 November 2026)
+
+- **Prime:** each Character and Monster series names one **Prime Level**. A card is **Rising** below it, **Prime** at it and **Waning** above it. Because a card's Level off the battlefield is set by the Round, a series' Prime is also a Round ("Prime in Round 4"), the same for every copy and both players. On the battlefield, a card's stage is the stage it was summoned at.
+- **Three forms per series,** two Levels each: young (the series' first two Levels), grown (the next two) and elder (the last two). The Prime can fall in any form.
+- **The stat curve:**
+  - A Rising or Waning card's Attack plus Health is its **Level + 2, less 1 per ability**. An ability is a keyword or a trigger; Shield and Ward are free, and so is a "Prime:" ability.
+  - At the Prime Level a card has **+1 Attack and +1 Health** on top of the curve.
+  - Swift series lean to Attack, Steady series are even, Slow series lean to Health.
+- **"Prime:" abilities** (for example "Prime: On Summon: Draw 2 cards.") work only if the creature was summoned at its Prime Level. At any other Level the line shows on the card but does nothing, and asks for no target.
+- **Summoning at Prime** gives **+1 Renown** (section 2), increased by half in the Last Battle like all Renown.
+- **Legendary cards and Legendary Creatures** are always Prime.
+- **Foil** marks the Prime Level (and Legendaries).
+- Nothing else changes: costs, Levels by Round, the snapshot on summon, Retain's cost, combat and Renown.
 
 ## 8. Battle Phase actions
 
@@ -129,7 +144,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
 5. **Buy an Item** (section 10).
 6. **Place a Location** (section 9).
 7. **Play a Campaign card** as its Campaign Order (section 8.4).
-8. **Retain:** pay 1 Energy to keep one card in hand through Dusk. Each Retained card means one fewer card drawn at the next Dawn (never below 0). Any card type can be Retained. There's no limit beyond Energy and turns. Like every Battle Phase action, Retaining ends your turn and uses 1 of the Market's Stock.
+8. **Retain:** pay 1 Energy to keep one card in hand through Dusk. Each Retained card means one fewer card drawn at the next Dawn (never below 0), unless it's **Patient** (12.1). A card's **On Retain** trigger resolves when it's Retained (12.2). Any card type can be Retained. There's no limit beyond Energy and turns. Like every Battle Phase action, Retaining ends your turn and uses 1 of the Market's Stock.
 9. **Pass.**
 
 **Choosing targets:** a card's target is chosen when it's played (an Action mode, an Event, an Item, a Campaign Order, or an On Summon as part of the Summon action). A Strat keeps that target until it resolves. Effects never pause mid-way for a new choice.
@@ -233,6 +248,7 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 | **Ambush** | It arrives Active rather than Spent. |
 | **Armour X** | Each time it would take damage from any source, it takes X less (minimum 0). Armour from different sources adds up. |
 | **Riposte X** | After an attack on it resolves, if it's still on the battlefield, it deals X damage to the attacker. This works even while it's Spent, and it's separate from hitting back. |
+| **Patient** | Retaining this card doesn't reduce your next draw. (Approved by Elliott, 16 November 2026.) |
 
 ### 12.2 Triggers (approved by Elliott, 13 November 2026)
 
@@ -240,11 +256,11 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 |---|---|
 | **On Summon** | resolves just after the creature is placed. If it needs a chosen target, the target is chosen as part of the Summon action. If there's no legal target, the creature still arrives and the effect does nothing. |
 | **On Defeat** | resolves just after the creature goes to the Released Pile. "The enemy across from it" means the enemy in the lane it stood in. |
+| **On Retain** | resolves when you Retain the card. (Approved by Elliott, 16 November 2026.) |
 
-## 13. Open questions
+**"Prime:"** before a trigger means it works only if the creature was summoned at its Prime Level (7.1).
 
-1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Monsters carry a **Kind** (Beast, Undead, Dragon and so on) in place of a Class and a Race.
-2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.
+## 13. Readings and open questions
 
 (S1's readings were approved by Elliott on 13 November 2026 and are now in the rules above.)
 
@@ -259,3 +275,23 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 9. **On Defeat damage** that defeats a creature pays the On Defeat creature's owner, like any effect of theirs.
 10. **"Gain N Energy this Round"** adds Base Energy, which is lost at the end of the Round.
 11. **A creature's Level and its trigger:** Deepforge Acolyte's "L4: heal 3 instead" is stored as that Level's own trigger. The wording shown is that Level's.
+
+### Readings from stage P: needing Elliott's approval
+
+12. **The Barrow Wisp is put on the curve.** docs/12 gives it 2 / 2 at Level 2 and 2 / 3 at Level 3, one point above the curve with its On Defeat (Level + 2 − 1 = 3 and 4). Every other Rising and Waning Level is exactly on the curve, as the approved rule says, so the build uses **1 / 2 and 2 / 2**. (The alternative is to keep docs/12's numbers and allow this one exception.)
+13. **The stage is judged by the card's Level:** off the battlefield, this Round's Level; on the battlefield, the Level it was summoned at (the snapshot), so a creature summoned at its Prime stays "summoned at Prime".
+14. **The Prime summon's Renown** comes just after the creature is placed, before its On Summon. If it wins the match, the On Summon doesn't resolve (the match is over).
+15. **The Ashen Wyrm** (a Legendary card, always Prime) gives the +1 Renown when summoned. **Aldric the Unbroken** arriving from a Quest isn't a summon, so he gives no +1 Renown; he is still Prime.
+16. **A "Prime:" On Summon away from the Prime** asks for no target (Cinderwick Prodigy in Round 2 is summoned without choosing an enemy).
+17. **Patient is judged at Dusk,** when hands are discarded, by the card as it is that Round. A Mossback Sapling or Treant Retained in Rounds 1–4 isn't Patient (Patient comes with the Ancient, from Level 7).
+18. **On Retain resolves at once,** as part of the Retain action and before the turn ends. The card stays in hand. It uses the card's trigger at this Round's Level (only Hollowfoot Fence has one).
+19. **Wording:** "Prime:" joins the trigger's bold name ("**Prime: On Summon:** Draw 2 cards."). An On Retain effect starts with a capital like every effect ("**On Retain:** Gain 1 Gold.", where docs/12 writes "gain").
+20. **Counting abilities for the curve:** Armour X and Riposte X count 1 whatever X is, and a "Prime:" ability is free at every Level (as docs/12's numbers show: Cinderwick Prodigy is 2 / 2 at Level 2 with its "Prime:" line).
+21. **The Legendaries are off the curve:** The Ashen Wyrm (6 / 6 with its On Summon) and Aldric (6 / 6 with Shield and Armour 1) take docs/12's numbers as given; the curve test covers the series only.
+
+### Open questions
+
+1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Monsters carry a **Kind** (Beast, Undead, Dragon and so on) in place of a Class and a Race.
+2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.
+
+**Pace with the new curve (stage P):** smaller stats mean less Warlord damage per hit. No Renown values changed; Elliott will monitor match length (stage P's measurements: `docs/balance/p-before.txt` and `p-after.txt`).

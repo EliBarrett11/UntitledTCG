@@ -201,7 +201,7 @@ The docs don't settle these interface details; S3 uses the simplest reading.
 7. **Settings:** a gear at the right end of the top bar. Choices are saved in this browser only; if storage is unavailable, they last for the visit.
 8. **The Monster Level badge** sits lower and further in at every size, so the claw-torn corner never cuts into it; the neat-text test now checks that no frame cuts into any badge.
 
-## 9. Readings from V3 (presentation): needing Elliott's approval
+## 9. Readings from V3 (presentation): approved by Elliott, 16 November 2026
 
 1. **Heroes of the match** are up to three of your cards, ranked by the Renown their attacks on the enemy Warlord earned you (from your own Renown record, so the count is exact even in a mirror match). Ties go to the card that scored first. Each is drawn at its final Level (the Level for the last Round), or as the Legendary Creature. Cards that never hit the Warlord aren't listed, so a match can show fewer than three, or none.
 2. **The result line** uses the concept still's words with the engine's result: "Your Warlord reached 100 Renown in Round 9" (or "The enemy Warlord …"). The out-of-creatures ending keeps S5's words: "Neither side has a creature left (Round N)." A draw shows "A DRAW" in the defeat screen's colours.

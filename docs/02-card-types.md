@@ -4,7 +4,7 @@
 
 | Card type | What it is | How it's played | What the card shows |
 |---|---|---|---|
-| **Character** | A hero with a Class and a Race, in a series of up to 6 Levels | Summoned into an empty space (rulebook 7) | Name, Class and Race, Level, cost, Speed, attack kind, Attack, Health, guard, keywords, one trigger |
+| **Character** | A hero with a Class and a Race, in a series of up to 6 Levels | Summoned into an empty space (rulebook 7) | Name, Class and Race, Level, cost, Speed, attack kind, Attack, Health, guard, keywords, one trigger, and its series' Prime (rulebook 7.1) |
 | **Monster** | A creature. **For now, identical to a Character in every rule.** | Same as a Character | Same as a Character |
 | **Action** | A spell, manoeuvre or trick | One of up to three modes: React, Adapt or Strat, each with its own cost (rulebook 8.2) | Name, Class (or none), three mode rows (mode, cost, short effect) |
 | **Event** | Something that happens: a festival, a betrayal, a call to arms | Release N other cards; Favour if a Released card meets its condition (rulebook 8.3) | Name, Release N, effect, Favour condition and stronger effect |

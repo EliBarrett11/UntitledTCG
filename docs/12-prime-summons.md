@@ -1,6 +1,6 @@
 # Prime Summons and the new stat curve (proposal)
 
-**Status: approved (Elliott, 16 November 2026)** with his changes: a subtler Prime (+1 Attack, +1 Health), every non-Prime card worth its Energy, +1 Renown for a Prime summon, the name Prime kept, and no pace changes yet (match length will be monitored later). The build moves these rules into docs/01-rulebook.md and the cards into docs/cards.json.
+**Status: approved (Elliott, 16 November 2026), and built in stage P:** the rules are now in docs/01-rulebook.md (section 7.1, 12.1, 12.2 and the Renown table) and the cards in docs/cards.json. Approved with his changes: a subtler Prime (+1 Attack, +1 Health), every non-Prime card worth its Energy, +1 Renown for a Prime summon, the name Prime kept, and no pace changes yet (match length will be monitored later). The build moves these rules into docs/01-rulebook.md and the cards into docs/cards.json.
 
 Mockup: `docs/mockups/prime-v1/series.html` (and `.png`).
 
