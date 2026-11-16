@@ -72,6 +72,12 @@ The review clips (videos and frame strips of each storyboard moment, in `tools/c
 node tools/clips.mjs
 ```
 
+The card comparison (each approved card-design mockup above the same cards drawn by the game, in `tools/screenshots/c-compare-*.png`):
+
+```bash
+node tools/compare.mjs
+```
+
 **Measuring on your machine:** open the game with `?fps=1` for a corner overlay with the fps, the average and worst frame time over the last 5 seconds, and the effects' quality step.
 
 **Debug view:** open the page with `?debug=1` (and optionally `&seed=N`) to watch one seeded AI-vs-AI match as a text log.
@@ -177,4 +183,31 @@ node tools/clips.mjs
 - Dev aids: `?prefer=card:mode` (the autoplay AI makes those plays when legal, for the clips) and `?scene=quest`.
 - Checks: `tests/v2-signature.test.js`; the effects check now requires the V2 moments to play in real matches; `node tools/clips.mjs` records the V2 clips (`node tools/clips.mjs v1` for V1's).
 - Readings for Elliott's approval, including the timing budget in 5.10: `docs/10-feel-and-vfx.md` section 6.
+
+### C: Card design v4 (16 November 2026)
+- The card renderer (`src/ui/cards.js`, `cards.css`) is rebuilt to the approved card design v4 (`docs/mockups/cards-v4/`), using `reference-geometry.py`'s outlines, sizes, colours and positions. The API is unchanged: one function, four sizes.
+- **The look:**
+  - the art fills the card, clipped to its type's outline, and darkens into the text panel;
+  - an SVG frame: a dark edge, a brass hairline and an inner line;
+  - one outline trait per card type;
+  - the panel line with the Class or Kind glyph in its diamond;
+  - the name and type line in Cinzel, the rules in Alegreya Sans (now in `assets/fonts/`).
+- **Creatures:**
+  - cost and Level wells in the top sockets (★ and LEGEND for Aldric);
+  - Speed chevrons at the bottom centre;
+  - Attack and Health tabs whose inner corners show Martial or Arcane, and Shield, Ward or no guard.
+- **The other card types:**
+  - Actions: mode rows with their costs;
+  - Events: Release and the Favour box;
+  - Items: the price well;
+  - Locations: scroll rolls, with lanes and Rounds;
+  - the Campaign: the Quest dots ending in Aldric's portrait, live in a match.
+- **Foil** (final forms at their top Level, the Wyrm, Aldric): a gold hairline and inner line, a gold name, and a holo band that stops drifting in low motion.
+- **Tokens** are the same drawing at 164 px, keeping current stats (green ▲, red ▼), stat sums on hover and the Held band. **Mini** cards (200 px) carry one line. **Chips** are a round art crop with a brass ring. The card back is the painted back, in the same rounded outline.
+- **Effects** that target parts of a card now land on the new parts: the guard's sigil and Armour on the Health tab, Riposte on the Attack tab, a changed stat's tab flashes, and the burn-away fits the card. The board's Ready, target and selected glows follow the card's outline.
+- **Checks:**
+  - the neat-text test now also checks text and numbers against the SVG outline and the rules box;
+  - `tools/compare.mjs` puts each mockup page beside the game's drawing of the same cards;
+  - `?sheet=v4-types|stats|finishes|board` draws those cards in the mockups' layout.
+- V2's readings are approved. Stage C's readings for Elliott's approval: `docs/03-look-and-feel.md` section 3.
 

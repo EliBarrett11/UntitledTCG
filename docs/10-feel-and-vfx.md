@@ -289,7 +289,7 @@ All of them can be skipped.
 
 ---
 
-## 6. Readings needing Elliott's approval (V2)
+## 6. V2's readings (approved by Elliott, 16 November 2026)
 
 1. **The timing budget in section 5.10, as proposed, now in use:**
    - the Ashen Wyrm's arrival 3.5 s, its On Summon breath included;

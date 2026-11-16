@@ -103,6 +103,35 @@ Each has a `.png` screenshot. `reference-geometry.py` holds the exact shapes, si
 
 **Superseded:** the S4 design (below), card design v2, and the painted-frame approach (v3, `docs/11-card-frame-prompts.md`, parked as a possible later upgrade).
 
+**Readings needing Elliott's approval (stage C, the v4 rebuild):**
+1. **The panel line follows each card's text.** The mockups set it by hand for each card. The game works it out from the amount of text: 250–318 px down for creatures, 236–300 px for the other card types. Long text never crowds the tabs, and short text keeps the art tall. Against the mockups it moves at most a few pixels.
+2. **The keyword line includes guards on every creature.** The Captain shows SHIELD as in the mockup, and Aldric shows "SHIELD · ARMOUR 1" where the mockup shows only "ARMOUR 1".
+3. **Wording comes only from the data,** so a few lines differ from the mockups' hand-written text:
+   - Aldric's line reads "Arrives when the Quest for Lady Corwen's Commission is complete." (mockup: "Arrives free when Lady Corwen's Quest is complete.").
+   - The Favour box reads "Release a Fighter: Draw 4 cards. +3 Renown." (mockup: "draw 4 instead").
+   - The Order reads "Order · 2 Energy: Draw 2 cards.".
+4. **The Action's "TARGET · …" line** appears only when every mode has the same target (Firebolt). Its words come from the wording templates. Night Raid and Mending Prayer have different targets per mode, so their mode rows say who.
+5. **Items:**
+   - A Held Item's rule starts "**The holder:**" and ends with the reminder "Lost if its holder is defeated."
+   - A Consumed Item ends with "Then it goes to the Market's pool."
+6. **A Location's chips** read "3 ROUNDS" (on the board, "N ROUNDS LEFT") and "DOMINATE · +3 RENOWN".
+7. **Mini cards** add the Level well beside the cost (the Level matters in the hand). They leave out the type line. Their one line is:
+   - a creature's trigger (or its keywords);
+   - an Action's modes and costs;
+   - an Event's Release and effect;
+   - an Item's or a Location's effect;
+   - the Campaign's Quest.
+8. **A token's keyword line** shows its keywords and guards, or else its trigger's name (as in the mockup's "ON DEFEAT").
+9. **Fitting text:**
+   - A name too long for its line at the spec size gets a little smaller: Archmagus of the Ashen Spire at 16 px on Full.
+   - A stat with two digits, or a ▲ or ▼ mark, also gets a little smaller so it stays inside its tab.
+10. **A Held Item's band** on a token runs across the lower art, just above the panel line.
+11. **The Campaign** has no cost well, as in the mockup. Its Order's cost is in the Order line.
+12. **Effects on card parts:** the guard's sigil and Armour's plates flash on the Health tab, Riposte's cross on the Attack tab, a changed stat's tab flashes as the number lands, and the burn-away fits the card exactly.
+13. **The board's highlights** (Ready, can attack, selected, target) are glows that follow the card's outline, not boxes.
+14. **The art's framing** in each card follows the mockups, set per painting.
+15. **A card without art** shows a glow in its accent colour with ART PENDING, inside its outline.
+
 ---
 
 ### The S4 design (superseded)
