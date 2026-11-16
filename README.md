@@ -227,4 +227,11 @@ node tools/compare.mjs
   - `tools/realinput.mjs` goes through setup after Play again;
   - `tools/v3compare.mjs` puts each concept still beside the game (`tools/screenshots/v3-compare-*.png`);
   - `tools/v3clip.mjs` records the whole flow (`tools/clips/v3-flow.webm`).
+- **Performance** (`?fps=1`, 1920×1080, in the build container's software WebGL, so for reference only):
+  - title screen: 60 fps;
+  - victory and defeat screens: 34–52 fps;
+  - the board with effects playing: 8–15 fps;
+  - the Last Battle: 4–7 fps.
+
+  Stage C, measured the same way, gives the same board and Last Battle figures, so the new skin adds no measurable cost.
 - Stage C's readings are approved. V3's readings for Elliott's approval: `docs/03-look-and-feel.md` section 9.
