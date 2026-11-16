@@ -235,3 +235,52 @@ node tools/compare.mjs
 
   Stage C, measured the same way, gives the same board and Last Battle figures, so the new skin adds no measurable cost.
 - Stage C's readings are approved. V3's readings for Elliott's approval: `docs/03-look-and-feel.md` section 9.
+
+### P: Prime Summons, the new stat curve and Location tiles (16 November 2026)
+- **Prime Summons** (docs/12, approved; now in `docs/01-rulebook.md` 7.1, 12.1, 12.2 and the Renown table):
+  - Every Character and Monster series names a Prime Level. A card is Rising below it, Prime at it and Waning above it, so a series' Prime is a Round, the same for everyone.
+  - Summoning at Prime gives +1 Renown, its own Renown source (increased by half in the Last Battle).
+  - "Prime:" abilities work only if summoned at Prime. **On Retain** (a new trigger) and **Patient** (a new keyword: Retaining it doesn't reduce your next draw).
+  - Legendaries are always Prime; foil follows the Prime.
+- **The cards** (`docs/cards.json`, from docs/12 section 6):
+  - every series has three forms of two Levels each, on the new curve (Attack + Health = Level + 2, less 1 per ability; +1/+1 at Prime);
+  - three new series: Cinderwick Prodigy (Gnome Wizard), Duskmere Oracle (Elf Seer) and Mossback Ancient (Treant);
+  - The Ashen Wyrm and Aldric the Unbroken are 6 / 6;
+  - the first deck is still 40 cards: one copy fewer of Hollowfoot Cutpurse, Barrow Shade and Ironhide Brawler, one of each new series;
+  - the 17 new forms show Art Pending until their art (docs/13) arrives.
+- **The engine and the AI:**
+  - the engine knows each card's stage, the Prime summon, "Prime:" conditions, On Retain and Patient;
+  - the AI Retains a card whose Prime is next Round when it can afford to, and values summoning at Prime (Prime is public).
+- **The match length** (50 AI-vs-AI matches, seeds 1–50; `docs/balance/p-before.txt` and `p-after.txt`). No Renown values changed.
+
+  | | Before | After |
+  |---|---|---|
+  | Rounds, average | 8.20 | 8.96 |
+  | Standard deviation | 1.17 | 1.48 |
+  | Median | 8 | 9 |
+  | Range | 6–10 | 7–13 |
+  | Damage to the Warlord | 39.8% | 22.0% |
+  | Defeats | 25.5% | 33.5% |
+  | Location dominance | 22.9% | 21.8% |
+  | Favours | 9.0% | 11.2% |
+  | Prime summons | none | 6.4% |
+  | Last Battle dominance | 1.8% | 3.9% |
+  | Quests | 1.0% | 1.2% |
+
+  A third of all summons were at Prime, and 93 of the AI's 96 Retains were for a Prime next Round.
+- **The cards' look:**
+  - a tag under the Level well: silver "▲ PRIME · ROUND N", gold "★ PRIME", muted "▼ PAST PRIME";
+  - foil at the Prime; a gold star on the Level well of a creature summoned at Prime; a soft gold glow on a card in hand at its Prime; "Prime next Round" on the Retain choice;
+  - the series curve strip in the hover preview of a creature in hand and in the Codex;
+  - a short gold moment for a summon at Prime, with a low-motion version.
+- **Location tiles** (docs/mockups/locations-v1, approved):
+  - a placed Location is a raised tile with its art at full strength;
+  - its label has no box: the name in gold, a brass rule, the effect with its number in gold, the Rounds as diamonds, and whose it is;
+  - empty spaces on a tile are dark glass.
+- **The victory screen:** the result line on a darker glow over the burst, room for the Heroes of the match, and the "Prime summons" row.
+- **Checks:**
+  - `tests/p-prime.test.js` covers the Prime stages, "Prime:" abilities, On Retain, Patient and the draw, the +1 Renown and its Last Battle bonus, the deck, and the curve;
+  - the layout check adds two-tile and curve-strip scenes, and checks contrast on the tiles;
+  - `tools/pcompare.mjs` puts each mockup beside the game; `tools/clips.mjs p` records the Prime summon;
+  - `tools/simulate.mjs` reports the spread of match length, the summons at Prime and the Retains for a Prime.
+- V3's readings are approved. Stage P's readings for Elliott's approval: `docs/01-rulebook.md` section 13 (rules) and `docs/03-look-and-feel.md` section 10 (look).
