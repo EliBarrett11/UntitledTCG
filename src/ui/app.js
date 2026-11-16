@@ -7,7 +7,7 @@ import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lan
 import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
 import { render, fitLabels } from './view.js';
-import { renderCard } from './cards.js';
+import { renderCard, curveStrip } from './cards.js';
 import { displayLine, HUMAN, AI, esc } from './text.js';
 import { createPresenter } from './presenter.js';
 import { createVfx } from './vfx/index.js';
@@ -344,7 +344,9 @@ export function startApp(params) {
     add('Buy and store in your Bag', `${card.price} Gold`, (a) => a.type === 'buyItem' && a.then === 'store');
     add('Place', `over ${card.width} lanes for ${card.rounds} Rounds`, (a) => a.type === 'placeLocation');
     add('Campaign Order', `${card.order?.cost} Energy · ${card.order?.text}`, (a) => a.type === 'campaignOrder');
-    add('Retain', '1 Energy · keep it through Dusk', (a) => a.type === 'retain');
+    // Stage P: a creature whose Prime is next Round says so on its Retain choice.
+    const primeNext = card.stage === 'rising' && card.primeRound === s.round + 1;
+    add('Retain', `1 Energy · keep it through Dusk${primeNext ? ' · Prime next Round' : ''}`, (a) => a.type === 'retain');
     if (!groups.length) return toast(`${card.name} can't be played now.`);
     ui.handSel = uid;
     if (groups.length === 1) { choose(groups[0].list, `${groups[0].label} ${card.name}`); return; }
@@ -552,13 +554,16 @@ export function startApp(params) {
     if (!el || ui.menu || drag?.active) { pv.hidden = true; return; }
     const h = hoverCard(el);
     if (!h) { pv.hidden = true; return; }
-    pv.innerHTML = renderCard(h.card, { size: 'full', ...h.opts });
+    // Stage P: a creature in hand or the Market shows its series curve strip under the card.
+    const strip = h.strip ? curveStrip(h.card, s.round) : '';
+    pv.innerHTML = `${renderCard(h.card, { size: 'full', ...h.opts })}${strip}`;
+    pv.classList.toggle('with-curve', !!strip);
     pv.hidden = false;
     const scale = stage.getBoundingClientRect().width / STAGE_W;
     const r = el.getBoundingClientRect();
     const sr = stage.getBoundingClientRect();
     const box = { x: (r.left - sr.left) / scale, y: (r.top - sr.top) / scale, w: r.width / scale, h: r.height / scale };
-    const W = 340; const H = 476; const M = 10;
+    const W = strip ? 600 : 340; const H = strip ? 476 + 12 + (pv.querySelector('.curve-strip')?.offsetHeight ?? 150) : 476; const M = 10;
     let x; let y;
     if (el.dataset.hover === 'hand' && !el.closest('.mull-card')) { x = box.x + box.w / 2 - W / 2; y = box.y - H - 14; }
     else { x = box.x + box.w + M; if (x + W > STAGE_W - M) x = box.x - W - M; y = box.y + box.h / 2 - H / 2; }
@@ -587,9 +592,9 @@ export function startApp(params) {
     const uid = el.dataset.uid;
     const one = (card, opts = {}) => (card ? { card, opts } : null);
     if (k === 'board') return one(s.players[el.dataset.who].row[Number(el.dataset.space)], { live: true });
-    if (k === 'hand' || k === 'react') return one(s.players[HUMAN].hand.find((c) => c.uid === uid));
+    if (k === 'hand' || k === 'react') { const c = s.players[HUMAN].hand.find((x) => x.uid === uid); return c ? { card: c, opts: {}, strip: k === 'hand' } : null; }
     if (k === 'bag') return one(s.players[el.dataset.who].bag.find((c) => c.uid === uid));
-    if (k === 'market') return one(s.market.onSale);
+    if (k === 'market') return s.market.onSale ? { card: s.market.onSale, opts: {}, strip: true } : null;
     if (k === 'location') {
       const l = s.locations.find((x) => x.uid === el.dataset.loc);
       return l ? one(l.card, { lanes: lanesOf(l), roundsLeft: l.roundsLeft }) : null;

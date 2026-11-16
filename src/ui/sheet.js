@@ -4,7 +4,7 @@
 import { defineCards, cardDef, creatureAtLevel, cardAtRound, legendaryCreatureOf, isCreature } from '../engine/cards.js';
 import { CARDS } from '../data/cards.js';
 import { onBoard } from '../engine/game.js';
-import { renderCard } from './cards.js';
+import { renderCard, curveStrip } from './cards.js';
 import { esc } from './text.js';
 
 defineCards(CARDS);
@@ -48,7 +48,9 @@ export function runSheet(params) {
     const firsts = [];
     const seen = new Set();
     for (const c of cards) { const k = c.form ?? c.id; if (!seen.has(k)) { seen.add(k); firsts.push(c); } }   // one per form: its first Level
-    html = `<div class="sheet-grid">${firsts.map((c) => cell(`${c.name}${isCreature(c) ? ` · L${c.legendaryCreature ? '★' : c.level}` : ''}`, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>`)).join('')}</div>`;
+    // The Codex (opened from the title screen) shows each series' curve strip under its card (stage P).
+    const codex = params.get('from') === 'title';
+    html = `<div class="sheet-grid">${firsts.map((c) => cell(`${c.name}${isCreature(c) ? ` · L${c.legendaryCreature ? '★' : c.level}` : ''}`, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>${codex ? curveStrip(c) : ''}`)).join('')}</div>`;
   } else {
     html = `<div class="sheet-grid">${cards.map((c, i) => {
       const label = `${c.name}${isCreature(c) ? ` · L${c.legendaryCreature ? '★' : c.level}` : ''}`;

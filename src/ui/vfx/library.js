@@ -26,7 +26,7 @@ import { signatureEffects } from './signature.js';
 // The timing budget at normal speed (docs/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
 // V2 (section 5.10, proposed): the Ashen Wyrm's arrival 3.5 s, a Legendary Creature 3 s, the Last Battle 3 s,
 // a Location placed 1 s (gone 0.8 s), and about 0.6 s per dominated Location at Dusk.
-export const BUDGET = { attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800,
+export const BUDGET = { attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800, prime: 900, primeLow: 500,
   wyrm: 3500, location: 1000, locationGone: 800, dominance: 600 };
 export const BUDGET_SLACK = 0.12;
 export const GOLD = '#f2c46a';
@@ -265,6 +265,26 @@ export const EFFECTS = {
     { at: 600, op: 'call', fn: 'tick' },
   ] },
 
+  // --- Stage P: a summon at Prime. A gold flare on the card and its Level well, then the +1 Renown rising to the
+  // Warlord's dial (about 0.9 s). The low-motion version: a soft glow on the card and the well, and the dial ticks.
+  'prime.summon': { budget: 'prime', duration: 900, steps: [
+    { at: 0, op: 'sprite', tex: 'impact-flash', on: 'dst', sizeK: 1.5, scale: [0.4, 1.15], curve: 'out', life: 300, fadeOut: 0.35, tint: GOLD, tintK: 0.7, alpha: 1.6 },
+    { at: 0, op: 'sprite', tex: 'halo-ring', on: 'dst', sizeK: 1.3, scale: [0.5, 1.4], curve: 'out', life: 520, fadeIn: 0.1, fadeOut: 0.5, tint: GOLD, tintK: 0.6, alpha: 1.2 },
+    { at: 0, op: 'sprite', tex: 'foil-streak', on: 'dst', sizeK: 1.0, scale: [0.9, 1.1], life: 420, fadeIn: 0.15, fadeOut: 0.5, alpha: 1.1 },
+    { at: 60, op: 'sprite', tex: 'dial-flare', on: 'lvl', size: 120, scale: [0.4, 1.2], curve: 'out', life: 420, fadeOut: 0.4, tint: GOLD, tintK: 0.5, alpha: 1.5 },
+    { at: 60, op: 'burst', tex: 'embers-atlas', on: 'dst', n: 14, speed: [120, 360], angle: 'up', spread: 120, life: [380, 620], size: [14, 30], gravity: 200, drag: 2, tint: GOLD, tintK: 0.4 },
+    { at: 80, op: 'flash', k: [0.25, 0.25], dur: 200 },
+    { at: 300, op: 'ribbon', tex: 'renown-ribbon', from: 'dst', to: 'dial', bend: 110, width: 40, travel: 420, lag: 220, tint: 'gold', tintK: 0.6, alpha: 1.3,
+      motes: { tex: 'renown-motes-atlas', rate: 60, speed: [10, 60], life: [300, 500], size: [12, 24] } },
+    { at: 720, op: 'sprite', tex: 'dial-flare', on: 'dial', size: 170, scale: [0.4, 1.1], curve: 'out', life: 320, fadeOut: 0.4, tint: 'gold', tintK: 0.4, alpha: 1.3 },
+    { at: 720, op: 'call', fn: 'tick' },
+  ] },
+  'prime.summon.low': { budget: 'primeLow', duration: 500, steps: [
+    { at: 0, op: 'sprite', tex: 'halo-ring', on: 'dst', sizeK: 1.2, scale: [1, 1], life: 420, fadeIn: 0.3, fadeOut: 0.5, tint: GOLD, tintK: 0.6, alpha: 0.9 },
+    { at: 0, op: 'sprite', tex: 'dial-flare', on: 'lvl', size: 110, scale: [1, 1], life: 420, fadeIn: 0.3, fadeOut: 0.5, tint: GOLD, tintK: 0.5, alpha: 1.1 },
+    { at: 250, op: 'call', fn: 'tick' },
+  ] },
+
   // --- G. Healing --------------------------------------------------------------------------------------------------------------
   heal: { duration: 900, steps: [
     { at: 0, op: 'sprite', tex: 'hammer-sigil', each: true, sizeK: 0.9, scale: [1.3, 1], curve: 'out', life: 520, fadeIn: 0.15, fadeOut: 0.5, tint: 'accent', tintK: 0.4, alpha: 1.2, if: 'hammer' },
@@ -426,7 +446,7 @@ Object.assign(EFFECTS, signatureEffects({ START, GUARD, SETTLE, GOLD }));
 // Every presenter beat has an effect (docs/10-feel-and-vfx.md section 3). Some are chosen per card below.
 export const BEAT_EFFECTS = {
   summon: 'summon', legendary: 'legendary', attack: 'attack.martial', riposte: 'riposte', armour: 'armour', defeat: 'defeat', returned: 'returned',
-  effect: 'effect.damage', trigger: 'trigger', renown: 'renown', gold: 'gold.gain', strat: 'strat.seal', stratResolve: 'strat.resolve', react: 'react',
+  effect: 'effect.damage', trigger: 'trigger', renown: 'renown', prime: 'prime.summon', gold: 'gold.gain', strat: 'strat.seal', stratResolve: 'strat.resolve', react: 'react',
   event: 'event', item: 'item.bought', location: 'location', locationGone: 'location.gone', card: 'event', quest: 'quest', fizzle: 'quiet',
   pass: 'quiet', retain: 'quiet', decline: 'quiet', dusk: 'dusk', dominance: 'dominance.scored', lastBattle: 'cine.last', dawn: 'dawn',
   draw: 'draw', energy: 'energy',

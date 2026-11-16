@@ -41,16 +41,31 @@ test('the stat tabs show the attack and guard: blade or orb corner, step, ring o
   assert.ok(tabs('gloomfang-wolf', 1).includes('Q267,417 267,427'), 'no guard: plain');
 });
 
-test('foil: a series\' final form at its top Level, the Legendary and the Legendary Creature', () => {
-  const captain = cardDef('oathsworn-recruit');
-  assert.equal(isFoil(creatureAtLevel(captain, 5, 'a')), false);
-  assert.equal(isFoil(creatureAtLevel(captain, 7, 'b')), true);
+test('foil (stage P): the Prime Level, the Legendary and the Legendary Creature; on the board, a Prime summon', () => {
+  const captain = cardDef('oathsworn-recruit');   // Prime at Level 5
+  assert.equal(isFoil(creatureAtLevel(captain, 5, 'a')), true);
+  assert.equal(isFoil(creatureAtLevel(captain, 7, 'b')), false, 'the top Level is no longer foil');
   assert.equal(isFoil(creatureAtLevel(captain, 2, 'c')), false);
   assert.equal(isFoil(cardAtRound('the-ashen-wyrm', 1, 'd')), true);
   assert.equal(isFoil(legendaryCreatureOf(cardDef('lady-corwens-commission'), 'e')), true);
   assert.equal(isFoil(cardAtRound('lady-corwens-commission', 1, 'f')), false);
-  assert.ok(renderCard(creatureAtLevel(captain, 7, 'g')).includes('class="holo"'));
-  assert.ok(!renderCard(creatureAtLevel(captain, 5, 'h')).includes('class="holo"'));
+  assert.ok(renderCard(creatureAtLevel(captain, 5, 'g')).includes('class="holo"'));
+  assert.ok(!renderCard(creatureAtLevel(captain, 7, 'h')).includes('class="holo"'));
+  assert.equal(isFoil({ ...creatureAtLevel(captain, 5, 'i'), primeSummon: false }), false, 'on the board: only if summoned at Prime');
+  assert.equal(isFoil({ ...creatureAtLevel(captain, 4, 'j'), primeSummon: true }), true);
+});
+
+test('the Prime tag (stage P): silver Rising with its Round, gold Prime, muted Waning; a token\'s star', () => {
+  const captain = cardDef('oathsworn-recruit');
+  const strip = (html) => html.replace(/<[^>]+>/g, '').trim();
+  const tagOf = (html) => strip(html.match(/<div class="cv-ptag[^>]*>.*?<\/div>/)?.[0] ?? '');
+  assert.equal(tagOf(renderCard(creatureAtLevel(captain, 3, 'a'), { size: 'full' })), 'PRIME · ROUND 4');
+  assert.equal(tagOf(renderCard(creatureAtLevel(captain, 5, 'b'), { size: 'mini' })), 'PRIME');
+  assert.equal(tagOf(renderCard(creatureAtLevel(captain, 6, 'c'), { size: 'full' })), 'PAST PRIME');
+  assert.ok(renderCard(creatureAtLevel(captain, 3, 'd')).includes('data-prime="rising"'));
+  const token = (prime) => renderCard({ ...creatureAtLevel(captain, 5, 'e'), currentHealth: 5, primeSummon: prime }, { size: 'token', live: true });
+  assert.ok(!token(true).includes('cv-ptag') && token(true).includes('#ffd77a'), 'a token: the star, no tag');
+  assert.ok(!token(false).includes('#ffd77a'));
 });
 
 test('the wording on every card is the generated wording (no card text typed by hand)', () => {

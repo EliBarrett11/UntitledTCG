@@ -389,6 +389,49 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           if (cinematicFor(card) === 'wyrm') activeCine = 'wyrm';
           break;
         }
+        case 'primeSummon': {
+          // Stage P: summoned at its Prime. A gold flare on the card and its Level well, and the +1 Renown rising
+          // to the Warlord (its renown event is shown here).
+          const ri = events.findIndex((x, k) => k > ei && x.type === 'renown' && x.kind === 'prime' && x.who === e.who);
+          const rn = ri >= 0 ? events[ri] : null;
+          if (rn) mergedRenown.add(ri);
+          const before = held.renown[e.who];
+          if (rn) held.renown[e.who] += rn.amount;
+          const after = held.renown[e.who];
+          const lvlOf = (t) => t?.querySelector('.cv-level') ?? null;
+          const landRenown = (ctx, dial) => {
+            if (!rn) return null;
+            setText(dial, after);
+            ripple(e.who);
+            return dial ? Promise.all([pulse(ctx, warlordEl(e.who)), ink(ctx, `+${rn.amount} Renown`, box(dial), 'renown')]) : null;
+          };
+          B('prime', `${NAME[e.who]} summoned ${e.name} at its Prime${rn ? `: +${rn.amount} Renown` : ''}.`, async (ctx) => {
+            const t = token(e.who, e.space);
+            const dial = dialEl(e.who);
+            setText(dial, before);
+            focus = where(e.who, e.space);
+            if (t) {
+              const glow = settings().lowMotion
+                ? [{ filter: 'drop-shadow(0 0 0 rgba(255,200,90,0))' }, { filter: 'drop-shadow(0 0 14px rgba(255,200,90,.9))', offset: 0.5 }, { filter: 'drop-shadow(0 0 0 rgba(255,200,90,0))' }]
+                : [{ filter: 'brightness(1)', transform: 'scale(1)' }, { filter: 'brightness(1.6) drop-shadow(0 0 18px rgba(255,200,90,.95))', transform: 'scale(1.06)', offset: 0.35 }, { filter: 'brightness(1)', transform: 'scale(1)' }];
+              const lv = lvlOf(t);
+              await Promise.all([ctx.anim(t, glow, { duration: 520, fill: 'none' }), lv ? ctx.anim(lv, [{ filter: 'brightness(1)' }, { filter: 'brightness(2.4) drop-shadow(0 0 8px #ffd77a)', offset: 0.4 }, { filter: 'brightness(1)' }], { duration: 520, fill: 'none' }) : null]);
+            }
+            if (!settings().lowMotion && rn) await ribbon(ctx, focus, dial, e.who === HUMAN ? '#ffd98a' : '#a9c6ff');
+            await landRenown(ctx, dial);
+          }, async (ctx) => {
+            const t = token(e.who, e.space);
+            const dial = dialEl(e.who);
+            setText(dial, before);
+            focus = where(e.who, e.space);
+            const lv = lvlOf(t);
+            await fxRun(ctx, settings().lowMotion ? 'prime.summon.low' : 'prime.summon', {
+              anchors: anchors({ dst: focus, lvl: lv ? box(lv) : focus, dial: dial ? box(dial) : centre }), els: { dst: t }, tint: '#f2c46a',
+              hooks: { tick: () => { landRenown(ctx, dial); } },
+            });
+          });
+          break;
+        }
         case 'legendaryArrived': {
           B('legendary', `${e.name}, a Legendary Creature, arrives!`, async (ctx) => {
             const t = token(e.who, e.space);

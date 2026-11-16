@@ -216,7 +216,8 @@ function hand(s, ui) {
     const sel = ui.handSel === c.uid;
     const favour = ui.favourCards?.includes(c.uid);
     const attrs = `data-uid="${esc(c.uid)}" data-hover="hand" ${pick ? `data-pick="${esc(pick)}"` : playable && !ui.locked ? 'data-act="hand"' : ''}`;
-    return `<div class="hand-card${playable ? ' playable' : ''}${sel ? ' selected' : ''}${pick ? ' target' : ''}${chosen ? ' chosen' : ''}" style="left:${pos[i].x}px;top:${HAND.y}px;transform:rotate(${pos[i].rot.toFixed(2)}deg);z-index:${10 + i}" ${attrs}>
+    const atPrime = c.stage === 'prime' && (c.cardType === 'Character' || c.cardType === 'Monster');
+    return `<div class="hand-card${playable ? ' playable' : ''}${sel ? ' selected' : ''}${pick ? ' target' : ''}${chosen ? ' chosen' : ''}${atPrime ? ' at-prime' : ''}" style="left:${pos[i].x}px;top:${HAND.y}px;transform:rotate(${pos[i].rot.toFixed(2)}deg);z-index:${10 + i}" ${attrs}>
       ${renderCard(c, { size: 'mini' })}${favour ? '<div class="favour-tag">FAVOUR</div>' : ''}
     </div>`;
   }).join('')}</div>`;
