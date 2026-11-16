@@ -1,0 +1,48 @@
+/* 1. Energy is crystal cyan */
+.cv-well.m-crys { color:#f4fdff !important; text-shadow:0 0 2px #04394a, 0 1px 1px #02222d, 0 0 8px rgba(120,230,255,.8); z-index:3; }
+.cv-well.m-crys::before { content:''; position:absolute; inset:-3px; z-index:-1;
+  clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  background: linear-gradient(160deg, #d9fbff 0%, #5fd8f7 20%, #0f86b3 48%, #053d55 76%, #2bbde6 100%); }
+.cv-well.m-crys::after { content:''; position:absolute; inset:-3px; z-index:-1; pointer-events:none;
+  clip-path: polygon(50% 0, 93% 25%, 50% 50%, 7% 25%);
+  background: linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.08)); mix-blend-mode:screen; }
+.cv-well.m-crys { filter: drop-shadow(0 0 1.5px #021a22) drop-shadow(0 0 7px rgba(90,220,255,.75)); }
+/* Items keep a gold coin for their Gold price */
+.cv-well.m-coin { color:#2a1704 !important; text-shadow:none; z-index:3; }
+.cv-well.m-coin::before { content:''; position:absolute; inset:-2px; z-index:-1; border-radius:50%;
+  background: radial-gradient(circle at 38% 32%, #fff3c4, #f0c55a 45%, #a8741f 85%); box-shadow: 0 0 0 2px #3a2208, inset 0 0 0 3px rgba(120,80,20,.6); }
+/* 3. LVL under the Level number */
+.cv-level.m-l { flex-direction:column !important; justify-content:center; gap:0; line-height:1; }
+.cv-level.m-l > span:first-child { font-size:21px !important; line-height:20px; margin-top:2px; }
+.cv-level .m-lvl { font:700 7.5px/1 Cinzel,serif; letter-spacing:1.4px; margin-top:1px; opacity:.85; }
+.cv-level.prime .m-lvl { color:#1a0f08; }
+/* the Energy panel */
+.m-en .en-top { display:flex; align-items:center; gap:14px; margin:2px 0 10px; } .m-en .en-ex { display:flex; align-items:center; gap:10px; } .m-en .en-ex .lab2 { margin:0 6px 0 0; }
+.m-en .en-big { display:flex; align-items:center; gap:8px; font:700 34px/1 Cinzel,serif; color:#c9f6ff; text-shadow:0 0 12px rgba(90,220,255,.6); }
+.m-en .en-sub { font-size:14px; color:rgba(232,220,192,.7); line-height:1.25; }
+.m-en .row { display:flex; flex-wrap:wrap; gap:7px; align-items:flex-end; }
+.m-cr { width:22px; height:28px; clip-path: polygon(50% 0, 100% 28%, 100% 72%, 50% 100%, 0 72%, 0 28%); position:relative;
+  background: linear-gradient(160deg, #e9fdff 0%, #7fe6ff 25%, #19a9d6 55%, #06506e 80%, #3ad0f5 100%); filter: drop-shadow(0 0 5px rgba(90,220,255,.7)); }
+.m-cr::after { content:''; position:absolute; inset:0; clip-path: polygon(50% 0, 100% 28%, 50% 50%, 0 28%); background:rgba(255,255,255,.55); }
+.m-cr.off { background: linear-gradient(160deg, rgba(120,200,230,.18), rgba(20,60,80,.35)); filter:none; }
+.m-cr.off::after { background:rgba(255,255,255,.06); }
+.m-cr.big { width:26px; height:34px; }
+.m-en .lab2 { white-space:nowrap; margin:14px 0 8px; font:700 11px Cinzel,serif; letter-spacing:2.5px; color:rgba(232,220,192,.7); }
+.m-en .ex { display:flex; flex-direction:column; align-items:center; gap:4px; width:52px; }
+.m-en .ex .m-cr.exert { background: linear-gradient(160deg, #ffffff 0%, #b8f3ff 20%, #2fc6ef 50%, #0a5d7d 80%, #6fe0ff 100%); filter: drop-shadow(0 0 4px #9ff0ff) drop-shadow(0 0 12px rgba(120,230,255,.9)); }
+.m-en .ex .m-cr.exert::before { content:'✦'; position:absolute; z-index:2; left:0; right:0; top:6px; text-align:center; font-size:12px; color:#fff; text-shadow:0 0 5px #fff; }
+.m-en .ex .m-cr.tired { background: linear-gradient(160deg, #39505a, #142228); filter:none; }
+.m-en .ex .m-cr.tired::before { content:''; position:absolute; z-index:2; left:45%; top:15%; width:2px; height:70%; background:rgba(0,0,0,.6); transform:rotate(18deg); }
+.m-en .ex small { font:600 10.5px 'Alegreya Sans',sans-serif; color:rgba(232,220,192,.65); white-space:nowrap; }
+.m-en .ex small b { color:#c9f6ff; }
+/* 6. Gold lives in the Market */
+.m-gold { display:flex; align-items:center; justify-content:space-between; margin:4px 0 8px; padding:5px 12px; border-radius:10px;
+  background: linear-gradient(rgba(60,40,12,.65), rgba(30,18,6,.65)); box-shadow: inset 0 0 0 1px rgba(240,200,110,.45); }
+.m-gold .l { font:700 11px Cinzel,serif; letter-spacing:2.5px; color:rgba(240,214,150,.85); }
+.m-gold .n { display:flex; align-items:center; gap:9px; font:700 24px/1 Cinzel,serif; color:#ffd77a; text-shadow:0 0 10px rgba(255,200,90,.5); }
+.m-coin-i { width:21px; height:21px; border-radius:50%; background: radial-gradient(circle at 38% 32%, #fff3c4, #f0c55a 45%, #a8741f 85%); box-shadow: 0 0 0 2px #3a2208, inset 0 0 0 3px rgba(120,80,20,.6); }
+.btn.buy.m-ok { background: linear-gradient(#f3d58f,#c99a4a) !important; color:#1a0f08 !important; font-weight:700; box-shadow: 0 0 0 1px #fff2c8, 0 0 14px rgba(255,200,90,.45) !important; border:none !important; }
+.m-price { position:absolute; }
+.cv-mode-cost { color:#8fe8ff !important; text-shadow:0 0 6px rgba(90,220,255,.6); }
+.cv-mode-cost svg, .cv-mode-cost svg * { fill:#5fd8f7 !important; stroke:none; }
+.m-en-word { color:#8fe8ff; font-weight:700; text-shadow:0 0 6px rgba(90,220,255,.5); }
