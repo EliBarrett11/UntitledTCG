@@ -314,4 +314,15 @@ node tools/compare.mjs
   - the layout check adds React moments for an attack, an Adapt, a Strat and a hovered plate, plus the series line;
   - the real-input check checks the preview stays hidden through real drags, and cancels some with Escape;
   - `tools/fcompare.mjs` puts the mockups beside the game; `tools/fclips.mjs` records the attack and defeat, a React moment, and the targeting arrow.
+- **Frame times** (`?fps=1`, 1920×1080, the build container's software WebGL, so for reference only):
+
+  | Moment | Stage P | Stage F |
+  |---|---|---|
+  | The board, idle | 17–22 fps (about 50 ms a frame) | 18–20 fps (about 52 ms) |
+  | AI vs AI with effects | 4–16 fps | 4–6 fps |
+  | The same, low motion | | 18–44 fps |
+  | A React moment (dimmed and blurred, the arrow moving) | | 11 fps (about 90 ms) |
+  | Aiming with the arrow | | 10–12 fps |
+
+  The effects figures move with quality scaling in this container. The gold glow in hand is a box-shadow, not a filter: as a filter it cost a third of the idle frame rate here.
 - Stage P's readings are approved. Stage F's readings for Elliott's approval: `docs/03-look-and-feel.md` section 11.
