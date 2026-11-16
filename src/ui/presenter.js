@@ -886,7 +886,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                   if (lbl) ctx.anim(lbl, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 100% 0 0)' }], { duration: 380, fill: 'none' });
                   if (!region) return null;
                   const art = region.querySelector('.loc-art');
-                  if (art) ctx.anim(art, [{ opacity: 0 }, { opacity: 0 }, { opacity: 0.22 }], { duration: 900, fill: 'none' });
+                  if (art) ctx.anim(art, [{ opacity: 0 }, { opacity: 0 }, { opacity: 1 }], { duration: 900, fill: 'none' });
                   if (!ink || settings().lowMotion) return ctx.anim(region, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, fill: 'none' });
                   for (const k of ['maskImage', 'webkitMaskImage']) region.style[k] = `url(${ink})`;
                   for (const k of ['maskRepeat', 'webkitMaskRepeat']) region.style[k] = 'no-repeat';

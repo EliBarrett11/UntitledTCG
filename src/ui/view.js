@@ -88,16 +88,23 @@ function map(s, ui) {
     const left = l.start * LANE_W + 4;
     const width = l.width * LANE_W - 8;
     const tint = tintOf(l.card.id);
-    const owner = l.owner === HUMAN ? 'placed by you' : 'placed by the enemy';
-    const rounds = `${l.roundsLeft} Round${l.roundsLeft === 1 ? '' : 's'} left`;
-    const short = `${shortPassive(l.card)} · ${l.roundsLeft} Rd${l.roundsLeft === 1 ? '' : 's'} · ${l.owner === HUMAN ? 'yours' : "enemy's"}`;
+    // Stage P (docs/mockups/locations-v1): a raised tile with the Location's art at full strength, and a label with
+    // no box: the name in gold, a brass rule with a diamond, the effect (from the card data) with its number in gold,
+    // then the Rounds left as diamonds and whose it is.
+    const mine = l.owner === HUMAN;
+    const full = goldNumber(defText(l.card));
+    const short = goldNumber(shortPassive(l.card));
+    const total = Math.max(l.roundsLeft, l.card.rounds ?? l.roundsLeft);
+    const pips = Array.from({ length: total }, (_, i) => `<i class="${i < l.roundsLeft ? 'on' : ''}"></i>`).join('');
     return `<div class="loc" style="left:${left}px;width:${width}px;--tint:${tint}" data-hover="location" data-id="${esc(l.card.id)}" data-loc="${esc(l.uid)}">
         ${artOf(l.card) ? `<img class="loc-art" src="${esc(artOf(l.card))}" alt="" draggable="false">` : ''}
       </div>
       <div class="loc-label-wrap" style="left:${l.start * LANE_W}px;width:${l.width * LANE_W}px">
         <div class="loc-label" data-hover="location" data-id="${esc(l.card.id)}" data-loc="${esc(l.uid)}">
           <div class="loc-name">${esc(l.name.toUpperCase())}</div>
-          <div class="loc-line" data-full="${esc(`${defText(l.card).replace(/\.$/, '')} · ${rounds} · ${owner}`)}" data-short="${esc(short)}">${esc(`${defText(l.card).replace(/\.$/, '')} · ${rounds} · ${owner}`)}</div>
+          <div class="loc-rule" aria-hidden="true"></div>
+          <div class="loc-line" data-full="${esc(full)}" data-short="${esc(short)}">${full}</div>
+          <div class="loc-time"><span class="pips" aria-hidden="true">${pips}</span>${l.roundsLeft} ROUND${l.roundsLeft === 1 ? '' : 'S'} LEFT · <span class="own ${mine ? 'mine' : 'theirs'}">${mine ? 'YOURS' : 'ENEMY’S'}</span></div>
         </div>
       </div>`;
   }).join('');
@@ -111,6 +118,8 @@ function map(s, ui) {
     ${row(s, AI, ui)}${row(s, HUMAN, ui)}
   </div>`;
 }
+// A Location's effect with its number in gold (the words are the card data's, escaped).
+const goldNumber = (text) => esc(text).replace(/([+]?\d+( (?:Attack|Health))?)/, '<b>$1</b>');
 const shortPassive = (card) => {
   const o = card.passive.ops[0];
   if (o.op === 'attack') return `+${o.amount} Attack`;
@@ -125,7 +134,8 @@ function row(s, who, ui) {
     const cpick = ui.picks?.creature?.[`${who}:${lane}`];
     const chips = s.strats.filter((x) => !x.target.none && x.target.who === who && (x.target.area ? lanesHere(s, x.target.space).includes(lane) && (x.target.space === lane) : x.target.space === lane))
       .map((x) => `<div class="strat-chip ${x.owner === HUMAN ? 'mine' : 'theirs'}" title="${x.owner === HUMAN ? `Your sealed Strat (${esc(x.card.name)})` : 'The enemy\'s sealed Strat'} targets ${x.target.area ? 'this Location' : 'this creature'}">${cardBack('back-chip')}<span>STRAT</span></div>`).join('');
-    let body = '<div class="empty-slot"></div>';
+    // (Stage P: an empty space on a Location's tile is dark glass with a dashed brass outline.)
+    let body = `<div class="empty-slot${!s.lastBattle && locationAt(s, lane) ? ' on-tile' : ''}"></div>`;
     if (c) {
       const ready = isReady(s, c);
       const cls = [c.spent ? 'spent' : '', ready ? 'ready' : '', cpick ? 'target' : '', ui.attacker === lane && who === HUMAN ? 'selected' : '', ui.picks?.attacker?.[lane] && who === HUMAN ? 'can-attack' : ''].filter(Boolean).join(' ');
@@ -317,9 +327,9 @@ export function settingsPanel(ui) {
 // After drawing: a Location label keeps to one line; if its full line doesn't fit, it uses the short one.
 export function fitLabels(root) {
   for (const el of root.querySelectorAll('.loc-line')) {
-    el.textContent = el.dataset.full;
+    el.innerHTML = el.dataset.full;
     const wrap = el.closest('.loc-label-wrap');
-    if (el.closest('.loc-label').scrollWidth > wrap.clientWidth - 8) el.textContent = el.dataset.short;
+    if (el.closest('.loc-label').scrollWidth > wrap.clientWidth - 8) el.innerHTML = el.dataset.short;
   }
 }
 

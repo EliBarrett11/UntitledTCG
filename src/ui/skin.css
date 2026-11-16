@@ -27,8 +27,37 @@
 .lane-num::before { content: ''; position: absolute; left: 50%; top: 50%; width: 22px; height: 15px; transform: translate(-50%, -50%); border-radius: 8px; background: radial-gradient(rgba(246,236,214,0.85), rgba(246,236,214,0) 72%); z-index: -1; }
 .map.last-battle .lane-num { color: #f4e8ce; text-shadow: 0 0 1px #000, 0 0 3px #000, 0 0 7px rgba(0,0,0,0.95); }
 .map.last-battle .lane-num::before { background: radial-gradient(rgba(12,6,2,0.8), rgba(12,6,2,0) 72%); }
-.loc { box-shadow: inset 0 0 40px rgba(20,10,4,0.5); }
-.loc-art { opacity: 0.4; mix-blend-mode: normal; }
+/* Stage P: Location tiles (docs/mockups/locations-v1, approved): a raised tile on the map. The art at full strength,
+   a dark edge, a brass hairline, a rim in the Location's colour, a darker base edge, a drop shadow, and a soft vignette
+   at the top and bottom so the cards stay readable. */
+.loc { border: none; border-radius: 16px; overflow: visible; background: #140c07; z-index: 1;
+  box-shadow: 0 7px 0 color-mix(in srgb, var(--tint) 35%, #0d0704), 0 7px 0 1px rgba(0,0,0,.7), 0 22px 34px rgba(0,0,0,.6), 0 0 0 1px rgba(0,0,0,.75); }
+.loc-art { opacity: 1; mix-blend-mode: normal; border-radius: 16px; filter: saturate(1.08) contrast(1.06); }
+.loc::before { content: ''; position: absolute; inset: 0; border-radius: 16px; pointer-events: none; z-index: 1;
+  background: linear-gradient(180deg, rgba(8,5,3,.30) 0%, rgba(8,5,3,0) 26%, rgba(8,5,3,0) 74%, rgba(8,5,3,.35) 100%),
+              radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(8,5,3,.45) 100%); }
+.loc::after { content: ''; position: absolute; inset: 5px; border-radius: 12px; pointer-events: none; z-index: 2;
+  border: 1px solid rgba(226,190,120,.75); box-shadow: inset 0 0 0 3px rgba(10,6,3,.55), inset 0 0 0 4px rgba(226,190,120,.25), 0 0 0 4px color-mix(in srgb, var(--tint) 55%, #1a0f08); }
+.loc-ghost { border: none; border-radius: 16px; background: #140c07; opacity: 1; }
+.loc-ghost .loc-art { opacity: 1; border-radius: 16px; }
+/* The label: no box and no emblem. */
+.loc-label-wrap { top: 262px; z-index: 5; }
+.loc-label { position: relative; background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(8,5,3,.78) 0%, rgba(8,5,3,.55) 55%, rgba(8,5,3,0) 100%);
+  border: none; border-radius: 0; box-shadow: none; padding: 16px 34px 14px; gap: 6px; }
+.loc-name { font: 700 22px/1.25 Cinzel, serif; letter-spacing: 3px; color: #f3dca2; text-shadow: 0 1px 0 #000, 0 0 3px rgba(0,0,0,.9), 0 0 16px rgba(0,0,0,.8); }
+.loc-rule { width: min(220px, 80%); height: 9px; position: relative; flex: none; }
+.loc-rule::before { content: ''; position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: linear-gradient(90deg, transparent, rgba(232,196,122,.85) 30%, rgba(232,196,122,.85) 70%, transparent); }
+.loc-rule::after { content: ''; position: absolute; left: 50%; top: 1px; width: 7px; height: 7px; transform: translateX(-50%) rotate(45deg); background: #e8c47a; box-shadow: 0 0 6px rgba(232,196,122,.8); }
+.loc-line { font: 500 16px/1.25 'Alegreya Sans', sans-serif; color: #efe4c8; text-shadow: 0 1px 2px #000, 0 0 10px rgba(0,0,0,.9); }
+.loc-line b { color: #f6cf74; font-weight: 700; }
+.loc-time { display: flex; align-items: center; gap: 8px; font: 600 10.5px/1.3 Cinzel, serif; letter-spacing: 2.2px; color: rgba(239,228,200,.85); white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9); }
+.loc-time .pips { display: flex; gap: 5px; }
+.loc-time .pips i { width: 7px; height: 7px; transform: rotate(45deg); border: 1px solid rgba(232,196,122,.9); }
+.loc-time .pips i.on { background: #e8c47a; box-shadow: 0 0 5px rgba(246,200,110,.7); }
+.loc-time .own.mine { color: #ff9b8f; }
+.loc-time .own.theirs { color: #9cc0ff; }
+/* Empty spaces on a tile: dark glass with a dashed brass outline. */
+.empty-slot.on-tile { background: rgba(12,8,5,.30); border: 1px dashed rgba(240,214,160,.5); box-shadow: inset 0 0 24px rgba(0,0,0,.4); border-radius: 10px; }
 .lb-label { text-shadow: 0 0 12px rgba(255,120,40,0.7), 0 2px 4px #000; }
 .lb-label span { text-shadow: 0 1px 3px #000; }
 .side-marker { left: 1236px; top: 780px; color: rgba(244,232,206,0.7); text-shadow: 0 1px 3px #000; }
@@ -161,3 +190,4 @@ body.low-motion .end-burst .rays { animation: none; }
 .hero > .card { transform: scale(0.88); transform-origin: 50% 0; }
 .hero-note { margin-top: -26px; font-size: 13px; color: #c9b07a; white-space: nowrap; }
 .end-buttons { position: absolute; left: 0; right: 0; top: 960px; display: flex; justify-content: center; gap: 20px; }
+.cell.target .empty-slot.on-tile { background: rgba(240,200,110,0.22); box-shadow: 0 0 0 3px var(--target), 0 0 18px 4px rgba(240,200,110,0.7); }
