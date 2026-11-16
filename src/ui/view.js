@@ -13,8 +13,8 @@ import { endScreen } from './screens.js';
 export const LANE_W = 1532 / 9;
 export const MAP = { x: 24, y: 128, w: 1532, h: 644 };
 export const ROW_Y = { [AI]: 18, [HUMAN]: 408 };
-// (Stage F: 10 px lower than before, so the "★ PRIME" tab above a card at its Prime clears the board.)
-export const HAND = { x: 340, w: 830, y: 796 };
+// (Stage F: 8 px lower than before, so the "★ PRIME" tab above a card at its Prime clears the board.)
+export const HAND = { x: 340, w: 830, y: 794 };
 
 const pct = (n, d) => Math.max(0, Math.min(100, Math.round((100 * n) / Math.max(1, d))));
 const dial = (n, d, size, inner) => `<div class="dial" style="width:${size}px;height:${size}px;background:conic-gradient(#c7a15a 0 ${pct(n, d)}%, rgba(199,161,90,0.18) ${pct(n, d)}% 100%)"><div class="dial-in" style="width:${inner}px;height:${inner}px">${'$'}</div></div>`;

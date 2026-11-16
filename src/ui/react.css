@@ -28,7 +28,7 @@
 
 /* What happens, where it happens. */
 .rx-marks { position: absolute; inset: 0; pointer-events: none; transition: opacity .15s; }
-.rx.previewing .rx-base { opacity: .2; }
+.rx.previewing .rx-base { visibility: hidden; }
 .rx-chip { position: absolute; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 4px 11px 5px; border-radius: 6px;
   font: 700 13px/1.25 Cinzel, serif; letter-spacing: 2px; white-space: nowrap; color: #f4ead2; background: rgba(26,18,12,.95); box-shadow: 0 0 0 1px #c9a35a;
   animation: rx-pop .28s cubic-bezier(.3,1.6,.5,1) both; }
