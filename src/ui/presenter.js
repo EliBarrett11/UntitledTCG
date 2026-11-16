@@ -199,6 +199,19 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   // The Warlords' colours, for banners planted at Dusk (yours crimson, the enemy's blue).
   const BANNER_TINT = { [HUMAN]: '#c0303a', [AI]: '#3a66c8' };
   const boxOf = (el) => (el ? box(el) : null);
+  // V3: a Warlord's banner ripples when its Warlord gains Renown or takes damage (not in low motion).
+  function ripple(who) {
+    const el = q(`[data-banner="${who}"]`);
+    if (!el || settings().lowMotion) return;
+    el.animate([{ transform: 'rotate(0deg) skewX(0deg)' }, { transform: 'rotate(1.6deg) skewX(-3deg) scaleY(1.01)', offset: 0.25 }, { transform: 'rotate(-1.2deg) skewX(2.4deg)', offset: 0.55 }, { transform: 'rotate(0.5deg) skewX(-1deg)', offset: 0.8 }, { transform: 'rotate(0deg) skewX(0deg)' }], { duration: 900, easing: 'ease-out', composite: 'add' });
+  }
+  // V3: the map crossfades to its scorched twin as the Last Battle begins (about 1.2 s, on the Last Battle beat).
+  function scorch(ctx) {
+    const el = q('.map-scorch');
+    if (!el) return null;
+    el.style.opacity = '';
+    return ctx.anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 1200, easing: 'ease-in-out' });
+  }
   const boxesOf = (sel) => [...stage.querySelectorAll(sel)].map((el) => box(el));
 
   // --- Cinematics (5.9) -------------------------------------------------------------------------------------------
@@ -470,6 +483,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 arrow: () => { arrow(ctx, fromBox, toBox, colour); },
                 land: () => {
                   if (tb) setText(tb.querySelector('.tab-h span'), next.players[foe].row[e.target.space]?.currentHealth ?? 0);
+                  if (!d) ripple(foe);
                   ink(ctx, `−${e.amount}`, toBox, 'dmg');
                   if (armour) ink(ctx, `Armour −${armour}`, { cx: toBox.cx, cy: toBox.cy + 44 }, 'info');
                 },
@@ -635,13 +649,14 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             setText(dial, before);
             await ribbon(ctx, focus, dial, e.who === HUMAN ? '#ffd98a' : '#a9c6ff');
             setText(dial, after);
+            ripple(e.who);
             if (dial) await Promise.all([pulse(ctx, warlordEl(e.who)), ink(ctx, `+${e.amount} Renown`, box(dial), 'renown')]);
           }, async (ctx) => {
             const dial = dialEl(e.who);
             setText(dial, before);
             await fxRun(ctx, e.kind === 'favour' ? 'renown.favour' : 'renown', {
               anchors: anchors({ src: focus, dial: dial ? box(dial) : centre }), tint: e.who === HUMAN ? '#ffd98a' : '#a9c6ff',
-              hooks: { tick: () => { setText(dial, after); if (dial) { pulse(ctx, warlordEl(e.who)); ink(ctx, `+${e.amount} Renown`, box(dial), 'renown'); } } },
+              hooks: { tick: () => { setText(dial, after); ripple(e.who); if (dial) { pulse(ctx, warlordEl(e.who)); ink(ctx, `+${e.amount} Renown`, box(dial), 'renown'); } } },
             });
           });
           break;
@@ -973,7 +988,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                   el.style.width = `${bb.x + bb.w - ba.x}px`;
                   return ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.2 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 600 });
                 },
-                tick: () => { if (rn && dial) { setText(dial, rAfter); pulse(ctx, warlordEl(e.who)); ink(ctx, `+${rn.amount} Renown`, box(dial), 'renown'); } },
+                tick: () => { if (rn && dial) { setText(dial, rAfter); ripple(e.who); pulse(ctx, warlordEl(e.who)); ink(ctx, `+${rn.amount} Renown`, box(dial), 'renown'); } },
               } });
           });
           break;
@@ -996,7 +1011,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         case 'lastBattle':
           B('lastBattle', 'The Last Battle begins!', async (ctx) => {
             const wash = add('', 24, 128, 'wash');
-            await Promise.all([ctx.anim(wash, [{ opacity: 0 }, { opacity: 0.85, offset: 0.5 }, { opacity: 0 }], { duration: 2000 }), banner(ctx, 'THE LAST BATTLE', 'All Renown +50% · dominance at Dusk +5', 'last')]);
+            await Promise.all([scorch(ctx), ctx.anim(wash, [{ opacity: 0 }, { opacity: 0.85, offset: 0.5 }, { opacity: 0 }], { duration: 2000 }), banner(ctx, 'THE LAST BATTLE', 'All Renown +50% · dominance at Dusk +5', 'last')]);
           }, async (ctx) => {
             // 5.9: the Last Battle begins (a cinematic): a war horn, a crimson sky from the edges, the ember storm, the
             // banner unrolling and settling into the map's label.
@@ -1004,7 +1019,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             await fxRun(ctx, settings().lowMotion ? CINEMATICS.last.low : CINEMATICS.last.full, {
               anchors: anchors({ hornL: { cx: 24 + 560, cy: 450 }, skyL0: { cx: -320, cy: 450 }, skyL1: { cx: 360, cy: 450 }, skyR0: { cx: 1880, cy: 450 }, skyR1: { cx: 1200, cy: 450 },
                 mapBottom: { cx: 790, cy: 780, x: 40, y: 770, w: 1500, h: 20 }, centre: c0 }),
-              hooks: { cineOpen: () => cineOpen(c0), banner: () => lbBanner(ctx), bannerShort: () => lbBanner(ctx, true) },
+              hooks: { cineOpen: () => cineOpen(c0), banner: () => lbBanner(ctx), bannerShort: () => lbBanner(ctx, true), scorch: () => scorch(ctx) },
             });
           }, { cine: 'last', cineFirst: true, cineLast: true });
           break;
@@ -1031,6 +1046,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   // Before the first beat: numbers still show their old values (Renown, Gold, Health) and new creatures are
   // hidden, until their beats land. The final redraw shows the state as it is.
   function prepare(prev, next, events = []) {
+    // The scorched map waits for the Last Battle beat to crossfade in.
+    if (!prev.lastBattle && next.lastBattle) { const sc = q('.map-scorch'); if (sc) sc.style.opacity = '0'; }
     // Cards drawn in this action wait in the Draw Pile until their 'draw' beat (with the effects layer).
     if (vfx?.on) for (const e of events) if (e.type === 'drew' && e.who === HUMAN) for (const u of e.uids) { const el = q(`.hand-card[data-uid="${u}"]`); if (el) el.style.opacity = '0'; }
     for (const who of [HUMAN, AI]) {

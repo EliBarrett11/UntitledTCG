@@ -8,6 +8,7 @@ import { renderCard, cardBack, icon, chipFor } from './cards.js';
 import { legendaryCreatureOf, cardAtRound } from '../engine/cards.js';
 import { chipCardFor } from './text.js';
 import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText } from './text.js';
+import { endScreen } from './screens.js';
 
 export const LANE_W = 1532 / 9;
 export const MAP = { x: 24, y: 128, w: 1532, h: 644 };
@@ -102,7 +103,9 @@ function map(s, ui) {
   }).join('');
   const wilds = s.lastBattle ? `<div class="lb-label">THE LAST BATTLE<span>All Renown +50% · dominance at Dusk +5</span></div>` : Array.from({ length: RULES.lanes }, (_, i) => (covered.has(i) ? '' : `<div class="wilds" style="left:${i * LANE_W}px;width:${LANE_W}px">THE WILDS</div>`)).join('');
   const nums = Array.from({ length: RULES.lanes }, (_, i) => `<div class="lane-num" style="left:${i * LANE_W}px;width:${LANE_W}px">${i + 1}</div>`).join('');
+  // (V3: the painted campaign map, and its scorched twin for the Last Battle, crossfaded when it begins.)
   return `<div class="map${s.lastBattle ? ' last-battle' : ''}" data-region="map">
+    <div class="map-paint" aria-hidden="true"></div><div class="map-scorch" aria-hidden="true"></div><div class="map-wash" aria-hidden="true"></div>
     <div class="map-rings"></div>${lines}${regions}${wilds}${nums}
     ${s.lastBattle ? '<div class="embers">' + Array.from({ length: 28 }, (_, i) => `<i style="left:${(i * 53) % 100}%;animation-delay:${(i * 0.37) % 6}s;animation-duration:${5 + (i % 5)}s"></i>`).join('') + '</div>' : ''}
     ${row(s, AI, ui)}${row(s, HUMAN, ui)}
@@ -260,26 +263,16 @@ function mulligan(s, ui) {
   </div></div>`;
 }
 
-function endScreen(s) {
-  if (s.phase !== 'gameOver') return '';
-  const r = s.result;
-  const head = r.winner === HUMAN ? 'VICTORY' : r.winner === AI ? 'DEFEAT' : 'A DRAW';
-  const how = r.how === 'renown' ? `${r.winner === HUMAN ? 'You' : 'The enemy'} reached ${RULES.win} Renown in Round ${r.round}.` : `Neither side has a creature left (Round ${r.round}).`;
-  return `<div class="overlay" data-region="end"><div class="dialog end">
-    <div class="dialog-title">${head}</div>
-    <div class="muted">${esc(r.winner ? how : `${how} The Renown and the Warlord damage are tied.`)}</div>
-    <div class="end-scores">
-      <div><div class="end-n">${s.players[HUMAN].renown}</div><div class="label">YOUR RENOWN</div></div>
-      <div><div class="end-n">${s.players[AI].renown}</div><div class="label">ENEMY RENOWN</div></div>
-    </div>
-    <div class="dialog-buttons"><button type="button" class="btn primary" data-act="again">Play again</button></div>
-  </div></div>`;
-}
 
 // --- The whole stage ---------------------------------------------------------------------------------------------
 
 export function render(s, ui) {
+  // The end screen replaces the table once the last beats have played (V3).
+  if (s.phase === 'gameOver' && ui.showEnd) return endScreen(s, ui);
+  // (V3: the Warlords' banners hang at the table's edges, behind everything else.)
   return `<div class="table-bg"></div>
+  <div class="banner-hang banner-enemy" data-banner="${AI}" aria-hidden="true"><i></i></div>
+  <div class="banner-hang banner-you" data-banner="${HUMAN}" aria-hidden="true"><i></i></div>
   <div class="topbar${ui.react ? ' reacting' : ''}" data-region="topbar">
     ${warlord(s, AI, ui)}${quest(s, AI)}${enemyHand(s)}${sealedStrats(s, AI)}<div class="grow"></div>${piles(s, AI, ui)}
     <button type="button" class="gear" data-act="settings" title="Settings" aria-label="Settings">⚙</button>
@@ -297,17 +290,16 @@ export function render(s, ui) {
   ${menu(ui)}
   ${reactBar(s, ui)}
   ${mulligan(s, ui)}
-  ${endScreen(s)}
   ${ui.toast ? `<div class="toast">${esc(ui.toast)}</div>` : ''}
   <div id="fx" aria-hidden="true"></div>
   <div class="preview" id="preview" hidden></div>`;
 }
 
 // Settings: game speed, low motion and the React timer.
-function settingsPanel(ui) {
+export function settingsPanel(ui) {
   if (!ui.settingsOpen) return '';
   const st = ui.settings;
-  const opt = (k, v, label, on) => `<button type="button" class="set${on ? ' on' : ''}" data-act="set" data-k="${k}" data-v="${v}">${label}</button>`;
+  const opt = (k, v, label, on) => `<button type="button" class="set${on ? ' on' : ''}" data-act="set" data-k="${k}" data-v="${v}" data-nav>${label}</button>`;
   return `<div class="settings" data-region="settings">
     <div class="settings-title">SETTINGS</div>
     <div class="label">GAME SPEED</div>
@@ -317,7 +309,7 @@ function settingsPanel(ui) {
     <div class="muted small">No shake, tilt, sheen or ribbons; fewer sparks and short fades.</div>
     <div class="label">REACT TIMER</div>
     <div class="set-row">${[5, 8, 12, 20].map((v) => opt('reactSeconds', v, `${v} s`, st.reactSeconds === v)).join('')}</div>
-    <button type="button" class="btn" data-act="settings">Close</button>
+    <button type="button" class="btn" data-act="settings" data-nav>Close</button>
   </div>`;
 }
 

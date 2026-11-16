@@ -12,6 +12,16 @@ import { displayLine, HUMAN, AI, esc } from './text.js';
 import { createPresenter } from './presenter.js';
 import { createVfx } from './vfx/index.js';
 import { outcome, diff, badgeFor, summary } from './preview.js';
+import { titleScreen, setupScreen, openingBanner } from './screens.js';
+import { firstScreen, nextScreen } from './flow.js';
+
+// The presentation art (V3), fetched and decoded before it's first shown.
+const ART = ['war-table', 'campaign-map', 'campaign-map-scorched', 'title-key-art', 'banner-crimson', 'banner-blue', 'card-back'].map((n) => `assets/ui/${n}.jpg`);
+let artReady = null;
+export function preloadArt() {
+  if (!artReady) artReady = Promise.all(ART.map((src) => { const img = new Image(); img.src = src; return img.decode().catch(() => null); }));
+  return artReady;
+}
 
 defineCards(CARDS);
 
@@ -72,12 +82,17 @@ export function startApp(params) {
   let s;
   let rng;
   let ui;
+  // The screen showing: title, setup, match or end (the flow is src/ui/flow.js).
+  let screen = firstScreen(params);
   let timer = null;
   let reactTick = null;
   let version = 0;
 
   // --- Starting and advancing ----------------------------------------------------------------------------
-  function newMatch() {
+  function newMatch({ opening = false } = {}) {
+    // Nothing carries over from the last match: timers, effects, the presentation, the scorched map (it follows the state).
+    clearTimeout(timer);
+    stopReact?.();
     s = createGame(seed, { decks: { p1: FIRST_DECK, p2: FIRST_DECK } });
     rng = makeRng(seed * 7919);
     ui = freshUi();
@@ -87,7 +102,31 @@ export function startApp(params) {
     if (scene) fastForward(scene);
     presenting = false;
     document.body.dataset.presenting = '';
+    screen = 'match';
     advance();
+    // The opening (from match setup): who has initiative, a short banner reveal over the mulligan.
+    if (opening && s.phase === 'mulligan') {
+      stage.insertAdjacentHTML('beforeend', openingBanner(s.initiative));
+      setTimeout(() => stage.querySelector('[data-region="opening"]')?.remove(), settings.lowMotion ? 900 : 1600);
+    }
+  }
+  // The screens around a match, with a quick crossfade (instant in low motion).
+  let fading = null;
+  async function go(next, then = null) {
+    if (!next) return;
+    const lm = !!settings.lowMotion;
+    if (!lm && stage.animate) {
+      fading = stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards', easing: 'ease-in' });
+      await fading.finished.catch(() => {});
+    }
+    clearTimeout(timer);
+    stopReact();
+    if (screen === 'match' && next !== 'match') { vfx.clear(); presenting = false; document.body.dataset.presenting = ''; }
+    screen = next;
+    ui = ui ?? freshUi();
+    ui.settingsOpen = false;
+    if (then) then(); else draw();
+    if (fading) { fading.cancel(); fading = null; if (!lm) stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' }); }
   }
   function freshUi() {
     return { sel: null, menu: null, picks: {}, prompt: '', caption: '', log: [], mulligan: new Set(), react: null, toast: '', previews: {}, settingsOpen: false, settings };
@@ -357,10 +396,47 @@ export function startApp(params) {
     setTimeout(() => { if (ui.toast === msg) { ui.toast = ''; draw(); } }, 1800);
   }
 
+  // --- Keyboard and controller-style focus on the screens: arrows move, Enter chooses, Escape goes back ----------
+  const navs = () => [...stage.querySelectorAll('[data-nav]')].filter((el) => !el.disabled && el.offsetParent !== null);
+  const focusKey = () => { const a = document.activeElement; return a && stage.contains(a) && a.dataset?.nav !== undefined ? `${a.dataset.act}|${a.dataset.k ?? ''}|${a.dataset.v ?? ''}` : null; };
+  function refocus(key) {
+    if (screen === 'match') return;
+    const list = navs();
+    const el = (key && list.find((x) => `${x.dataset.act}|${x.dataset.k ?? ''}|${x.dataset.v ?? ''}` === key)) ?? list.find((x) => x.classList.contains('primary')) ?? list[0];
+    el?.focus({ preventScroll: true });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (screen === 'match') return;
+    const list = navs();
+    if (!list.length) return;
+    const i = list.indexOf(document.activeElement);
+    if (['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(e.key)) {
+      e.preventDefault();
+      const d = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1;
+      list[(i < 0 ? 0 : i + d + list.length) % list.length].focus({ preventScroll: true });
+    } else if (e.key === 'Escape') {
+      if (ui?.settingsOpen) { ui.settingsOpen = false; draw(); } else if (screen === 'setup') go('title');
+    }
+  });
+
   // --- Drawing ---------------------------------------------------------------------------------------------
   function draw() {
+    document.body.dataset.screen = screen;
+    if (screen === 'title' || screen === 'setup') {
+      const keep = focusKey();
+      stage.style.translate = '';
+      stage.innerHTML = screen === 'title' ? titleScreen(ui) : setupScreen(ui);
+      document.body.dataset.step = ui.settingsOpen ? 'settings' : 'idle';
+      return refocus(keep);
+    }
     if (!ui.sel && !ui.menu) { ui.picks = basePicks(); ui.handSel = null; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = ui.attacker ?? null; }
+    const keep = focusKey();
+    // The end screen shows once the match is over and its last beats have played.
+    ui.showEnd = s.phase === 'gameOver' && !presenting;
+    if (ui.showEnd) screen = 'end';
+    document.body.dataset.screen = screen;
     stage.innerHTML = render(s, ui);
+    if (ui.showEnd) { refocus(keep); document.body.dataset.version = String(version); document.body.dataset.phase = s.phase; document.body.dataset.actor = ''; document.body.dataset.step = 'idle'; return; }
     vfx.attach(s);
     fitLabels(stage);
     fitLog();
@@ -446,7 +522,11 @@ export function startApp(params) {
       case 'mull-toggle': { const u = el.dataset.uid; if (ui.mulligan.has(u)) ui.mulligan.delete(u); else ui.mulligan.add(u); return draw(); }
       case 'mull-keep': return act({ type: 'mulligan', who: HUMAN, cards: [] });
       case 'mull-go': { const cards = [...ui.mulligan]; ui.mulligan = new Set(); return act({ type: 'mulligan', who: HUMAN, cards }); }
-      case 'again': seed += 1; return newMatch();
+      case 'again': seed += 1; return go(nextScreen('end', 'again'));
+      case 'to-title': return go('title');
+      case 'play': return go(nextScreen('title', 'play'));
+      case 'begin': return go(nextScreen('setup', 'begin'), () => newMatch({ opening: true }));
+      case 'codex': location.href = `${location.pathname}?sheet=full`; return undefined;
       case 'settings': ui.settingsOpen = !ui.settingsOpen; return draw();
       case 'set': {
         const k = el.dataset.k;
@@ -460,7 +540,7 @@ export function startApp(params) {
       default: return undefined;
     }
   });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cancel(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && screen === 'match') cancel(); });
 
   // Hover: any card at Full size (340 px), placed beside it inside the stage.
   stage.addEventListener('mouseover', (e) => {
@@ -601,9 +681,13 @@ export function startApp(params) {
   };
   window.addEventListener('resize', fit);
   fit();
-  newMatch();
+  // The first screen: the title (once its art is decoded), or straight to a match for the test hooks.
+  ui = freshUi();
+  if (screen === 'match') newMatch();
+  else Promise.race([preloadArt(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
+  preloadArt();
   // Dev hooks for the checks (they read; they never change the match).
-  window.__match = { get seed() { return seed; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats() };
+  window.__match = { get seed() { return seed; }, get screen() { return screen; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats() };
 }
 
 export { esc };

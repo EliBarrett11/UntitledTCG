@@ -296,6 +296,7 @@ export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {
     // The Last Battle begins (about 3 s).
     'cine.last': { budget: 'lastBattle', duration: 3000, steps: [
       { at: 0, op: 'call', fn: 'cineOpen' },
+      { at: 0, op: 'call', fn: 'scorch' },
       { at: 0, op: 'sprite', tex: 'war-horn-blast', on: 'hornL', size: 1100, h: 556, scale: [0.3, 1.2], curve: 'out', life: 900, fadeIn: 0.1, fadeOut: 0.5, alpha: 1.1 },
       { at: 0, op: 'shake', px: [3, 3], dur: 500 },
       { at: 0, op: 'wave', on: 'centre', radius: 700, strength: 10, dur: 900 },
@@ -307,6 +308,7 @@ export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {
     ] },
     'cine.last.low': { duration: 1000, steps: [
       { at: 0, op: 'call', fn: 'cineOpen' },
+      { at: 0, op: 'call', fn: 'scorch' },
       { at: 150, op: 'flash', k: [0.8, 0.8], dur: 300 },
       { at: 150, op: 'call', fn: 'bannerShort', wait: true },
     ] },
