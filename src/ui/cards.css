@@ -95,6 +95,9 @@ body.low-motion .holo { animation: none; background-position: 50% 0; }
 body.sheet { overflow: auto; height: auto; background: radial-gradient(ellipse at 50% 30%, #2a2119 0%, #130f0b 60%, #080605 100%) fixed; }
 body.sheet #viewport { position: static; }
 #sheet { padding: 48px 40px 60px; }
+.sheet-back { display: inline-block; margin: 0 0 18px; padding: 10px 22px; font-family: Cinzel, serif; font-size: 16px; letter-spacing: 2px; color: #f0dca8; text-decoration: none; border: 1px solid #a8864a; border-radius: 4px; background: linear-gradient(#3a2a1a, #1e150d); }
+.sheet-back:hover, .sheet-back:focus-visible { border-color: #e8c674; box-shadow: 0 0 12px rgba(232,198,116,0.5); outline: none; }
+.sheet-head { margin: 0 0 30px; font-family: Cinzel, serif; font-weight: 600; font-size: 30px; letter-spacing: 6px; color: #e8c674; }
 .sheet-grid { display: flex; flex-wrap: wrap; gap: 36px 28px; }
 .sheet-cell { display: flex; flex-direction: column; gap: 22px; }
 .sheet-label { font-family: Cinzel, serif; font-size: 13px; letter-spacing: 2px; color: #c9b07a; }

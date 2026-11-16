@@ -60,7 +60,9 @@ export function runSheet(params) {
         ${tokens}<div class="sheet-chips">${chips}</div></div>`);
     }).join('')}</div>`;
   }
-  document.body.innerHTML = `<main id="sheet">${html}</main>`;
+  // Opened from the title screen's Codex button: a way back to the title.
+  const back = params.get('from') === 'title' ? `<a class="sheet-back" href="${location.pathname}" data-nav>‹ Title screen</a><h1 class="sheet-head">CODEX · EVERY CARD</h1>` : '';
+  document.body.innerHTML = `<main id="sheet">${back}${html}</main>`;
   document.body.dataset.done = 'true';
 }
 

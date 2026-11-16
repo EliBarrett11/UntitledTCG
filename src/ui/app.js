@@ -526,7 +526,7 @@ export function startApp(params) {
       case 'to-title': return go('title');
       case 'play': return go(nextScreen('title', 'play'));
       case 'begin': return go(nextScreen('setup', 'begin'), () => newMatch({ opening: true }));
-      case 'codex': location.href = `${location.pathname}?sheet=full`; return undefined;
+      case 'codex': location.href = `${location.pathname}?sheet=full&from=title`; return undefined;
       case 'settings': ui.settingsOpen = !ui.settingsOpen; return draw();
       case 'set': {
         const k = el.dataset.k;

@@ -19,7 +19,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 'c';
+const STAGE = 'v3';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -35,7 +35,15 @@ const SCENES = [
   { name: 'react', query: `?seed=${SEED}&scene=react&pace=100000`, need: '[data-region="react-bar"]' },
   { name: 'lastbattle', query: `?seed=${SEED}&scene=lastbattle&pace=100000`, need: '.map.last-battle' },
   { name: 'end', query: `?seed=${SEED}&scene=end&pace=100000`, need: '[data-region="end"]' },
+  // Stage V3's screens around a match.
+  { name: 'title', query: '?screen=title', need: '[data-region="title"]' },
+  { name: 'title-settings', query: '?screen=title', steps: async (p) => { await clickTop(p, '[data-act="settings"]', 0); }, need: '[data-region="settings"]' },
+  { name: 'setup', query: '?screen=setup', need: '[data-region="setup"]' },
+  { name: 'victory', query: '?seed=12&scene=end&pace=100000', need: '.screen-end.victory' },
+  { name: 'defeat', query: '?seed=7&scene=end&pace=100000', need: '.screen-end.defeat' },
 ];
+// The labels on the painted map, checked for contrast in these scenes.
+const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle']);
 const SHOT_ALL_SIZES = new Set(['mid', 'react']);
 
 async function topPoint(p, sel, i) {
@@ -67,13 +75,13 @@ function inspect() {
   if (sr.left < -1 || sr.top < -1 || sr.right > innerWidth + 1 || sr.bottom > innerHeight + 1) out.push('the stage is off-screen');
   if (document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight) out.push('the page scrolls');
   // Nothing off-screen.
-  for (const el of stage.querySelectorAll('[data-region], .hand-card, .preview, .menu, .react-opt, .dialog, .slot-card, .loc-label, .side-marker, .caption, .prompt, .toast, .preview-badge, .gear')) {
+  for (const el of stage.querySelectorAll('[data-region], .hand-card, .preview, .menu, .react-opt, .dialog, .slot-card, .loc-label, .side-marker, .caption, .prompt, .toast, .preview-badge, .gear, .scr-btn, .end-panel, .end-head, .end-heroes, .end-buttons, .title-block, .setup-side, .setup-mid')) {
     if (!visible(el)) continue;
     const b = box(el);
     if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
   }
   // No text clipped or cut off.
-  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast')) {
+  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .opening-text')) {
     if (!visible(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
@@ -93,10 +101,64 @@ function inspect() {
     ['.loc-label', '.slot-card'], ['.menu', '[data-region="map"] .slot-card.ready'],
     ['.gear', '[data-region="piles-p2"]'], ['.gear', '[data-region="column"]'], ['.preview-badge', '.preview-badge'], ['.preview-badge', '.loc-label'],
     ['[data-region="react-tray"]', '.me-piles .piles'],
+    ['.end-panel', '.end-panel'], ['.end-panel', '.end-heroes'], ['.end-panel', '.end-head'], ['.end-heroes', '.end-buttons'], ['.hero', '.hero'],
+    ['.setup-side', '.setup-mid'], ['.title-block', '.title-note'], ['.scr-btn', '.scr-btn'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);
   const labels = one('.loc-label');
   for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) if (overlap(labels[i], labels[j])) out.push('two Location labels overlap');
+  return out;
+}
+
+// Contrast of the map's labels on the painted map: each label is shot as drawn, then with its letters made
+// transparent (the halo and the map stay), and every pixel the letters cover is compared with the text colour
+// (the WCAG contrast ratio). The lowest tenth of those pixels must reach 4.5:1 (3:1 for large text: 24 px, or
+// 18.7 px bold).
+async function contrast(page) {
+  const out = [];
+  // Hold everything still (the embers and fog drift), so the two shots differ only by the letters.
+  const still = await page.addStyleTag({ content: '*, *::before, *::after { animation-play-state: paused !important; transition: none !important; } #vfx { visibility: hidden !important; }' });
+  await page.waitForTimeout(100);
+  const els = await page.$$('.wilds, .lane-num, .lb-label, .loc-label .loc-line');
+  for (const el of els) {
+    const info = await el.evaluate((e) => {
+      const cs = getComputedStyle(e);
+      const st = document.getElementById('stage').getBoundingClientRect().width / 1920;
+      const px = parseFloat(cs.fontSize) / st;
+      return { color: cs.color, big: px >= 24 || (px >= 18.7 && Number(cs.fontWeight) >= 700), text: e.textContent.trim().slice(0, 24), cls: String(e.className).split(' ')[0] };
+    });
+    const box = await el.boundingBox();
+    if (!box || box.width < 2) continue;
+    const a = await page.screenshot({ clip: box });
+    await el.evaluate((e) => { for (const c of [e, ...e.querySelectorAll('*')]) c.style.setProperty('color', 'transparent', 'important'); });
+    const b = await page.screenshot({ clip: box });
+    await el.evaluate((e) => { for (const c of [e, ...e.querySelectorAll('*')]) c.style.removeProperty('color'); });
+    const r = await page.evaluate(async ([a64, b64, color]) => {
+      const load = async (s) => {
+        const bm = await createImageBitmap(await (await fetch(`data:image/png;base64,${s}`)).blob());
+        const c = new OffscreenCanvas(bm.width, bm.height); const x = c.getContext('2d'); x.drawImage(bm, 0, 0);
+        return x.getImageData(0, 0, bm.width, bm.height).data;
+      };
+      const A = await load(a64); const B = await load(b64);
+      const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+      const L = (r, g, b) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+      const [tr, tg, tb] = color.match(/[\d.]+/g).map(Number);
+      const lt = L(tr, tg, tb);
+      const ratios = [];
+      for (let i = 0; i < A.length; i += 4) {
+        const d = Math.abs(A[i] - B[i]) + Math.abs(A[i + 1] - B[i + 1]) + Math.abs(A[i + 2] - B[i + 2]);
+        if (d < 90) continue; // only the pixels the letters cover
+        const lb = L(B[i], B[i + 1], B[i + 2]);
+        ratios.push((Math.max(lt, lb) + 0.05) / (Math.min(lt, lb) + 0.05));
+      }
+      ratios.sort((x, y) => x - y);
+      return ratios.length ? { low: ratios[Math.floor(ratios.length * 0.1)], n: ratios.length } : null;
+    }, [a.toString('base64'), b.toString('base64'), info.color]);
+    if (!r) continue;
+    const need = info.big ? 3 : 4.5;
+    out.push({ label: `${info.cls} "${info.text}"`, low: r.low, ok: r.low >= need, need });
+  }
+  await still.evaluate((e) => e.remove());
   return out;
 }
 
@@ -122,6 +184,12 @@ for (const [w, h] of SIZES) {
     if (sc.need && !(await page.$(sc.need))) problems.push(`the scene didn't reach ${sc.need}`);
     if (sc.preview && !(await page.$('.preview:not([hidden]) .card-full'))) problems.push('the hover preview did not show');
     problems.push(...(await page.evaluate(inspect)), ...errors);
+    if (CONTRAST.has(sc.name)) {
+      const cs = await contrast(page);
+      for (const c of cs) if (!c.ok) problems.push(`low contrast on the map: ${c.label} ${c.low.toFixed(2)}:1 (needs ${c.need}:1)`);
+      const worst = cs.reduce((m, c) => (!m || c.low < m.low ? c : m), null);
+      if (worst) console.log(`      contrast (${sc.name}, ${w}×${h}): ${cs.length} labels, lowest ${worst.low.toFixed(2)}:1 (${worst.label})`);
+    }
     const file = `${STAGE}-${sc.name}-${w}x${h}.png`;
     if (w === 1920 || SHOT_ALL_SIZES.has(sc.name)) await page.screenshot({ path: join(shotDir, file) });
     if (problems.length) {

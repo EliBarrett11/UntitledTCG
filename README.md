@@ -211,3 +211,20 @@ node tools/compare.mjs
   - `?sheet=v4-types|stats|finishes|board` draws those cards in the mockups' layout.
 - V2's readings are approved. Stage C's readings for Elliott's approval: `docs/03-look-and-feel.md` section 3.
 
+
+### V3: Presentation (16 November 2026)
+- The game now looks like the after-V6 concept stills (`docs/mockups/v6/`), from the title screen to the end screen. `skin.css` there was a sketch; the look is built into the game's own styles in `src/ui/skin.css`. Every card, the victory screen's included, is drawn by the v4 renderer.
+- **The table:** the war table sits behind everything, and the board is the painted campaign map, with soft inked lane lines and a faint vellum wash under the empty spaces so lanes, spaces, Location names and "The Wilds" stay readable. When the Last Battle begins, the map crossfades to the scorched map over 1.2 s, at the start of its cinematic, and stays scorched to the end (a match loaded in the Last Battle starts scorched). Side panels and the Warlord plaques are dark leather with brass hairlines; the plaques take the banner colours.
+- **Banners:** crimson for you and blue for the enemy, hanging in the table's gaps behind the panels. They sway gently and ripple when their Warlord gains Renown or takes damage; low motion holds them still. They stay whole at any Renown.
+- **The title screen** opens on load: the key art drifting slowly (about 2% over 20 s), embers and ash, the lettering, a "Working title" note, and Play, Codex (the full card sheet, with a link back) and Settings. Arrow keys move between buttons, Enter presses, Escape closes or goes back.
+- **Match setup:** both Warlords and the first deck as it is, with its Campaign card drawn at Full size, the existing settings, and Begin. Then a short banner reveal of who has initiative over the mulligan.
+- **Victory and defeat:** victory has the gold burst, laurel and sparks; defeat is cold and ashen on the scorched map, with falling ash and the enemy's banners, never mocking. Each shows a line on how the match was won, Renown per side split by source, the match's facts (Rounds, creatures defeated, Locations dominated, the Last Battle's Round, the Legendary Creature's arrival) and up to three Heroes of the match at their final Level. Then Play again (to setup) or Title screen. Every number comes from the match's own Renown record and log (`src/ui/stats.js`).
+- **Transitions** fade between screens in under half a second (instant in low motion); nothing carries over between matches. The art is decoded before the first screen shows.
+- `?skip=title` and every existing test hook still go straight to a match; `?title=1` forces the title (for the clip), and `?screen=title|setup` opens a screen.
+- **Checks:**
+  - `tests/v3-screens.test.js`: the Renown rows add up to each side's final Renown, the facts match the log, the heroes follow their rule, and the flow between screens;
+  - `tools/layout.mjs` adds the title, setup, victory and defeat screens, and a contrast check of the map's labels;
+  - `tools/realinput.mjs` goes through setup after Play again;
+  - `tools/v3compare.mjs` puts each concept still beside the game (`tools/screenshots/v3-compare-*.png`);
+  - `tools/v3clip.mjs` records the whole flow (`tools/clips/v3-flow.webm`).
+- Stage C's readings are approved. V3's readings for Elliott's approval: `docs/03-look-and-feel.md` section 9.

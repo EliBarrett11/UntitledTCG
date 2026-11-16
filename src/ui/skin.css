@@ -23,8 +23,10 @@
 .empty-slot { border: 1px dashed rgba(43,29,18,0.55); background: rgba(244,232,206,0.30); box-shadow: inset 0 0 18px rgba(244,232,206,0.25); }
 .map.last-battle .empty-slot { border-color: rgba(232,220,192,0.35); background: rgba(20,10,4,0.30); box-shadow: none; }
 .wilds { color: #3a2614; font-weight: 700; text-shadow: 0 0 2px rgba(246,236,214,1), 0 0 6px rgba(246,236,214,0.95), 0 0 10px rgba(246,236,214,0.8); }
-.lane-num { color: #3a2614; font-weight: 700; text-shadow: 0 0 2px rgba(246,236,214,1), 0 0 6px rgba(246,236,214,0.9); }
-.map.last-battle .lane-num { color: rgba(244,232,206,0.85); text-shadow: 0 0 3px #000, 0 0 6px #000; }
+.lane-num { isolation: isolate; color: #2e1d0e; font-weight: 700; text-shadow: 0 0 1px rgba(250,242,224,1), 0 0 3px rgba(250,242,224,1), 0 0 7px rgba(246,236,214,0.95); }
+.lane-num::before { content: ''; position: absolute; left: 50%; top: 50%; width: 22px; height: 15px; transform: translate(-50%, -50%); border-radius: 8px; background: radial-gradient(rgba(246,236,214,0.85), rgba(246,236,214,0) 72%); z-index: -1; }
+.map.last-battle .lane-num { color: #f4e8ce; text-shadow: 0 0 1px #000, 0 0 3px #000, 0 0 7px rgba(0,0,0,0.95); }
+.map.last-battle .lane-num::before { background: radial-gradient(rgba(12,6,2,0.8), rgba(12,6,2,0) 72%); }
 .loc { box-shadow: inset 0 0 40px rgba(20,10,4,0.5); }
 .loc-art { opacity: 0.4; mix-blend-mode: normal; }
 .lb-label { text-shadow: 0 0 12px rgba(255,120,40,0.7), 0 2px 4px #000; }
@@ -78,7 +80,7 @@ body.low-motion .title-art { animation: none; }
 .title-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,5,3,0.82) 0%, rgba(8,5,3,0.5) 32%, rgba(8,5,3,0) 55%), linear-gradient(0deg, rgba(8,5,3,0.5), rgba(8,5,3,0) 30%); }
 .title-block { position: absolute; left: 120px; top: 206px; display: flex; flex-direction: column; }
 .title-kicker { font-family: Cinzel, serif; font-size: 22px; letter-spacing: 0.45em; color: #c9a46a; }
-.title-main { margin: 2px 0 0; font-family: Cinzel, serif; font-weight: 700; font-size: 94px; line-height: 1.02; letter-spacing: 0.02em; color: #f1e4c8; text-shadow: 0 4px 18px rgba(0,0,0,0.7); }
+.title-main { margin: -13px 0 -15px; font-family: Cinzel, serif; font-weight: 700; font-size: 94px; line-height: 1.34; letter-spacing: 0.02em; color: #f1e4c8; text-shadow: 0 4px 18px rgba(0,0,0,0.7); }
 .title-sub { font-family: Cinzel, serif; font-size: 44px; letter-spacing: 0.3em; color: #e8d6ae; margin-top: 10px; }
 .title-rule { width: 360px; height: 1px; background: linear-gradient(90deg, rgba(199,161,90,0.9), rgba(199,161,90,0)); margin: 40px 0 34px; }
 .title-buttons { display: flex; flex-direction: column; gap: 14px; }
@@ -136,7 +138,7 @@ body.low-motion .end-burst .rays { animation: none; }
 .end-fount.left { left: 380px; }
 .end-fount.right { right: 380px; transform: scaleX(-1); }
 .end-head { position: absolute; left: 0; right: 0; top: 170px; text-align: center; }
-.end-title { font-size: 120px; letter-spacing: 0.12em; line-height: 1; background: linear-gradient(#fff4cf, #e7b85a 60%, #a8741f); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.8)); }
+.end-title { font-size: 120px; letter-spacing: 0.12em; line-height: 1.34; margin: -20px 0 -21px; background: linear-gradient(#fff4cf, #e7b85a 60%, #a8741f); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.8)); }
 .defeat .end-title { background: linear-gradient(#e8eef4, #9aa6b2 60%, #5c6670); -webkit-background-clip: text; background-clip: text; }
 .end-how { margin-top: 18px; font-family: Cinzel, serif; font-size: 24px; letter-spacing: 0.18em; color: #f1e4c8; text-shadow: 0 2px 8px #000; }
 .defeat .end-how { color: #cfd6de; }

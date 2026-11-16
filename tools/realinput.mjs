@@ -180,8 +180,12 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
   const beats = await page.evaluate(() => window.__match.beats());
   if (beats.started !== beats.done) throw new Error(`beats left unfinished: ${beats.started} started, ${beats.done} done`);
   log(`  ${w}×${h}: ${beats.done} beats played; the match ended (${end}) after ${clicks} real clicks; ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(', ')}.`);
-  // Play again starts a new match.
+  // Play again leads to match setup, and Begin starts a new match.
   await click('[data-act="again"]', 0, 'Play again');
+  await page.waitForSelector('[data-region="setup"] [data-act="begin"]', { timeout: 5000 }).catch(() => { throw new Error('Play again did not lead to match setup'); });
+  await page.waitForTimeout(400);
+  await click('[data-act="begin"]', 0, 'Begin');
+  await page.waitForSelector('[data-region="mulligan"]', { timeout: 5000 }).catch(() => {});
   const fresh = await state();
   if (fresh.end || fresh.phase !== 'mulligan') throw new Error('Play again did not start a new match');
   await mkdir(shotDir, { recursive: true });

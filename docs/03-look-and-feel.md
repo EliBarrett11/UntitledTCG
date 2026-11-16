@@ -103,7 +103,7 @@ Each has a `.png` screenshot. `reference-geometry.py` holds the exact shapes, si
 
 **Superseded:** the S4 design (below), card design v2, and the painted-frame approach (v3, `docs/11-card-frame-prompts.md`, parked as a possible later upgrade).
 
-**Readings needing Elliott's approval (stage C, the v4 rebuild):**
+**Readings from stage C (the v4 rebuild): approved by Elliott, 16 November 2026.**
 1. **The panel line follows each card's text.** The mockups set it by hand for each card. The game works it out from the amount of text: 250–318 px down for creatures, 236–300 px for the other card types. Long text never crowds the tabs, and short text keeps the art tall. Against the mockups it moves at most a few pixels.
 2. **The keyword line includes guards on every creature.** The Captain shows SHIELD as in the mockup, and Aldric shows "SHIELD · ARMOUR 1" where the mockup shows only "ARMOUR 1".
 3. **Wording comes only from the data,** so a few lines differ from the mockups' hand-written text:
@@ -200,3 +200,20 @@ The docs don't settle these interface details; S3 uses the simplest reading.
 6. **Drag to play:** drop a hand card on an empty space (summon), a lane (a Location's leftmost lane), a creature, a Location's lanes, the enemy Warlord or your Bag (to store an Item). A card with no target can be dropped anywhere on the map. If a drop still fits more than one way to play the card (Adapt or Strat on the same creature, say), the usual menu opens. Retain is by clicking only.
 7. **Settings:** a gear at the right end of the top bar. Choices are saved in this browser only; if storage is unavailable, they last for the visit.
 8. **The Monster Level badge** sits lower and further in at every size, so the claw-torn corner never cuts into it; the neat-text test now checks that no frame cuts into any badge.
+
+## 9. Readings from V3 (presentation): needing Elliott's approval
+
+1. **Heroes of the match** are up to three of your cards, ranked by the Renown their attacks on the enemy Warlord earned you (from your own Renown record, so the count is exact even in a mirror match). Ties go to the card that scored first. Each is drawn at its final Level (the Level for the last Round), or as the Legendary Creature. Cards that never hit the Warlord aren't listed, so a match can show fewer than three, or none.
+2. **The result line** uses the concept still's words with the engine's result: "Your Warlord reached 100 Renown in Round 9" (or "The enemy Warlord …"). The out-of-creatures ending keeps S5's words: "Neither side has a creature left (Round N)." A draw shows "A DRAW" in the defeat screen's colours.
+3. **Renown by source** has six rows, one for each kind of Renown the engine records: Warlord damage, Defeats, Location dominance, Last Battle dominance, Favours and Quest. Rows where both sides have 0 are left out. The concept has five rows; "Last Battle dominance" is added so the rows add up to the total. Totals include the Last Battle's +50%, so a row can be larger than the Renown the cards print.
+4. **The match facts:**
+   - "Creatures defeated" counts both sides' defeats.
+   - "Locations dominated" counts each Location dominated at each Dusk, for both sides (a Location held for three Dusks counts three times). Last Battle dominance isn't included; it has its own row in the Renown panel.
+   - The Legendary Creature's arrival is listed by name, with its Round, but not whose it was, as in the concept.
+5. **Banners** hang in the table's own gaps, so they never cover a control: the enemy's blue banner hangs from the top edge between the enemy's Quest and piles, and your crimson banner hangs in the lower-left corner beside your Warlord. The art's painted sky is masked away. They sway gently and ripple on a Renown gain or when that Warlord takes damage. They stay whole at any Renown. Low motion stops both.
+6. **The title screen's Codex button** opens the full card sheet (`?sheet=full`) with a "Title screen" link back. Settings opens the same settings as the gear in a match.
+7. **Match setup** shows only what exists today: both Warlords play the first deck (the AI plays the enemy), each with its Campaign card drawn at Full size. The options are the existing settings (speed, low motion and the React timer). There's no deck choice or difficulty setting.
+8. **The opening:** after Begin, a banner drops for about 1.6 s ("Round 1 · You have initiative" or "The enemy has initiative") over the mulligan, in that side's colour. The mulligan itself is unchanged.
+9. **The scorch:** when the Last Battle begins, the map crossfades to the scorched map over 1.2 s, at the start of the Last Battle cinematic (or its low-motion version, where it's instant). A match loaded already in the Last Battle starts scorched.
+10. **Play again** leads to match setup (with the next seed), not straight to a new match. The title screen opens on load. `?skip=title`, and every test hook (`?seed`, `?scene`, `?autoplay`, `?pace`, `?prefer`), still go straight to a match.
+11. **The lane numbers and "The Wilds"** have a light halo on the painted map (a dark one on the scorched map), and lane numbers sit on a soft vellum spot, so they pass a 4.5:1 contrast check.
