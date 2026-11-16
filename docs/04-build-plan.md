@@ -104,7 +104,7 @@ After S5, the focus is the **final concept of how the game looks, sounds and pla
 | **V1: The effects layer** | A WebGL effects layer over the board (no libraries): GPU particles, sprites and flipbooks, ribbons and trails, bloom, distortion, hit-stop and screen shake scaled by damage, a 2D fallback. Effects are data-driven timelines. Uses the VFX kit in `assets/vfx/` (docs/08-vfx-prompts.md) as textures arrive. |
 | **V2: Signature moments** | An attack per Class and Kind; an animation for every Action, Event and Item; short cinematics for the Ashen Wyrm, Aldric and the Last Battle. |
 | **V3: Presentation** | Card back, war table, painted map, Warlord banners; the title screen, match setup and the victory or defeat screen with match stats. |
-| **V4: Sound** | In scope (Elliott, 14 November 2026). Impacts, card handling, coins, UI, ambience and music that rises for the Last Battle. The design chat writes audio prompts for Elliott to generate. |
+| **V4: Sound** | In scope (Elliott, 14 November 2026). Impacts, card handling, coins, UI, ambience and music that rises for the Last Battle. Prompts: docs/14-sound-prompts.md. |
 | **V5: The player's experience** | A guided first match, keyword tooltips, the rules overlay and the Codex, turn-flow clarity, AI pacing, accessibility. |
 | **V6: Final polish** | A "juice" pass over every interaction, 60 fps on a laptop, an end-to-end review. |
 
