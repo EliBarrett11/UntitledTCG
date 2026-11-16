@@ -119,6 +119,7 @@ export function endScreen(s) {
       <div class="motes" aria-hidden="true">${motes(40, 'rise spark')}</div>`
       : `<div class="motes" aria-hidden="true">${motes(44, 'fall')}</div>`}
     <div class="end-head"><div class="dialog-title end-title">${head}</div><div class="end-how">${esc(resultLine(s))}</div></div>
+    <div class="end-body">
     <div class="end-panels">
       <div class="end-panel"><div class="label">RENOWN</div>
         <div class="end-totals"><span class="you">You ${you.total}</span><span class="enemy">Enemy ${them.total}</span></div>
@@ -128,6 +129,7 @@ export function endScreen(s) {
     </div>
     ${heroes.length ? `<div class="end-heroes-label label">HEROES OF THE MATCH</div>
     <div class="end-heroes">${heroes.map((h) => `<div class="hero">${renderCard(h.card, { size: 'mini' })}<div class="hero-note">+${h.renown} Renown from its attacks</div></div>`).join('')}</div>` : ''}
+    </div>
     <div class="end-buttons">${btn('again', 'Play again', 'primary big')}${btn('to-title', 'Title screen', 'big')}</div>
   </div>`;
 }

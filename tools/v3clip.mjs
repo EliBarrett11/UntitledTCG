@@ -4,7 +4,7 @@
 // the opening, the scorch and the end are kept at real speed. Saved to tools/clips/v3-flow.webm and
 // tools/clips/v3-flow-strip.png (12 frames across the clip).
 //
-// Usage: node tools/v3clip.mjs [seed]   (seed 12: a win for you, with the Last Battle)
+// Usage: node tools/v3clip.mjs [seed]   (seed 9: a win for you, with the Last Battle)
 // Needs Playwright with Chromium and ffmpeg (dev tools only; never runtime dependencies).
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
@@ -20,7 +20,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = join(root, 'tools', 'clips');
 const rawDir = join(outDir, 'raw');
 await mkdir(rawDir, { recursive: true });
-const SEED = Number(process.argv[2] ?? 12);
+const SEED = Number(process.argv[2] ?? 9);
 // Re-cut a kept recording without playing again: node tools/v3clip.mjs --cut <raw.webm> '<marks json>'
 if (process.argv[2] === '--cut') {
   const dur = cut(process.argv[3], JSON.parse(process.argv[4]));

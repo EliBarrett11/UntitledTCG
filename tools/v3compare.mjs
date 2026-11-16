@@ -3,7 +3,7 @@
 //   title   ← ?screen=title
 //   board   ← ?seed=7&scene=mid
 //   last    ← ?seed=7&scene=lastbattle (the scorched map)
-//   victory ← ?seed=12&scene=end (a win for you)
+//   victory ← ?seed=9&scene=end (a win for you)
 //   defeat  ← ?seed=7&scene=end (no still; shown next to the victory still for its mood)
 //
 // Usage: node tools/v3compare.mjs
@@ -25,7 +25,7 @@ const PAIRS = [
   ['title', '1-title', '?screen=title'],
   ['board', '2-board', '?seed=7&scene=mid&pace=100000'],
   ['last', '5-last-battle', '?seed=7&scene=lastbattle&pace=100000'],
-  ['victory', '6-victory', '?seed=12&scene=end&pace=100000'],
+  ['victory', '6-victory', '?seed=9&scene=end&pace=100000'],
   ['defeat', '6-victory', '?seed=7&scene=end&pace=100000'],
 ];
 for (const [name, still, query] of PAIRS) {

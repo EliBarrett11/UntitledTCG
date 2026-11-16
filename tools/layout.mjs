@@ -39,7 +39,7 @@ const SCENES = [
   { name: 'title', query: '?screen=title', need: '[data-region="title"]' },
   { name: 'title-settings', query: '?screen=title', steps: async (p) => { await clickTop(p, '[data-act="settings"]', 0); }, need: '[data-region="settings"]' },
   { name: 'setup', query: '?screen=setup', need: '[data-region="setup"]' },
-  { name: 'victory', query: '?seed=12&scene=end&pace=100000', need: '.screen-end.victory' },
+  { name: 'victory', query: '?seed=9&scene=end&pace=100000', need: '.screen-end.victory' },
   { name: 'defeat', query: '?seed=7&scene=end&pace=100000', need: '.screen-end.defeat' },
 ];
 // The labels on the painted map, checked for contrast in these scenes.
