@@ -327,12 +327,13 @@ function domMotion(ctx, s, env, box, low) {
       const k = s.frac ?? 0.6;
       if (cell) cell.style.zIndex = '6';
       return ctx.anim(el, [
+        // (Stage F: a clear wind-up, tilting back and away, then the lunge, the hit, a recoil past rest and a settle.)
+        { transform: 'translate(0,0) rotate(0deg)', easing: 'cubic-bezier(.3,0,.6,1)' },
+        { transform: `translate(${-dx * 0.06}px, ${-dy * 0.06 - 12}px) rotate(${dx >= 0 ? -5 : 5}deg) scale(1.03)`, offset: 0.16, easing: 'cubic-bezier(.5,0,.75,0)' },
+        { transform: `translate(${dx * k}px, ${dy * k}px) rotate(${dx >= 0 ? 2.5 : -2.5}deg) scale(1.05)`, offset: 0.32, easing: 'cubic-bezier(.2,.8,.3,1)' },
+        { transform: `translate(${dx * k * 0.9}px, ${dy * k * 0.9}px) rotate(0deg) scale(1.02)`, offset: 0.46, easing: 'cubic-bezier(.3,0,.3,1)' },
+        { transform: `translate(${-dx * 0.04}px, ${-dy * 0.04}px) rotate(${dx >= 0 ? -1 : 1}deg)`, offset: 0.78, easing: 'ease-out' },
         { transform: 'translate(0,0) rotate(0deg)' },
-        { transform: `translate(${-dx * 0.03}px, ${-dy * 0.03 - 8}px) rotate(${dx >= 0 ? -3 : 3}deg)`, offset: 0.12 },
-        { transform: `translate(${dx * k}px, ${dy * k}px) rotate(${dx >= 0 ? 2 : -2}deg) scale(1.04)`, offset: 0.32, easing: 'cubic-bezier(.2,.8,.3,1)' },
-        { transform: `translate(${dx * k * 0.9}px, ${dy * k * 0.9}px) rotate(0deg) scale(1.02)`, offset: 0.46 },
-        { transform: `translate(${-dx * 0.03}px, ${-dy * 0.03}px)`, offset: 0.8 },
-        { transform: 'translate(0,0)' },
       ], { duration: d, fill: 'none', easing: 'ease-in-out' }).then(() => { if (cell) cell.style.zIndex = ''; });
     }
     case 'recoil':
