@@ -380,7 +380,7 @@ A quill scratching quickly across parchment, followed by a soft chime.
 **58. `dawn`** · 3 s · plays when Dawn begins
 
 ```
-A distant rooster-free morning: soft wind, a few distant birds and a low warm horn note, medieval camp at sunrise.
+A medieval camp at sunrise: soft wind, a few distant birds and one low warm horn note.
 ```
 
 **59. `dusk`** · 3 s · plays when Dusk begins
