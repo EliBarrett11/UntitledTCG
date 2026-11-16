@@ -296,8 +296,26 @@ function domMotion(ctx, s, env, box, low) {
   if (Array.isArray(el)) return Promise.all(el.map((one) => domMotion(ctx, { ...s }, { ...env, els: { ...env.els, [s.el]: one } }, box, low)));
   const d = s.dur;
   if (s.name === 'burn') {
+    // (Stage F: a glowing burn line sweeps up the card and the card burns away behind it. The line moves by
+    // transform; the burnt part is hidden by the card's mask.)
     el.classList.add('burning');
-    return ctx.anim(el, [{ '--burn': '-15%', filter: 'sepia(0.3) brightness(1)' }, { '--burn': '110%', filter: 'sepia(1) brightness(0.6)' }], { duration: d, easing: 'linear' });
+    const line = document.createElement('i');
+    line.className = 'burn-line';
+    el.appendChild(line);
+    const ends = () => line.remove();
+    return Promise.all([
+      ctx.anim(el, [{ '--burn': '-8%', filter: 'sepia(0.2) brightness(1)' }, { '--burn': '108%', filter: 'sepia(0.9) brightness(0.65)' }], { duration: d, easing: 'cubic-bezier(.45,.05,.6,.95)' }),
+      ctx.anim(line, [{ transform: 'translateY(0)', opacity: 0 }, { opacity: 1, offset: 0.08 }, { opacity: 1, offset: 0.9 }, { transform: 'translateY(-250px)', opacity: 0 }], { duration: d, easing: 'cubic-bezier(.45,.05,.6,.95)' }),
+    ]).then(ends, ends);
+  }
+  // A short shake of a card that is hit (it rattles, then settles).
+  if (s.name === 'jolt' && !low) {
+    return ctx.anim(el, [{ transform: 'translate(0,0) rotate(0)' }, { transform: 'translate(-5px,1px) rotate(-1.2deg)', offset: 0.15 }, { transform: 'translate(4px,-1px) rotate(1deg)', offset: 0.35 },
+      { transform: 'translate(-3px,0) rotate(-0.6deg)', offset: 0.55 }, { transform: 'translate(1px,0) rotate(0.2deg)', offset: 0.78 }, { transform: 'translate(0,0) rotate(0)' }], { duration: d, fill: 'none' });
+  }
+  // A card settling as it lands (squash, overshoot, rest).
+  if (s.name === 'settle' && !low) {
+    return ctx.anim(el, [{ transform: 'scale(1.06) translateY(-6px)' }, { transform: 'scale(0.97, 1.02) translateY(1px)', offset: 0.35, easing: 'ease-out' }, { transform: 'scale(1.01) translateY(-1px)', offset: 0.65 }, { transform: 'scale(1) translateY(0)' }], { duration: d, fill: 'none' });
   }
   if (s.name === 'pulse') return ctx.anim(el, [{ filter: 'brightness(1)' }, { filter: 'brightness(1.8) drop-shadow(0 0 10px #ffb070)', offset: 0.3 }, { filter: 'brightness(1)' }], { duration: d, fill: 'none' });
   if (low) return null;

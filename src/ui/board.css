@@ -306,7 +306,11 @@ body.debug #viewport { position: static; }
 #vfx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 87; }
 /* A defeated card burns away from the centre. */
 @property --burn { syntax: '<percentage>'; inherits: false; initial-value: -15%; }
-.burning { -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent var(--burn), #000 calc(var(--burn) + 12%)); mask-image: radial-gradient(circle at 50% 50%, transparent var(--burn), #000 calc(var(--burn) + 12%)); }
+.burning { -webkit-mask-image: linear-gradient(to top, transparent var(--burn), #000 calc(var(--burn) + 7%)); mask-image: linear-gradient(to top, transparent var(--burn), #000 calc(var(--burn) + 7%)); }
+/* The glowing burn line sweeping up a card as it burns away (stage F). */
+.burn-line { position: absolute; left: -6px; right: -6px; bottom: -4px; height: 14px; pointer-events: none; z-index: 5; border-radius: 50%;
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, #fff6d0 0%, #ffb24a 35%, rgba(255,90,20,.55) 62%, rgba(255,60,10,0) 100%);
+  box-shadow: 0 0 14px 4px rgba(255,140,40,.55); mix-blend-mode: screen; }
 /* The quiet table: dust, fog over the Wilds, candles, and in the Last Battle, embers blowing across. */
 .ambient { position: absolute; inset: 0; overflow: hidden; border-radius: 10px; pointer-events: none; z-index: 1; }
 .ambient i { position: absolute; display: block; pointer-events: none; animation-iteration-count: infinite; background-repeat: no-repeat; }

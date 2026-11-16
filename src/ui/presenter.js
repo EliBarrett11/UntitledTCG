@@ -85,6 +85,18 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   // A number that rises and fades like ink.
   function ink(ctx, text, at, kind = 'dmg') {
     const el = add(esc(text), at.cx, at.cy - 10, `ink ink-${kind}`);
+    // (Stage F: damage and healing pop in with a spring, overshoot, settle, then drift up and fade.)
+    if ((kind === 'dmg' || kind === 'heal') && !settings().lowMotion) {
+      return ctx.anim(el, [
+        { opacity: 0, transform: 'translate(-50%, 6px) scale(0.35)' },
+        { opacity: 1, transform: 'translate(-50%, -14px) scale(1.42)', offset: 0.12, easing: 'cubic-bezier(.2,.9,.3,1)' },
+        { opacity: 1, transform: 'translate(-50%, -18px) scale(0.9)', offset: 0.24 },
+        { opacity: 1, transform: 'translate(-50%, -20px) scale(1.06)', offset: 0.34 },
+        { opacity: 1, transform: 'translate(-50%, -22px) scale(1)', offset: 0.44 },
+        { opacity: 1, transform: 'translate(-50%, -38px) scale(1)', offset: 0.78, easing: 'ease-in' },
+        { opacity: 0, transform: 'translate(-50%, -56px) scale(0.96)' },
+      ], { duration: 1150 });
+    }
     return ctx.anim(el, [{ opacity: 0, transform: 'translate(-50%, 0) scale(0.8)' }, { opacity: 1, transform: 'translate(-50%, -18px) scale(1.15)', offset: 0.2 }, { opacity: 1, transform: 'translate(-50%, -36px) scale(1)', offset: 0.7 }, { opacity: 0, transform: 'translate(-50%, -54px) scale(1)' }], { duration: 1100 });
   }
   // A ribbon of light from a point to a Warlord's dial.
@@ -484,7 +496,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             } else await ctx.wait(250);
             const flash = add('', toBox.x, toBox.y, 'flash');
             flash.style.width = `${toBox.w}px`; flash.style.height = `${toBox.h}px`; flash.style.setProperty('--c', colour);
-            const tb = d ? token(foe, e.target.space) : null;
+            const tb = d ? token(foe, e.target.space) ?? q(`[data-ghost="${foe}:${e.target.space}"]`) : null;
             if (tb) setText(tb.querySelector('.tab-h span'), next.players[foe].row[e.target.space]?.currentHealth ?? 0);
             if (e.back) { const ab = token(e.who, e.from); if (ab) setText(ab.querySelector('.tab-h span'), next.players[e.who].row[e.from]?.currentHealth ?? 0); }
             await Promise.all([
@@ -502,7 +514,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const guardKind = a?.attackKind === 'Arcane' ? 'Ward' : 'Shield';
             const armour = d ? armourFor(ei, foe, e.target.space) : 0;
             const armourBack = armourFor(ei, e.who, e.from);
-            const tb = d ? token(foe, e.target.space) : null;
+            const tb = d ? token(foe, e.target.space) ?? q(`[data-ghost="${foe}:${e.target.space}"]`) : null;
             const ab = token(e.who, e.from) ?? q(`[data-ghost="${e.who}:${e.from}"]`);
             await fxRun(ctx, attackEffectFor(a), {
               anchors: anchors({ src: fromBox, dst: toBox, srcHp: tabAt(e.who, e.from, 'tab-h'), srcAtk: tabAt(e.who, e.from, 'tab-a'),
@@ -518,7 +530,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                   if (armour) ink(ctx, `Armour −${armour}`, { cx: toBox.cx, cy: toBox.cy + 44 }, 'info');
                 },
                 landBack: () => {
-                  const t2 = token(e.who, e.from);
+                  const t2 = token(e.who, e.from) ?? q(`[data-ghost="${e.who}:${e.from}"]`);
                   if (t2) setText(t2.querySelector('.tab-h span'), next.players[e.who].row[e.from]?.currentHealth ?? 0);
                   ink(ctx, `−${e.back}`, fromBox, 'dmg');
                   if (armourBack) ink(ctx, `Armour −${armourBack}`, { cx: fromBox.cx, cy: fromBox.cy + 44 }, 'info');
@@ -566,12 +578,21 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           break;
         case 'defeated': {
           const c = prevCard(e.who, e.space) ?? { name: e.name };
+          const ghostOf = (at) => {
+            let g = q(`[data-ghost="${e.who}:${e.space}"]`);
+            if (!g) {
+              g = add(prevCard(e.who, e.space) ? renderCard({ ...c, currentHealth: 0 }, { size: 'token', live: true }) : '', at.cx - 82, at.y, 'ghost ghost-token');
+              g.dataset.ghost = `${e.who}:${e.space}`;
+            }
+            g.dataset.burn = 'start';
+            return g;
+          };
+          const burnt = (g) => { if (!g) return; g.dataset.burn = 'done'; g.remove(); };
           B('defeat', `${POSS[e.who]} ${e.name} is defeated.`, async (ctx) => {
             const at = where(e.who, e.space);
-            const ghost = add(prevCard(e.who, e.space) ? renderCard({ ...c, currentHealth: 0 }, { size: 'token', live: true }) : '', at.cx - 82, at.y, 'ghost ghost-token');
-            ghost.dataset.ghost = `${e.who}:${e.space}`;
+            const ghost = ghostOf(at);
             await crumble(ctx, ghost, pileEl(e.who, 3));
-            ghost.remove();
+            burnt(ghost);
           }, async (ctx) => {
             const at = where(e.who, e.space);
             focus = at;
@@ -580,15 +601,14 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               tint: prevCard(e.who, e.space) ? accentOf(c) : '#b8521c', flags: attackVars(c).flags,
               hooks: {
                 ghost: () => {
-                  const g = add(prevCard(e.who, e.space) ? renderCard({ ...c, currentHealth: 0 }, { size: 'token', live: true }) : '', at.cx - 82, at.y, 'ghost ghost-token');
-                  g.dataset.ghost = `${e.who}:${e.space}`;
+                  const g = ghostOf(at);
                   env.els.ghost = g;
                   env.anchors.card = box(g);
                 },
               },
             };
             await fxRun(ctx, 'defeat', env);
-            env.els.ghost?.remove();
+            burnt(env.els.ghost ?? q(`[data-ghost="${e.who}:${e.space}"]`));
           });
           break;
         }
@@ -1076,6 +1096,21 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   // Before the first beat: numbers still show their old values (Renown, Gold, Health) and new creatures are
   // hidden, until their beats land. The final redraw shows the state as it is.
   function prepare(prev, next, events = []) {
+    // Stage F: a creature defeated in this action stays fully visible through the hit and its whole burn-away: a
+    // ghost of it (as it was) stands in its place from the start, and only its defeat beat removes it, when the burn
+    // ends. Every way a card can leave by defeat (an attack, hitting back, Riposte, On Defeat damage, effects) goes
+    // through the 'defeated' event.
+    for (const e of events) {
+      if (e.type !== 'defeated') continue;
+      const was = prev.players[e.who].row[e.space];
+      if (!was || q(`[data-ghost="${e.who}:${e.space}"]`)) continue;
+      const ce = cell(e.who, e.space);
+      if (!ce) continue;
+      const at = box(ce);
+      const g = add(renderCard(was, { size: 'token', live: true }), at.cx - 82, at.y, 'ghost ghost-token');
+      g.dataset.ghost = `${e.who}:${e.space}`;
+      g.dataset.burn = 'waiting';
+    }
     // The scorched map waits for the Last Battle beat to crossfade in.
     if (!prev.lastBattle && next.lastBattle) { const sc = q('.map-scorch'); if (sc) sc.style.opacity = '0'; }
     // Cards drawn in this action wait in the Draw Pile until their 'draw' beat (with the effects layer).

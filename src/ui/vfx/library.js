@@ -37,7 +37,10 @@ const IMPACT = [
   // from the attacker; the target recoils about 6 px.)
   { at: 0, op: 'sprite', tex: '$slash', on: 'dst', sizeK: 2.25, scale: [0.85, 1.1], curve: 'out', life: 320, fadeIn: 0.05, fadeOut: 0.45, rot: 'toward', tint: 'accent', tintK: 0.8, alpha: 1.6 },
   { at: 0, op: 'sprite', tex: 'impact-flash', on: 'dst', sizeK: 1.9, scale: [0.5, 1.25], curve: 'out', life: 280, fadeOut: 0.3, tint: 'accent', tintK: 0.3, alpha: 2.0 },
-  { at: 0, op: 'burst', tex: 'metal-sparks-atlas', on: 'dst', n: 18, speed: [500, 1150], angle: 'away', spread: 70, life: [180, 380], size: [18, 44], gravity: 900, drag: 2.5, align: true, tint: 'accent', tintK: 0.3 },
+  { at: 0, op: 'burst', tex: 'metal-sparks-atlas', on: 'dst', n: 36, speed: [450, 1250], angle: 'away', spread: 80, life: [180, 420], size: [14, 40], gravity: 900, drag: 2.5, align: true, tint: 'accent', tintK: 0.3 },
+  // (Stage F: a crack mark on the hit card, and the card rattles.)
+  { at: 0, op: 'sprite', tex: 'defeat-cracks', on: 'dst', sizeK: 0.8, scale: [0.55, 1], curve: 'out', life: 700, fadeIn: 0.05, fadeOut: 0.55, alpha: 0.75, tint: '#2a120a', tintK: 0.4 },
+  { at: 30, op: 'dom', name: 'jolt', el: 'dst', dur: 300 },
   { at: 0, op: 'burst', tex: 'impact-glints-atlas', on: 'dst', n: 6, speed: [40, 160], spread: 360, life: [200, 380], size: [30, 70], tint: 'accent', tintK: 0.3 },
   { at: 0, op: 'sprite', tex: 'shockwave-ring', on: 'dst', sizeK: 1.0, scale: [0.4, 1.9], curve: 'out', life: 420, fadeOut: 0.2, tint: 'accent', tintK: 0.4, alpha: 0.8 },
   { at: 0, op: 'wave', on: 'dst', radius: 260, strength: 10, dur: 420 },
@@ -193,8 +196,12 @@ export const EFFECTS = {
   defeat: { budget: 'defeat', duration: 1000, steps: [
     { at: 0, op: 'call', fn: 'ghost' },
     { at: 0, op: 'dom', name: 'shudder', el: 'ghost', dur: 120 },
-    { at: 0, op: 'sprite', tex: 'ember-cracks', on: 'card', size: 164, h: 230, life: 300, fadeIn: 0.2, fadeOut: 0.5, alpha: 1.3 },
-    { at: 110, op: 'dom', name: 'burn', el: 'ghost', dur: 500 },
+    // (Stage F: the cracks spread across the card before it burns; a burn line sweeps up it; a last wisp of smoke.)
+    { at: 0, op: 'sprite', tex: 'defeat-cracks', on: 'card', size: 170, h: 238, scale: [0.25, 1.02], curve: 'out', life: 520, fadeIn: 0.05, fadeOut: 0.35, alpha: 1.1 },
+    { at: 40, op: 'sprite', tex: 'ember-cracks', on: 'card', size: 164, h: 230, scale: [0.6, 1], curve: 'out', life: 420, fadeIn: 0.25, fadeOut: 0.5, alpha: 1.3 },
+    { at: 110, op: 'dom', name: 'burn', el: 'ghost', dur: 560 },
+    { at: 140, op: 'emit', tex: 'embers-atlas', on: 'card', ring: [0.98, 1.04], rate: 120, dur: 480, speed: [20, 90], angle: 'up', spread: 80, life: [260, 460], size: [8, 18], gravity: -180 },
+    { at: 720, op: 'sprite', tex: 'smoke-tendrils', on: 'card', size: 150, h: 220, dy: -50, scale: [0.8, 1.15], life: 280, fadeIn: 0.3, fadeOut: 0.7, alpha: 0.6 },
     { at: 110, op: 'sprite', tex: 'burn-away-mask', on: 'card', size: 168, h: 236, scale: [1, 1.06], life: 600, fadeIn: 0.25, fadeOut: 0.6 },
     { at: 110, op: 'sprite', tex: 'burning-card-edge', on: 'card', size: 180, h: 250, life: 560, fadeIn: 0.2, fadeOut: 0.5, alpha: 1.2 },
     { at: 110, op: 'emit', tex: 'flames-atlas', on: 'card', ring: [-0.1, 1.05], rate: 140, dur: 480, speed: [10, 50], angle: 'up', spread: 60, life: [200, 340], size: [30, 60], gravity: -260, if: '!undead' },
@@ -214,6 +221,8 @@ export const EFFECTS = {
     { at: 0, op: 'sprite', tex: 'summon-sigil', on: 'dst', sizeK: 1.3, flat: 0.42, dy: 95, scale: [0.6, 1.05], curve: 'out', life: 700, fadeIn: 0.3, fadeOut: 0.6, spin: 30, tint: 'accent', tintK: 0.8, alpha: 1.1 },
     { at: 300, op: 'call', fn: 'arrive' },
     { at: 300, op: 'dom', name: 'slam', el: 'dst', dur: 200 },
+    // (Stage F: every summon settles as it lands: a squash, a small overshoot, then rest.)
+    { at: 480, op: 'dom', name: 'settle', el: 'dst', dur: 260 },
     { at: 300, op: 'sprite', tex: 'dust-ground-ring', on: 'dst', sizeK: 1.6, dy: 100, scale: [0.6, 1.3], curve: 'out', life: 450, fadeOut: 0.3, alpha: 0.8 },
     { at: 300, op: 'burst', tex: 'dust-motes-atlas', on: 'dst', dy: 100, n: 10, speed: [60, 200], angle: 0, spread: 360, life: [400, 600], size: [12, 26], drag: 3, alpha: 0.7, flat: 0.3 },
     { at: 300, op: 'sprite', tex: 'shockwave-ring', on: 'dst', sizeK: 1.4, flat: 0.5, dy: 90, scale: [0.4, 1.8], curve: 'out', life: 420, fadeOut: 0.2, alpha: 0.8, if: 'heavy' },

@@ -236,3 +236,34 @@ The docs don't settle these interface details; S3 uses the simplest reading.
 8. **The Location tile's label** keeps to the band between the two rows, under the AI's caption line and above the prompt line. So it is a little more compact than the mockup (the name at 21 px rather than 22, tighter gaps), and its dark glow is a soft halo past its edges. The diamonds count the Location's full Rounds, with those left lit. "N ROUNDS LEFT · YOURS" or "ENEMY'S" replaces "placed by you / the enemy". A long effect uses the short line ("+2 Health"), with its number in gold.
 9. **The victory screen:** the result line sits on a darker glow over the burst, the Renown panel gains the "Prime summons" row, and the Heroes of the match are drawn at 80% so they fit under the panels. The heroes show their Prime tag at their final Level, like any card drawn by the renderer.
 10. **The checks' seeds:** the new cards change how the AI's matches go, so the victory screen's scene now uses seed 9 (a win in Round 9 with the Last Battle and Aldric). The attack-preview scene uses seed 2, and the two-tile board seed 1.
+
+## 11. Readings from stage F (play-test feedback 1): needing Elliott's approval
+
+Stage F replaces section 10's items 1, 2 and 4 (the Prime tag and the curve strip) with the one Level well and the series line.
+
+1. **The Level well** shows only the Level at every size (Full, Mini, the hover preview, board tokens). At Prime it is gold, with a dark number, a soft gold glow and a small gold star on its lower left. On the battlefield that's a creature summoned at its Prime, even after the Round moves on. Aldric keeps his LEGEND well and gains the star. The Ashen Wyrm, always Prime, has the gold well.
+2. **The "★ PRIME" tab** stands above the top edge of a card in hand at its Prime, near its left side, so a neighbouring card can't cover it and it never covers a cost or a name. The hover preview sits a little higher above a hand card so the tab shows under it.
+3. **The series line** shows the six Levels. "NOW" marks the Level cards are at this Round (the last Level from Round 6 on). The Codex has no "NOW", since it isn't in a match.
+4. **Dragging:** pressing on a hand card hides its preview at once, and nothing shows until the drag ends. Escape, or a cancelled pointer, cancels a drag (the card goes back; nothing is played).
+5. **The React moment** shows for every React window you get: an enemy attack, an enemy Adapt, or an enemy Strat resolving.
+   - The cards involved are the acting card, its target, every creature the preview says letting it happen would change, and the Warlord who would gain Renown.
+   - For an Adapt or a Strat, the played card is shown beside the headline (a Strat is revealed as it resolves, as before).
+   - The "why" line is written for attacks only. It says whether the target hits back: "is Ready, so it hits back for N", "is Spent, so it won't hit back", or "isn't Ready (something faster is Active), so it won't hit back".
+   - A Strat says "It was sealed on an earlier turn; it resolves now."
+6. **The marks** come from the engine's preview of letting it happen:
+   - "☠ DEFEATED" under a creature, "+N HEALTH" or "−N HEALTH" under one whose Health changes, and "±N ATTACK";
+   - "+N RENOWN" beside the Warlord who gains it;
+   - the red disc halfway along the arrow shows the Health the target loses.
+7. **The plates:**
+   - Each React plate shows the React's art, cost, name, React text and its result in one line, compared with letting it happen ("still defeated", "survives").
+   - A React with several targets previews its first target on hover; once you pick it, you choose the target on the battlefield with the arrow, and the target previews show as before.
+   - The keys 1 to 9 pick a plate. Escape lets it happen, or goes back while you're choosing a React's target. Enter presses the focused plate.
+8. **The headline's wording** is the game's own: the card names, the cards' generated wording, and a few fixed titles ("THE ENEMY ATTACKS", "THE ENEMY PLAYS FIREBOLT", "A SEALED STRAT RESOLVES").
+9. **The targeting arrow** shows whenever you choose a target: for an attack, a card from your hand, a Bag Item, a Market Item or a React. It starts at the attacker or the card and follows the pointer, and its reticle tightens over a legal target. Choosing a space or a Location's lanes has no arrow. Once the target is chosen, the arrow is gone, and the attack beats no longer draw a line.
+10. **A defeated card** stays on the board, fully visible, from the start of the action until its burn-away begins, and leaves only when the burn ends. The burn-away is now a glowing line sweeping up the card from its bottom edge.
+11. **The richer moments:**
+    - **Attacks** (and hit back and spell damage, which share the impact): a bigger wind-up, 36 sparks, a crack mark on the hit card, a short rattle of the hit card, and springy damage numbers.
+    - **Defeats:** spreading cracks, embers along the edges, the burn line, ash to the Released Pile, and a last wisp of smoke.
+    - **Summons:** settle as they land. **Healing:** gets the springy numbers.
+    - Low motion keeps the fades and the burn-away, without the motions.
+12. **`?timer=off`** (a dev aid for the checks and screenshots) stops a React window's countdown. The timer and its setting are unchanged for play.
