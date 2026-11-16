@@ -218,7 +218,7 @@ The docs don't settle these interface details; S3 uses the simplest reading.
 10. **Play again** leads to match setup (with the next seed), not straight to a new match. The title screen opens on load. `?skip=title`, and every test hook (`?seed`, `?scene`, `?autoplay`, `?pace`, `?prefer`), still go straight to a match.
 11. **The lane numbers and "The Wilds"** have a light halo on the painted map (a dark one on the scorched map), and lane numbers sit on a soft vellum spot, so they pass a 4.5:1 contrast check.
 
-## 10. Readings from stage P (Prime Summons and the Location tiles): needing Elliott's approval
+## 10. Readings from stage P (Prime Summons and the Location tiles): approved by Elliott, 16 November 2026
 
 1. **The Prime tag** sits under the Level well on Full and Mini cards (in hand, the Market, the Codex, the hover preview), clear of the art's face, the name and the numbers. On a Mini it is drawn a little larger so it stays readable at 200 px. RETAINED moves down below it.
 2. **On the battlefield** a card has no tag. A creature summoned at its Prime keeps the foil frame and a small gold star on its Level well's ring, and its hover preview shows "★ PRIME". A creature summoned at any other Level has neither, even if the Round has since reached its Prime.

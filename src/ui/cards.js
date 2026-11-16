@@ -6,7 +6,7 @@
 //   less on it), and Chip 24–40 px (a round art crop).
 // No card text is typed here: wording comes from src/data/cards.js and the engine's wording templates; the
 // few reminder lines (Release, Held, dominance) are built from the rulebook's numbers.
-import { cardDef, isCreature, levelsOf, formAt, creatureAtLevel } from '../engine/cards.js';
+import { cardDef, isCreature, levelsOf, formAt } from '../engine/cards.js';
 import { RULES, levelFor } from '../engine/rules.js';
 import { KEYWORDS, TRIGGERS } from '../engine/abilities.js';
 import { CARDS } from '../data/cards.js';
@@ -98,42 +98,26 @@ export function isFoil(c) {
   if ('primeSummon' in c) return !!c.primeSummon;
   return c.stage === 'prime';
 }
-// Stage P: the tag under the Level well. Off the battlefield: Rising (silver) "▲ PRIME · ROUND N", Prime (gold)
-// "★ PRIME", Waning (muted) "▼ PAST PRIME". On the battlefield, only a creature summoned at its Prime has one.
-const TAG_ICON = {
-  rising: '<path d="M12 4l9 12H3z"/>',
-  prime: '<path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 16.5 5.5 21l2-7.5L2 9h7z"/>',
-  waning: '<path d="M12 20 3 8h18z"/>',
-};
-export function primeTag(c) {
-  if (!isCreature(c) || isLC(c)) return null;
-  const stage = 'primeSummon' in c ? (c.primeSummon ? 'prime' : null) : c.stage;
-  if (!stage) return null;
-  const text = stage === 'rising' ? `PRIME · ROUND ${c.primeRound}` : stage === 'prime' ? 'PRIME' : 'PAST PRIME';
-  return { stage, text, icon: TAG_ICON[stage] };
+// Stage F: one Level well. It shows only the Level; at Prime it turns gold, with a dark number, a soft gold glow
+// and a small gold star on its lower left (docs/mockups/feedback-v1/m1-cards.png). Off the battlefield that's a card
+// at its Prime Level; on the battlefield, a creature summoned at its Prime. Legendary Creatures keep their LEGEND
+// well, with the star.
+export function primeWell(c) {
+  if (!isCreature(c) || isLC(c)) return false;
+  return 'primeSummon' in c ? !!c.primeSummon : c.stage === 'prime';
 }
+export const STAR_PATH = 'M12 2l3 7h7l-5.5 4.5 2 7.5L12 16.5 5.5 21l2-7.5L2 9h7z';
 
-// Stage P: the series curve strip (the hover preview of a creature in hand or the Market, and the Codex): one cell
-// per Round 1–6 with its form, Attack / Health, Energy and Level, and a bar of its value against the curve (Level + 2,
-// less 1 per ability: full at 60%, more at the Prime, in gold). "NOW" marks this Round's cell.
-const curveAbilities = (c) => Object.keys(c.keywords ?? {}).length + (c.trigger && !c.trigger.prime ? 1 : 0);
-export function curveStrip(c, round = null) {
+// Stage F: the series line under the hover preview of a creature in hand, and under each series in the Codex:
+// "LEVELS" and six small rings with the series' Levels; this Round's Level ringed in white with "NOW"; the Prime
+// Level gold with a star. No stats, forms or bars.
+export function seriesLine(c, round = null) {
   const def = isCreature(c) ? safeDef(c.id) : null;
   if (!def?.forms || def.series === 'Legendary' || def.prime == null) return '';
-  const family = def.forms[0].name.split(' ')[0];
-  const cells = Array.from({ length: 6 }, (_, i) => {
-    const r = i + 1;
-    const x = creatureAtLevel(def, levelFor(def.series, r), `curve-${r}`);
-    const short = x.name.startsWith(`${family} `) ? x.name.slice(family.length + 1) : x.name;
-    const value = (x.attack + x.health + curveAbilities(x)) / (x.level + 2);
-    const now = round !== null && Math.min(round, 6) === r;
-    return `<div class="kc ${x.stage}${now ? ' now' : ''}"><div class="kc-r nowrap">ROUND ${r}</div><div class="kc-f">${esc(short)}</div>`
-      + `<div class="kc-s nowrap"><span class="a">${x.attack}</span> / <span class="h">${x.health}</span></div><div class="kc-c nowrap">${x.cost} Energy · LV ${x.level}</div>`
-      + `<div class="kc-bar"><i style="width:${Math.min(100, Math.round(value * 60))}%"></i></div></div>`;
-  }).join('');
-  return `<div class="curve-strip" data-curve="${esc(def.id)}"><div class="curve-title nowrap">THE SERIES CURVE · PRIME IN ROUND ${cardAtPrimeRound(def)}</div><div class="kc-row">${cells}</div></div>`;
+  const now = round === null ? null : levelFor(def.series, round);
+  const rings = levelsOf(def).map((lv, i) => `${i ? '<i class="sl-sep"></i>' : ''}<span class="sl-c${lv === def.prime ? ' prime' : ''}${lv === now ? ' now' : ''}" data-level="${lv}">${lv}</span>`).join('');
+  return `<div class="series-line" data-series="${esc(def.id)}"><span class="sl-t">LEVELS</span><span class="sl-l">${rings}</span></div>`;
 }
-const cardAtPrimeRound = (def) => def.prime - levelsOf(def)[0] + 1;
 const accKey = (c) => (isCreature(c) ? (c.traits?.class ?? c.traits?.kind) : c.cardType === 'Action' ? c.traits?.class : c.cardType);
 const accent = (c) => ACC[accKey(c)] ?? '#c2a36a';
 const kwName = (k, v) => (KEYWORDS[k]?.hasAmount ? `${KEYWORDS[k].name} ${v}` : KEYWORDS[k]?.name ?? k);
@@ -310,7 +294,6 @@ export function chipFor(c, px = 32) {
   return `<span class="card-chip${isFoil(c) ? ' foil' : ''}" style="--accent:${accent(c)};width:${px}px;height:${px}px" title="${esc(c.name)}">${art ? `<img src="${esc(art)}" alt="" draggable="false" style="object-position:${ART_POS[art.split('/').pop()] ?? '50% 22%'}">` : '<span class="chip-pending"></span>'}${lvl !== null && lvl !== undefined ? `<span class="chip-lvl nowrap">${lvl}</span>` : ''}</span>`;
 }
 
-const PRIME_STAR = 'M12 2l3 7h7l-5.5 4.5 2 7.5L12 16.5 5.5 21l2-7.5L2 9h7z';
 // --- The one entry point ------------------------------------------------------------------------------------------
 // opts: { size: 'full' | 'mini' | 'token' | 'chip', live (a creature on the board), quest (a Quest tracker,
 // for the Campaign's dots), roundsLeft (a placed Location), classes, attrs, px (a chip's size) }.
@@ -375,14 +358,15 @@ export function renderCard(c, opts = {}) {
       const cost = isLC(c) ? '★' : c.cost;
       h += `<div class="cv-well nowrap" data-z="badge" data-socket style="${box(8, 8, 44, 44)};font-size:${isLC(c) ? 20 : String(cost).length < 2 ? 24 : 18}px">${cost}</div>`;
     }
-    s += well(W - 30, 30, 22, '#c2a36a', br);
+    // The Level well (stage F: the Level alone; gold at Prime, with the star on its lower left).
+    const gold = primeWell(c);
+    if (gold) {
+      s += `<radialGradient id="cpw${n}" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fff0bf"/><stop offset=".55" stop-color="#e7b552"/><stop offset="1" stop-color="#9c6a1e"/></radialGradient>`;
+      s += `<circle cx="${W - 30}" cy="30" r="26" fill="rgba(255,196,80,.35)" style="filter:blur(5px)"/><circle cx="${W - 30}" cy="30" r="22" fill="url(#cpw${n})" stroke="#1a0f08" stroke-width="3"/><circle cx="${W - 30}" cy="30" r="22.6" fill="none" stroke="#fff1c4" stroke-width="1.4"/>`;
+    } else s += well(W - 30, 30, 22, '#c2a36a', br);
     const lv = isLC(c) ? '★' : c.level;
-    h += `<div class="cv-well cv-level nowrap" data-z="badge" data-socket style="${box(W - 52, 8, 44, 44)}"><span style="font-size:${isLC(c) ? 20 : 22}px">${lv}</span><span class="cv-lv">${isLC(c) ? 'LEGEND' : 'LV'}</span></div>`;
-    // Stage P: a creature summoned at its Prime keeps a small gold star on its Level well (drawn in the frame,
-    // on the well's ring, clear of the number); off the battlefield, the Prime tag sits under the Level well.
-    if (c.primeSummon && !isLC(c)) s += `<g transform="translate(${W - 56},34) scale(.9)"><path d="${PRIME_STAR}" fill="#ffd77a" stroke="#2a1a08" stroke-width="1.4"/></g>`;
-    const tag = token ? null : primeTag(c);
-    if (tag) h += `<div class="cv-ptag ${tag.stage} nowrap" data-z="badge" data-prime="${tag.stage}" style="top:58px"><svg viewBox="0 0 24 24" aria-hidden="true">${tag.icon}</svg>${esc(tag.text)}</div>`;
+    h += `<div class="cv-well cv-level nowrap${gold ? ' prime' : isLC(c) ? ' legend' : ''}" data-z="badge" data-socket ${gold ? 'data-prime="1"' : ''} style="${box(W - 52, 8, 44, 44)}"><span style="font-size:${isLC(c) ? 20 : 24}px">${lv}</span>${isLC(c) ? '<span class="cv-lv">LEGEND</span>' : ''}</div>`;
+    if (gold || isLC(c)) s += `<g class="cv-star" transform="translate(${W - 58},36) scale(${20 / 24})"><path d="${STAR_PATH}" fill="#ffe08a" stroke="#5a3a0c" stroke-width="1.4"/></g>`;
     // The stat tabs.
     const g = guards(c);
     const hpKind = g.includes('Shield') ? 'Shield' : g.includes('Ward') ? 'Ward' : 'none';
@@ -433,7 +417,7 @@ export function renderCard(c, opts = {}) {
     h += `<div class="cv-type nowrap" data-z="text" style="top:${ny + 29}px;color:${acc}${tt.length > 28 ? ';letter-spacing:1.6px' : ''}">${esc(tt)}</div>`;
     h += `<div class="cv-rules" style="top:${ny + 48}px;bottom:${creature ? 64 : 24}px">${rules.html}</div>`;
   }
-  if (c.retained && !token) h += `<div class="cv-retained nowrap" data-z="badge" style="top:${creature ? (primeTag(c) ? (mini ? 104 : 92) : 64) : 70}px">RETAINED</div>`;
+  if (c.retained && !token) h += `<div class="cv-retained nowrap" data-z="badge" style="top:${creature ? 64 : 70}px">RETAINED</div>`;
 
   const k = token ? 164 / W : mini ? 200 / W : 1;
   const draw = `<div class="cv" style="transform:scale(${k})" data-outline="${o}" data-inner="${inner}">${artHtml}${holo}<svg class="cv-frame" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${s}</svg>${h}</div>`;

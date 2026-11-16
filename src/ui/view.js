@@ -4,7 +4,7 @@ import { RULES } from '../engine/rules.js';
 import { baseEnergyFor, availableExert } from '../engine/energy.js';
 import { isReady, locationAt, lanesOf, lanesHere, creaturesOf } from '../engine/game.js';
 import { cardDef } from '../engine/cards.js';
-import { renderCard, cardBack, icon, chipFor } from './cards.js';
+import { renderCard, cardBack, icon, chipFor, STAR_PATH } from './cards.js';
 import { legendaryCreatureOf, cardAtRound } from '../engine/cards.js';
 import { chipCardFor } from './text.js';
 import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText } from './text.js';
@@ -228,7 +228,7 @@ function hand(s, ui) {
     const attrs = `data-uid="${esc(c.uid)}" data-hover="hand" ${pick ? `data-pick="${esc(pick)}"` : playable && !ui.locked ? 'data-act="hand"' : ''}`;
     const atPrime = c.stage === 'prime' && (c.cardType === 'Character' || c.cardType === 'Monster');
     return `<div class="hand-card${playable ? ' playable' : ''}${sel ? ' selected' : ''}${pick ? ' target' : ''}${chosen ? ' chosen' : ''}${atPrime ? ' at-prime' : ''}" style="left:${pos[i].x}px;top:${HAND.y}px;transform:rotate(${pos[i].rot.toFixed(2)}deg);z-index:${10 + i}" ${attrs}>
-      ${renderCard(c, { size: 'mini' })}${favour ? '<div class="favour-tag">FAVOUR</div>' : ''}
+      ${renderCard(c, { size: 'mini' })}${favour ? '<div class="favour-tag">FAVOUR</div>' : ''}${atPrime ? `<div class="prime-tab" aria-label="At its Prime"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>PRIME</div>` : ''}
     </div>`;
   }).join('')}</div>`;
 }

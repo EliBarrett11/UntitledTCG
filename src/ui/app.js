@@ -7,7 +7,7 @@ import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lan
 import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
 import { render, fitLabels } from './view.js';
-import { renderCard, curveStrip } from './cards.js';
+import { renderCard, seriesLine } from './cards.js';
 import { displayLine, HUMAN, AI, esc } from './text.js';
 import { createPresenter } from './presenter.js';
 import { createVfx } from './vfx/index.js';
@@ -557,21 +557,22 @@ export function startApp(params) {
     const el = e.target.closest('[data-hover]');
     const pv = stage.querySelector('#preview');
     if (!pv) return;
-    if (!el || ui.menu || drag?.active) { pv.hidden = true; return; }
+    // (Stage F: from picking a card up until it's dropped or the drag is cancelled, no preview shows.)
+    if (!el || ui.menu || drag) { pv.hidden = true; return; }
     const h = hoverCard(el);
     if (!h) { pv.hidden = true; return; }
-    // Stage P: a creature in hand or the Market shows its series curve strip under the card.
-    const strip = h.strip ? curveStrip(h.card, s.round) : '';
+    // Stage F: a creature in hand shows its series line under the card (Levels, this Round's, the Prime).
+    const strip = h.strip ? seriesLine(h.card, s.round) : '';
     pv.innerHTML = `${renderCard(h.card, { size: 'full', ...h.opts })}${strip}`;
-    pv.classList.toggle('with-curve', !!strip);
+    pv.classList.toggle('with-series', !!strip);
     pv.hidden = false;
     const scale = stage.getBoundingClientRect().width / STAGE_W;
     const r = el.getBoundingClientRect();
     const sr = stage.getBoundingClientRect();
     const box = { x: (r.left - sr.left) / scale, y: (r.top - sr.top) / scale, w: r.width / scale, h: r.height / scale };
-    const W = strip ? 600 : 340; const H = strip ? 476 + 12 + (pv.querySelector('.curve-strip')?.offsetHeight ?? 150) : 476; const M = 10;
+    const W = strip ? Math.max(340, pv.querySelector('.series-line')?.offsetWidth ?? 340) : 340; const H = strip ? 476 + 12 + (pv.querySelector('.series-line')?.offsetHeight ?? 55) : 476; const M = 10;
     let x; let y;
-    if (el.dataset.hover === 'hand' && !el.closest('.mull-card')) { x = box.x + box.w / 2 - W / 2; y = box.y - H - 14; }
+    if (el.dataset.hover === 'hand' && !el.closest('.mull-card')) { x = box.x + box.w / 2 - W / 2; y = box.y - H - 26; }   // (clear of the card's "★ PRIME" tab)
     else { x = box.x + box.w + M; if (x + W > STAGE_W - M) x = box.x - W - M; y = box.y + box.h / 2 - H / 2; }
     x = Math.max(M, Math.min(STAGE_W - W - M, x));
     y = Math.max(M, Math.min(STAGE_H - H - M, y));
@@ -643,7 +644,23 @@ export function startApp(params) {
     const el = e.target.closest('[data-act="hand"],[data-act="attacker"]');
     if (!el) return;
     drag = { kind: el.dataset.act, uid: el.dataset.uid, lane: Number(el.dataset.lane), x0: e.clientX, y0: e.clientY, active: false };
+    hidePreview();
   });
+  // Stage F: picking a card up hides its hover preview and series line at once.
+  function hidePreview() {
+    const pv = stage.querySelector('#preview');
+    if (pv) { pv.hidden = true; pv.innerHTML = ''; }
+  }
+  // A drag is cancelled by Escape or a cancelled pointer: the card goes back, nothing is played.
+  function cancelDrag() {
+    if (!drag) return;
+    drag.ghost?.remove();
+    stage.querySelectorAll('.drop-ok, .drop-hover').forEach((x) => x.classList.remove('drop-ok', 'drop-hover'));
+    if (drag.active) { suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); }
+    drag = null;
+  }
+  window.addEventListener('pointercancel', cancelDrag);
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && drag) { e.stopImmediatePropagation(); cancelDrag(); } }, true);
   window.addEventListener('pointermove', (e) => {
     if (!drag) return;
     if (!drag.active) {
@@ -659,8 +676,7 @@ export function startApp(params) {
       g.innerHTML = renderCard(card, { size: drag.kind === 'hand' ? 'mini' : 'token', live: drag.kind !== 'hand' });
       stage.appendChild(g);
       drag.ghost = g;
-      const pv = stage.querySelector('#preview');
-      if (pv) pv.hidden = true;
+      hidePreview();
     }
     const p = toStage(e.clientX, e.clientY);
     drag.ghost.style.left = `${p.x}px`;

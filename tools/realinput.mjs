@@ -86,14 +86,33 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
     const p = await pointOf(page, '[data-act="hand"]', index);
     if (!p) return false;
     const before = await sig(page);
+    // (Stage F: from the moment the card is picked up until it's dropped, no hover preview or series line shows.)
+    const previewShown = () => page.evaluate(() => { const pv = document.getElementById('preview'); return !!pv && !pv.hidden && pv.innerHTML !== ''; });
+    const noPreview = async (when) => { if (await previewShown()) throw new Error(`the hover preview showed during a drag (${when})`); };
     await page.mouse.move(p.x, p.y);
+    await page.waitForTimeout(120);   // the hover preview opens
     await page.mouse.down();
+    await noPreview('on picking the card up');
     await page.mouse.move(p.x + 12, p.y - 30, { steps: 3 });
+    await noPreview('on starting to move');
     await page.mouse.move(p.x + 24, p.y - 80, { steps: 3 });
     const n = await count('.drop-ok');
     const target = n ? await pointOf(page, '.drop-ok', Math.floor(pick() * n)) : await pointOf(page, '[data-region="map"]', 0);
     if (!target) { await page.mouse.up(); return false; }
+    // Over other cards on the way (each would open a preview if it weren't a drag).
     await page.mouse.move(target.x, target.y, { steps: 8 });
+    await page.waitForTimeout(80);
+    await noPreview('over the drop target');
+    // Now and then, cancel the drag with Escape instead: nothing is played and nothing reappears.
+    if (pick() < 0.15) {
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(80);
+      await noPreview('after Escape');
+      if (await count('.drag-ghost')) throw new Error('the drag ghost stayed after Escape');
+      await page.mouse.up();
+      counts['drag cancelled'] = (counts['drag cancelled'] ?? 0) + 1;
+      return true;
+    }
     await page.mouse.up();
     clicks += 1;
     counts.drag = (counts.drag ?? 0) + 1;

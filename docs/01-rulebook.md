@@ -276,9 +276,9 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 10. **"Gain N Energy this Round"** adds Base Energy, which is lost at the end of the Round.
 11. **A creature's Level and its trigger:** Deepforge Acolyte's "L4: heal 3 instead" is stored as that Level's own trigger. The wording shown is that Level's.
 
-### Readings from stage P: needing Elliott's approval
+### Readings from stage P: approved by Elliott, 16 November 2026
 
-12. **The Barrow Wisp is put on the curve.** docs/12 gives it 2 / 2 at Level 2 and 2 / 3 at Level 3, one point above the curve with its On Defeat (Level + 2 − 1 = 3 and 4). Every other Rising and Waning Level is exactly on the curve, as the approved rule says, so the build uses **1 / 2 and 2 / 2**. (The alternative is to keep docs/12's numbers and allow this one exception.)
+12. **The Barrow Wisp is put on the curve** (approved: it stays at 1 / 2 and 2 / 2). docs/12 gives it 2 / 2 at Level 2 and 2 / 3 at Level 3, one point above the curve with its On Defeat (Level + 2 − 1 = 3 and 4). Every other Rising and Waning Level is exactly on the curve, as the approved rule says, so the build uses **1 / 2 and 2 / 2**. (The alternative is to keep docs/12's numbers and allow this one exception.)
 13. **The stage is judged by the card's Level:** off the battlefield, this Round's Level; on the battlefield, the Level it was summoned at (the snapshot), so a creature summoned at its Prime stays "summoned at Prime".
 14. **The Prime summon's Renown** comes just after the creature is placed, before its On Summon. If it wins the match, the On Summon doesn't resolve (the match is over).
 15. **The Ashen Wyrm** (a Legendary card, always Prime) gives the +1 Renown when summoned. **Aldric the Unbroken** arriving from a Quest isn't a summon, so he gives no +1 Renown; he is still Prime.

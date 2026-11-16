@@ -18,8 +18,9 @@
 
 /* Wells (cost, Level, price) and their numbers */
 .cv-well, .cv-num { position: absolute; display: flex; align-items: center; justify-content: center; font-family: Cinzel, serif; font-weight: 700; color: #f4ead2; text-shadow: 0 1px 2px #000; line-height: 1; }
-.cv-level { flex-direction: column; justify-content: flex-start; padding-top: 2px; }
-.cv-level > span:first-child { height: 26px; display: flex; align-items: center; }
+.cv-level.legend { flex-direction: column; justify-content: flex-start; padding-top: 2px; }
+.cv-level.prime > span { color: #1a0f08; text-shadow: none; }
+.cv-level.legend > span:first-child { height: 26px; display: flex; align-items: center; }
 .cv-lv { font-size: 7.5px; letter-spacing: 1px; font-weight: 600; color: #bfa36a; margin-top: 1px; }
 
 /* Stat tabs: the number (Health's first span holds the value), raised in green ▲, lowered or damaged in red ▼ */
@@ -106,33 +107,17 @@ body.sheet #viewport { position: static; }
 .sheet-token.spent .card { filter: saturate(0.25) brightness(0.7); }
 .sheet-chips { display: flex; align-items: center; gap: 14px; padding-top: 40px; }
 
-/* Stage P: the Prime tag under the Level well (silver Rising, gold Prime, muted Waning), as in docs/mockups/prime-v1 */
-.cv-ptag { position: absolute; right: 6px; z-index: 3; display: flex; gap: 5px; align-items: center; padding: 3px 9px 3px 8px; border-radius: 999px;
-  font: 700 10.5px Cinzel, serif; letter-spacing: 1.8px; line-height: 1.2; }
-.cv-ptag svg { width: 11px; height: 11px; flex: none; }
-.card-mini .cv-ptag { font-size: 16px; letter-spacing: 1.6px; padding: 4px 12px 4px 10px; gap: 7px; }
-.card-mini .cv-ptag svg { width: 16px; height: 16px; }
-.cv-ptag.rising { background: rgba(10,8,6,.82); color: #d9e2ea; box-shadow: 0 0 0 1px rgba(200,212,224,.6); }
-.cv-ptag.rising svg { fill: #d9e2ea; }
-.cv-ptag.prime { background: linear-gradient(#ffe39a, #d29a3f); color: #1a0f08; box-shadow: 0 0 0 1px #fff2c8, 0 0 14px rgba(255,200,90,.85); }
-.cv-ptag.prime svg { fill: #1a0f08; }
-.cv-ptag.waning { background: rgba(10,8,6,.82); color: #a99c8b; box-shadow: 0 0 0 1px rgba(160,148,130,.5); }
-.cv-ptag.waning svg { fill: #a99c8b; }
-
-/* Stage P: the series curve strip (the hover preview, the Codex) */
-.curve-strip { width: 600px; padding: 12px 14px 14px; border-radius: 10px; background: linear-gradient(#26180e, #140c07);
-  box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(226,190,120,.6), 0 14px 24px rgba(0,0,0,.6); box-sizing: border-box; }
-.curve-title { font: 700 12px Cinzel, serif; letter-spacing: 3px; color: #f1d9a0; margin: 0 0 12px; }
-.kc-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
-.kc { position: relative; border-radius: 7px; padding: 8px 4px 9px; text-align: center; background: rgba(255,255,255,.03); box-shadow: inset 0 0 0 1px rgba(226,190,120,.25); }
-.kc-r { font: 700 10px Cinzel, serif; letter-spacing: 1.6px; color: rgba(232,220,192,.6); }
-.kc-f { font-size: 12px; line-height: 1.1; color: rgba(232,220,192,.82); margin: 3px 0 5px; height: 27px; display: flex; align-items: center; justify-content: center; }
-.kc-s { font: 700 20px Cinzel, serif; color: #f4ead2; }
-.kc-s .a { color: #f0b85a; } .kc-s .h { color: #f08a9a; }
-.kc-c { font-size: 11px; color: rgba(232,220,192,.7); margin-top: 3px; }
-.kc-bar { height: 5px; border-radius: 3px; margin: 7px 5px 0; background: rgba(255,255,255,.08); overflow: hidden; }
-.kc-bar i { display: block; height: 100%; background: linear-gradient(90deg, #8c7a5c, #cbb486); }
-.kc.prime { background: linear-gradient(#4a3416, #2a1a0b); box-shadow: inset 0 0 0 1px #ffd77a, 0 0 14px rgba(255,190,80,.35); }
-.kc.prime .kc-r { color: #ffd77a; }
-.kc.prime .kc-bar i { background: linear-gradient(90deg, #f7c75e, #ffe9a8); }
-.kc.now::after { content: 'NOW'; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font: 700 8.5px Cinzel, serif; letter-spacing: 2px; padding: 2px 7px; border-radius: 999px; background: #e8dcc0; color: #1a0f08; }
+/* Stage F: the series line (the hover preview of a creature in hand, the Codex), as in docs/mockups/feedback-v1 */
+.series-line { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px 17px; border-radius: 999px; pointer-events: none; white-space: nowrap;
+  background: rgba(14,9,6,.94); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(226,190,120,.55), 0 10px 20px rgba(0,0,0,.6); }
+.sl-t { font: 700 10px/1.3 Cinzel, serif; letter-spacing: 2.4px; color: rgba(232,220,192,.65); }
+.sl-l { display: flex; gap: 6px; align-items: center; }
+.sl-c { position: relative; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 700 14px/1 Cinzel, serif; color: rgba(232,220,192,.55);
+  box-shadow: inset 0 0 0 1px rgba(226,190,120,.35); }
+.sl-c.prime { color: #1a0f08; background: radial-gradient(circle at 40% 35%, #fff0bf, #e7b552 60%, #9c6a1e); box-shadow: 0 0 10px rgba(255,196,80,.7); }
+.sl-c.prime::after { content: '★'; position: absolute; top: -11px; font-size: 11px; line-height: 1; color: #ffe08a; text-shadow: 0 0 4px rgba(255,190,80,.9); }
+.sl-c.now { box-shadow: inset 0 0 0 2px #f4ead2, 0 0 0 2px rgba(10,6,4,.9); color: #f4ead2; }
+.sl-c.prime.now { box-shadow: inset 0 0 0 2px #1a0f08, 0 0 0 2px #fff1c4, 0 0 12px rgba(255,196,80,.9); color: #1a0f08; }
+.sl-c.now::before { content: 'NOW'; position: absolute; bottom: -14px; font: 700 8px/1 Cinzel, serif; letter-spacing: 1.5px; color: #f4ead2; }
+.sl-sep { width: 8px; height: 1px; background: rgba(226,190,120,.35); }
+.sheet-series { display: flex; justify-content: center; margin-top: -4px; }

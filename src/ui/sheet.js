@@ -4,7 +4,7 @@
 import { defineCards, cardDef, creatureAtLevel, cardAtRound, legendaryCreatureOf, isCreature } from '../engine/cards.js';
 import { CARDS } from '../data/cards.js';
 import { onBoard } from '../engine/game.js';
-import { renderCard, curveStrip } from './cards.js';
+import { renderCard, seriesLine } from './cards.js';
 import { esc } from './text.js';
 
 defineCards(CARDS);
@@ -49,9 +49,9 @@ export function runSheet(params) {
     const firsts = [];
     const seen = new Set();
     for (const c of cards) { const k = c.form ?? c.id; if (!seen.has(k)) { seen.add(k); firsts.push(c); } }   // one per form: its first Level
-    // The Codex (opened from the title screen) shows each series' curve strip under its card (stage P).
+    // The Codex (opened from the title screen) shows each series' line of Levels under its card (stage F).
     const codex = params.get('from') === 'title';
-    html = `<div class="sheet-grid">${firsts.map((c) => cell(`${c.name}${isCreature(c) ? ` · L${c.legendaryCreature ? '★' : c.level}` : ''}`, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>${codex ? curveStrip(c) : ''}`)).join('')}</div>`;
+    html = `<div class="sheet-grid">${firsts.map((c) => cell(`${c.name}${isCreature(c) ? ` · L${c.legendaryCreature ? '★' : c.level}` : ''}`, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>${codex ? `<div class="sheet-series">${seriesLine(c)}</div>` : ''}`)).join('')}</div>`;
   } else {
     html = `<div class="sheet-grid">${cards.map((c, i) => {
       const label = `${c.name}${isCreature(c) ? ` · L${c.legendaryCreature ? '★' : c.level}` : ''}`;
@@ -122,5 +122,5 @@ function primeSheet(id, round) {
   }).join('');
   return `<div id="cmp" style="width:2280px;height:1060px;box-sizing:border-box;padding:150px 60px 0;position:relative;${BG}">
     <div style="display:flex;gap:24px">${cols}</div>
-    <div style="position:absolute;left:60px;top:760px">${curveStrip(cardAtRound(id, round, 'strip'), round)}</div></div>`;
+    <div style="position:absolute;left:60px;top:760px">${seriesLine(cardAtRound(id, round, 'strip'), round)}</div></div>`;
 }

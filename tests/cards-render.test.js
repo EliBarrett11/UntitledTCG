@@ -5,7 +5,7 @@ import { defineCards, cardAtRound, creatureAtLevel, cardDef, legendaryCreatureOf
 import { CARDS } from '../src/data/cards.js';
 
 defineCards(CARDS);
-const { renderCard, FRAMES, isFoil } = await import('../src/ui/cards.js');
+const { renderCard, FRAMES, isFoil, seriesLine } = await import('../src/ui/cards.js');
 const { allInstances } = await import('../src/ui/sheet.js');
 
 test('every card renders at Full, Mini, Token (creatures) and Chip size', () => {
@@ -55,17 +55,33 @@ test('foil (stage P): the Prime Level, the Legendary and the Legendary Creature;
   assert.equal(isFoil({ ...creatureAtLevel(captain, 4, 'j'), primeSummon: true }), true);
 });
 
-test('the Prime tag (stage P): silver Rising with its Round, gold Prime, muted Waning; a token\'s star', () => {
-  const captain = cardDef('oathsworn-recruit');
-  const strip = (html) => html.replace(/<[^>]+>/g, '').trim();
-  const tagOf = (html) => strip(html.match(/<div class="cv-ptag[^>]*>.*?<\/div>/)?.[0] ?? '');
-  assert.equal(tagOf(renderCard(creatureAtLevel(captain, 3, 'a'), { size: 'full' })), 'PRIME · ROUND 4');
-  assert.equal(tagOf(renderCard(creatureAtLevel(captain, 5, 'b'), { size: 'mini' })), 'PRIME');
-  assert.equal(tagOf(renderCard(creatureAtLevel(captain, 6, 'c'), { size: 'full' })), 'PAST PRIME');
-  assert.ok(renderCard(creatureAtLevel(captain, 3, 'd')).includes('data-prime="rising"'));
+test('one Level well (stage F): the Level alone; gold with a star at Prime, on every size; LEGEND keeps its star', () => {
+  const captain = cardDef('oathsworn-recruit');   // Prime at Level 5
+  const well = (html) => html.match(/<div class="cv-well cv-level[^"]*"[^>]*>(.*?)<\/div>/);
+  for (const size of ['full', 'mini', 'token']) {
+    const off = renderCard(creatureAtLevel(captain, 4, 'a'), { size });
+    assert.equal(well(off)[1].replace(/<[^>]+>/g, ''), '4', `${size}: only the number`);
+    assert.ok(!/\bLV\b/.test(off) && !off.includes('PAST PRIME') && !off.includes('cv-ptag'), `${size}: no LV, no tags`);
+    assert.ok(!off.includes('class="cv-star"'), `${size}: no star off Prime`);
+    const at = renderCard(creatureAtLevel(captain, 5, 'b'), { size });
+    assert.ok(well(at)[0].includes(' prime') && at.includes('class="cv-star"'), `${size}: gold well and star at Prime`);
+  }
   const token = (prime) => renderCard({ ...creatureAtLevel(captain, 5, 'e'), currentHealth: 5, primeSummon: prime }, { size: 'token', live: true });
-  assert.ok(!token(true).includes('cv-ptag') && token(true).includes('#ffd77a'), 'a token: the star, no tag');
-  assert.ok(!token(false).includes('#ffd77a'));
+  assert.ok(token(true).includes('class="cv-star"') && token(true).includes('cv-level nowrap prime'), 'a token summoned at Prime keeps the gold well and star');
+  assert.ok(!token(false).includes('class="cv-star"'), 'summoned at another Level: a plain well, even at the Prime Level');
+  const lc = renderCard(legendaryCreatureOf(cardDef('lady-corwens-commission'), 'lc'), { size: 'full' });
+  assert.ok(lc.includes('LEGEND') && lc.includes('class="cv-star"'), 'LEGEND, with the star');
+});
+
+test('the series line (stage F): LEVELS, six rings, NOW on this Round\'s Level, the Prime in gold', () => {
+  const c = cardAtRound('oathsworn-recruit', 2, 'x');
+  const html = seriesLine(c, 2);
+  assert.deepEqual([...html.matchAll(/data-level="(\d+)"/g)].map((m) => Number(m[1])), [2, 3, 4, 5, 6, 7]);
+  assert.match(html, /class="sl-c now" data-level="3"/);
+  assert.match(html, /class="sl-c prime" data-level="5"/);
+  assert.ok(html.includes('LEVELS') && !/Energy|Attack|Health/.test(html));
+  assert.equal(seriesLine(cardAtRound('the-ashen-wyrm', 1, 'w'), 1), '', 'no line for a Legendary');
+  assert.equal(seriesLine(cardAtRound('firebolt', 1, 'f'), 1), '');
 });
 
 test('the wording on every card is the generated wording (no card text typed by hand)', () => {
