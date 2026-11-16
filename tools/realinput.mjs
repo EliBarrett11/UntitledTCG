@@ -41,7 +41,9 @@ async function pointOf(page, selector, index = 0) {
 
 const sig = (page) => page.evaluate(() => {
   const b = document.body.dataset;
-  return `${b.version}|${b.step}|${b.phase}|${b.react}|${b.skips}|${b.beatsDone}|${document.querySelectorAll('.menu').length}|${document.querySelectorAll('.mull-card.chosen').length}|${document.querySelectorAll('.react-opt.selected').length}`;
+  // (The prompt too: a new selection can have the same step and number of choices as the last, e.g. a target
+  // for a Bag Item chosen in the middle of choosing a target for something else.)
+  return `${b.version}|${b.step}|${b.phase}|${b.react}|${b.skips}|${b.beatsDone}|${document.querySelectorAll('.menu').length}|${document.querySelectorAll('.mull-card.chosen').length}|${document.querySelectorAll('.react-opt.selected').length}|${document.querySelector('[data-region="prompt"]')?.textContent ?? ''}`;
 });
 
 async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
