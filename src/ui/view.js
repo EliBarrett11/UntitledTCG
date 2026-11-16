@@ -65,7 +65,7 @@ function piles(s, who, ui) {
   return `<div class="piles" data-region="piles-${who}">
     ${pile(p.drawPile.length, 'DRAW')}${pile(p.discard.length, 'DISCARD')}${pile(p.released.length, 'RELEASED')}
     <div class="bag"><div class="bag-grid">${bag}</div><div class="label">BAG ${p.bag.length}/${RULES.bagSize}</div></div>
-    <div class="gold"><div class="gold-n">${icon('gold', 'ic gold-ic')}${p.gold}</div><div class="label">GOLD</div></div>
+    ${who === HUMAN ? '' : `<div class="gold"><div class="gold-n">${icon('gold', 'ic gold-ic')}${p.gold}</div><div class="label">GOLD</div></div>`}
   </div>`;
 }
 
@@ -165,16 +165,20 @@ function column(s, ui) {
   const lb = s.lastBattle ? `<div class="lb-note">THE LAST BATTLE · since Round ${s.lastBattle.startedRound}</div>` : `<div class="muted small">Last Battle: Round ${RULES.lastBattleRound} or ${RULES.lastBattleRenown} Renown</div>`;
   const base = me.baseEnergy;
   const pips = Math.max(base, baseEnergyFor(s.round));
-  const energyPips = Array.from({ length: Math.min(pips, 14) }, (_, i) => `<div class="pip${i < base ? ' on' : ''}"></div>`).join('');
-  const exertDots = [...Array(availableExert(me)).fill(null).map(() => '<div class="ex"><div class="pip exert on"></div><div class="tiny">ready</div></div>'),
-    ...[...me.exhaust].sort((a, b) => a.recoversRound - b.recoversRound).map((x) => `<div class="ex"><div class="pip exhausted">R${x.recoversRound}</div><div class="tiny">Exhausted</div></div>`)].join('');
+  // (Stage G: Energy is crystal cyan. A crystal for each Energy this Round, lit for each one left; Exert on one line,
+  // a bright crystal with a star for each ready point and a dark cracked one for each exhausted point, with the
+  // Round it comes back.)
+  const energyPips = Array.from({ length: Math.min(pips, 12) }, (_, i) => `<i class="cr${i < base ? '' : ' off'}"></i>`).join('');
+  const exertDots = [...Array(availableExert(me)).fill(null).map(() => '<div class="ex" title="An Exert point, ready to use"><i class="cr exert"></i><small><b>ready</b></small></div>'),
+    ...[...me.exhaust].sort((a, b) => a.recoversRound - b.recoversRound).map((x) => `<div class="ex" title="Exhausted: it recovers at the Dawn of Round ${x.recoversRound}"><i class="cr tired"></i><small>Round ${x.recoversRound}</small></div>`)].join('');
   const m = s.market;
   const item = m.onSale;
   const stockFull = item?.stock ?? 1;
   const canBuy = ui.picks?.marketBuy;
+  const buy = item ? buyButton(s, ui, item, canBuy) : '';
   const market = item ? `<div class="market-row">
       <div class="market-card" data-hover="market" data-uid="${esc(item.uid)}">${renderCard(item, { size: 'mini' })}</div>
-      <button type="button" class="btn buy" ${canBuy ? 'data-act="buy-market"' : 'disabled'}>Buy for ${item.price} Gold</button>
+      ${buy}
       </div>`
     : `<div class="sold-out">${m.soldOut ? 'SOLD OUT' : 'NOTHING ON SALE'}<div class="muted small">${m.soldOut ? `Restocks after ${m.soldOut.by === HUMAN ? 'your' : 'the enemy\'s'} next turn` : ''}</div></div>`;
   const stockRing = item ? `<div class="stock">${dial(m.stock, stockFull, 34, 26).replace('$', `<b>${m.stock}</b>`)}Stock · turns left</div>` : '';
@@ -186,18 +190,15 @@ function column(s, ui) {
       <div class="phases">${phases}</div>
       <div class="turn-line">${esc(turnLine)}</div>
     </div>
-    <div class="panel energy-panel">
-      <div class="label">ENERGY</div>
-      <div class="energy-head"><div class="energy-n">${base}</div><div class="muted">Base Energy left this Round</div></div>
-      <div class="pips">${energyPips}</div>
-      <div class="label">EXERT · ${availableExert(me)} OF ${me.exertMax} AVAILABLE</div>
-      <div class="exerts">${exertDots || '<div class="muted small">No Exert yet</div>'}</div>
-      <div class="muted small">Exhausted points recover at the Dawn shown.</div>
+    <div class="panel energy-panel" title="Base Energy left this Round; Exert points beyond it">
+      <div class="en-top"><span class="label">ENERGY</span><div class="en-big"><i class="cr big"></i><span class="energy-n">${base}</span></div><div class="en-row">${energyPips}</div></div>
+      <div class="en-ex"><span class="label">EXERT · ${availableExert(me)} OF ${me.exertMax}</span>${exertDots || '<span class="muted small">none yet</span>'}</div>
     </div>
     <button type="button" class="btn pass" ${passable ? 'data-act="pass"' : 'disabled'}>PASS</button>
     <div class="muted small center pass-note">${ui.passNote ?? 'Passing gives you +1 Base Energy this Round'}</div>
     <div class="panel market-panel">
       <div class="market-head"><div class="label">THE MARKET</div>${stockRing}</div>
+      <div class="your-gold" data-region="your-gold"><span class="l">YOUR GOLD</span><span class="gold-n"><i class="coin-i" aria-hidden="true"></i>${me.gold}</span></div>
       ${market}
     </div>
     <div class="panel log-panel">
@@ -205,6 +206,22 @@ function column(s, ui) {
       ${log}
     </div>
   </div>`;
+}
+
+// Stage G: the Market's Buy button. Bright gold when you can afford the Item ("Buy for 2 Gold · you have 2"); dimmed
+// and saying how much more you need when you can't; and saying why when it's unavailable for another reason.
+function buyButton(s, ui, item, canBuy) {
+  const me = s.players[HUMAN];
+  const price = `Buy for ${item.price} Gold`;
+  if (canBuy) return `<button type="button" class="btn buy ok" data-act="buy-market">${price} · you have ${me.gold}</button>`;
+  let why;
+  if (s.phase !== 'battle') why = s.phase === 'mulligan' ? 'after the mulligan' : 'in the Battle Phase';
+  else if (s.reactWindow) why = 'not during a React';
+  else if (s.turn !== HUMAN) why = 'not your turn';
+  else if (me.gold < item.price) why = `you need ${item.price - me.gold} more`;
+  else if (ui.locked) why = 'wait for the action to finish';
+  else why = me.bag.length >= RULES.bagSize ? 'no target, and your Bag is full' : 'not now';
+  return `<button type="button" class="btn buy${me.gold < item.price ? ' short' : ''}" disabled>${price} · ${why}</button>`;
 }
 
 // --- The hand ----------------------------------------------------------------------------------------------------

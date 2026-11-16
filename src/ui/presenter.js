@@ -40,7 +40,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   const token = (who, lane) => q(`[data-cell="${who}:${lane}"] .slot-card`);
   const warlordEl = (who) => q(`[data-region="warlord-${who}"]`);
   const dialEl = (who) => q(`[data-region="warlord-${who}"] .dial-n`);
-  const goldEl = (who) => q(`[data-region="piles-${who}"] .gold-n`);
+  // (Stage G: your Gold is in the Market; the enemy's stays in their piles.)
+  const goldEl = (who) => q(who === HUMAN ? '[data-region="your-gold"] .gold-n' : `[data-region="piles-${who}"] .gold-n`);
   const pileEl = (who, i) => q(`[data-region="piles-${who}"] .pile:nth-child(${i}) .pile-card`);
   const centre = { cx: 790, cy: 450, x: 790, y: 450, w: 0, h: 0 };
 

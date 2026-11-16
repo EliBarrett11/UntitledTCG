@@ -372,3 +372,36 @@ body.low-motion .ambient { display: none; }
 body.low-motion .tarrow .ar-core { animation: none; }
 body.low-motion .tarrow.draw * { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; }
 .aim { position: absolute; inset: 0; pointer-events: none; z-index: 88; }
+
+/* Stage G: the Energy panel (docs/mockups/feedback-v2/m9-board.png). Energy is crystal cyan. */
+.energy-panel { gap: 8px; }
+.en-top { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; }
+.en-top .label, .en-ex .label { margin: 0; white-space: nowrap; }
+.en-big { display: flex; align-items: center; gap: 7px; }
+.en-big .energy-n { font: 700 34px/1 Cinzel, serif; color: #c9f6ff; text-shadow: 0 0 12px rgba(90,220,255,.6); }
+.en-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.en-ex { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.en-ex .label { align-self: center; }
+.en-ex .ex { width: 46px; gap: 3px; }
+.en-ex small { font: 600 10.5px/1.2 'Alegreya Sans', 'EB Garamond', serif; color: rgba(232,220,192,.65); white-space: nowrap; }
+.en-ex small b { color: #c9f6ff; }
+i.cr { display: block; position: relative; width: 20px; height: 26px; flex: none; clip-path: polygon(50% 0, 100% 28%, 100% 72%, 50% 100%, 0 72%, 0 28%);
+  background: linear-gradient(160deg, #e9fdff 0%, #7fe6ff 25%, #19a9d6 55%, #06506e 80%, #3ad0f5 100%); }
+i.cr::after { content: ''; position: absolute; inset: 0; clip-path: polygon(50% 0, 100% 28%, 50% 50%, 0 28%); background: rgba(255,255,255,.55); }
+.en-row i.cr:not(.off), .en-big i.cr { filter: drop-shadow(0 0 4px rgba(90,220,255,.7)); }
+i.cr.off { background: linear-gradient(160deg, rgba(120,200,230,.2), rgba(20,60,80,.4)); }
+i.cr.off::after { background: rgba(255,255,255,.06); }
+i.cr.big { width: 26px; height: 34px; }
+i.cr.exert { width: 22px; height: 28px; background: linear-gradient(160deg, #ffffff 0%, #b8f3ff 20%, #2fc6ef 50%, #0a5d7d 80%, #6fe0ff 100%); filter: drop-shadow(0 0 4px #9ff0ff) drop-shadow(0 0 10px rgba(120,230,255,.9)); }
+i.cr.exert::before { content: '✦'; position: absolute; z-index: 2; left: 0; right: 0; top: 6px; text-align: center; font-size: 12px; line-height: 1; font-style: normal; color: #fff; text-shadow: 0 0 5px #fff; }
+i.cr.tired { width: 22px; height: 28px; background: linear-gradient(160deg, #39505a, #142228); }
+i.cr.tired::before { content: ''; position: absolute; z-index: 2; left: 45%; top: 15%; width: 2px; height: 70%; background: rgba(0,0,0,.6); transform: rotate(18deg); }
+/* Stage G: your Gold lives in the Market, and the Buy button says what you have or what you need. */
+.your-gold { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 4px; padding: 5px 12px; border-radius: 10px;
+  background: linear-gradient(rgba(60,40,12,.65), rgba(30,18,6,.65)); box-shadow: inset 0 0 0 1px rgba(240,200,110,.45); }
+.your-gold .l { font: 700 11px/1.3 Cinzel, serif; letter-spacing: 2.5px; color: rgba(240,214,150,.85); white-space: nowrap; }
+.your-gold .gold-n { display: flex; align-items: center; gap: 9px; font: 700 24px/1.1 Cinzel, serif; color: #ffd77a; text-shadow: 0 0 10px rgba(255,200,90,.5); }
+.coin-i { width: 20px; height: 20px; border-radius: 50%; flex: none; background: radial-gradient(circle at 38% 32%, #fff3c4, #f0c55a 45%, #a8741f 85%); box-shadow: 0 0 0 2px #3a2208, inset 0 0 0 3px rgba(120,80,20,.6); }
+.btn.buy { width: auto; min-width: 200px; max-width: 100%; padding: 0 14px; white-space: nowrap; font-size: 15px; }
+.btn.buy.ok { background: linear-gradient(#f3d58f, #c99a4a); color: #1a0f08; font-weight: 700; border-color: #fff2c8; box-shadow: 0 0 0 1px #fff2c8, 0 0 14px rgba(255,200,90,.45); }
+.btn.buy:disabled { opacity: .78; font-size: 14px; }
