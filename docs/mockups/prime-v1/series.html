@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><base href="../../../"><title>Prime Summons · mockup v1</title>
+<link rel="stylesheet" href="src/ui/board.css">
+<link rel="stylesheet" href="src/ui/cards.css">
+<style>
+html,body{margin:0;background:#120c08;overflow:auto;height:auto}
+body{width:2280px;min-height:1060px;position:relative;color:#e8dcc0;font-family:'Alegreya Sans','EB Garamond',serif;
+  background: radial-gradient(ellipse at 50% 0%, #2a1a0f, #120c08 70%);}
+h1{font:700 30px Cinzel,serif;letter-spacing:6px;color:#f1d9a0;margin:0;position:absolute;left:60px;top:36px}
+.sub{position:absolute;left:62px;top:82px;font-size:18px;color:rgba(232,220,192,.7)}
+.row{position:absolute;left:60px;top:150px;display:flex;gap:24px}
+.slot{width:340px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.slot .rd{font:700 14px Cinzel,serif;letter-spacing:4px;color:rgba(232,220,192,.65)}
+.slot .st{font:700 13px Cinzel,serif;letter-spacing:3px}
+.slot .st.Rising{color:#b9c4cf}.slot .st.Prime{color:#ffd77a;text-shadow:0 0 12px rgba(255,190,80,.6)}.slot .st.Waning{color:#9c8f80}
+.cardwrap{position:relative;width:340px;height:476px}
+.cardwrap.Prime::before{content:'';position:absolute;inset:-14px;border-radius:30px;background:radial-gradient(ellipse,rgba(255,200,90,.35),transparent 70%);filter:blur(6px)}
+.cardwrap.Waning .card img{filter:saturate(.8)}
+/* the Prime tag under the Level well */
+.ptag{position:absolute;z-index:20;right:6px;top:58px;padding:3px 9px 3px 8px;border-radius:999px;font:700 10.5px Cinzel,serif;letter-spacing:1.8px;white-space:nowrap;display:flex;gap:5px;align-items:center}
+.ptag svg{width:11px;height:11px}
+.ptag.Rising{background:rgba(10,8,6,.82);color:#d9e2ea;box-shadow:0 0 0 1px rgba(200,212,224,.6)}
+.ptag.Rising svg{fill:#d9e2ea}
+.ptag.Prime{background:linear-gradient(#ffe39a,#d29a3f);color:#1a0f08;box-shadow:0 0 0 1px #fff2c8,0 0 14px rgba(255,200,90,.85)}
+.ptag.Prime svg{fill:#1a0f08}
+.ptag.Waning{background:rgba(10,8,6,.82);color:#a99c8b;box-shadow:0 0 0 1px rgba(160,148,130,.5)}
+.ptag.Waning svg{fill:#a99c8b}
+/* curve strip (hover preview + Codex) */
+.panel{position:absolute;left:60px;top:760px;width:1100px;padding:22px 26px;border-radius:12px;background:linear-gradient(#26180e,#140c07);
+  box-shadow:0 0 0 1px #000,0 0 0 2px rgba(226,190,120,.6),0 18px 30px rgba(0,0,0,.6)}
+.panel h2{margin:0 0 4px;font:700 16px Cinzel,serif;letter-spacing:4px;color:#f1d9a0}
+.panel .hint{font-size:15px;color:rgba(232,220,192,.7);margin-bottom:16px}
+.strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.kc{border-radius:8px;padding:10px 8px 12px;text-align:center;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(226,190,120,.25);position:relative}
+.kc .r{font:700 12px Cinzel,serif;letter-spacing:3px;color:rgba(232,220,192,.6)}
+.kc .f{font-size:13px;color:rgba(232,220,192,.8);margin:3px 0 8px;min-height:16px}
+.kc .s{font:700 26px Cinzel,serif;color:#f4ead2}
+.kc .s .a{color:#f0b85a}.kc .s .h{color:#f08a9a}
+.kc .c{font-size:13px;color:rgba(232,220,192,.7);margin-top:4px}
+.kc .bar{height:6px;border-radius:3px;margin:10px 6px 0;background:rgba(255,255,255,.08);overflow:hidden}
+.kc .bar i{display:block;height:100%;background:linear-gradient(90deg,#8c7a5c,#cbb486)}
+.kc.Prime{background:linear-gradient(#4a3416,#2a1a0b);box-shadow:inset 0 0 0 1px #ffd77a,0 0 18px rgba(255,190,80,.35)}
+.kc.Prime .bar i{background:linear-gradient(90deg,#f7c75e,#ffe9a8)}
+.kc.Prime .r{color:#ffd77a}
+.kc.now::after{content:'NOW';position:absolute;top:-9px;left:50%;transform:translateX(-50%);font:700 9px Cinzel,serif;letter-spacing:2px;padding:2px 7px;border-radius:999px;background:#e8dcc0;color:#1a0f08}
+.legend{position:absolute;left:1210px;top:760px;width:1010px;font-size:17px;line-height:1.45;color:rgba(232,220,192,.85)}
+.legend h3{margin:0 0 10px;font:700 16px Cinzel,serif;letter-spacing:4px;color:#f1d9a0}
+.legend p{margin:0 0 12px}
+.legend b{color:#f1d9a0}
+</style></head><body>
+<h1>PRIME SUMMONS · ONE SERIES, SIX ROUNDS</h1>
+<div class="sub">Oathsworn Recruit series · Mid · Prime in Round 4 · proposed stats. Every copy of a series is at the same Level each Round, so its Prime is the same Round for everyone.</div>
+<div class="row" id="row"></div>
+<div class="panel"><h2>THE SERIES CURVE · HOVER PREVIEW AND CODEX</h2><div class="hint">Shown when you hover a creature in hand or the Market, and under each series in the Codex. The bar is value against the curve for that Level: full on the curve, overflowing gold at Prime.</div><div class="strip" id="strip"></div></div>
+<div class="legend">
+<h3>READING IT</h3>
+<p><b>Rising</b> (silver tag) shows the Round its Prime arrives: hold it with Retain, or summon it early for tempo.</p>
+<p><b>Prime</b> (gold tag, foil frame, gold glow in hand) is the best value the series ever has: +3 stats on the curve, and any “Prime:” ability works.</p>
+<p><b>Waning</b> (muted tag) is past its best: a point below the curve, but its elder form brings a veteran’s ability.</p>
+<p>From Round 6 every card sits at its last Level for the rest of the match, so a series with its Prime last is a late-game threat, and one that peaks early is an opener.</p>
+</div>
+<script type="module">
+import { defineCards, creatureAtLevel, cardDef } from './src/engine/cards.js';
+import { CARDS } from './src/data/cards.js';
+import { renderCard } from './src/ui/cards.js';
+defineCards(CARDS);
+const def = cardDef('oathsworn-recruit');
+const P = [
+  {r:1,L:2,st:'Rising',form:'recruit',a:2,h:2},{r:2,L:3,st:'Rising',form:'recruit',a:2,h:3},
+  {r:3,L:4,st:'Rising',form:'captain',a:3,h:3},{r:4,L:5,st:'Prime',form:'captain',a:5,h:5},
+  {r:5,L:6,st:'Waning',form:'veteran',a:3,h:3},{r:6,L:7,st:'Waning',form:'veteran',a:3,h:4}];
+const star='<svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>';
+const up='<svg viewBox="0 0 24 24"><path d="M12 4l9 12H3z"/></svg>';
+const down='<svg viewBox="0 0 24 24"><path d="M12 20 3 8h18z"/></svg>';
+const tag={Rising:`${up}PRIME · ROUND 4`,Prime:`${star}PRIME`,Waning:`${down}PAST PRIME`};
+let row='', strip='';
+for (const p of P) {
+  const c = creatureAtLevel(def, p.L <= 4 ? Math.max(p.L,2) : 5, 'm'+p.r);
+  c.level=p.L; c.cost=Math.ceil(p.L/2); c.attack=p.a; c.health=p.h;
+  if (p.form==='recruit'){ const f=def.forms[0]; c.name=f.name; c.art=f.art; c.form=f.id; }
+  if (p.form==='captain'){ const f=def.forms[1]; c.name=f.name; c.art=f.art; c.form=f.id; }
+  if (p.form==='veteran'){ c.name='Oathsworn Veteran'; c.art=null; c.form='oathsworn-veteran'; c.keywords={armour:1}; }
+  if (p.st==='Prime') c.legendary=true;   // mockup only: borrow the foil frame
+  row += `<div class="slot"><div class="rd">ROUND ${p.r} · LEVEL ${p.L}</div><div class="cardwrap ${p.st}">${renderCard(c,{size:'full'})}<div class="ptag ${p.st}">${tag[p.st]}</div></div><div class="st ${p.st}">${p.st.toUpperCase()}</div></div>`;
+  const v=(p.a+p.h)/(p.L+2)*6; 
+  strip += `<div class="kc ${p.st}${p.r===2?' now':''}"><div class="r">ROUND ${p.r}</div><div class="f">${c.name.replace('Oathsworn ','')}</div><div class="s"><span class="a">${p.a}</span> / <span class="h">${p.h}</span></div><div class="c">${Math.ceil(p.L/2)} Energy · LV ${p.L}</div><div class="bar"><i style="width:${Math.round(v/10*100)}%"></i></div></div>`;
+}
+document.getElementById('row').innerHTML=row; document.getElementById('strip').innerHTML=strip;
+document.body.dataset.done='true';
+</script></body></html>
