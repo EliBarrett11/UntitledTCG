@@ -493,7 +493,13 @@ export function startApp(params) {
     if (!el) { if (ui.sel || ui.menu) cancel(); return; }
     if (el.dataset.pick) {
       const k = el.dataset.pick;
-      if (k.startsWith('bag:')) return choose(mine().filter((a) => a.type === 'useItem' && a.uid === k.slice(4)), 'Use the Item');
+      if (k.startsWith('bag:')) {
+        // Clicking the Bag Item whose target is being chosen cancels it (it would only start the same choice again).
+        if (ui.sel?.bagUid === k.slice(4)) return cancel();
+        choose(mine().filter((a) => a.type === 'useItem' && a.uid === k.slice(4)), 'Use the Item');
+        if (ui.sel) ui.sel.bagUid = k.slice(4);
+        return undefined;
+      }
       return pick(k);
     }
     switch (el.dataset.act) {
