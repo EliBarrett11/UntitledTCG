@@ -70,7 +70,13 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
       if ((await sig(page)) !== before) return true;
       await page.waitForTimeout(25);
     }
-    throw new Error(`a click had no effect: ${what} at (${Math.round(p.x)}, ${Math.round(p.y)})`);
+    // (What was under the pointer, and the prompt, to tell why.)
+    const why = await page.evaluate(([x, y]) => {
+      const e = document.elementFromPoint(x, y);
+      const name = (el) => (el ? `${el.tagName.toLowerCase()}${typeof el.className === 'string' && el.className ? `.${el.className.trim().split(/\s+/).join('.')}` : ''}` : 'nothing');
+      return `under the pointer: ${name(e)} (in ${name(e?.closest('[data-pick], [data-act], [data-region]'))}); prompt: "${document.querySelector('[data-region="prompt"]')?.textContent ?? ''}"`;
+    }, [p.x, p.y]);
+    throw new Error(`a click had no effect: ${what} at (${Math.round(p.x)}, ${Math.round(p.y)}); ${why}`);
   }
   const count = (sel) => page.evaluate((s) => document.querySelectorAll(s).length, sel);
   const state = () => page.evaluate(() => ({ ...document.body.dataset, end: !!document.querySelector('[data-region="end"]'), mull: !!document.querySelector('[data-region="mulligan"]'), react: !!document.querySelector('[data-region="react-bar"]') }));
