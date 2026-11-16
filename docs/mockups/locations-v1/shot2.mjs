@@ -21,14 +21,14 @@ await p.evaluate(() => {
     const [effect, rounds, owner] = line.split(' · ');
     const m = effect.match(/\+(\d+) (Attack|Health)/);
     const left = parseInt(rounds); const total = 3;
-    const eff = m ? `<b>${ICON[m[2].toLowerCase()]}+${m[1]} ${m[2]}</b> to creatures here` : effect;
-    const div = document.createElement('div'); div.className='lp'; div.style.setProperty('--tint', getComputedStyle(loc).getPropertyValue('--tint'));
-    div.innerHTML = `<div class="lp-seal"><svg viewBox="0 0 24 24"><path d="${G[id]}"/></svg></div>
-      <div class="lp-body"><div class="lp-name">${lab.querySelector('.loc-name').textContent}</div>
+    const eff = m ? `<b>+${m[1]} ${m[2]}</b> to creatures here` : effect;
+    const mine = owner.includes('you');
+    const div = document.createElement('div'); div.className='lp';
+    div.innerHTML = `<div class="lp-name">${lab.querySelector('.loc-name').textContent}</div><div class="lp-rule"></div>
       <div class="lp-effect">${eff}</div>
-      <div class="lp-time">${hour}<span class="pips">${Array.from({length:total},(_,i)=>`<i class="${i<left?'on':''}"></i>`).join('')}</span>${left} ROUND${left===1?'':'S'} LEFT</div></div>`;
+      <div class="lp-time"><span class="pips">${Array.from({length:total},(_,i)=>`<i class="${i<left?'on':''}"></i>`).join('')}</span>${left} ROUND${left===1?'':'S'} LEFT · <span class="own ${mine?'mine':'theirs'}">${mine?'YOURS':'ENEMY’S'}</span></div>`;
     wrap.appendChild(div);
-    const rib=document.createElement('div'); rib.className='lp-owner '+(owner.includes('you')?'mine':'theirs'); rib.textContent=owner.includes('you')?'PLACED BY YOU':'PLACED BY THE ENEMY'; div.appendChild(rib);
+    
   }
   const covered = new Set();
   for (const L of document.querySelectorAll('.loc-label-wrap')) { const l=parseFloat(L.style.left), w=parseFloat(L.style.width); for (const c of document.querySelectorAll('.cell')) { const cl=parseFloat(c.style.left); if (cl>=l-2 && cl<l+w-10) c.querySelector('.empty-slot')?.classList.add('on-tile'); } }

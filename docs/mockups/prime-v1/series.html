@@ -49,14 +49,14 @@ h1{font:700 30px Cinzel,serif;letter-spacing:6px;color:#f1d9a0;margin:0;position
 .legend b{color:#f1d9a0}
 </style></head><body>
 <h1>PRIME SUMMONS · ONE SERIES, SIX ROUNDS</h1>
-<div class="sub">Oathsworn Recruit series · Mid · Prime in Round 4 · proposed stats. Every copy of a series is at the same Level each Round, so its Prime is the same Round for everyone.</div>
+<div class="sub">Oathsworn Recruit series · Mid · Prime in Round 4 · approved stats. Every copy of a series is at the same Level each Round, so its Prime is the same Round for everyone.</div>
 <div class="row" id="row"></div>
 <div class="panel"><h2>THE SERIES CURVE · HOVER PREVIEW AND CODEX</h2><div class="hint">Shown when you hover a creature in hand or the Market, and under each series in the Codex. The bar is value against the curve for that Level: full on the curve, overflowing gold at Prime.</div><div class="strip" id="strip"></div></div>
 <div class="legend">
 <h3>READING IT</h3>
 <p><b>Rising</b> (silver tag) shows the Round its Prime arrives: hold it with Retain, or summon it early for tempo.</p>
-<p><b>Prime</b> (gold tag, foil frame, gold glow in hand) is the best value the series ever has: +3 stats on the curve, and any “Prime:” ability works.</p>
-<p><b>Waning</b> (muted tag) is past its best: a point below the curve, but its elder form brings a veteran’s ability.</p>
+<p><b>Prime</b> (gold tag, foil frame, gold glow in hand) is the series at its best: +1 Attack and +1 Health above the curve, +1 Renown when summoned, and any “Prime:” ability works.</p>
+<p><b>Waning</b> (muted tag) is past its best but still worth its Energy: on the curve, with its elder form’s ability.</p>
 <p>From Round 6 every card sits at its last Level for the rest of the match, so a series with its Prime last is a late-game threat, and one that peaks early is an opener.</p>
 </div>
 <script type="module">
@@ -67,8 +67,8 @@ defineCards(CARDS);
 const def = cardDef('oathsworn-recruit');
 const P = [
   {r:1,L:2,st:'Rising',form:'recruit',a:2,h:2},{r:2,L:3,st:'Rising',form:'recruit',a:2,h:3},
-  {r:3,L:4,st:'Rising',form:'captain',a:3,h:3},{r:4,L:5,st:'Prime',form:'captain',a:5,h:5},
-  {r:5,L:6,st:'Waning',form:'veteran',a:3,h:3},{r:6,L:7,st:'Waning',form:'veteran',a:3,h:4}];
+  {r:3,L:4,st:'Rising',form:'captain',a:3,h:3},{r:4,L:5,st:'Prime',form:'captain',a:4,h:5},
+  {r:5,L:6,st:'Waning',form:'veteran',a:3,h:4},{r:6,L:7,st:'Waning',form:'veteran',a:4,h:4}];
 const star='<svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>';
 const up='<svg viewBox="0 0 24 24"><path d="M12 4l9 12H3z"/></svg>';
 const down='<svg viewBox="0 0 24 24"><path d="M12 20 3 8h18z"/></svg>';
