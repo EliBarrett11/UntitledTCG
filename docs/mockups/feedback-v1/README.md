@@ -1,6 +1,6 @@
 # Play-test feedback mockups v1 (design chat, 16 November 2026)
 
-Drawn over the real game at stage P (`ae22751`) by `cards.mjs` + `cards.css` and `react.mjs`. Awaiting Elliott's approval.
+Drawn over the real game at stage P (`ae22751`) by `cards.mjs` + `cards.css` and `react.mjs`. **Approved by Elliott, 16 November 2026**, with one addition: no targeting line stays on screen once a target is chosen; the animation shows what was targeted.
 
 ## 1–3. `m1-cards.png` (full screen: `m1-hover.png`)
 1. **One Level well.** The Prime / Past Prime tags and the "LV" label are gone. The top-right well shows only the Level number. At Prime the well turns gold, with a dark number, a gold glow and a small gold star on its lower left. The same well on every size (Full, Mini, Token).
