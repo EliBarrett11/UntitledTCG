@@ -1,6 +1,6 @@
 # Play-test feedback mockups v2 (design chat, 16 November 2026)
 
-Drawn over the real game after stage F by `mock.css` + `mock.js` (every card), `board.mjs`, `sheet.mjs` and `codex.mjs` + `codex.css`. Awaiting Elliott's approval.
+Drawn over the real game after stage F by `mock.css` + `mock.js` (every card), `board.mjs`, `sheet.mjs` and `codex.mjs` + `codex.css`. **Approved by Elliott, 16 November 2026.**
 
 - `m9-cards.png`: one card of each type.
   - **Energy is crystal cyan:** every Energy cost is a faceted cyan crystal with a light top facet and a soft cyan glow (creatures' and Actions' cost wells, the Campaign Order's cost, Action mode costs, and "N Energy" in rules text).
