@@ -8,7 +8,7 @@
 // Released Pile; Renown flows to the Warlord's dial as a ribbon of light.
 import { renderCard, cardBack } from './cards.js';
 import { accentOf, esc, HUMAN, AI, artOf, tintOf } from './text.js';
-import { handLayout, LANE_W } from './view.js';
+import { handLayout, LANE_W, HAND } from './view.js';
 import { hasGuard } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
 import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS } from './vfx/library.js';
@@ -316,7 +316,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       if (who === AI) return { cx: 720, cy: 60 };
       const i = prev.players[HUMAN].hand.findIndex((c) => c.uid === uid);
       const pos = handLayout(prev.players[HUMAN].hand.length)[i];
-      return pos ? { cx: pos.x + 100, cy: 786 + 140 } : { cx: 760, cy: 930 };
+      return pos ? { cx: pos.x + 100, cy: HAND.y + 140 } : { cx: 760, cy: 940 };
     };
     // A number landing; a stat on a card flashes as it changes (card design v4: the tab's number).
     const setText = (el, v) => {

@@ -151,7 +151,7 @@ export function buildMoment(stage, s, react, { lowMotion = false, choosing = fal
     involved.push(b);
     const copy = el.cloneNode(true);
     copy.removeAttribute('data-region');
-    html += `<div class="rx-lift warlord" style="left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.h}px">${copy.outerHTML}</div>`;
+    html += `<div class="rx-lift warlord" style="left:${b.x}px;top:${b.y}px">${copy.outerHTML}</div>`;
     return b;
   };
 

@@ -115,7 +115,7 @@ export function seriesLine(c, round = null) {
   const def = isCreature(c) ? safeDef(c.id) : null;
   if (!def?.forms || def.series === 'Legendary' || def.prime == null) return '';
   const now = round === null ? null : levelFor(def.series, round);
-  const rings = levelsOf(def).map((lv, i) => `${i ? '<i class="sl-sep"></i>' : ''}<span class="sl-c${lv === def.prime ? ' prime' : ''}${lv === now ? ' now' : ''}" data-level="${lv}">${lv}</span>`).join('');
+  const rings = levelsOf(def).map((lv, i) => `${i ? '<i class="sl-sep"></i>' : ''}<span class="sl-c${lv === def.prime ? ' prime' : ''}${lv === now ? ' now' : ''}" data-level="${lv}"><b>${lv}</b></span>`).join('');
   return `<div class="series-line" data-series="${esc(def.id)}"><span class="sl-t">LEVELS</span><span class="sl-l">${rings}</span></div>`;
 }
 const accKey = (c) => (isCreature(c) ? (c.traits?.class ?? c.traits?.kind) : c.cardType === 'Action' ? c.traits?.class : c.cardType);
