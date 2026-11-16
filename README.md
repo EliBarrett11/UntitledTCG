@@ -247,7 +247,7 @@ node tools/compare.mjs
   - three new series: Cinderwick Prodigy (Gnome Wizard), Duskmere Oracle (Elf Seer) and Mossback Ancient (Treant);
   - The Ashen Wyrm and Aldric the Unbroken are 6 / 6;
   - the first deck is still 40 cards: one copy fewer of Hollowfoot Cutpurse, Barrow Shade and Ironhide Brawler, one of each new series;
-  - the 17 new forms show Art Pending until their art (docs/13) arrives.
+  - the 17 new forms use their art (docs/13), which arrived on `main` during the stage.
 - **The engine and the AI:**
   - the engine knows each card's stage, the Prime summon, "Prime:" conditions, On Retain and Patient;
   - the AI Retains a card whose Prime is next Round when it can afford to, and values summoning at Prime (Prime is public).
