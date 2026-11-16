@@ -14,6 +14,7 @@ export const RENOWN_SOURCES = [
   ['lastBattle', 'Last Battle dominance'],
   ['favour', 'Favours'],
   ['quest', 'Quest'],
+  ['prime', 'Prime summons'],   // stage P
 ];
 
 // A creature's base card id from any of its names (a series' forms, or a Legendary Creature).

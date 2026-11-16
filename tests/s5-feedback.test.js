@@ -12,7 +12,7 @@ defineCards(CARDS);
 test('an attack preview matches the attack: damage both ways, defeats, Renown', () => {
   const s = blank();
   put(s, 'p1', 0, 'gloomfang-wolf', { level: 1, attack: 5, health: 9 });
-  put(s, 'p2', 0, 'gloomfang-wolf', { level: 1 });            // Ready: it hits back
+  put(s, 'p2', 0, 'gloomfang-wolf', { level: 1, attack: 3, health: 3 });   // Ready: it hits back
   const a = legalActions(s, 'p1', 'attack').find((x) => x.target.kind === 'creature');
   const d = diff(s, outcome(s, a));
   const real = act(s, a);
@@ -24,8 +24,8 @@ test('an attack preview matches the attack: damage both ways, defeats, Renown', 
 
 test('an effect preview: damage, healing and stat changes', () => {
   const s = blank();
-  put(s, 'p2', 3, 'oathsworn-recruit', { spent: true });
-  put(s, 'p1', 1, 'oathsworn-recruit', { spent: true, currentHealth: 1 });
+  put(s, 'p2', 3, 'oathsworn-recruit', { spent: true, health: 5 });
+  put(s, 'p1', 1, 'oathsworn-recruit', { spent: true, health: 5, currentHealth: 1 });
   const fire = give(s, 'p1', 'firebolt');
   const fb = legalActions(s, 'p1', 'action').find((x) => x.uid === fire && x.mode === 'adapt' && x.target.who === 'p2');
   assert.equal(badgeFor(s, fb, diff(s, outcome(s, fb))), '−3');
@@ -46,7 +46,7 @@ test('a Strat\'s preview shows what it will do when it resolves', () => {
 test('React previews: what the attack does with the React and without it', () => {
   let s = blank();
   put(s, 'p2', 0, 'gloomfang-wolf', { level: 1, attack: 5 });
-  put(s, 'p1', 0, 'oathsworn-recruit', { spent: true });
+  put(s, 'p1', 0, 'oathsworn-recruit', { spent: true, health: 5 });
   give(s, 'p1', 'parry');
   s.turn = 'p2';
   s = act(s, { type: 'attack', who: 'p2', from: 0, target: { kind: 'creature', space: 0 } });

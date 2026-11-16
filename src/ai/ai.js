@@ -46,6 +46,8 @@ function evaluateNow(s, who) {
     const p = s.players[w];
     let v = p.renown * 1.6;
     v += p.hand.reduce((n, c) => n + (c.cardType === 'Item' ? 0.2 : c.cardType === 'Hidden' ? 0.45 : isCreature(c) ? 0.5 + 0.03 * c.level : 0.5), 0);
+    // Stage P: a card Retained for its Prime next Round (Prime is public: every card's Prime is on its face).
+    v += p.hand.reduce((n, c) => n + (c.retained && primeNext(s, c) ? PRIME_HOLD : 0), 0);
     v += p.gold * 0.3 + p.bag.reduce((n, c) => n + 0.25 + c.price * 0.4, 0);
     if (s.market.soldOut?.by === w) v += 0.4;
     for (const q of p.quests.filter((x) => !x.complete)) v += (2 * q.progress) / q.quest.need;
@@ -69,6 +71,11 @@ function evaluateNow(s, who) {
   // Energy left this Round is worth something on either player's turn (a React or a Strat spends it too).
   return side(who) - side(foe) + dom + (s.phase === 'battle' ? me.baseEnergy * 0.3 : 0) - me.exhaust.length * 0.6;
 }
+
+// Stage P: a creature whose Prime is next Round (the Round it would be summoned at its Prime if kept), and what
+// Retaining it for that is worth: about the Prime summon's +1 Renown and its +1/+1, less the delay.
+export const primeNext = (s, c) => isCreature(c) && c.stage === 'rising' && c.primeRound === s.round + 1;
+export const PRIME_HOLD = 1.6;
 
 // A card's worth in hand, for choosing what to Release or mulligan.
 const worth = (c) => (isCreature(c) ? 1 + c.level : c.cardType === 'Event' ? 0.5 : 2);
@@ -117,9 +124,12 @@ export function candidates(s, who) {
     const favour = list.filter((a) => card.favour && a.release.some((r) => meets(byUid[r], card.favour.condition))).sort((a, b) => score(a) - score(b))[0];
     if (favour) out.push(...list.filter((a) => score(a) === score(favour) && a.release.join() === favour.release.join()));
   }
-  // Retain: only the strongest card, and only with Energy to spare.
+  // Retain: a card whose Prime is next Round, when it can be afforded; otherwise only the strongest card, and only
+  // with Energy to spare.
   const retains = legalActions(s, who, 'retain');
-  if (retains.length && p.baseEnergy > 1) out.push([...retains].sort((a, b) => worth(byUid[b.uid]) - worth(byUid[a.uid]))[0]);
+  const forPrime = retains.filter((a) => primeNext(s, byUid[a.uid])).sort((a, b) => worth(byUid[b.uid]) - worth(byUid[a.uid]))[0];
+  if (forPrime) out.push(forPrime);
+  else if (retains.length && p.baseEnergy > 1) out.push([...retains].sort((a, b) => worth(byUid[b.uid]) - worth(byUid[a.uid]))[0]);
   return out;
 }
 const meets = (c, cond) => (!cond.cardType || c.cardType === cond.cardType) && (!cond.class || c.traits?.class === cond.class) && (!cond.race || c.traits?.race === cond.race) && (!cond.kind || c.traits?.kind === cond.kind);

@@ -64,6 +64,13 @@ export function playMatch(seed, { deck = FIRST_DECK, tally = null } = {}) {
     if (!a) throw new Error(`stall: the AI found no action (phase ${s.phase})`);
     const pl = tally ? played(s, a) : null;
     if (pl) { tally[pl.id] ??= {}; tally[pl.id][pl.how] = (tally[pl.id][pl.how] ?? 0) + 1; }
+    // Stage P: summons at Prime, and Retains of a card whose Prime is next Round.
+    if (tally && (a.type === 'summon' || a.type === 'retain')) {
+      const c = s.players[a.who].hand.find((x) => x.uid === a.uid);
+      const k = a.type === 'summon' ? (c.stage === 'prime' ? 'summonPrime' : 'summonOther') : (isCreature(c) && c.stage === 'rising' && c.primeRound === s.round + 1 ? 'retainPrime' : 'retainOther');
+      tally.$prime ??= {};
+      tally.$prime[k] = (tally.$prime[k] ?? 0) + 1;
+    }
     s = applyAction(s, a);
     const probs = stateProblems(s);
     if (probs.length) throw new Error(`illegal state after ${a.type}: ${probs.join('; ')}`);
@@ -113,14 +120,23 @@ function main() {
   const decided = played - draws;
   const total = Object.values(renown).reduce((a, b) => a + b, 0);
   const pct = (x, of) => `${((100 * x) / Math.max(1, of)).toFixed(1)}%`;
-  const NAMES = { warlord: 'Damage to the Warlord', defeat: 'Defeats', dominance: 'Location dominance', favour: 'Favours', quest: 'Quests', lastBattle: 'Last Battle dominance' };
+  const NAMES = { warlord: 'Damage to the Warlord', defeat: 'Defeats', dominance: 'Location dominance', favour: 'Favours', quest: 'Quests', lastBattle: 'Last Battle dominance', prime: 'Prime summons' };
   console.log(`Simulated ${N} AI-vs-AI matches with the first deck (seeds ${first}–${first + N - 1}) in ${((Date.now() - t0) / 1000).toFixed(1)} s.`);
   console.log(`Finished: ${played}. Failed: ${failures.length}.`);
+  const pr = tally.$prime ?? {};
+  delete tally.$prime;
   console.log(`Wins by seat: Player 1 ${wins.p1} (${pct(wins.p1, decided)}), Player 2 ${wins.p2} (${pct(wins.p2, decided)}), draws ${draws}.`);
   console.log(`Won by the player with Round 1 initiative: ${wins.initiative} of ${decided} (${pct(wins.initiative, decided)}).`);
   console.log(`How matches ended: ${Object.entries(how).map(([k, v]) => `${k} ${v}`).join(', ')}.`);
-  console.log(`Match length: average ${(rounds.reduce((a, b) => a + b, 0) / Math.max(1, played)).toFixed(2)} Rounds (median ${median(rounds)}, range ${Math.min(...rounds)}–${Math.max(...rounds)}).`);
+  const mean = rounds.reduce((a, b) => a + b, 0) / Math.max(1, played);
+  const sd = Math.sqrt(rounds.reduce((a, b) => a + (b - mean) ** 2, 0) / Math.max(1, played));
+  const hist = {};
+  for (const r of rounds) hist[r] = (hist[r] ?? 0) + 1;
+  console.log(`Match length: average ${mean.toFixed(2)} Rounds (standard deviation ${sd.toFixed(2)}, median ${median(rounds)}, range ${Math.min(...rounds)}–${Math.max(...rounds)}).`);
+  console.log(`  By Round: ${Object.entries(hist).sort(([a], [b]) => a - b).map(([r, n]) => `${r}: ${n}`).join(', ')}.`);
   console.log(`The Last Battle triggered in ${lastBattles} of ${played} matches (${pct(lastBattles, played)}).`);
+  const summons = (pr.summonPrime ?? 0) + (pr.summonOther ?? 0);
+  console.log(`Summons at Prime: ${pr.summonPrime ?? 0} of ${summons} (${pct(pr.summonPrime ?? 0, summons)}). Retains: ${(pr.retainPrime ?? 0) + (pr.retainOther ?? 0)}, of which for a Prime next Round: ${pr.retainPrime ?? 0}.`);
   console.log(`Quest (${nameOf(cardDef('lady-corwens-commission'))}): completed ${questRounds.length} times of ${played * 2} possible (${pct(questRounds.length, played * 2)}).`);
   if (questRounds.length) console.log(`  Round completed: median ${median(questRounds)}, middle half ${quantile(questRounds, 0.25)}–${quantile(questRounds, 0.75)}, range ${Math.min(...questRounds)}–${Math.max(...questRounds)}.`);
   console.log('Renown by source:');

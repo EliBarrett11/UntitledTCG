@@ -13,6 +13,7 @@ export const RULES = Object.freeze({
   perFavour: 3,             // 2
   perQuest: 2,              // 2
   perLastBattleDominance: 5,// 2
+  perPrimeSummon: 1,        // 2 (stage P): summoning a creature at its Prime Level
   passEnergy: 1,            // 5.2
   retainCost: 1,            // 8
   goldPerDawn: 1,           // 5.1 step 5, 10

@@ -37,7 +37,7 @@ test('the Last Battle counts as one Location', () => {
   assert.equal(s.players.p1.quests[0].progress, 1);
 });
 
-test('at 8, the Quest completes: +2 Renown and Aldric the Unbroken arrives (Level 8, 9/12, Steady, Martial, Shield, Armour 1)', () => {
+test('at 8, the Quest completes: +2 Renown and Aldric the Unbroken arrives (Level 8, 6/6, Steady, Martial, Shield, Armour 1)', () => {
   let s = withCommission(blank(), 7);
   put(s, 'p1', 7, 'oathsworn-recruit', { spent: true });
   s = act(s, { type: 'placeLocation', who: 'p1', uid: give(s, 'p1', 'ironroot-pass'), start: 7 });
@@ -46,7 +46,7 @@ test('at 8, the Quest completes: +2 Renown and Aldric the Unbroken arrives (Leve
   assert.equal(q.complete, true);
   const aldric = s.players.p1.row[0];   // the leftmost empty space (in the Wilds)
   assert.equal(aldric.name, 'Aldric the Unbroken');
-  assert.deepEqual([aldric.level, aldric.attack, aldric.health, aldric.speed, aldric.attackKind], [8, 9, 12, 'Steady', 'Martial']);
+  assert.deepEqual([aldric.level, aldric.attack, aldric.health, aldric.speed, aldric.attackKind], [8, 6, 6, 'Steady', 'Martial']);
   assert.ok(hasGuard(aldric, 'Shield'));
   assert.ok(hasKeyword(aldric, 'armour'));
   assert.ok(s.players.p1.renownLog.some((r) => r.kind === 'quest' && r.base === 2));

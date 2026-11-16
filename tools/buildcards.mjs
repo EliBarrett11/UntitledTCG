@@ -51,6 +51,8 @@ export function validate(data) {
       const levels = c.forms.flatMap((f) => Object.keys(f.levels).map(Number)).sort((a, b) => a - b);
       const want = Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
       if (levels.join() !== want.join()) out.push(`${c.id}: Levels ${levels} should be ${want}`);
+      // Stage P: every series names its Prime Level (Legendaries are always Prime).
+      if (c.series !== 'Legendary' && !(c.prime >= lo && c.prime <= hi)) out.push(`${c.id}: its Prime Level (${c.prime}) should be one of ${want}`);
       if (c.cardType === 'Character' && (!c.traits?.class || !c.traits?.race)) out.push(`${c.id}: a Character needs a Class and a Race`);
       if (c.cardType === 'Monster' && !c.traits?.kind) out.push(`${c.id}: a Monster needs a Kind`);
       for (const f of c.forms) {

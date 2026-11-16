@@ -71,11 +71,11 @@ test('a Legendary Creature shows ★ for cost and Level; a board creature shows 
   const lc = legendaryCreatureOf(cardDef('lady-corwens-commission'), 'lc');
   const html = renderCard(lc, { size: 'full' });
   assert.ok(html.includes('>★</div>') && html.includes('LEGEND'));
-  const wolf = { ...creatureAtLevel(cardDef('gloomfang-wolf'), 1, 'w'), currentHealth: 1, bonusAttack: 1, attack: 4, tempAttack: 0 };
+  const wolf = { ...creatureAtLevel(cardDef('gloomfang-wolf'), 1, 'w'), health: 3, currentHealth: 1, bonusAttack: 1, attack: 4, tempAttack: 0 };
   const t = renderCard(wolf, { size: 'token', live: true });
   assert.ok(t.includes('4<span class="mark">▲</span>'));
   assert.ok(t.includes('1<span class="mark">▼</span>'));
-  assert.ok(/title="Attack 4 = 3 printed/.test(t));
+  assert.ok(/title="Attack 4 = 2 printed/.test(t));   // Gloomfang Whelp, Level 1: 2 printed
 });
 
 run('cards-render');

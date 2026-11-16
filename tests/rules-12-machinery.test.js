@@ -4,9 +4,9 @@ import { KEYWORDS, TRIGGERS, MAX_CHAIN, EFFECT_OPS } from '../src/engine/abiliti
 import { keywordAmount, hasKeyword, runEffect, drainTriggers } from '../src/engine/game.js';
 import { PLACEHOLDER_CARDS } from './fixtures/placeholder.js';
 
-test('12: the approved lists hold exactly what Elliott approved: Ambush, Armour, Riposte; On Summon, On Defeat', () => {
-  assert.deepEqual(Object.keys(KEYWORDS).sort(), ['ambush', 'armour', 'riposte']);
-  assert.deepEqual(Object.keys(TRIGGERS).sort(), ['defeat', 'summon']);
+test('12: the approved lists hold exactly what Elliott approved: Ambush, Armour, Riposte, Patient; On Summon, On Defeat, On Retain', () => {
+  assert.deepEqual(Object.keys(KEYWORDS).sort(), ['ambush', 'armour', 'patient', 'riposte']);
+  assert.deepEqual(Object.keys(TRIGGERS).sort(), ['defeat', 'retain', 'summon']);
   assert.ok(Object.isFrozen(KEYWORDS) && Object.isFrozen(TRIGGERS));
 });
 

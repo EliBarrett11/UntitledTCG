@@ -38,12 +38,12 @@ test('cards.json is valid: approved keywords and triggers only, known ops and ta
   assert.deepEqual(validate(data), []);
 });
 
-test('every card id and art path matches docs/07-art-prompts.md (assets/cards/<id>.jpg)', () => {
-  const doc = readFileSync(new URL('../docs/07-art-prompts.md', import.meta.url), 'utf8');
+test('every card id and art path matches docs/07-art-prompts.md and docs/13-prime-art-prompts.md (assets/cards/<id>.jpg)', () => {
+  const doc = ['07-art-prompts.md', '13-prime-art-prompts.md'].map((f) => readFileSync(new URL(`../docs/${f}`, import.meta.url), 'utf8')).join('\n');
   const listed = [...doc.matchAll(/`assets\/cards\/([a-z0-9-]+)\.jpg`/g)].map((m) => m[1]);
   const arts = data.cards.flatMap((c) => (c.forms ? c.forms.map((f) => f.art) : [c.art, c.legendaryCreature?.art].filter(Boolean)));
   assert.deepEqual(arts.map((a) => a.replace(/^assets\/cards\/|\.jpg$/g, '')).sort(), [...new Set(listed)].sort());
-  assert.equal(arts.length, 37);
+  assert.equal(arts.length, 54);   // 37, and stage P's 17 new forms
 });
 
 test('every card type carries the fields 02-card-types.md section 1 lists', () => {

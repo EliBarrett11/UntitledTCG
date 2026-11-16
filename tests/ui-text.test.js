@@ -26,9 +26,11 @@ test('art: shown when its file exists, Art Pending otherwise (the generated art 
 
 test('wording comes from the generated card data, at the card\'s Level', () => {
   assert.deepEqual(creatureLines(cardAtRound('deepforge-acolyte', 1, 'x')), ['**On Summon:** Heal 2 to one of your creatures.']);
-  assert.deepEqual(creatureLines(cardAtRound('deepforge-acolyte', 3, 'y')), ['**On Summon:** Heal 3 to one of your creatures.']);
+  assert.deepEqual(creatureLines(cardAtRound('deepforge-acolyte', 3, 'y')), ['**On Summon:** Heal 3 to each of your creatures in its Location.']);
+  assert.deepEqual(creatureLines(cardAtRound('duskmere-oracle', 5, 'v')), ['Patient', '**Prime: On Summon:** Draw 2 cards.']);
   assert.equal(defText(cardAtRound('ironroot-pass', 1, 'z')), 'Creatures here have +2 Health.');
-  assert.equal(shortTrigger(cardAtRound('barrow-shade', 1, 'w')), 'On Defeat: 2 damage');
+  assert.equal(shortTrigger(cardAtRound('barrow-shade', 1, 'w')), 'On Defeat: 1 damage');
+  assert.equal(shortTrigger(cardAtRound('barrow-shade', 3, 'w')), 'On Defeat: 2 damage');
 });
 
 run('ui-text');

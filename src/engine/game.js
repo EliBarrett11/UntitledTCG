@@ -261,6 +261,7 @@ export function legalActions(s, who, only = null) {
 export function summonTargets(s, who, card) {
   const t = card.trigger;
   if (!t || t.on !== 'summon' || !t.target || t.target === 'none') return null;
+  if (t.prime && card.stage !== 'prime') return null;   // a "Prime:" On Summon does nothing unless summoned at Prime
   const list = specTargets(s, who, t.target);
   return list.length ? list : [{ none: true }];
 }
@@ -326,9 +327,17 @@ const ACTIONS = {
     const card = removeFromHand(p, uid);
     payCost(p, card.cost, s.round);
     p.row[space] = onBoard(s, card);
-    emit(s, 'summoned', { who, space, uid, name: card.name, level: card.level, active: !p.row[space].spent });
-    log(s, `${NAME[who]} summoned ${card.name} (Level ${card.level}) into lane ${space + 1} for ${card.cost} Energy${p.row[space].spent ? '' : ' (Ambush: it arrives Active)'}.`);
+    // Stage P: summoned at its Prime Level (a Legendary card always is): it keeps that, and its player gains Renown.
+    const atPrime = card.stage === 'prime';
+    p.row[space].primeSummon = atPrime;
+    emit(s, 'summoned', { who, space, uid, name: card.name, level: card.level, active: !p.row[space].spent, prime: atPrime });
+    log(s, `${NAME[who]} summoned ${card.name} (Level ${card.level}${atPrime ? ', at its Prime' : ''}) into lane ${space + 1} for ${card.cost} Energy${p.row[space].spent ? '' : ' (Ambush: it arrives Active)'}.`);
     syncBonuses(s);
+    if (atPrime) {
+      emit(s, 'primeSummon', { who, space, uid, name: card.name });
+      gainRenown(s, who, RULES.perPrimeSummon, 'prime', `summoning ${card.name} at its Prime`);
+      if (s.phase === 'gameOver') return;
+    }
     queueTrigger(s, who, space, p.row[space], 'summon', { target: t });
     finishTurn(s, who);
   },
@@ -452,9 +461,12 @@ const ACTIONS = {
   retain(s, { who, uid }) {
     const p = s.players[who];
     payCost(p, RULES.retainCost, s.round);
-    p.hand.find((c) => c.uid === uid).retained = true;
-    emit(s, 'retained', { who, uid });
+    const card = p.hand.find((c) => c.uid === uid);
+    card.retained = true;
+    emit(s, 'retained', { who, uid, patient: hasKeyword(card, 'patient') });
     log(s, `${NAME[who]} Retained a card.`);
+    // Stage P: an On Retain trigger resolves now, from the hand.
+    if (card.trigger?.on === 'retain') s.triggers.push({ who, space: null, uid, trig: card.trigger, card: structuredClone(card), point: 'retain', ctx: {}, depth: s.triggerDepth ?? 0 });
     finishTurn(s, who);
   },
 
@@ -720,6 +732,7 @@ function returnToHand(s, who, space) {
 function queueTrigger(s, who, space, card, point, ctx = {}) {
   const trig = card?.trigger;
   if (!trig || trig.on !== point) return;
+  if (trig.prime && !card.primeSummon) return;   // stage P: "Prime:" works only if summoned at the Prime Level
   s.triggers.push({ who, space, uid: card.uid, trig, card: point === 'defeat' ? structuredClone(card) : null, point, ctx, depth: s.triggerDepth ?? 0 });
 }
 export function drainTriggers(s) {
@@ -736,7 +749,8 @@ export function drainTriggers(s) {
         continue;
       }
       const live = s.players[t.who].row[t.space];
-      const card = t.point === 'defeat' ? t.card : live?.uid === t.uid ? live : null;
+      const live2 = t.space == null ? null : live;
+      const card = t.point === 'defeat' || t.point === 'retain' ? t.card : live2?.uid === t.uid ? live2 : null;
       if (!card) continue;
       s.triggerDepth = t.depth + 1;
       emit(s, 'trigger', { who: t.who, space: t.space, uid: t.uid, point: t.point, depth: t.depth });
@@ -1062,7 +1076,8 @@ function duskAfterStrats(s) {
     const kept = p.hand.filter((c) => c.retained);
     p.discard.push(...p.hand.filter((c) => !c.retained));
     p.hand = kept;
-    p.retainedNext = kept.length;
+    // Stage P: a Patient card doesn't reduce the next draw.
+    p.retainedNext = kept.filter((c) => !hasKeyword(c, 'patient')).length;
   }
   checkOutOfCreatures(s);
   if (s.phase === 'gameOver') return;

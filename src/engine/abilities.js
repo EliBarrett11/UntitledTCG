@@ -8,16 +8,23 @@ export const KEYWORDS = Object.freeze({
   ambush: Object.freeze({ name: 'Ambush', hasAmount: false, rule: 'It arrives Active rather than Spent.' }),
   armour: Object.freeze({ name: 'Armour', hasAmount: true, rule: 'Each time it would take damage from any source, it takes X less (minimum 0). Armour from different sources adds up.' }),
   riposte: Object.freeze({ name: 'Riposte', hasAmount: true, rule: 'After an attack on it resolves, if it\'s still on the battlefield, it deals X damage to the attacker. This works even while it\'s Spent, and it\'s separate from hitting back.' }),
+  // Stage P (Prime Summons, approved by Elliott, 16 November 2026).
+  patient: Object.freeze({ name: 'Patient', hasAmount: false, rule: 'Retaining this card doesn\'t reduce your next draw.' }),
 });
 
 // Approved trigger types (rulebook 12.2, Elliott, 13 November 2026). `on` is the engine's trigger point.
 export const TRIGGERS = Object.freeze({
   summon: Object.freeze({ name: 'On Summon', rule: 'Resolves just after the creature is placed. If it needs a chosen target, the target is chosen as part of the Summon action. If there\'s no legal target, the creature still arrives and the effect does nothing.' }),
   defeat: Object.freeze({ name: 'On Defeat', rule: 'Resolves just after the creature goes to the Released Pile. "The enemy across from it" means the enemy in the lane it stood in.' }),
+  // Stage P (Prime Summons, approved by Elliott, 16 November 2026).
+  retain: Object.freeze({ name: 'On Retain', rule: 'Resolves when you Retain the card.' }),
 });
 
+// A trigger marked prime ("Prime:" on the card) works only if the creature was summoned at its Prime Level.
+export const PRIME_PREFIX = 'Prime';
+
 // The moments the engine raises, where a trigger can be attached (only approved ones appear on cards).
-export const TRIGGER_POINTS = Object.freeze(['summon', 'attack', 'defend', 'defeat', 'dawn']);
+export const TRIGGER_POINTS = Object.freeze(['summon', 'attack', 'defend', 'defeat', 'dawn', 'retain']);
 
 // Triggers resolve in a queue after the action that caused them; chains stop at this depth.
 export const MAX_CHAIN = 4;

@@ -5,9 +5,10 @@
 // The templates:
 //   - a keyword line: its name, then X if it has one ("Ambush", "Armour 1", "Riposte 2");
 //   - a trigger line: the trigger in bold, a colon, then one sentence ("**On Summon:** 1 damage to an enemy creature.");
+//     a Prime trigger starts "Prime:" ("**Prime: On Summon:** Draw 2 cards.");
 //   - an effect: one sentence per op, starting with a capital and ending with a full stop;
 //   - "creature" means a Character or Monster; temporary changes say "until Dusk".
-import { KEYWORDS, TRIGGERS } from './abilities.js';
+import { KEYWORDS, TRIGGERS, PRIME_PREFIX } from './abilities.js';
 
 // Who an op acts on, by its `to` and (for the chosen card) the card's target spec.
 const CHOSEN = {
@@ -73,7 +74,8 @@ export function keywordLine(key, amount) {
 export function triggerLine(trigger) {
   const t = TRIGGERS[trigger.on];
   if (!t) throw new Error(`Trigger "${trigger.on}" isn't approved`);
-  return `**${t.name}:** ${effectText(trigger.ops, trigger.target)}`;
+  // "Prime:" before the trigger's name when it works only if summoned at the Prime Level.
+  return `**${trigger.prime ? `${PRIME_PREFIX}: ` : ''}${t.name}:** ${effectText(trigger.ops, trigger.target)}`;
 }
 // A creature form's lines at a Level: its keywords, then its trigger (a Level may change the trigger).
 export function creatureLines(keywords = {}, trigger = null) {

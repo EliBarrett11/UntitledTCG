@@ -9,6 +9,7 @@ export const CARDS = [
     "speed": "Steady",
     "attackKind": "Martial",
     "guard": "Shield",
+    "prime": 5,
     "traits": {
       "class": "Fighter",
       "race": "Human"
@@ -21,15 +22,11 @@ export const CARDS = [
         "levels": {
           "2": {
             "attack": 2,
-            "health": 5
+            "health": 2
           },
           "3": {
-            "attack": 3,
-            "health": 6
-          },
-          "4": {
-            "attack": 4,
-            "health": 7
+            "attack": 2,
+            "health": 3
           }
         },
         "keywords": {},
@@ -41,22 +38,40 @@ export const CARDS = [
         "name": "Oathsworn Captain",
         "art": "assets/cards/oathsworn-captain.jpg",
         "levels": {
+          "4": {
+            "attack": 3,
+            "health": 3
+          },
           "5": {
-            "attack": 5,
-            "health": 8
-          },
-          "6": {
-            "attack": 6,
-            "health": 9
-          },
-          "7": {
-            "attack": 7,
-            "health": 10
+            "attack": 4,
+            "health": 5
           }
         },
         "keywords": {},
         "trigger": null,
         "text": []
+      },
+      {
+        "id": "oathsworn-veteran",
+        "name": "Oathsworn Veteran",
+        "art": "assets/cards/oathsworn-veteran.jpg",
+        "levels": {
+          "6": {
+            "attack": 3,
+            "health": 4
+          },
+          "7": {
+            "attack": 4,
+            "health": 4
+          }
+        },
+        "keywords": {
+          "armour": 1
+        },
+        "trigger": null,
+        "text": [
+          "Armour 1"
+        ]
       }
     ]
   },
@@ -67,6 +82,7 @@ export const CARDS = [
     "speed": "Swift",
     "attackKind": "Martial",
     "guard": null,
+    "prime": 2,
     "traits": {
       "class": "Rogue",
       "race": "Halfling"
@@ -78,16 +94,12 @@ export const CARDS = [
         "art": "assets/cards/hollowfoot-cutpurse.jpg",
         "levels": {
           "1": {
-            "attack": 3,
+            "attack": 1,
             "health": 1
           },
           "2": {
-            "attack": 4,
+            "attack": 3,
             "health": 2
-          },
-          "3": {
-            "attack": 4,
-            "health": 3
           }
         },
         "keywords": {
@@ -103,17 +115,13 @@ export const CARDS = [
         "name": "Hollowfoot Knifemaster",
         "art": "assets/cards/hollowfoot-knifemaster.jpg",
         "levels": {
+          "3": {
+            "attack": 2,
+            "health": 2
+          },
           "4": {
-            "attack": 5,
-            "health": 3
-          },
-          "5": {
-            "attack": 6,
-            "health": 4
-          },
-          "6": {
-            "attack": 7,
-            "health": 5
+            "attack": 3,
+            "health": 2
           }
         },
         "keywords": {
@@ -122,6 +130,35 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Ambush"
+        ]
+      },
+      {
+        "id": "hollowfoot-fence",
+        "name": "Hollowfoot Fence",
+        "art": "assets/cards/hollowfoot-fence.jpg",
+        "levels": {
+          "5": {
+            "attack": 3,
+            "health": 3
+          },
+          "6": {
+            "attack": 4,
+            "health": 3
+          }
+        },
+        "keywords": {},
+        "trigger": {
+          "on": "retain",
+          "target": "none",
+          "ops": [
+            {
+              "op": "gold",
+              "amount": 1
+            }
+          ]
+        },
+        "text": [
+          "**On Retain:** Gain 1 Gold."
         ]
       }
     ]
@@ -133,6 +170,7 @@ export const CARDS = [
     "speed": "Slow",
     "attackKind": "Arcane",
     "guard": "Ward",
+    "prime": 6,
     "traits": {
       "class": "Wizard",
       "race": "Human"
@@ -145,11 +183,11 @@ export const CARDS = [
         "levels": {
           "3": {
             "attack": 1,
-            "health": 4
+            "health": 3
           },
           "4": {
             "attack": 2,
-            "health": 5
+            "health": 3
           }
         },
         "keywords": {},
@@ -173,12 +211,12 @@ export const CARDS = [
         "art": "assets/cards/spire-magus.jpg",
         "levels": {
           "5": {
-            "attack": 3,
-            "health": 6
+            "attack": 2,
+            "health": 4
           },
           "6": {
-            "attack": 5,
-            "health": 8
+            "attack": 4,
+            "health": 5
           }
         },
         "keywords": {},
@@ -202,12 +240,12 @@ export const CARDS = [
         "art": "assets/cards/archmagus-of-the-ashen-spire.jpg",
         "levels": {
           "7": {
-            "attack": 7,
-            "health": 9
+            "attack": 3,
+            "health": 5
           },
           "8": {
-            "attack": 8,
-            "health": 10
+            "attack": 4,
+            "health": 5
           }
         },
         "keywords": {},
@@ -234,6 +272,7 @@ export const CARDS = [
     "speed": "Steady",
     "attackKind": "Arcane",
     "guard": "Ward",
+    "prime": 6,
     "traits": {
       "class": "Cleric",
       "race": "Dwarf"
@@ -245,29 +284,12 @@ export const CARDS = [
         "art": "assets/cards/deepforge-acolyte.jpg",
         "levels": {
           "2": {
-            "attack": 2,
-            "health": 4
+            "attack": 1,
+            "health": 2
           },
           "3": {
             "attack": 2,
-            "health": 6
-          },
-          "4": {
-            "attack": 3,
-            "health": 6,
-            "trigger": {
-              "on": "summon",
-              "target": "own",
-              "ops": [
-                {
-                  "op": "heal",
-                  "amount": 3
-                }
-              ]
-            },
-            "text": [
-              "**On Summon:** Heal 3 to one of your creatures."
-            ]
+            "health": 2
           }
         },
         "keywords": {},
@@ -290,17 +312,43 @@ export const CARDS = [
         "name": "Deepforge Priest",
         "art": "assets/cards/deepforge-priest.jpg",
         "levels": {
-          "5": {
-            "attack": 4,
-            "health": 7
+          "4": {
+            "attack": 2,
+            "health": 3
           },
+          "5": {
+            "attack": 3,
+            "health": 3
+          }
+        },
+        "keywords": {},
+        "trigger": {
+          "on": "summon",
+          "target": "none",
+          "ops": [
+            {
+              "op": "heal",
+              "amount": 3,
+              "to": "eachOwnHere"
+            }
+          ]
+        },
+        "text": [
+          "**On Summon:** Heal 3 to each of your creatures in its Location."
+        ]
+      },
+      {
+        "id": "deepforge-high-priest",
+        "name": "Deepforge High Priest",
+        "art": "assets/cards/deepforge-high-priest.jpg",
+        "levels": {
           "6": {
-            "attack": 5,
-            "health": 8
+            "attack": 4,
+            "health": 5
           },
           "7": {
-            "attack": 6,
-            "health": 9
+            "attack": 4,
+            "health": 4
           }
         },
         "keywords": {},
@@ -328,6 +376,7 @@ export const CARDS = [
     "speed": "Swift",
     "attackKind": "Martial",
     "guard": null,
+    "prime": 6,
     "traits": {
       "class": "Ranger",
       "race": "Elf"
@@ -339,16 +388,12 @@ export const CARDS = [
         "art": "assets/cards/thornwood-scout.jpg",
         "levels": {
           "1": {
-            "attack": 2,
-            "health": 2
+            "attack": 1,
+            "health": 1
           },
           "2": {
-            "attack": 3,
-            "health": 3
-          },
-          "3": {
-            "attack": 3,
-            "health": 4
+            "attack": 2,
+            "health": 1
           }
         },
         "keywords": {},
@@ -371,17 +416,42 @@ export const CARDS = [
         "name": "Thornwood Pathfinder",
         "art": "assets/cards/thornwood-pathfinder.jpg",
         "levels": {
-          "4": {
-            "attack": 4,
-            "health": 4
+          "3": {
+            "attack": 2,
+            "health": 2
           },
+          "4": {
+            "attack": 3,
+            "health": 2
+          }
+        },
+        "keywords": {},
+        "trigger": {
+          "on": "summon",
+          "target": "none",
+          "ops": [
+            {
+              "op": "draw",
+              "amount": 1
+            }
+          ]
+        },
+        "text": [
+          "**On Summon:** Draw 1 card."
+        ]
+      },
+      {
+        "id": "thornwood-warden",
+        "name": "Thornwood Warden",
+        "art": "assets/cards/thornwood-warden.jpg",
+        "levels": {
           "5": {
-            "attack": 5,
-            "health": 5
+            "attack": 3,
+            "health": 3
           },
           "6": {
-            "attack": 6,
-            "health": 6
+            "attack": 5,
+            "health": 4
           }
         },
         "keywords": {},
@@ -408,6 +478,7 @@ export const CARDS = [
     "speed": "Slow",
     "attackKind": "Martial",
     "guard": null,
+    "prime": 4,
     "traits": {
       "class": "Fighter",
       "race": "Orc"
@@ -419,16 +490,12 @@ export const CARDS = [
         "art": "assets/cards/ironhide-brawler.jpg",
         "levels": {
           "3": {
-            "attack": 2,
-            "health": 5
+            "attack": 1,
+            "health": 3
           },
           "4": {
             "attack": 3,
-            "health": 6
-          },
-          "5": {
-            "attack": 4,
-            "health": 7
+            "health": 4
           }
         },
         "keywords": {
@@ -444,17 +511,35 @@ export const CARDS = [
         "name": "Ironhide Champion",
         "art": "assets/cards/ironhide-champion.jpg",
         "levels": {
-          "6": {
-            "attack": 6,
-            "health": 8
+          "5": {
+            "attack": 2,
+            "health": 4
           },
+          "6": {
+            "attack": 3,
+            "health": 4
+          }
+        },
+        "keywords": {
+          "riposte": 2
+        },
+        "trigger": null,
+        "text": [
+          "Riposte 2"
+        ]
+      },
+      {
+        "id": "ironhide-warchief",
+        "name": "Ironhide Warchief",
+        "art": "assets/cards/ironhide-warchief.jpg",
+        "levels": {
           "7": {
-            "attack": 8,
-            "health": 10
+            "attack": 3,
+            "health": 5
           },
           "8": {
-            "attack": 9,
-            "health": 11
+            "attack": 4,
+            "health": 5
           }
         },
         "keywords": {
@@ -474,26 +559,41 @@ export const CARDS = [
     "speed": "Swift",
     "attackKind": "Martial",
     "guard": null,
+    "prime": 3,
     "traits": {
       "kind": "Beast"
     },
     "forms": [
       {
+        "id": "gloomfang-whelp",
+        "name": "Gloomfang Whelp",
+        "art": "assets/cards/gloomfang-whelp.jpg",
+        "levels": {
+          "1": {
+            "attack": 2,
+            "health": 1
+          },
+          "2": {
+            "attack": 2,
+            "health": 2
+          }
+        },
+        "keywords": {},
+        "trigger": null,
+        "text": []
+      },
+      {
         "id": "gloomfang-wolf",
         "name": "Gloomfang Wolf",
         "art": "assets/cards/gloomfang-wolf.jpg",
         "levels": {
-          "1": {
-            "attack": 3,
+          "3": {
+            "attack": 4,
             "health": 3
           },
-          "2": {
-            "attack": 4,
-            "health": 4
-          },
-          "3": {
-            "attack": 5,
-            "health": 4
+          "4": {
+            "attack": 3,
+            "health": 3
           }
         },
         "keywords": {},
@@ -505,22 +605,22 @@ export const CARDS = [
         "name": "Gloomfang Alpha",
         "art": "assets/cards/gloomfang-alpha.jpg",
         "levels": {
-          "4": {
-            "attack": 5,
-            "health": 5
-          },
           "5": {
-            "attack": 6,
-            "health": 6
+            "attack": 3,
+            "health": 3
           },
           "6": {
-            "attack": 7,
-            "health": 7
+            "attack": 4,
+            "health": 3
           }
         },
-        "keywords": {},
+        "keywords": {
+          "ambush": true
+        },
         "trigger": null,
-        "text": []
+        "text": [
+          "Ambush"
+        ]
       }
     ]
   },
@@ -531,26 +631,53 @@ export const CARDS = [
     "speed": "Steady",
     "attackKind": "Arcane",
     "guard": null,
+    "prime": 6,
     "traits": {
       "kind": "Undead"
     },
     "forms": [
       {
+        "id": "barrow-wisp",
+        "name": "Barrow Wisp",
+        "art": "assets/cards/barrow-wisp.jpg",
+        "levels": {
+          "2": {
+            "attack": 1,
+            "health": 2
+          },
+          "3": {
+            "attack": 2,
+            "health": 2
+          }
+        },
+        "keywords": {},
+        "trigger": {
+          "on": "defeat",
+          "target": "none",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "to": "acrossEnemy"
+            }
+          ]
+        },
+        "text": [
+          "**On Defeat:** 1 damage to the enemy across from it."
+        ]
+      },
+      {
         "id": "barrow-shade",
         "name": "Barrow Shade",
         "art": "assets/cards/barrow-shade.jpg",
         "levels": {
-          "2": {
-            "attack": 2,
-            "health": 4
-          },
-          "3": {
-            "attack": 3,
-            "health": 5
-          },
           "4": {
-            "attack": 4,
-            "health": 6
+            "attack": 2,
+            "health": 3
+          },
+          "5": {
+            "attack": 3,
+            "health": 3
           }
         },
         "keywords": {},
@@ -574,17 +701,13 @@ export const CARDS = [
         "name": "Barrow Lord",
         "art": "assets/cards/barrow-lord.jpg",
         "levels": {
-          "5": {
-            "attack": 5,
-            "health": 7
-          },
           "6": {
-            "attack": 5,
-            "health": 8
+            "attack": 4,
+            "health": 5
           },
           "7": {
-            "attack": 6,
-            "health": 9
+            "attack": 4,
+            "health": 4
           }
         },
         "keywords": {},
@@ -612,26 +735,41 @@ export const CARDS = [
     "speed": "Slow",
     "attackKind": "Martial",
     "guard": null,
+    "prime": 6,
     "traits": {
       "kind": "Beast"
     },
     "forms": [
       {
+        "id": "stonehide-hatchling",
+        "name": "Stonehide Hatchling",
+        "art": "assets/cards/stonehide-hatchling.jpg",
+        "levels": {
+          "3": {
+            "attack": 2,
+            "health": 3
+          },
+          "4": {
+            "attack": 2,
+            "health": 4
+          }
+        },
+        "keywords": {},
+        "trigger": null,
+        "text": []
+      },
+      {
         "id": "stonehide-basilisk",
         "name": "Stonehide Basilisk",
         "art": "assets/cards/stonehide-basilisk.jpg",
         "levels": {
-          "3": {
+          "5": {
             "attack": 2,
             "health": 4
           },
-          "4": {
-            "attack": 3,
-            "health": 5
-          },
-          "5": {
+          "6": {
             "attack": 4,
-            "health": 7
+            "health": 5
           }
         },
         "keywords": {
@@ -647,25 +785,289 @@ export const CARDS = [
         "name": "Elder Stonehide",
         "art": "assets/cards/elder-stonehide.jpg",
         "levels": {
-          "6": {
-            "attack": 5,
-            "health": 8
-          },
           "7": {
-            "attack": 7,
-            "health": 10
+            "attack": 3,
+            "health": 5
           },
           "8": {
-            "attack": 8,
-            "health": 11
+            "attack": 4,
+            "health": 5
           }
         },
         "keywords": {
-          "armour": 2
+          "armour": 1
         },
         "trigger": null,
         "text": [
-          "Armour 2"
+          "Armour 1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cinderwick-prodigy",
+    "cardType": "Character",
+    "series": "Light",
+    "speed": "Swift",
+    "attackKind": "Arcane",
+    "guard": null,
+    "prime": 1,
+    "traits": {
+      "class": "Wizard",
+      "race": "Gnome"
+    },
+    "forms": [
+      {
+        "id": "cinderwick-prodigy",
+        "name": "Cinderwick Prodigy",
+        "art": "assets/cards/cinderwick-prodigy.jpg",
+        "levels": {
+          "1": {
+            "attack": 3,
+            "health": 2
+          },
+          "2": {
+            "attack": 2,
+            "health": 2
+          }
+        },
+        "keywords": {},
+        "trigger": {
+          "on": "summon",
+          "prime": true,
+          "target": "enemy",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 2
+            }
+          ]
+        },
+        "text": [
+          "**Prime: On Summon:** 2 damage to an enemy creature."
+        ]
+      },
+      {
+        "id": "cinderwick-adept",
+        "name": "Cinderwick Adept",
+        "art": "assets/cards/cinderwick-adept.jpg",
+        "levels": {
+          "3": {
+            "attack": 3,
+            "health": 2
+          },
+          "4": {
+            "attack": 3,
+            "health": 3
+          }
+        },
+        "keywords": {},
+        "trigger": null,
+        "text": []
+      },
+      {
+        "id": "cinderwick-hermit",
+        "name": "Cinderwick Hermit",
+        "art": "assets/cards/cinderwick-hermit.jpg",
+        "levels": {
+          "5": {
+            "attack": 3,
+            "health": 3
+          },
+          "6": {
+            "attack": 4,
+            "health": 3
+          }
+        },
+        "keywords": {},
+        "trigger": {
+          "on": "summon",
+          "target": "enemy",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 1
+            }
+          ]
+        },
+        "text": [
+          "**On Summon:** 1 damage to an enemy creature."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "duskmere-oracle",
+    "cardType": "Character",
+    "series": "Mid",
+    "speed": "Slow",
+    "attackKind": "Arcane",
+    "guard": "Ward",
+    "prime": 6,
+    "traits": {
+      "class": "Seer",
+      "race": "Elf"
+    },
+    "forms": [
+      {
+        "id": "duskmere-novice",
+        "name": "Duskmere Novice",
+        "art": "assets/cards/duskmere-novice.jpg",
+        "levels": {
+          "2": {
+            "attack": 1,
+            "health": 2
+          },
+          "3": {
+            "attack": 1,
+            "health": 3
+          }
+        },
+        "keywords": {
+          "patient": true
+        },
+        "trigger": null,
+        "text": [
+          "Patient"
+        ]
+      },
+      {
+        "id": "duskmere-oracle",
+        "name": "Duskmere Oracle",
+        "art": "assets/cards/duskmere-oracle.jpg",
+        "levels": {
+          "4": {
+            "attack": 2,
+            "health": 3
+          },
+          "5": {
+            "attack": 2,
+            "health": 4
+          }
+        },
+        "keywords": {
+          "patient": true
+        },
+        "trigger": null,
+        "text": [
+          "Patient"
+        ]
+      },
+      {
+        "id": "duskmere-sibyl",
+        "name": "Duskmere Sibyl",
+        "art": "assets/cards/duskmere-sibyl.jpg",
+        "levels": {
+          "6": {
+            "attack": 4,
+            "health": 5
+          },
+          "7": {
+            "attack": 3,
+            "health": 5
+          }
+        },
+        "keywords": {
+          "patient": true
+        },
+        "trigger": {
+          "on": "summon",
+          "prime": true,
+          "target": "none",
+          "ops": [
+            {
+              "op": "draw",
+              "amount": 2
+            }
+          ]
+        },
+        "text": [
+          "Patient",
+          "**Prime: On Summon:** Draw 2 cards."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mossback-ancient",
+    "cardType": "Monster",
+    "series": "Heavy",
+    "speed": "Slow",
+    "attackKind": "Martial",
+    "guard": "Shield",
+    "prime": 8,
+    "traits": {
+      "kind": "Treant"
+    },
+    "forms": [
+      {
+        "id": "mossback-sapling",
+        "name": "Mossback Sapling",
+        "art": "assets/cards/mossback-sapling.jpg",
+        "levels": {
+          "3": {
+            "attack": 2,
+            "health": 3
+          },
+          "4": {
+            "attack": 2,
+            "health": 4
+          }
+        },
+        "keywords": {},
+        "trigger": null,
+        "text": []
+      },
+      {
+        "id": "mossback-treant",
+        "name": "Mossback Treant",
+        "art": "assets/cards/mossback-treant.jpg",
+        "levels": {
+          "5": {
+            "attack": 3,
+            "health": 4
+          },
+          "6": {
+            "attack": 3,
+            "health": 5
+          }
+        },
+        "keywords": {},
+        "trigger": null,
+        "text": []
+      },
+      {
+        "id": "mossback-ancient",
+        "name": "Mossback Ancient",
+        "art": "assets/cards/mossback-ancient.jpg",
+        "levels": {
+          "7": {
+            "attack": 3,
+            "health": 5
+          },
+          "8": {
+            "attack": 5,
+            "health": 6
+          }
+        },
+        "keywords": {
+          "patient": true
+        },
+        "trigger": {
+          "on": "summon",
+          "prime": true,
+          "target": "none",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "to": "eachEnemyHere"
+            }
+          ]
+        },
+        "text": [
+          "Patient",
+          "**Prime: On Summon:** 1 damage to each enemy creature in its Location."
         ]
       }
     ]
@@ -687,8 +1089,8 @@ export const CARDS = [
         "art": "assets/cards/the-ashen-wyrm.jpg",
         "levels": {
           "8": {
-            "attack": 10,
-            "health": 11
+            "attack": 6,
+            "health": 6
           }
         },
         "keywords": {},
@@ -1132,8 +1534,8 @@ export const CARDS = [
       "speed": "Steady",
       "attackKind": "Martial",
       "guard": "Shield",
-      "attack": 9,
-      "health": 12,
+      "attack": 6,
+      "health": 6,
       "keywords": {
         "armour": 1
       },
@@ -1155,7 +1557,7 @@ export const DECKS = {
       },
       {
         "id": "hollowfoot-cutpurse",
-        "copies": 2
+        "copies": 1
       },
       {
         "id": "ashen-spire-apprentice",
@@ -1171,7 +1573,7 @@ export const DECKS = {
       },
       {
         "id": "ironhide-brawler",
-        "copies": 2
+        "copies": 1
       },
       {
         "id": "gloomfang-wolf",
@@ -1179,10 +1581,22 @@ export const DECKS = {
       },
       {
         "id": "barrow-shade",
-        "copies": 2
+        "copies": 1
       },
       {
         "id": "stonehide-basilisk",
+        "copies": 1
+      },
+      {
+        "id": "cinderwick-prodigy",
+        "copies": 1
+      },
+      {
+        "id": "duskmere-oracle",
+        "copies": 1
+      },
+      {
+        "id": "mossback-ancient",
         "copies": 1
       },
       {

@@ -2,9 +2,9 @@
 // docs/cards.json by tools/buildcards.mjs); tests add their own fixtures. defineCards() adds definitions;
 // the engine looks them up by id. The state holds card instances.
 //
-// A Character or Monster definition: { id, cardType, series, speed, attackKind, guard, traits, forms },
+// A Character or Monster definition: { id, cardType, series, speed, attackKind, guard, prime, traits, forms },
 // each form { id, name, art, levels: { Level: { attack, health, trigger?, text? } }, keywords, trigger, text }.
-import { levelFor, costFor, stockFor, RULES } from './rules.js';
+import { levelFor, costFor, stockFor, RULES, SERIES_RANGE } from './rules.js';
 
 const LIBRARY = new Map();
 
@@ -30,12 +30,22 @@ export function formAt(def, level) {
 // The Levels a series covers.
 export const levelsOf = (def) => def.forms.flatMap((f) => Object.keys(f.levels).map(Number)).sort((a, b) => a - b);
 
+// Stage P: a series' Prime. Its stage at a Level: 'rising' below the Prime Level, 'prime' at it, 'waning' above.
+// Legendary cards (and Legendary Creatures) are always Prime. The Prime as a Round: the Round in which cards off the
+// battlefield are at the Prime Level (the same for every copy and both players).
+export function stageAt(def, level) {
+  if (def.series === 'Legendary' || def.series === 'Legendary Creature') return 'prime';
+  return level < def.prime ? 'rising' : level === def.prime ? 'prime' : 'waning';
+}
+export const primeRoundOf = (def) => (def.series === 'Legendary' || def.prime == null ? null : def.prime - SERIES_RANGE[def.series][0] + 1);
+
 // A Character or Monster card at a Level.
 export function creatureAtLevel(def, level, uid) {
   const { form, entry } = formAt(def, level);
   const trigger = entry.trigger ?? form.trigger ?? null;
   return {
     uid, id: def.id, form: form.id, cardType: def.cardType, name: form.name, art: form.art ?? null, series: def.series, level,
+    prime: def.series === 'Legendary' ? level : def.prime ?? null, primeRound: primeRoundOf(def), stage: stageAt(def, level),
     cost: costFor(level, def.series === 'Legendary'), legendary: def.series === 'Legendary',
     attack: entry.attack, health: entry.health, speed: def.speed, attackKind: def.attackKind, guard: def.guard ?? null,
     traits: structuredClone(def.traits ?? {}), keywords: structuredClone(form.keywords ?? {}),
@@ -58,7 +68,7 @@ export function legendaryCreatureOf(campaignDef, uid) {
   const lc = campaignDef.legendaryCreature;
   return {
     uid, id: lc.id ?? `${campaignDef.id}:lc`, form: lc.id ?? null, cardType: lc.cardType, name: lc.name, art: lc.art ?? null, series: 'Legendary Creature',
-    level: RULES.legendaryLevel, cost: 0, legendaryCreature: true, attack: lc.attack, health: lc.health, speed: lc.speed, attackKind: lc.attackKind,
+    level: RULES.legendaryLevel, prime: RULES.legendaryLevel, primeRound: null, stage: 'prime', cost: 0, legendaryCreature: true, attack: lc.attack, health: lc.health, speed: lc.speed, attackKind: lc.attackKind,
     guard: lc.guard ?? null, traits: structuredClone(lc.traits ?? {}), keywords: structuredClone(lc.keywords ?? {}),
     trigger: lc.trigger ? structuredClone(lc.trigger) : null,
   };
