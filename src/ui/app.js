@@ -452,6 +452,8 @@ export function startApp(params) {
   // Dev aid for the checks: does the board on screen match the state? (A list of problems; empty when it does.)
   function boardProblems() {
     const out = [];
+    // Once the match is over, the end screen takes the board's place (stage V3): there is no board to compare.
+    if (screen === 'end') return out;
     for (const who of [HUMAN, AI]) {
       s.players[who].row.forEach((c, lane) => {
         const el = stage.querySelector(`[data-cell="${who}:${lane}"] .slot-card`);
