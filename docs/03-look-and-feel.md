@@ -217,3 +217,22 @@ The docs don't settle these interface details; S3 uses the simplest reading.
 9. **The scorch:** when the Last Battle begins, the map crossfades to the scorched map over 1.2 s, at the start of the Last Battle cinematic (or its low-motion version, where it's instant). A match loaded already in the Last Battle starts scorched.
 10. **Play again** leads to match setup (with the next seed), not straight to a new match. The title screen opens on load. `?skip=title`, and every test hook (`?seed`, `?scene`, `?autoplay`, `?pace`, `?prefer`), still go straight to a match.
 11. **The lane numbers and "The Wilds"** have a light halo on the painted map (a dark one on the scorched map), and lane numbers sit on a soft vellum spot, so they pass a 4.5:1 contrast check.
+
+## 10. Readings from stage P (Prime Summons and the Location tiles): needing Elliott's approval
+
+1. **The Prime tag** sits under the Level well on Full and Mini cards (in hand, the Market, the Codex, the hover preview), clear of the art's face, the name and the numbers. On a Mini it is drawn a little larger so it stays readable at 200 px. RETAINED moves down below it.
+2. **On the battlefield** a card has no tag. A creature summoned at its Prime keeps the foil frame and a small gold star on its Level well's ring, and its hover preview shows "★ PRIME". A creature summoned at any other Level has neither, even if the Round has since reached its Prime.
+3. **The Legendaries:** The Ashen Wyrm shows the gold "★ PRIME" tag in hand and keeps its foil. Aldric the Unbroken shows no tag (his Level well reads LEGEND), and stays foil.
+4. **The curve strip** shows in the hover preview of a creature in your hand, under the card, and under each series in the Codex. The Market only sells Items, so it has none there.
+   - The value bar is (Attack + Health + abilities) ÷ (Level + 2): 60% of the bar on the curve, more at the Prime, in gold.
+   - "NOW" is over this Round's cell; from Round 6 on, over Round 6.
+   - Form names drop the series' family word ("Captain", "Veteran"); "Elder Stonehide" and "Archmagus of the Ashen Spire" keep their full names.
+5. **"Prime next Round"** shows on the Retain choice of any creature whose Prime is next Round, all Round long (Retain is a Battle Phase action, so it can't wait for Dusk).
+6. **The gold glow in hand** sits behind the card, so the playable, selected and target highlights still show over it.
+7. **The Prime summon moment:** about 0.9 s at normal speed.
+   - With the effects layer: a gold flash, a halo ring, a foil streak and gold embers on the card, a flare on its Level well, then the +1 Renown's ribbon to the Warlord.
+   - Low motion (0.5 s): a soft halo on the card and a glow on the well, and the dial ticks.
+   - Without WebGL: a gold glow on the card and its well, then the ribbon (no ribbon in low motion).
+8. **The Location tile's label** keeps to the band between the two rows, under the AI's caption line and above the prompt line. So it is a little more compact than the mockup (the name at 21 px rather than 22, tighter gaps), and its dark glow is a soft halo past its edges. The diamonds count the Location's full Rounds, with those left lit. "N ROUNDS LEFT · YOURS" or "ENEMY'S" replaces "placed by you / the enemy". A long effect uses the short line ("+2 Health"), with its number in gold.
+9. **The victory screen:** the result line sits on a darker glow over the burst, the Renown panel gains the "Prime summons" row, and the Heroes of the match are drawn at 80% so they fit under the panels. The heroes show their Prime tag at their final Level, like any card drawn by the renderer.
+10. **The checks' seeds:** the new cards change how the AI's matches go, so the victory screen's scene now uses seed 9 (a win in Round 9 with the Last Battle and Aldric). The attack-preview scene uses seed 2, and the two-tile board seed 1.

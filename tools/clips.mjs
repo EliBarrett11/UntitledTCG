@@ -2,7 +2,7 @@
 // speed) and cuts a short clip of each moment, plus a frame strip (10 frames) of each.
 // Saved to tools/clips/<name>.webm and tools/clips/<name>-strip.png.
 //
-// Usage: node tools/clips.mjs [v1|v2]   (v2 by default)
+// Usage: node tools/clips.mjs [v1|v2|p]   (v2 by default)
 // Needs Playwright with Chromium and ffmpeg (dev tools only; never runtime dependencies).
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
@@ -55,6 +55,14 @@ const SETS = {
       ...[7, 5, 11, 3, 21, 8, 13, 17].map((seed) => `?seed=${seed}&scene=quest&prefer=night-raid:strat,call-to-arms:favour`),
     ],
   },
+};
+// Stage P: a summon at Prime (the gold flare and the +1 Renown), and its low-motion version.
+SETS.p = {
+  want: [
+    { name: 'p-prime-summon', effect: 'prime.summon' },
+    { name: 'p-prime-summon-low', effect: 'prime.summon.low' },
+  ],
+  runs: [3, 5, 9, 2].map((seed) => `?seed=${seed}&scene=mid`).flatMap((q) => [q, `${q}&lowmotion=1`]),
 };
 const SET = SETS[process.argv[2] ?? 'v2'];
 const matches = (w, st) => {

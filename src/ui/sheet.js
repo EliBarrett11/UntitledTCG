@@ -41,6 +41,7 @@ export function runSheet(params) {
   const cell = (label, html) => `<div class="sheet-cell"><div class="sheet-label">${esc(label)}</div>${html}</div>`;
   let html = '';
   if (mode.startsWith('v4-')) { document.body.innerHTML = compareSheet(mode.slice(3)); document.body.dataset.done = 'true'; return; }
+  if (mode === 'prime') { document.body.innerHTML = primeSheet(params.get('series') ?? 'oathsworn-recruit', Number(params.get('round') ?? 2)); document.body.dataset.done = 'true'; return; }
   if (mode === 'foil') {
     const foil = cards.filter((c) => (c.form === 'oathsworn-captain' && c.level === 7) || c.legendary || c.legendaryCreature === true);
     html = `<div class="sheet-grid">${foil.map((c) => cell(c.name, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>`)).join('')}</div>`;
@@ -104,4 +105,22 @@ function compareSheet(which) {
     [`<div class="slot-card spent">${renderCard({ ...barrow, currentHealth: barrow.health - 3, spent: true }, { size: 'token', live: true })}</div>`, 'Spent · damaged'],
     [renderCard(spire, { size: 'token', live: true }), 'Ward guard']];
   return page('board', 4 * 164 + 3 * 30 + 140, 30, toks.map(([h, l]) => col(h, l, '', 164)).join(''), 70 + 230 + 22 + 44 + 60);
+}
+
+// Stage P (?sheet=prime&series=<id>&round=<N>): one series across Rounds 1–6 at Full size, as the game draws it in hand
+// (its Prime tag, foil at the Prime), with the series curve strip under them, "NOW" over Round N: the layout of
+// docs/mockups/prime-v1/series.html, for the side-by-side comparison (tools/pcompare.mjs).
+function primeSheet(id, round) {
+  const BG = 'background:radial-gradient(ellipse at 50% 0%, #2a1a0f, #120c08 70%)';
+  const cols = Array.from({ length: 6 }, (_, i) => {
+    const c = cardAtRound(id, i + 1, `prime-${i}`);
+    const st = { rising: ['RISING', '#b9c4cf'], prime: ['PRIME', '#ffd77a'], waning: ['WANING', '#9c8f80'] }[c.stage];
+    return `<div style="width:340px;display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div style="font:700 14px Cinzel,serif;letter-spacing:4px;color:rgba(232,220,192,.65)">ROUND ${i + 1} · LEVEL ${c.level}</div>
+      <div class="${c.stage === 'prime' ? 'hand-card at-prime' : ''}" style="position:relative;width:340px;height:476px">${renderCard(c, { size: 'full' })}</div>
+      <div style="font:700 13px Cinzel,serif;letter-spacing:3px;color:${st[1]}">${st[0]}</div></div>`;
+  }).join('');
+  return `<div id="cmp" style="width:2280px;height:1060px;box-sizing:border-box;padding:150px 60px 0;position:relative;${BG}">
+    <div style="display:flex;gap:24px">${cols}</div>
+    <div style="position:absolute;left:60px;top:760px">${curveStrip(cardAtRound(id, round, 'strip'), round)}</div></div>`;
 }

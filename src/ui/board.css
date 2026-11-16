@@ -346,5 +346,5 @@ body.low-motion .ambient { display: none; }
 /* Stage P: the hover preview with the series curve strip under the card */
 .preview.with-curve { width: 600px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 /* Stage P: a creature in hand at its Prime has a soft gold glow */
-.hand-card.at-prime::before { content: ''; position: absolute; left: -16px; top: -16px; width: 232px; height: 312px; border-radius: 30px; z-index: -1; pointer-events: none;
+.hand-card.at-prime::before { content: ''; position: absolute; inset: -16px; border-radius: 30px; z-index: -1; pointer-events: none;
   background: radial-gradient(ellipse at 50% 50%, rgba(255,200,90,.55) 0%, rgba(255,190,80,.28) 48%, rgba(255,180,60,0) 72%); filter: blur(4px); }
