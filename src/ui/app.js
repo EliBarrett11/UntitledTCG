@@ -655,7 +655,8 @@ export function startApp(params) {
     const pv = stage.querySelector('#preview');
     if (!pv) return;
     // (Stage F: from picking a card up until it's dropped or the drag is cancelled, no preview shows.)
-    if (!el || ui.menu || drag) { pv.hidden = true; return; }
+    // (And while the targeting arrow is out, so it stays clear what you're aiming at.)
+    if (!el || ui.menu || drag || aimEl) { pv.hidden = true; return; }
     const h = hoverCard(el);
     if (!h) { pv.hidden = true; return; }
     // Stage F: a creature in hand shows its series line under the card (Levels, this Round's, the Prime).
