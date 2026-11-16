@@ -11,7 +11,8 @@ import { renderCard, seriesLine } from './cards.js';
 import { displayLine, HUMAN, AI, esc } from './text.js';
 import { createPresenter } from './presenter.js';
 import { createVfx } from './vfx/index.js';
-import { outcome, diff, badgeFor, summary } from './preview.js';
+import { outcome, diff, badgeFor, summary, outcomeLine } from './preview.js';
+import { buildMoment, tickMoment } from './react.js';
 import { titleScreen, setupScreen, openingBanner } from './screens.js';
 import { firstScreen, nextScreen } from './flow.js';
 
@@ -137,6 +138,10 @@ export function startApp(params) {
     const done = {
       mid: () => s.round >= 4 && s.phase === 'battle' && !s.reactWindow && actor(s) === HUMAN,
       react: () => s.reactWindow?.reactor === HUMAN,
+      // (Stage F: a React moment of each kind, for the checks' scenes.)
+      'react-attack': () => s.reactWindow?.reactor === HUMAN && s.reactWindow.pending.type === 'attack',
+      'react-adapt': () => s.reactWindow?.reactor === HUMAN && s.reactWindow.pending.type === 'action',
+      'react-strat': () => s.reactWindow?.reactor === HUMAN && s.reactWindow.pending.type === 'strat',
       lastbattle: () => s.lastBattle && s.phase === 'battle' && !s.reactWindow && actor(s) === HUMAN,
       end: () => s.phase === 'gameOver',
       quest: () => s.phase === 'battle' && !s.reactWindow && Object.values(s.players).some((p) => (p.quests ?? []).some((qq) => !qq.complete && qq.progress >= qq.quest.need - 2)),
@@ -366,16 +371,22 @@ export function startApp(params) {
     const options = Object.entries(byUid).map(([uid, list]) => {
       const c = s.players[HUMAN].hand.find((x) => x.uid === uid);
       // What the action will do with this React (its first target) and without it.
-      return { uid, name: c.name, cost: c.modes.react.cost, text: c.modes.react.text, list, with: summary(diff(s, outcome(s, list[0]))) };
+      const d = diff(s, outcome(s, list[0]));
+      return { uid, card: c, name: c.name, cost: c.modes.react.cost, text: c.modes.react.text, list, diff: d, with: summary(d) };
     });
     const total = settings.reactSeconds * 1000;
-    const without = summary(diff(s, outcome(s, { type: 'decline', who: HUMAN })));
-    ui.react = { what: reactWhat(w.pending), options, without, total, left: total, deadline: performance.now() + total, chosen: null };
+    const withoutDiff = diff(s, outcome(s, { type: 'decline', who: HUMAN }));
+    // (Stage F: each plate's line says what it does, against letting it happen.)
+    for (const o of options) o.line = outcomeLine(s, o.diff, withoutDiff);
+    const played = w.pending.type === 'strat' ? w.pending.strat.card : w.pending.type === 'action' ? w.pending.card : null;
+    ui.react = { what: reactWhat(w.pending), options, without: summary(withoutDiff), withoutDiff, withoutLine: outcomeLine(s, withoutDiff), playedCard: played ? renderCard(played, { size: 'mini' }) : null,
+      total, left: total, deadline: performance.now() + total, chosen: null, shown: false };
+    // (?timer=off, a dev aid for screenshots and checks: the window waits for a choice.)
+    if (params.get('timer') === 'off') return;
     reactTick = setInterval(() => {
       if (!ui.react) return;
       ui.react.left = Math.max(0, ui.react.deadline - performance.now());
-      const t = stage.querySelector('.react-timer');
-      if (t) { t.style.setProperty('--p', `${Math.round((100 * ui.react.left) / ui.react.total)}%`); t.firstElementChild.textContent = Math.ceil(ui.react.left / 1000); }
+      tickMoment(stage, ui.react);
       if (ui.react.left <= 0) { stopReact(); act({ type: 'decline', who: HUMAN }); }
     }, 100);
   }
@@ -449,6 +460,33 @@ export function startApp(params) {
     document.body.dataset.react = s.reactWindow ? s.reactWindow.reactor : '';
     document.body.dataset.step = ui.sel ? `sel:${ui.sel.field ?? ''}:${ui.sel.cands.length}:${ui.sel.release.length}` : ui.menu ? 'menu' : ui.settingsOpen ? 'settings' : 'idle';
     document.body.dataset.skips = String(skips);
+    drawMoment();
+  }
+
+  // Stage F: a React moment on the battlefield, over the board while you may React; it lifts smoothly afterwards.
+  let momentEl = null;
+  function drawMoment() {
+    const lm = !!settings.lowMotion;
+    stage.classList.toggle('rx-on', !!ui.react);
+    if (ui.react && s.reactWindow?.reactor === HUMAN) {
+      momentEl = buildMoment(stage, s, ui.react, { lowMotion: lm, choosing: !!ui.sel });
+      document.body.dataset.moment = s.reactWindow.pending.type;
+      if (!ui.react.shown) {
+        ui.react.shown = true;
+        if (!lm) momentEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' });
+      }
+      return;
+    }
+    document.body.dataset.moment = '';
+    if (momentEl) {
+      const old = momentEl;
+      momentEl = null;
+      if (lm) return;
+      old.style.pointerEvents = 'none';
+      for (const el of old.querySelectorAll('.rx-panel, .rx-marks, .tarrow')) el.remove();
+      stage.appendChild(old);
+      old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, easing: 'ease-in-out', fill: 'forwards' }).finished.then(() => old.remove(), () => old.remove());
+    }
   }
 
   // Dev aid for the checks: does the board on screen match the state? (A list of problems; empty when it does.)
@@ -550,7 +588,18 @@ export function startApp(params) {
       default: return undefined;
     }
   });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && screen === 'match') cancel(); });
+  document.addEventListener('keydown', (e) => {
+    if (screen !== 'match') return;
+    // Stage F: in a React moment, number keys pick a plate, and Escape lets it happen (or, while you're choosing the
+    // React's target, goes back to the plates). Enter presses the focused plate, "Let it happen" included.
+    if (ui.react && !presenting) {
+      const k = Number(e.key);
+      if (k >= 1 && k <= ui.react.options.length && !ui.sel) { e.preventDefault(); stage.querySelector(`.rx-plate[data-i="${k - 1}"]`)?.click(); return; }
+      if (e.key === 'Escape') { e.preventDefault(); if (ui.sel) cancel(); else act({ type: 'decline', who: HUMAN }); return; }
+      return;
+    }
+    if (e.key === 'Escape') cancel();
+  });
 
   // Hover: any card at Full size (340 px), placed beside it inside the stage.
   stage.addEventListener('mouseover', (e) => {

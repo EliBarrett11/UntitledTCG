@@ -2,7 +2,7 @@
 // through applyAction (the other player lets it happen; a Strat is resolved as if its turn had come), then
 // compares: damage, healing and stat changes, defeats, Renown and Gold. Nothing here changes the real state.
 import { applyAction, resolveStrats, drainTriggers } from '../engine/game.js';
-import { HUMAN, AI } from './text.js';
+import { HUMAN, AI, esc } from './text.js';
 
 // The state after an action, as far as it can be seen now.
 export function outcome(s, action) {
@@ -87,4 +87,29 @@ export function summary(d) {
   if (d.renown[HUMAN]) parts.push(`you +${d.renown[HUMAN]} Renown`);
   if (d.gameOver === AI) parts.push('the enemy wins');
   return parts.length ? parts.slice(0, 3).join('; ') : 'no change';
+}
+
+// Stage F: one line of what an action does, for a React moment's plates ("Mossback Sapling 1 → 5 Health · Spire
+// Magus is still defeated · the enemy gains 2 Renown"), as HTML: names escaped, Health going up in <b class="up">,
+// down in <b class="down">, defeats in <s>. base: the outcome without the React, so "still" and "survives" can be said.
+export function outcomeLine(s, d, base = null) {
+  if (!d) return '';
+  const was = (who, uid) => s.players[who].row.find((c) => c?.uid === uid);
+  const parts = [];
+  for (const c of d.creatures) {
+    const name = esc(c.name);
+    const before = was(c.who, c.uid);
+    const baseDead = !!base?.creatures.some((x) => x.uid === c.uid && x.defeated);
+    if (c.defeated) parts.push(`${name} is ${baseDead ? 'still ' : ''}<s>defeated</s>`);
+    else if (c.returned) parts.push(`${name} goes back to its owner's hand`);
+    else {
+      if (c.hp && before) parts.push(`${name} <b class="${c.hp > 0 ? 'up' : 'down'}">${before.currentHealth} → ${before.currentHealth + c.hp} Health</b>${baseDead ? ' · it survives' : ''}`);
+      if (c.atk) parts.push(`${name} <b class="${c.atk > 0 ? 'up' : 'down'}">${c.atk > 0 ? '+' : '−'}${Math.abs(c.atk)} Attack</b>`);
+    }
+  }
+  for (const b of base?.creatures ?? []) if (b.defeated && !d.creatures.some((x) => x.uid === b.uid)) parts.push(`${esc(b.name)} <b class="up">survives</b>`);
+  if (d.renown[AI]) parts.push(`the enemy gains ${d.renown[AI]} Renown`);
+  if (d.renown[HUMAN]) parts.push(`you gain ${d.renown[HUMAN]} Renown`);
+  if (d.gameOver === AI) parts.push('<s>the enemy wins</s>');
+  return parts.length ? parts.slice(0, 4).join(' · ') : 'nothing changes';
 }

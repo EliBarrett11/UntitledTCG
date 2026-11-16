@@ -245,19 +245,6 @@ function menu(ui) {
   </div>`;
 }
 
-function reactBar(s, ui) {
-  if (!ui.react) return '';
-  const secs = Math.max(0, Math.ceil(ui.react.left / 1000));
-  const tray = ui.react.options.map((o, i) => `<div class="react-opt${ui.react.chosen === i ? ' selected' : ''}" data-act="react" data-i="${i}" data-hover="react" data-uid="${esc(o.uid)}" title="React ${o.cost}: ${esc(o.text)}">
-      ${renderCard(s.players[HUMAN].hand.find((c) => c.uid === o.uid), { size: 'mini' })}<div class="react-cost">React ${o.cost}</div>
-      <div class="react-preview"><div><b>With it:</b> ${esc(o.with)}</div><div><b>Without:</b> ${esc(ui.react.without)}</div></div></div>`).join('');
-  return `<div class="react-bar" data-region="react-bar">
-      <div class="react-text">${esc(ui.react.what)}</div>
-      <div class="react-timer" style="--p:${pct(ui.react.left, ui.react.total)}%"><span>${secs}</span></div>
-      <button type="button" class="btn let" data-act="decline">Let it happen</button>
-    </div>
-    <div class="react-tray" data-region="react-tray"><div class="label react-label">YOUR<br>REACTS</div>${tray}</div>`;
-}
 
 function mulligan(s, ui) {
   if (s.phase !== 'mulligan' || s.players[HUMAN].mulliganed) return '';
@@ -299,7 +286,7 @@ export function render(s, ui) {
   ${ui.caption ? `<div class="caption" data-region="caption">${esc(ui.caption)}</div>` : ''}
   ${column(s, ui)}
   ${menu(ui)}
-  ${reactBar(s, ui)}
+
   ${mulligan(s, ui)}
   ${ui.toast ? `<div class="toast">${esc(ui.toast)}</div>` : ''}
   <div id="fx" aria-hidden="true"></div>

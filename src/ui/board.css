@@ -351,3 +351,17 @@ body.low-motion .ambient { display: none; }
 .prime-tab { position: absolute; z-index: 30; left: 58px; top: -17px; display: flex; gap: 5px; align-items: center; padding: 3px 12px 4px; border-radius: 6px 6px 0 0; pointer-events: none;
   font: 700 11px/1.2 Cinzel, serif; letter-spacing: 2.4px; color: #1a0f08; white-space: nowrap; background: linear-gradient(#ffe8a6, #d9a446); box-shadow: 0 0 0 1px #fff2c8, 0 0 10px rgba(255,200,90,.8); }
 .prime-tab svg { width: 11px; height: 11px; fill: #1a0f08; }
+
+/* Stage F: the targeting arrow (src/ui/arrow.js) */
+.tarrow { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 70; }
+.tarrow .ar-core { animation: ar-flow .6s linear infinite; }
+@keyframes ar-flow { to { stroke-dashoffset: -16; } }
+.tarrow.draw .ar-shaft path[pathLength] { stroke-dasharray: 1; stroke-dashoffset: 1; animation: ar-draw .15s ease-out forwards; }
+.tarrow.draw .ar-core, .tarrow.draw .ar-head, .tarrow.draw .ar-reticle, .tarrow.draw circle:not(.ar-src circle) { opacity: 0; animation: ar-show .1s ease-out .12s forwards; }
+@keyframes ar-draw { to { stroke-dashoffset: 0; } }
+@keyframes ar-show { to { opacity: 1; } }
+.tarrow .ar-ring { transition: transform .16s cubic-bezier(.3,1.6,.5,1); }
+.tarrow .ar-reticle.locked .ar-ring { transform: scale(.78); }
+.tarrow .ar-reticle:not(.locked) .ar-ring { opacity: .55; }
+body.low-motion .tarrow .ar-core { animation: none; }
+body.low-motion .tarrow.draw * { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; }
