@@ -12,7 +12,8 @@ import { displayLine, HUMAN, AI, esc } from './text.js';
 import { createPresenter } from './presenter.js';
 import { createVfx } from './vfx/index.js';
 import { outcome, diff, badgeFor, summary, outcomeLine } from './preview.js';
-import { buildMoment, tickMoment } from './react.js';
+import { buildMoment, tickMoment, stageBox } from './react.js';
+import { arrowSvg } from './arrow.js';
 import { titleScreen, setupScreen, openingBanner } from './screens.js';
 import { firstScreen, nextScreen } from './flow.js';
 
@@ -461,7 +462,54 @@ export function startApp(params) {
     document.body.dataset.step = ui.sel ? `sel:${ui.sel.field ?? ''}:${ui.sel.cands.length}:${ui.sel.release.length}` : ui.menu ? 'menu' : ui.settingsOpen ? 'settings' : 'idle';
     document.body.dataset.skips = String(skips);
     drawMoment();
+    drawAim(true);
   }
+
+  // Stage F: the targeting arrow while you choose a target. It draws out from the source (the attacker, the card,
+  // the Bag Item or the React plate) in about 0.15 s and follows the pointer; over a legal target its reticle
+  // tightens on it. Once a target is chosen, it's gone.
+  let pointer = null;
+  let aimEl = null;
+  function aimSource() {
+    if (!ui.sel || ui.sel.field !== 'target' || presenting) return null;
+    if (ui.react && ui.react.chosen !== null) return stage.querySelector('.rx-plate.selected');
+    if (ui.attacker !== null && ui.attacker !== undefined) return stage.querySelector(`[data-cell="${HUMAN}:${ui.attacker}"] .slot-card`);
+    if (ui.sel.bagUid) return stage.querySelector(`.bag-slot[data-uid="${ui.sel.bagUid}"]`);
+    if (ui.handSel) return stage.querySelector(`.hand-card[data-uid="${ui.handSel}"]`);
+    if (ui.sel.cands[0]?.type === 'buyItem' && ui.sel.cands[0].from === 'market') return stage.querySelector('.market-card');
+    return null;
+  }
+  function drawAim(fresh = false, hit = null) {
+    const src = aimSource();
+    if (!src) { aimEl?.remove(); aimEl = null; return; }
+    const b = stageBox(stage, src);
+    const from = { x: b.x + b.w / 2, y: b.y + (src.classList.contains('hand-card') ? 4 : src.classList.contains('rx-plate') ? b.h / 2 : b.h / 2) };
+    if (src.classList.contains('rx-plate')) from.x = b.x - 4;
+    let to = pointer ?? { x: from.x, y: from.y - 180 };
+    let locked = false;
+    if (hit) { const hb = stageBox(stage, hit); to = { x: hb.x + hb.w / 2, y: hb.y + hb.h / 2 }; locked = true; }
+    const first = fresh || !aimEl;
+    const html = arrowSvg(from, to, { reticle: true, locked, draw: first && !aimEl, still: !!settings.lowMotion });
+    if (!aimEl) {
+      aimEl = document.createElement('div');
+      aimEl.className = 'aim';
+      aimEl.dataset.aim = '1';
+    }
+    aimEl.innerHTML = html;
+    if (!aimEl.isConnected) stage.appendChild(aimEl);
+  }
+  // The legal target under the pointer, if any (its pick element).
+  const pickAt = (x, y) => {
+    for (const el of document.elementsFromPoint(x, y)) {
+      const p = el.closest?.('[data-pick]');
+      if (p && stage.contains(p) && !p.closest('.hand') && !p.closest('.bag-slot')) return p.closest('.rx-lift.pick') ?? p;
+    }
+    return null;
+  };
+  stage.addEventListener('pointermove', (e) => {
+    pointer = toStage(e.clientX, e.clientY);
+    if (aimEl || aimSource()) drawAim(false, pickAt(e.clientX, e.clientY));
+  });
 
   // Stage F: a React moment on the battlefield, over the board while you may React; it lifts smoothly afterwards.
   let momentEl = null;

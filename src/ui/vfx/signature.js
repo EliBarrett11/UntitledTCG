@@ -29,7 +29,6 @@ export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {
       ...SETTLE,
     ] },
     'attack.spire': { budget: 'attack', duration: 1250, steps: [
-      { at: 0, op: 'call', fn: 'arrow' },
       { at: 0, op: 'dom', name: 'recoil', el: 'src', to: 'dst', dur: 700 },
       // The Magus charges an orb first; the Archmagus stands in a turning rune circle and throws lightning.
       { at: 0, op: 'sprite', tex: 'arcane-orb', on: 'src', size: 120, scale: [0.2, 1.1], curve: 'out', life: 340, fadeIn: 0.2, fadeOut: 0.8, tint: 'accent', tintK: 0.7, alpha: 1.4, dy: -30, if: 'orb' },
@@ -45,7 +44,6 @@ export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {
       ...SETTLE,
     ] },
     'attack.hollowfoot': { budget: 'attack', duration: 1250, steps: [
-      { at: 0, op: 'call', fn: 'arrow' },
       { at: 0, op: 'dom', name: 'lift', el: 'src', dur: 450, if: '!final' },
       { at: 0, op: 'dom', name: 'hop', el: 'src', dur: 520, if: 'final' },
       { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 340, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9 },
@@ -60,7 +58,6 @@ export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {
       ...SETTLE,
     ] },
     'attack.deepforge': { budget: 'attack', duration: 1250, steps: [
-      { at: 0, op: 'call', fn: 'arrow' },
       { at: 0, op: 'dom', name: 'recoil', el: 'src', to: 'dst', dur: 700 },
       { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 360, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9, alpha: 1.1 },
       ...GUARD,
@@ -73,7 +70,6 @@ export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {
       ...SETTLE,
     ] },
     'attack.thornwood': { budget: 'attack', duration: 1250, steps: [
-      { at: 0, op: 'call', fn: 'arrow' },
       { at: 0, op: 'dom', name: 'lift', el: 'src', dur: 450 },
       { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 340, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9 },
       ...GUARD,
@@ -91,7 +87,6 @@ export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {
       ...SETTLE,
     ] },
     'attack.barrow': { budget: 'attack', duration: 1250, steps: [
-      { at: 0, op: 'call', fn: 'arrow' },
       { at: 0, op: 'dom', name: 'recoil', el: 'src', to: 'dst', dur: 700 },
       { at: 0, op: 'emit', tex: 'grave-mist', on: 'src', rate: 20, dur: 300, speed: [10, 30], spread: 360, life: [500, 700], size: [120, 180], alpha: 0.5, tint: '#8fd0c0', tintK: 0.6 },
       ...GUARD,

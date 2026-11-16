@@ -365,3 +365,4 @@ body.low-motion .ambient { display: none; }
 .tarrow .ar-reticle:not(.locked) .ar-ring { opacity: .55; }
 body.low-motion .tarrow .ar-core { animation: none; }
 body.low-motion .tarrow.draw * { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; }
+.aim { position: absolute; inset: 0; pointer-events: none; z-index: 88; }

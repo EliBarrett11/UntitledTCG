@@ -106,17 +106,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       ctx.anim(spark, [{ transform: 'translate(-50%,-50%) translate(0,0)', opacity: 1 }, { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px)`, opacity: 1, offset: 0.85 }, { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) scale(1.8)`, opacity: 0 }], { duration: 660, easing: 'ease-in' }),
     ]);
   }
-  // An arrow from one point to another.
-  function arrow(ctx, from, to, colour) {
-    const dx = to.cx - from.cx; const dy = to.cy - from.cy;
-    const len = Math.hypot(dx, dy);
-    const ang = Math.atan2(dy, dx) * 180 / Math.PI;
-    const el = add('<i></i>', from.cx, from.cy, 'arrow');
-    el.style.width = `${Math.max(0, len - 30)}px`;
-    el.style.transform = `rotate(${ang}deg)`;
-    el.style.setProperty('--c', colour);
-    return ctx.anim(el, [{ clipPath: 'inset(0 100% 0 0)', opacity: 0.95 }, { clipPath: 'inset(0 0 0 0)', opacity: 0.95, offset: 0.35 }, { clipPath: 'inset(0 0 0 0)', opacity: 0.95, offset: 0.8 }, { opacity: 0 }], { duration: 1200 });
-  }
+  // (Stage F: no line is drawn once a target is chosen; the attack or effect animation shows what was targeted.)
   // A card face (or back) sliding from one place to another and settling like card stock on leather.
   async function slide(ctx, html, from, to, { size = 'mini', hold = 0, scaleTo = 1 } = {}) {
     const w = size === 'mini' ? 200 : size === 'token' ? 164 : size === 'full' ? 340 : 46;
@@ -488,7 +478,6 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             focus = toBox;
             const colour = a ? accentOf(a) : '#c7a15a';
             const attacker = token(e.who, e.from) ?? q(`[data-ghost="${e.who}:${e.from}"]`);
-            const arrowDone = arrow(ctx, fromBox, toBox, colour);
             if (attacker && !settings().lowMotion) {
               const dx = (toBox.cx - fromBox.cx) * 0.22; const dy = (toBox.cy - fromBox.cy) * 0.22;
               await ctx.anim(attacker, [{ transform: 'translate(0,0)' }, { transform: `translate(${-dx * 0.15}px, ${-dy * 0.15}px)`, offset: 0.25 }, { transform: `translate(${dx}px, ${dy}px)`, offset: 0.55 }, { transform: 'translate(0,0)' }], { duration: 650, fill: 'none', easing: 'ease-in-out' });
@@ -502,7 +491,6 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               ctx.anim(flash, [{ opacity: 0.85 }, { opacity: 0 }], { duration: 380 }),
               ink(ctx, `−${e.amount}`, toBox, 'dmg'),
               e.back ? ink(ctx, `−${e.back}`, fromBox, 'dmg') : null,
-              arrowDone,
             ]);
           }, async (ctx) => {
             const fromBox = where(e.who, e.from);
@@ -523,7 +511,6 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               flags: { ...av.flags, back: !!e.back, armour: armour > 0, armourBack: armourBack > 0, guard: !!(d && hasGuard(d, guardKind)) },
               vars: { ...av.vars, slash2: d ? attackVars(d).vars.slash2 : 'slash-arc', guardSigil: guardKind === 'Shield' ? 'shield-sigil' : 'ward-sigil' },
               hooks: {
-                arrow: () => { arrow(ctx, fromBox, toBox, colour); },
                 land: () => {
                   if (tb) setText(tb.querySelector('.tab-h span'), next.players[foe].row[e.target.space]?.currentHealth ?? 0);
                   if (!d) ripple(foe);
@@ -546,7 +533,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           B('riposte', `Riposte: ${POSS[e.who].toLowerCase()} ${prevCard(e.who, e.space)?.name ?? 'creature'} deals ${e.amount} back.`, async (ctx) => {
             const from = where(e.who, e.space);
             const to = lastAttack ? where(lastAttack.who, lastAttack.from) : centre;
-            await Promise.all([tag(ctx, 'RIPOSTE', from), arrow(ctx, from, to, '#c7a15a'), ink(ctx, `−${e.amount}`, to, 'dmg')]);
+            await Promise.all([tag(ctx, 'RIPOSTE', from), ink(ctx, `−${e.amount}`, to, 'dmg')]);
           }, async (ctx) => {
             const from = where(e.who, e.space);
             const to = lastAttack ? where(lastAttack.who, lastAttack.from) : centre;

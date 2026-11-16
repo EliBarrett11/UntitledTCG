@@ -64,7 +64,6 @@ const GUARD = [{ at: 120, op: 'sprite', tex: '$guardSigil', on: 'dstHp', size: 9
 const SETTLE = [{ at: 650, op: 'burst', tex: 'dust-motes-atlas', on: 'src', n: 6, speed: [20, 70], angle: 'up', spread: 140, life: [500, 700], size: [10, 26], alpha: 0.6 }];
 // The opening of a melee attack: the arrow, the attacker's motion, its ready rim, the guard's sigil.
 const START = (name, frac) => [
-  { at: 0, op: 'call', fn: 'arrow' },
   { at: 0, op: 'dom', name, el: 'src', to: 'dst', frac, dur: 1250 },
   { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 360, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9, alpha: 1.1 },
   ...GUARD,
@@ -73,7 +72,6 @@ const START = (name, frac) => [
 export const EFFECTS = {
   // --- A. A Martial attack ---------------------------------------------------------------------------------------
   'attack.martial': { budget: 'attack', duration: 1250, steps: [
-    { at: 0, op: 'call', fn: 'arrow' },
     { at: 0, op: 'dom', name: 'strike', el: 'src', to: 'dst', frac: 0.6, dur: 1250 },
     { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 360, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9, alpha: 1.1 },
     ...GUARD,
@@ -88,7 +86,6 @@ export const EFFECTS = {
 
   // --- B. An Arcane attack ------------------------------------------------------------------------------------
   'attack.arcane': { budget: 'attack', duration: 1250, steps: [
-    { at: 0, op: 'call', fn: 'arrow' },
     { at: 0, op: 'dom', name: 'recoil', el: 'src', to: 'dst', dur: 700 },
     { at: 0, op: 'sprite', tex: 'arcane-orb', on: 'src', size: 110, scale: [0.2, 1], curve: 'out', life: 340, fadeIn: 0.2, fadeOut: 0.8, tint: 'accent', tintK: 0.7, alpha: 1.3, dy: -30 },
     { at: 0, op: 'burst', tex: 'rune-glyphs-atlas', on: 'src', n: 6, speed: [20, 60], spread: 360, life: [400, 600], size: [26, 40], tint: 'accent', tintK: 0.6, spin: [-90, 90], fadeIn: 0.3, dy: -30 },
@@ -103,7 +100,6 @@ export const EFFECTS = {
 
   // --- C. Ranger and Rogue ----------------------------------------------------------------------------------
   'attack.ranger': { budget: 'attack', duration: 1250, steps: [
-    { at: 0, op: 'call', fn: 'arrow' },
     { at: 0, op: 'dom', name: 'lift', el: 'src', dur: 450 },
     { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 340, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9 },
     ...GUARD,
@@ -116,7 +112,6 @@ export const EFFECTS = {
     ...SETTLE,
   ] },
   'attack.rogue': { budget: 'attack', duration: 1250, steps: [
-    { at: 0, op: 'call', fn: 'arrow' },
     { at: 0, op: 'dom', name: 'lift', el: 'src', dur: 450 },
     { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 340, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9 },
     ...GUARD,
@@ -129,7 +124,6 @@ export const EFFECTS = {
   ] },
   // Beasts: Martial with claws or a bite (chosen per attack).
   'attack.beast': { budget: 'attack', duration: 1250, steps: [
-    { at: 0, op: 'call', fn: 'arrow' },
     { at: 0, op: 'dom', name: 'strike', el: 'src', to: 'dst', frac: 0.65, dur: 1250 },
     { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.25, life: 340, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9 },
     ...GUARD,
@@ -141,7 +135,6 @@ export const EFFECTS = {
   ] },
   // The Undead: Arcane, with a soul wisp in place of the bolt.
   'attack.undead': { budget: 'attack', duration: 1250, steps: [
-    { at: 0, op: 'call', fn: 'arrow' },
     { at: 0, op: 'dom', name: 'recoil', el: 'src', to: 'dst', dur: 700 },
     { at: 0, op: 'sprite', tex: 'arcane-orb', on: 'src', size: 110, scale: [0.2, 1], curve: 'out', life: 340, fadeIn: 0.2, fadeOut: 0.8, tint: '#8fd0c0', tintK: 0.7, dy: -30 },
     { at: 0, op: 'emit', tex: 'grave-mist', on: 'src', rate: 20, dur: 300, speed: [10, 30], spread: 360, life: [500, 700], size: [120, 180], alpha: 0.5, tint: '#8fd0c0', tintK: 0.6 },
@@ -154,7 +147,6 @@ export const EFFECTS = {
   ] },
   // The Ashen Wyrm: fire breath.
   'attack.wyrm': { budget: 'attack', duration: 1250, steps: [
-    { at: 0, op: 'call', fn: 'arrow' },
     { at: 0, op: 'dom', name: 'recoil', el: 'src', to: 'dst', dur: 800 },
     { at: 0, op: 'sprite', tex: 'ready-rim', on: 'src', sizeK: 1.3, life: 360, fadeIn: 0.3, fadeOut: 0.5, tint: 'accent', tintK: 0.9 },
     { at: 0, op: 'heat', on: 'src', radius: 200, strength: 3, dur: 700 },
