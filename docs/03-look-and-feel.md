@@ -43,6 +43,70 @@ Do not include any text, letters, logos, borders, frames, card layouts or waterm
 
 ## 3. Cards
 
+**Card design v4 is the approved design (Elliott, 16 November 2026).** It replaces the S4 design below it. It is the old game's polished card design (its stage C1), rebuilt for this game with Elliott's changes. The references:
+- `docs/mockups/cards-v4/types.html`: the seven card types.
+- `stats.html`: the four attack-and-guard combinations.
+- `finishes.html`: foil.
+- `board.html`: board tokens and their states.
+
+Each has a `.png` screenshot. `reference-geometry.py` holds the exact shapes, sizes, colours and positions (it generated the mockups).
+
+**The design:**
+- **The art fills the whole card,** clipped to its outline. It darkens smoothly into a dark text panel from about 95 px above the panel line.
+- **The frame** is a dark edge, a fine brass hairline (a brass gradient, 1.6 px) and a fainter inner line 7 px inside.
+- **One outline trait per card type:**
+
+  | Card type | Outline trait |
+  |---|---|
+  | Character | sockets cut into both top corners |
+  | Monster | three claw rips in the top edge |
+  | Action | a notch in the top edge that seats the cost |
+  | Event | a low arch |
+  | Item | a punched eyelet at the top centre |
+  | Location | scroll rolls at the top and bottom |
+  | Campaign | a central peak |
+
+- **The panel line** runs across the card with a small diamond in the middle holding the Class or Kind glyph in its accent colour.
+- **Text:**
+  - the name in Cinzel 21 px, centred, on one line (18 px for long names);
+  - the type line in spaced Cinzel small caps, in the accent colour;
+  - the rules in Alegreya Sans 14.5 px;
+  - keywords as a spaced small-caps line;
+  - a trigger as its name in bold, a dot, then the effect.
+- **Creatures:**
+  - **Cost:** a dark well with an amber ring, sitting in the top-left socket.
+  - **Level:** a well with "LV" beneath it, in the top-right socket. A Legendary Creature shows ★ and "LEGEND".
+  - **Speed:** at the bottom centre: chevrons (1 for Slow, 2 for Steady, 3 for Swift) with the word beneath.
+  - **Removed:** the Level ladder and the Light, Mid or Heavy label.
+  - **Attack and Health tabs:** small dark tabs flush in the bottom corners, with the hairline stepping around them. Each tab's inner top corner shows its type:
+
+    | Tab | Type | Inner corner | Symbol |
+    |---|---|---|---|
+    | Attack | Martial | a blade cut | amber sword |
+    | Attack | Arcane | a round orb curve | violet star |
+    | Health | Shield guard | a heraldic step | steel shield |
+    | Health | Ward guard | a scooped ring | cyan ward |
+    | Health | no guard | plain | rose heart |
+
+- **The other card types:**
+  - **Actions:** ruled rows for React, Adapt and Strat, each with its Energy cost at the right.
+  - **Events:** "Release N" in the type line, and a quiet Favour box.
+  - **Items:** the price in a gold-ringed well.
+  - **Locations:** their lanes and Rounds in the type line.
+  - **The Campaign:** its Order, its Quest as a row of dots ending in the Legendary Creature's portrait, and a progress line.
+- **Foil** goes on final forms at their top Level, the Legendary and Legendary Creatures. It's a gold hairline and inner line, a gold name, and a holo band that drifts across the art and fades out above the text panel. Low motion stops the drift but keeps the gold.
+- **Tokens (164 px)** are the same drawing scaled down. They show the art, name, keyword line, Level, Speed and the stat tabs at a larger number size. They have no cost well and no rules text.
+  - Ready: a gold glow.
+  - Spent: desaturated and turned slightly.
+  - Changed stats: green or red.
+- **Mini (200 px) and Chip** follow the same language. Mini shows the art, cost, name, stat tabs and one trigger or mode line. Chip is a round art crop.
+
+**Superseded:** the S4 design (below), card design v2, and the painted-frame approach (v3, `docs/11-card-frame-prompts.md`, parked as a possible later upgrade).
+
+---
+
+### The S4 design (superseded)
+
 **Approved card design (Elliott, 14 November 2026):** `docs/mockups/cards-s4-types.html` (the seven frames at Full size), `cards-s4-finishes.html` (foil on final forms, Legendaries and Legendary Creatures) and `cards-s4-sizes.html` (Full, Mini, Token, Chip and the token states), each with a `.png` screenshot. **No flavour text:** cards carry only their rules; a vanilla card leaves the space empty.
 
 - **Sizes:** Full (340 px wide, 5:7) for hovering, the Codex and choices; Mini (200 px) for the hand and the Market; Token (~164 px) for cards on the board; Chip (24–40 px) for trackers and the log.

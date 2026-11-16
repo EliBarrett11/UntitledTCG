@@ -1,5 +1,7 @@
 # Card frame and socket prompts (card design v3)
 
+> **Parked (16 November 2026).** Elliott chose card design v4 instead (see `docs/03-look-and-feel.md` section 3). These prompts stay as a possible later upgrade: painted frames in v4's layout.
+
 **For Elliott to generate with ChatGPT.** Written by the design chat, 15 November 2026, after Elliott's review of card design v2.
 
 ## The design (Elliott's direction)
