@@ -1,0 +1,28 @@
+/* 1. one Level well: the number, plus a gold star and gold ring at Prime */
+.cv-ptag { display:none !important; }
+.cv-level .cv-lv { display:none !important; }
+.cv-level span:first-child { font-size:24px !important; }
+.card.m-prime .cv-level { border-radius:50%; background: radial-gradient(circle at 40% 35%, #fff0bf, #e7b552 55%, #9c6a1e 100%);
+  box-shadow: 0 0 0 1.5px #fff1c4, 0 0 0 3px #1a0f08, 0 0 14px rgba(255,196,80,.85); color:#1a0f08 !important; }
+.card.m-prime .cv-level span:first-child { color:#1a0f08 !important; text-shadow:none !important; }
+.card .m-star { position:absolute; z-index:6; width:20px; height:20px; pointer-events:none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.8)) drop-shadow(0 0 4px rgba(255,200,90,.9)); }
+.card .m-star path { fill:#ffe08a; stroke:#5a3a0c; stroke-width:1.2px; }
+/* 2. Prime in hand: gold edge glow and a tab above the card */
+.hand-card.m-prime-hand { filter: drop-shadow(0 0 6px rgba(255,200,90,.95)) drop-shadow(0 0 16px rgba(255,170,60,.55)); }
+.hand-card .m-tab { position:absolute; z-index:30; left:58px; top:-17px; padding:3px 12px 4px; border-radius:6px 6px 0 0;
+  font:700 11px Cinzel,serif; letter-spacing:2.4px; color:#1a0f08; background:linear-gradient(#ffe8a6,#d9a446); box-shadow:0 0 0 1px #fff2c8, 0 0 10px rgba(255,200,90,.8); display:flex; gap:5px; align-items:center; }
+.hand-card .m-tab svg { width:11px; height:11px; fill:#1a0f08; }
+/* 3. compact series line */
+.curve-strip.m-hide { display:none !important; }
+.m-curve { position:absolute; z-index:60; display:flex; align-items:center; gap:10px; padding:8px 16px 17px; border-radius:999px; pointer-events:none;
+  background:rgba(14,9,6,.94); box-shadow:0 0 0 1px #000, 0 0 0 2px rgba(226,190,120,.55), 0 10px 20px rgba(0,0,0,.6); }
+.m-curve .t { font:700 10px Cinzel,serif; letter-spacing:2.4px; color:rgba(232,220,192,.65); }
+.m-curve .l { display:flex; gap:6px; align-items:center; }
+.m-curve .c { position:relative; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font:700 14px Cinzel,serif; color:rgba(232,220,192,.55);
+  box-shadow: inset 0 0 0 1px rgba(226,190,120,.35); }
+.m-curve .c.prime { color:#1a0f08; background: radial-gradient(circle at 40% 35%, #fff0bf, #e7b552 60%, #9c6a1e); box-shadow:0 0 10px rgba(255,196,80,.7); }
+.m-curve .c.prime::after { content:'★'; position:absolute; top:-11px; font-size:11px; color:#ffe08a; text-shadow:0 0 4px rgba(255,190,80,.9); }
+.m-curve .c.now { box-shadow: inset 0 0 0 2px #f4ead2, 0 0 0 2px rgba(10,6,4,.9); color:#f4ead2; }
+.m-curve .c.prime.now { box-shadow: inset 0 0 0 2px #1a0f08, 0 0 0 2px #fff1c4, 0 0 12px rgba(255,196,80,.9); color:#1a0f08; }
+.m-curve .c.now::before { content:'NOW'; position:absolute; bottom:-14px; font:700 8px Cinzel,serif; letter-spacing:1.5px; color:#f4ead2; }
+.m-curve .sep { width:8px; height:1px; background:rgba(226,190,120,.35); }
