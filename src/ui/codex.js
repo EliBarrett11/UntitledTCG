@@ -101,22 +101,22 @@ export function createCodex(viewport, { state, viewer, lowMotion }) {
 
   // --- Drawing ---
   function crumbs() {
-    const out = ['<a href="#" data-crumb="-1">CODEX</a>'];
+    const items = [{ html: '<a href="#" data-crumb="-1">CODEX</a>' }];
     stack.forEach((e, i) => {
       const label = labelOf(e, i);
       const cur = i === stack.length - 1;
-      for (const [j, l] of label.entries()) {
-        out.push('<span class="cx-sep">›</span>');
-        out.push(cur && j === label.length - 1 ? `<b>${esc(l)}</b>` : `<a href="#" data-crumb="${i}">${esc(l)}</a>`);
-      }
+      for (const [j, l] of label.entries()) items.push({ html: cur && j === label.length - 1 ? `<b>${esc(l)}</b>` : `<a href="#" data-crumb="${i}">${esc(l)}</a>`, i });
     });
-    return out.join('');
+    // (A long trail keeps its start and its last two steps; the middle folds into "…", which goes back one step.)
+    const shown = items.length > 4 ? [items[0], { html: `<a href="#" data-crumb="${items[items.length - 3].i ?? -1}" title="Back">…</a>` }, ...items.slice(-2)] : items;
+    return shown.map((x) => x.html).join('<span class="cx-sep">›</span>');
   }
   function labelOf(e, i) {
     if (e.kind === 'card') {
       const ex = i === stack.length - 1 ? lastEx : null;
       const name = (ex?.name ?? e.name ?? '').toUpperCase();
-      return i === 0 ? [e.place ?? ex?.place ?? 'CARD', name] : [name];
+      const place = e.place ?? ex?.place ?? 'CARD';
+      return i === 0 && place !== name ? [place, name] : [name];
     }
     if (e.kind === 'term') return [GLOSSARY[e.key].term.toUpperCase()];
     if (e.kind === 'section') return [(sections.find((x) => x.id === e.id)?.title ?? 'RULEBOOK').toUpperCase()];
@@ -297,17 +297,20 @@ export function createCodex(viewport, { state, viewer, lowMotion }) {
     if (top()?.kind === 'search') top().q = q; else stack.push({ kind: 'search', q });
     render(true);
   });
-  search.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Enter') {
-      const first = body.querySelector('[data-open-term], [data-open-section]');
-      if (first) { first.click(); search.blur(); }
-    }
-  });
-  // Keys: Esc closes (and nothing else hears it), Backspace goes back, and typing in the search reaches only the search.
+  const searchEnter = () => {
+    const first = body.querySelector('[data-open-term], [data-open-section]');
+    if (first) { first.click(); search.blur(); }
+  };
+  // Keys: Esc closes (and nothing else hears it); Backspace goes back; keys typed in the panel reach only the panel
+  // (handled here, since the game's own key handlers never see them).
   window.addEventListener('keydown', (ev) => {
     if (!isOpen()) return;
-    if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); if (document.activeElement === search && search.value) { search.value = ''; search.dispatchEvent(new Event('input')); return; } close(); return; }
-    if (panel.contains(ev.target)) { ev.stopPropagation(); return; }
+    if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); close(); return; }
+    if (panel.contains(ev.target)) {
+      ev.stopPropagation();
+      if (ev.key === 'Enter' && ev.target === search) { ev.preventDefault(); searchEnter(); }
+      return;
+    }
     if (ev.key === 'Backspace' && stack.length > 1) { ev.preventDefault(); ev.stopImmediatePropagation(); back(); }
   }, true);
   // (The browser menu never opens over the panel.)

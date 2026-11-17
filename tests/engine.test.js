@@ -47,7 +47,7 @@ test('the match is deterministic from its seed', () => {
 test('the engine has no DOM code', () => {
   for (const f of readdirSync(new URL('../src/engine/', import.meta.url))) {
     const src = readFileSync(new URL(`../src/engine/${f}`, import.meta.url), 'utf8');
-    assert.ok(!/\b(document|window|localStorage)\.|HTMLElement/.test(src), f);
+    assert.ok(!/\b(document|window|localStorage)\.[A-Za-z_]|HTMLElement/.test(src), f);   // (a property, not the end of a sentence: \"a React window.\")
   }
 });
 

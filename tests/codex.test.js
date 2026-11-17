@@ -82,6 +82,8 @@ function checkState(s, seen) {
     if (ref.zone === 'hand' && ref.who === 'p2') assert.equal(ex.kind, 'hidden');
     if (ref.zone === 'strat' && s.strats.find((x) => x.uid === ref.uid).owner === 'p2') assert.equal(ex.kind, 'hidden');
     if (ref.zone === 'pile') assert.equal(ex.kind, 'hidden');
+    for (const part of [ex.event, ex.item, ex.location]) if (part) assert.ok(part.text, `${ex.name} shows no text`);
+    if (ex.modes) for (const m of ex.modes) assert.ok(m.text && m.cost >= 0, `${ex.name}: a mode without text`);
     if (ex.kind !== 'card' || !isCreature(ex.card)) continue;
     // Each stat's sources add up to the number on the card.
     for (const st of ex.stats) {

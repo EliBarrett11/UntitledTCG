@@ -52,6 +52,8 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
   page.on('response', (r) => { if (r.status() >= 400) errors.push(`HTTP ${r.status()}: ${r.url()}`); });
+  // (Stage G: was the browser's own menu let through on a right-click?)
+  await page.addInitScript(() => { window.addEventListener('contextmenu', (e) => { if (!e.defaultPrevented) window.__browserMenu = (window.__browserMenu ?? 0) + 1; }); });
   await page.goto(url, { waitUntil: 'networkidle' });
   const pick = rng(SEED * 31 + w);
   let clicks = 0;
@@ -111,6 +113,33 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
     }
   }
 
+  // Stage G: the Codex check. A real right-click on a card (hand, board, Market, Location, Campaign, piles, the log's
+  // chips, React plates) opens the Codex, the browser menu stays shut, and a choice in progress isn't broken; Escape
+  // then closes the Codex and nothing else.
+  async function codexCheck(when) {
+    const sels = ['[data-hover="hand"]', '[data-hover="board"]', '.market-card', '.loc-label', '[data-region="quest-p1"]', '[data-codex="pile"]', '.log-chip', '.rx-plate[data-i]'];
+    const opts = [];
+    for (const sel of sels) { const n = await count(sel); for (let i = 0; i < n; i++) opts.push([sel, i]); }
+    if (!opts.length) return;
+    const [sel, i] = opts[Math.floor(pick() * opts.length)];
+    const p = await pointOf(page, sel, i);
+    if (!p) return;
+    const read = () => page.evaluate(() => ({ codex: document.body.dataset.codex ?? '', step: document.body.dataset.step, react: document.body.dataset.react, menu: window.__browserMenu ?? 0, crumb: document.querySelector('.cx-crumb')?.textContent ?? '' }));
+    const before = await read();
+    await page.mouse.click(p.x, p.y, { button: 'right' });
+    await page.waitForTimeout(80);
+    const open = await read();
+    if (open.codex !== 'open') throw new Error(`a right-click on ${sel} ${when} did not open the Codex`);
+    if (open.menu !== before.menu) throw new Error(`the browser menu opened on a right-click on ${sel} ${when}`);
+    if (open.step !== before.step || open.react !== before.react) throw new Error(`a right-click on ${sel} ${when} broke the choice in progress (${before.step} → ${open.step})`);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(60);
+    const shut = await read();
+    if (shut.codex) throw new Error(`Escape did not close the Codex (${sel}, ${when})`);
+    if (shut.step !== before.step || shut.react !== before.react) throw new Error(`Escape on the Codex also changed the choice in progress (${before.step} → ${shut.step})`);
+    counts['Codex right-click'] = (counts['Codex right-click'] ?? 0) + 1;
+  }
+
   // Drag a hand card onto one of the places it lights up (or onto the map, for a card with no target).
   async function dragHand(index) {
     const p = await pointOf(page, '[data-act="hand"]', index);
@@ -156,6 +185,7 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
     for (let i = 0; i < 12; i++) {
       const st = await state();
       if (!st.step?.startsWith('sel') && st.step !== 'menu') return;
+      if (st.step.startsWith('sel') && pick() < 0.2) await codexCheck('while choosing a target');
       if (st.step === 'menu') {
         const n = await count('.menu-item:not(.cancel)');
         const items = await page.evaluate(() => [...document.querySelectorAll('.menu-item:not(.cancel)')].map((b) => b.textContent));
@@ -214,6 +244,7 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
     if (off.length) throw new Error(`the board is out of step with the state: ${off.slice(0, 3).join('; ')}`);
     if (st.version === lastVersion) { if (++sameTurnTries > 25) throw new Error(`stall: no progress on the player's turn (step ${st.step})`); } else { lastVersion = st.version; sameTurnTries = 0; }
     if (st.react) {
+      if (pick() < 0.25) await codexCheck('in a React moment');
       const opts = await count('.react-opt');
       if (opts && pick() < 0.5) { await click('.react-opt', Math.floor(pick() * opts), 'React'); await finishSelection(); }
       else await click('[data-act="decline"]', 0, 'Let it happen');
@@ -227,6 +258,7 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
     if (hand && r < 0.72) { await click('[data-act="hand"]', Math.floor(pick() * hand), 'hand card'); await finishSelection(); continue; }
     if (hand && r < 0.85) { await dragHand(Math.floor(pick() * hand)); await hoverSweep('after a drag', 2); await finishSelection(); continue; }
     if (hand && pick() < 0.1) await hoverSweep('on my turn', 3);
+    if (pick() < 0.06) await codexCheck('on my turn');
     if (await count('[data-act="buy-market"]') && pick() < 0.5) { await click('[data-act="buy-market"]', 0, 'Buy'); await finishSelection(); continue; }
     if (await count('.bag-slot.usable') && pick() < 0.5) { await click('.bag-slot.usable', 0, 'Bag'); await finishSelection(); continue; }
     if (await count('[data-act="pass"]')) { await click('[data-act="pass"]', 0, 'Pass'); continue; }

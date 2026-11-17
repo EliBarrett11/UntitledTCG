@@ -197,11 +197,11 @@ export function explain(s, ref, viewer = 'p1') {
     ex.now = otherNow(s, found, viewer);
     ex.terms = ['modes', ...ex.modes.map((m) => m.mode)];
   } else if (card.cardType === 'Event') {
-    ex.event = { release: card.release, text: card.text, favour: card.favour ? { condition: card.favour.conditionText, text: card.favour.text, renown: RULES.perFavour } : null };
+    ex.event = { release: card.release, text: cardDef(card.id).text, favour: card.favour ? { condition: card.favour.conditionText, text: card.favour.text, renown: RULES.perFavour } : null };
     ex.now = otherNow(s, found, viewer);
     ex.terms = ['release', 'favour', 'event'];
   } else if (card.cardType === 'Item') {
-    ex.item = { price: card.price, kind: card.kind, text: card.text, target: chosenTargetWords(card.target) };
+    ex.item = { price: card.price, kind: card.kind, text: cardDef(card.id).text, target: chosenTargetWords(card.target) };
     ex.now = otherNow(s, found, viewer);
     ex.terms = [card.kind === 'Held' ? 'held' : 'consumed', 'item', 'gold'];
   } else if (card.cardType === 'Location') {
@@ -332,7 +332,7 @@ function otherNow(s, found, viewer) {
 function locationFacts(s, found) {
   const { card } = found;
   const l = found.placed;
-  return { text: card.text, width: card.width, rounds: card.rounds, roundsLeft: l?.roundsLeft ?? null, lanes: l ? lanesOf(l) : null };
+  return { text: cardDef(card.id).text, width: card.width, rounds: card.rounds, roundsLeft: l?.roundsLeft ?? null, lanes: l ? lanesOf(l) : null };
 }
 
 // What the viewer can know about something hidden: only what's public.
