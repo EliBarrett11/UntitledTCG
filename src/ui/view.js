@@ -3,6 +3,7 @@
 import { RULES } from '../engine/rules.js';
 import { baseEnergyFor, availableExert } from '../engine/energy.js';
 import { isReady, locationAt, lanesOf, lanesHere, creaturesOf, actor } from '../engine/game.js';
+import { energyDisplay, turnPlaque, mustAttack } from './turn.js';
 import { cardDef } from '../engine/cards.js';
 import { renderCard, cardBack, icon, chipFor, STAR_PATH } from './cards.js';
 import { legendaryCreatureOf, cardAtRound } from '../engine/cards.js';
@@ -26,7 +27,9 @@ function warlord(s, who, ui) {
   const p = s.players[who];
   const pick = ui.picks?.warlord;
   const pick2 = who === AI ? pick : null;
-  return `<div class="warlord ${who === HUMAN ? 'warlord-you' : 'warlord-enemy'}${pick2 ? ' target' : ''}" ${pick2 ? `data-pick="${esc(pick2)}"` : ''} data-region="warlord-${who}" data-codex="term" data-term="warlord">
+  // (V5: the Warlord whose turn it is glows in its colour.)
+  const active = actor(s) === who && s.phase !== 'gameOver';
+  return `<div class="warlord ${who === HUMAN ? 'warlord-you' : 'warlord-enemy'}${pick2 ? ' target' : ''}${active ? ' active' : ''}" ${pick2 ? `data-pick="${esc(pick2)}"` : ''} data-region="warlord-${who}" data-codex="term" data-term="warlord">
 
     ${dial(p.renown, RULES.win, 74, 58).replace('$', `<div class="dial-n">${p.renown}</div><div class="dial-of">/ ${RULES.win}</div>`)}
     <div class="warlord-text">
@@ -149,7 +152,9 @@ function row(s, who, ui) {
       const ready = isReady(s, c);
       const cls = [c.spent ? 'spent' : '', ready ? 'ready' : '', cpick ? 'target' : '', ui.attacker === lane && who === HUMAN ? 'selected' : '', ui.picks?.attacker?.[lane] && who === HUMAN ? 'can-attack' : ''].filter(Boolean).join(' ');
       const tag = c.spent ? '<div class="tag tag-spent">SPENT</div>' : ready ? '<div class="tag tag-ready">READY</div>' : '';
-      body = `<div class="slot-card ${cls}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board">${tag}${renderCard(c, { size: 'token', live: true })}</div>`;
+      // (V5: a creature of yours that blocks your Pass, 5.2.)
+      const must = who === HUMAN && ui.mustAttack?.includes(lane) ? '<div class="must-tag" data-region="must-attack">MUST ATTACK BEFORE YOU PASS</div>' : '';
+      body = `<div class="slot-card ${cls}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board">${tag}${renderCard(c, { size: 'token', live: true })}${must}</div>`;
     }
     const attrs = cpick ? `data-pick="${esc(cpick)}"` : pick ? `data-pick="${esc(pick)}"` : ui.picks?.attacker?.[lane] && who === HUMAN && c ? 'data-act="attacker"' : '';
     // The preview of choosing this target (on a Location target, once, on its leftmost lane).
@@ -166,19 +171,11 @@ function row(s, who, ui) {
 function column(s, ui) {
   const me = s.players[HUMAN];
   const phases = ['dawn', 'battle', 'dusk'].map((ph) => `<div class="phase${(s.phase === ph || (ph === 'battle' && s.phase === 'mulligan' && false)) ? ' on' : ''}">${ph === 'battle' ? 'BATTLE' : ph.toUpperCase()}</div>`).join('');
+  // (V5: whose turn it is moves to the turn plaque below; the Round panel keeps the initiative.)
   const turnLine = s.phase === 'gameOver' ? 'The match is over'
-    : s.phase === 'mulligan' ? 'Round 1 · mulligan'
-    : s.reactWindow ? (s.reactWindow.reactor === HUMAN ? `${foe()} acted · you may React` : `Your action · ${foe(false)} may React`)
-    : `${s.turn === HUMAN ? 'Your turn' : `${foes()} turn`} · ${s.initiative === HUMAN ? 'you have' : `${foe(false)} has`} initiative this Round`;
+    : s.phase === 'mulligan' ? 'Round 1 · the mulligan'
+    : `${s.initiative === HUMAN ? 'You have' : `${foe()} has`} initiative this Round`;
   const lb = s.lastBattle ? `<div class="lb-note">THE LAST BATTLE · since Round ${s.lastBattle.startedRound}</div>` : `<div class="muted small">Last Battle: Round ${RULES.lastBattleRound} or ${RULES.lastBattleRenown} Renown</div>`;
-  const base = me.baseEnergy;
-  const pips = Math.max(base, baseEnergyFor(s.round));
-  // (Stage G: Energy is crystal cyan. A crystal for each Energy this Round, lit for each one left; Exert on one line,
-  // a bright crystal with a star for each ready point and a dark cracked one for each exhausted point, with the
-  // Round it comes back.)
-  const energyPips = Array.from({ length: Math.min(pips, 12) }, (_, i) => `<i class="cr${i < base ? '' : ' off'}"></i>`).join('');
-  const exertDots = [...Array(availableExert(me)).fill(null).map(() => '<div class="ex" title="An Exert point, ready to use"><i class="cr exert"></i><small><b>ready</b></small></div>'),
-    ...[...me.exhaust].sort((a, b) => a.recoversRound - b.recoversRound).map((x) => `<div class="ex" title="Exhausted: it recovers at the Dawn of Round ${x.recoversRound}"><i class="cr tired"></i><small>Round ${x.recoversRound}</small></div>`)].join('');
   const m = s.market;
   const item = m.onSale;
   const stockFull = item?.stock ?? 1;
@@ -198,10 +195,7 @@ function column(s, ui) {
       <div class="phases">${phases}</div>
       <div class="turn-line">${esc(turnLine)}</div>
     </div>
-    <div class="panel energy-panel" data-codex="term" data-term="energy" title="Base Energy left this Round; Exert points beyond it">
-      <div class="en-top"><span class="label">ENERGY</span><div class="en-big"><i class="cr big"></i><span class="energy-n">${base}</span></div><div class="en-row">${energyPips}</div></div>
-      <div class="en-ex"><span class="label">EXERT · ${availableExert(me)} OF ${me.exertMax}</span>${exertDots || '<span class="muted small">none yet</span>'}</div>
-    </div>
+    ${turnPlaque(s, ui, ui.pace)}
     <button type="button" class="btn pass" ${passable ? 'data-act="pass"' : 'disabled'}>PASS</button>
     <div class="muted small center pass-note">${ui.passNote ?? 'Passing gives you +1 Base Energy this Round'}</div>
     <div class="panel market-panel">
@@ -299,7 +293,7 @@ export function render(s, ui) {
   <div class="banner-hang banner-enemy" data-banner="${AI}" aria-hidden="true"><i></i></div>
   <div class="banner-hang banner-you" data-banner="${HUMAN}" aria-hidden="true"><i></i></div>
   <div class="topbar${ui.react ? ' reacting' : ''}" data-region="topbar">
-    ${warlord(s, AI, ui)}${quest(s, AI)}${enemyHand(s)}${sealedStrats(s, AI)}<div class="grow"></div>${piles(s, AI, ui)}
+    ${warlord(s, AI, ui)}${quest(s, AI)}${enemyHand(s)}<div class="foe-energy">${energyDisplay(s, AI, 'small')}</div>${sealedStrats(s, AI)}<div class="grow"></div>${piles(s, AI, ui)}
     <button type="button" class="gear" data-act="settings" title="Settings" aria-label="Settings">⚙</button>
   </div>
   ${settingsPanel(ui)}
@@ -309,6 +303,7 @@ export function render(s, ui) {
   <div class="me-left">${sealedStrats(s, HUMAN)}${quest(s, HUMAN)}${warlord(s, HUMAN, ui)}</div>
   ${hand(s, ui)}
   <div class="me-piles">${piles(s, HUMAN, ui)}</div>
+  <div class="my-energy">${energyDisplay(s, HUMAN, 'full', ui.energyPreview)}</div>
   ${ui.prompt ? `<div class="prompt" data-region="prompt">${energyHtml(esc(ui.prompt))}</div>` : ''}
   ${ui.caption ? `<div class="caption" data-region="caption">${esc(ui.caption)}</div>` : ''}
   ${column(s, ui)}

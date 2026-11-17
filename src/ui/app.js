@@ -17,6 +17,7 @@ import { arrowSvg } from './arrow.js';
 import { titleScreen, setupScreen, openingBanner } from './screens.js';
 import { firstScreen, nextScreen } from './flow.js';
 import { createCodex } from './codex.js';
+import { announcement, announcementHtml, costPreview, energyDisplay, mustAttack } from './turn.js';
 import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
 
 // The presentation art (V3), fetched and decoded before it's first shown.
@@ -45,6 +46,8 @@ export function loadSettings(params) {
     speed: ['slow', 'normal', 'fast'].includes(saved.speed) ? saved.speed : 'normal',
     lowMotion: typeof saved.lowMotion === 'boolean' ? saved.lowMotion : reduced,
     reactSeconds: [5, 8, 12, 20].includes(saved.reactSeconds) ? saved.reactSeconds : 5,
+    // (V5: against the AI, pause after each of its actions until you go on.)
+    pauseAfter: saved.pauseAfter === true,
   };
   // Dev aids for the checks: ?speed=slow|normal|fast&lowmotion=0|1 (not saved).
   if (params?.has('speed')) out.speed = params.get('speed');
@@ -74,6 +77,32 @@ export function startApp(params) {
   const netLayer = document.createElement('div');
   netLayer.id = 'net-layer';
   document.getElementById('viewport').appendChild(netLayer);
+  // V5: the other player's actions are announced in their own layer over the stage (redraws never touch it).
+  const annLayer = document.createElement('div');
+  annLayer.id = 'announce-layer';
+  document.getElementById('viewport').appendChild(annLayer);
+  let annTimer = null;
+  let skipHeld = false;       // Space held: skip ahead
+  let paceWaiting = false;    // paused after the AI's action, until you go on
+  let pausedFor = null;       // (the action that pause was for, once you've gone on)
+  function goOn() { paceWaiting = false; pausedFor = lastShown; advance(); }
+  // Hold Space to skip ahead: every beat is skipped and the AI doesn't wait; it also goes on after a pause.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== ' ' || screen !== 'match' || e.target.closest?.('input, textarea, button, [contenteditable]')) return;
+    e.preventDefault();
+    if (paceWaiting) { goOn(); return; }
+    if (skipHeld) return;
+    skipHeld = true;
+    clearAnnouncement();
+    if (presenting) presenter.skip();
+    else if (timer && actor(s) === AI && !online.active()) { clearTimeout(timer); timer = setTimeout(() => aiStep(AI), 0); }
+  });
+  document.addEventListener('keyup', (e) => { if (e.key === ' ') skipHeld = false; });
+  window.addEventListener('blur', () => { skipHeld = false; });
+  let lastShown = null;       // the last action presented, for Replay
+  let lastWhose = null;       // whose turn the plaque last showed (for its sweep)
+  let lastEnergy = null;      // the Energy number last shown, and the Exert spent (for the count and the flare)
+  let lastExhaust = null;
   let previewResume = null;   // (the ?lobby=title dev aid)
   let notice = '';            // a line of news for the title screen ("Your friend left the match.")
   const updates = [];         // online: actions the host has applied, waiting to be played in turn
@@ -112,6 +141,8 @@ export function startApp(params) {
       document.body.dataset.beatsStarted = String(started);
       document.body.dataset.beatsDone = String(done);
       if (kind) { ui.caption = caption; setCaption(caption); }
+      // (V5: while Space is held, every beat is skipped.)
+      if (kind && skipHeld) setTimeout(() => presenter.skip(), 0);
     },
   });
   let seed = params.has('seed') ? Number(params.get('seed')) >>> 0 : (Date.now() % 1000000);
@@ -206,9 +237,41 @@ export function startApp(params) {
   }
 
   // Show an action: draw the new state, play its beats (a click skips the current one), then go on.
+  // How long an announcement stays (it clears after it's been readable this long, or when you act).
+  const readMs = () => ({ slow: 3200, normal: 2300, fast: 1400 }[settings.speed] ?? 2300);
+  // Against the AI: its minimum think time, so its moves never blur together (?pace=ms overrides it, for the checks).
+  const thinkMs = () => (params.has('pace') ? pace : ({ slow: 1500, normal: 900, fast: 450 }[settings.speed] ?? 900));
+  function announce(r) {
+    clearTimeout(annTimer);
+    annLayer.innerHTML = '';
+    if (r.who !== AI || !r.prev) return;
+    const a = announcement(r.prev, r.next, r.events ?? [], AI);
+    if (!a) return;
+    annLayer.innerHTML = announcementHtml(a);
+    document.body.classList.add('announcing');
+    annTimer = setTimeout(clearAnnouncement, readMs());
+  }
+  function clearAnnouncement() {
+    clearTimeout(annTimer);
+    document.body.classList.remove('announcing');
+    const el = annLayer.firstElementChild;
+    if (!el) return;
+    if (settings.lowMotion) { annLayer.innerHTML = ''; return; }
+    el.classList.add('out');
+    setTimeout(() => { if (annLayer.firstElementChild === el) annLayer.innerHTML = ''; }, 260);
+  }
+  // Replay the last action (against the AI or online): the same beats again, the state unchanged.
+  function replay() {
+    if (!lastShown || presenting || lastShown.next !== s) return;
+    present({ ...lastShown, replay: true });
+  }
+
   async function present(r) {
     clearTimeout(timer);
     stopReact();
+    if (r.who === undefined) r.who = HUMAN;
+    lastShown = r;
+    if (r.who === AI) announce(r); else clearAnnouncement();
     presenting = true;
     ui.locked = true;
     ui.sel = null; ui.menu = null; ui.prompt = ''; ui.attacker = null; ui.previews = {};
@@ -312,8 +375,11 @@ export function startApp(params) {
       if (waiting) { ui.locked = true; return draw(); }
     } else if (who === AI || autoplay) {
       ui.locked = true;
+      // (V5: paused after the AI's last action, until you press Next or Space.)
+      if (who === AI && settings.pauseAfter && lastShown?.who === AI && pausedFor !== lastShown && !skipHeld && !params.has('pace')) { paceWaiting = true; return draw(); }
+      paceWaiting = false;
       draw();
-      timer = setTimeout(() => aiStep(who), pace);
+      timer = setTimeout(() => aiStep(who), skipHeld ? 0 : who === AI ? thinkMs() : pace);
       return;
     }
     ui.locked = false;
@@ -345,6 +411,7 @@ export function startApp(params) {
     if (actor(s) !== who || presenting) return;
     const a = preferred(who) ?? chooseAction(s, who, rng);
     const r = apply(a);
+    r.who = who;
     ui.caption = captionFor(a, r.lines);
     present(r);
   }
@@ -358,6 +425,7 @@ export function startApp(params) {
 
   function act(a) {
     ui.caption = '';
+    clearAnnouncement();
     if (online.active()) {
       if (waiting || presenting) return;
       let sent;
@@ -582,6 +650,10 @@ export function startApp(params) {
       return refocus(keep);
     }
     ui.online = online.active() ? { role: online.role, rematch: online.state.rematch } : null;
+    // V5: the creatures that must attack before you can Pass, the pace controls, and the cost preview.
+    ui.mustAttack = mustAttack(s);
+    ui.pace = { speed: settings.speed, pause: settings.pauseAfter, waiting: paceWaiting, canReplay: !!lastShown && lastShown.next === s && !presenting };
+    ui.energyPreview = energyPreviewNow();
     if (!ui.sel && !ui.menu) { ui.picks = basePicks(); ui.handSel = null; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = ui.attacker ?? null; }
     const keep = focusKey();
     // The end screen shows once the match is over and its last beats have played.
@@ -604,6 +676,88 @@ export function startApp(params) {
     document.body.dataset.skips = String(skips);
     drawMoment();
     drawAim(true);
+    afterDraw();
+  }
+
+  // --- V5: the Energy display and the turn plaque, after each draw ------------------------------------------------
+  // What a card or action costs in Energy (0 for none).
+  const costOfCard = (c) => {
+    if (!c) return 0;
+    if (c.cardType === 'Character' || c.cardType === 'Monster') return c.cost ?? 0;
+    if (c.cardType === 'Action') return Math.min(...['adapt', 'strat'].filter((m) => c.modes?.[m]).map((m) => c.modes[m].cost), Infinity) || 0;
+    if (c.cardType === 'Campaign') return c.order?.cost ?? 0;
+    return 0;
+  };
+  const costOfAction = (a) => {
+    const c = s.players[HUMAN].hand.find((x) => x.uid === a.uid);
+    if (a.type === 'summon') return c?.cost ?? 0;
+    if (a.type === 'action' || a.type === 'react') return c?.modes?.[a.type === 'react' ? 'react' : a.mode]?.cost ?? 0;
+    if (a.type === 'campaignOrder') return c?.order?.cost ?? 0;
+    if (a.type === 'retain') return 1;
+    return 0;
+  };
+  // While you hover or pick up something that costs Energy: what it would leave ("4 → 1").
+  function energyPreviewNow() {
+    if (!s || screen !== 'match' || presenting) return null;
+    if (ui?.sel?.cands?.length) return costPreview(s, costOfAction(ui.sel.cands[0]));
+    const uid = drag?.uid ?? (hover.el?.dataset.hover === 'hand' ? hover.el.dataset.uid : null);
+    const c = uid ? s.players[HUMAN].hand.find((x) => x.uid === uid) : null;
+    return c && actor(s) === HUMAN ? costPreview(s, costOfCard(c)) : null;
+  }
+  let shownPreview = '';
+  function refreshEnergy() {
+    const el = stage.querySelector('.my-energy');
+    if (!el || !s || screen !== 'match') return;
+    const p = energyPreviewNow();
+    const key = JSON.stringify(p);
+    if (key === shownPreview) return;
+    shownPreview = key;
+    el.innerHTML = energyDisplay(s, HUMAN, 'full', p);
+  }
+  function afterDraw() {
+    if (screen !== 'match' || !s) return;
+    const p = s.players[HUMAN];
+    const disp = stage.querySelector('.my-energy .en-disp');
+    // Energy changed: the number counts to its new value and the crystal pulses; a spent Exert point flares into it.
+    if (disp && lastEnergy !== null && (p.baseEnergy !== lastEnergy || p.exhaust.length !== lastExhaust)) {
+      const num = disp.querySelector('.en-num');
+      const from = lastEnergy;
+      const to = p.baseEnergy;
+      disp.classList.add('pulse');
+      if (!settings.lowMotion && from !== to && num) {
+        const t0 = performance.now();
+        const tick = (t) => { const k = Math.min(1, (t - t0) / 450); if (!num.isConnected) return; num.textContent = String(Math.round(from + (to - from) * k)); if (k < 1) requestAnimationFrame(tick); };
+        num.textContent = String(from);
+        requestAnimationFrame(tick);
+      }
+      if (p.exhaust.length > lastExhaust && !settings.lowMotion) flareRunes(disp, p.exhaust.length - lastExhaust);
+    }
+    lastEnergy = p.baseEnergy;
+    lastExhaust = p.exhaust.length;
+    shownPreview = JSON.stringify(ui.energyPreview);
+    // The turn passed: the plaque's banner sweep.
+    const plaque = stage.querySelector('[data-region="turn-plaque"]');
+    const whose = plaque?.dataset.whose ?? null;
+    if (plaque && lastWhose !== null && whose !== lastWhose) plaque.classList.add('sweep');
+    lastWhose = whose;
+  }
+  // A spent Exert point: its rune flares and flies into the Energy number.
+  function flareRunes(disp, n) {
+    const tired = [...disp.querySelectorAll('.ex-rune.tired')].slice(-n);
+    const num = disp.querySelector('.en-num');
+    if (!num) return;
+    const sr = stage.getBoundingClientRect(); const k = sr.width / STAGE_W;
+    const at = (el) => { const r = el.getBoundingClientRect(); return { x: (r.left + r.width / 2 - sr.left) / k, y: (r.top + r.height / 2 - sr.top) / k }; };
+    const to = at(num);
+    for (const rune of tired) {
+      const from = at(rune);
+      const f = document.createElement('div');
+      f.className = 'rune-flare';
+      f.style.left = `${from.x}px`; f.style.top = `${from.y}px`;
+      stage.appendChild(f);
+      const a = f.animate([{ transform: 'translate(0,0) scale(1.3)', opacity: 1 }, { transform: `translate(${to.x - from.x}px, ${to.y - from.y}px) scale(.5)`, opacity: 0.2 }], { duration: 520, easing: 'cubic-bezier(.3,.0,.4,1)' });
+      a.finished.then(() => f.remove(), () => f.remove());
+    }
   }
 
   // Stage F: the targeting arrow while you choose a target. It draws out from the source (the attacker, the card,
@@ -773,6 +927,12 @@ export function startApp(params) {
       case 'net-rematch': return online.rematch();
       case 'codex': location.href = `${location.pathname}?sheet=full&from=title`; return undefined;
       case 'settings': ui.settingsOpen = !ui.settingsOpen; return draw();
+      // V5: the pace controls (against the AI; Replay online too).
+      case 'pace': settings = { ...settings, speed: el.dataset.v }; ui.settings = settings; saveSettings(settings); return draw();
+      case 'pace-pause':
+        if (paceWaiting) return goOn();
+        settings = { ...settings, pauseAfter: !settings.pauseAfter }; ui.settings = settings; saveSettings(settings); return draw();
+      case 'replay': return replay();
       case 'set': {
         const k = el.dataset.k;
         const v = el.dataset.v;
@@ -879,6 +1039,7 @@ export function startApp(params) {
     pv.style.left = `${Math.round(x)}px`;
     pv.style.top = `${Math.round(y)}px`;
     watchHover();
+    refreshEnergy();
   }
   // While a preview shows: each frame, is its card still under the pointer, and still in the page?
   function watchHover() {
@@ -980,6 +1141,7 @@ export function startApp(params) {
     if (pv) { pv.hidden = true; pv.innerHTML = ''; }
     hover.el = null;
     if (hover.raf) { cancelAnimationFrame(hover.raf); hover.raf = 0; }
+    refreshEnergy();
   }
   // A drag is cancelled by Escape or a cancelled pointer: the card goes back, nothing is played.
   function cancelDrag() {
@@ -995,7 +1157,7 @@ export function startApp(params) {
     if (!drag) return;
     if (!drag.active) {
       if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 8) return;
-      drag.active = true;
+      drag.active = true; refreshEnergy();
       if (ui.sel || ui.menu) cancel();
       drag.cands = drag.kind === 'hand' ? mine().filter((a) => a.uid === drag.uid && a.type !== 'retain' && !(a.type === 'buyItem' && a.from === 'market')) : mine().filter((a) => a.type === 'attack' && a.from === drag.lane);
       drag.keys = new Set(drag.cands.flatMap(dropKeys));
@@ -1038,6 +1200,7 @@ export function startApp(params) {
     stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
     codex.layer.style.transform = stage.style.transform;
     netLayer.style.transform = stage.style.transform;
+    annLayer.style.transform = stage.style.transform;
     vfx.resize();
   };
   window.addEventListener('resize', fit);

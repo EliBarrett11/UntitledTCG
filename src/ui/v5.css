@@ -1,0 +1,97 @@
+/* V5 (docs/15-v5-players-experience.md; mockups docs/mockups/v5/, drawn before stage G, so Energy is stage G's
+   crystal cyan): the Energy display beside your hand, the turn plaque, the other player's announcements, keyword
+   tips and the dominance line. */
+
+/* --- The Energy display: one crystal, one big number, the word; three amber Exert runes ------------------------- */
+.my-energy { position: absolute; left: 1196px; top: 812px; width: 356px; height: 150px; z-index: 6; }
+.en-disp { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 26px; align-items: center; height: 100%; }
+.en-disp.full { padding: 10px 18px 8px; border-radius: 10px; background: linear-gradient(180deg, rgba(20,30,36,.82), rgba(10,14,18,.9));
+  box-shadow: inset 0 0 0 1px rgba(80,210,255,.28), inset 0 0 0 4px rgba(4,8,10,.5), 0 8px 22px rgba(0,0,0,.55); }
+.en-main { grid-row: 1; grid-column: 1; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.en-crys { width: 46px; height: 56px; flex: none; filter: drop-shadow(0 0 10px rgba(90,220,255,.65)); transform-origin: 50% 55%; }
+.en-num { font: 700 64px/1 Cinzel, serif; color: #dff9ff; text-shadow: 0 0 18px rgba(90,220,255,.55), 0 2px 6px #000; min-width: 40px; }
+.en-after { font: 600 34px/1 Cinzel, serif; color: rgba(201,246,255,.5); }
+.en-label { grid-row: 2; grid-column: 1; font: 700 13px Cinzel, serif; letter-spacing: .38em; color: #8fd8ee; padding-left: 58px; }
+.ex-box { grid-row: 1 / span 2; grid-column: 2; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ex-runes { display: flex; gap: 10px; }
+.ex-word { font: 700 13px Cinzel, serif; letter-spacing: .38em; color: #e8a54a; }
+.ex-rune { position: relative; width: 40px; height: 54px; display: flex; flex-direction: column; align-items: center; }
+.ex-rune svg { width: 40px; height: 44px; }
+.ex-rune .rn-hex { fill: rgba(40,22,6,.85); stroke: #6b4a22; stroke-width: 2; }
+.ex-rune .rn-bolt { fill: #4a3218; }
+.ex-rune.ready .rn-hex { fill: url(#none); fill: #5a2c06; stroke: #ffb54a; stroke-width: 2.4; }
+.ex-rune.ready .rn-bolt { fill: #ffd27a; }
+.ex-rune.ready svg { filter: drop-shadow(0 0 7px rgba(255,170,60,.85)); }
+.ex-rune.ready.spend svg { animation: rune-spend .9s ease-in-out infinite alternate; }
+@keyframes rune-spend { to { opacity: .35; } }
+.ex-rune.tired svg { opacity: .8; }
+.ex-rune small { position: absolute; bottom: -1px; font: 700 12px Cinzel, serif; color: #c8a578; letter-spacing: .04em; }
+.ex-rune.none { visibility: hidden; }
+/* The other player's, smaller, in their top bar. */
+.foe-energy { align-self: center; margin-left: 14px; }
+.en-disp.small { grid-template-columns: auto auto; column-gap: 12px; padding: 4px 10px; height: 74px; border-radius: 8px; background: rgba(10,14,18,.6); box-shadow: inset 0 0 0 1px rgba(80,210,255,.2); }
+.en-disp.small .en-crys { width: 24px; height: 30px; }
+.en-disp.small .en-num { font-size: 32px; min-width: 20px; }
+.en-disp.small .en-main { gap: 6px; }
+.en-disp.small .en-label { font-size: 9px; padding-left: 30px; letter-spacing: .3em; }
+.en-disp.small .ex-runes { gap: 4px; }
+.en-disp.small .ex-rune { width: 22px; height: 34px; }
+.en-disp.small .ex-rune svg { width: 22px; height: 24px; }
+.en-disp.small .ex-rune small { font-size: 9px; }
+.en-disp.small .ex-word { font-size: 9px; letter-spacing: .3em; }
+.en-disp.small .ex-box { gap: 2px; }
+/* Energy changes: the number counts and the crystal pulses; a spent Exert point flares into the number. */
+.en-disp.pulse .en-crys { animation: crys-pulse .6s ease-out; }
+@keyframes crys-pulse { 0% { transform: scale(1); } 35% { transform: scale(1.22); filter: drop-shadow(0 0 22px #9ff0ff); } 100% { transform: scale(1); } }
+.rune-flare { position: absolute; z-index: 90; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, #fff3c4 0%, #ffb54a 40%, rgba(255,150,40,0) 70%); }
+body.low-motion .en-disp.pulse .en-crys { animation: none; }
+
+/* --- Whose turn it is ------------------------------------------------------------------------------------------- */
+.turn-plaque { position: relative; overflow: hidden; height: 112px; box-sizing: border-box; padding: 7px 14px 6px; border-radius: 8px; display: flex; flex-direction: column; gap: 3px;
+  background: linear-gradient(180deg, #2a1d13, #160f0a); border: 1px solid #8f7140; box-shadow: inset 0 0 0 3px rgba(5,3,2,0.55); }
+.turn-plaque.you { background: linear-gradient(180deg, #6e1a14, #3a0d09); border-color: #e2c88f; box-shadow: inset 0 0 0 3px rgba(5,3,2,0.45), 0 0 16px rgba(220,70,50,.35); }
+.turn-plaque.them { background: linear-gradient(180deg, #1c2c55, #0e1630); border-color: #8fa8e2; box-shadow: inset 0 0 0 3px rgba(5,3,2,0.45), 0 0 16px rgba(80,120,230,.3); }
+.tp-head { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+.tp-title { font: 700 20px/1.2 Cinzel, serif; letter-spacing: .2em; color: #fff1d6; text-shadow: 0 2px 6px #000; }
+.turn-plaque.them .tp-title { color: #dfe8ff; font-size: 17px; letter-spacing: .14em; }
+.tp-doing { font-size: 15px; font-style: italic; color: #c6d4ff; display: inline-flex; align-items: center; gap: 5px; }
+.dots { display: inline-flex; gap: 3px; }
+.dots b { width: 5px; height: 5px; border-radius: 50%; background: #c6d4ff; animation: dot 1.2s ease-in-out infinite; }
+.dots b:nth-child(2) { animation-delay: .2s; } .dots b:nth-child(3) { animation-delay: .4s; }
+@keyframes dot { 0%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
+body.low-motion .dots b { animation: none; opacity: .8; }
+.tp-line { font-size: 14.5px; line-height: 1.25; color: rgba(255,236,214,.88); white-space: nowrap; overflow: hidden; }
+.tp-controls { margin-top: auto; display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.tp-btn { font: 700 10px Cinzel, serif; letter-spacing: .06em; padding: 3px 6px; color: #f1e4c8; background: rgba(0,0,0,.35); border: 1px solid rgba(226,200,143,.5); border-radius: 10px; cursor: pointer; white-space: nowrap; }
+.tp-btn.on { background: #c9a14e; color: #1a0f08; border-color: #f3d58f; }
+.tp-btn:disabled { opacity: .4; cursor: default; }
+.tp-hint { font-size: 11px; line-height: 1.1; color: rgba(232,220,192,.6); white-space: nowrap; }
+/* The banner sweep as the turn passes. */
+.turn-plaque.sweep::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 0%, rgba(255,240,210,.0) 30%, rgba(255,240,210,.45) 50%, rgba(255,240,210,0) 70%, transparent 100%);
+  transform: translateX(-100%); animation: tp-sweep .7s ease-out forwards; pointer-events: none; }
+@keyframes tp-sweep { to { transform: translateX(100%); } }
+body.low-motion .turn-plaque.sweep::after { animation: none; display: none; }
+/* The active Warlord glows in its colour. */
+.warlord.warlord-you.active { box-shadow: 0 0 0 2px #e2a08f, 0 0 22px rgba(230,80,60,.65); }
+.warlord.warlord-enemy.active { box-shadow: 0 0 0 2px #9fb4ee, 0 0 22px rgba(90,130,240,.65); }
+/* A creature that must attack before you can Pass. */
+.must-tag { position: absolute; left: -4px; top: -46px; z-index: 6; padding: 3px 9px; white-space: nowrap; font: 700 11.5px Cinzel, serif; letter-spacing: .14em; color: #fff;
+  background: linear-gradient(#b3261d, #7a120c); border: 1px solid #ffb0a0; border-radius: 3px; box-shadow: 0 3px 8px rgba(0,0,0,.6); pointer-events: none; }
+
+/* --- The other player's action, announced over the board (in its own layer, scaled with the stage) -------------- */
+body.announcing #stage .caption { visibility: hidden; }   /* (the announcement says it, where the caption would be) */
+#announce-layer { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center center; transform: translate(-50%, -50%); pointer-events: none; z-index: 30; }
+.announce { position: absolute; top: 386px; z-index: 70; transform: translateX(-50%); display: flex; gap: 14px; align-items: center; max-width: 620px; padding: 10px 18px 10px 10px;
+  background: linear-gradient(180deg, rgba(26,18,12,.97), rgba(14,10,7,.97)); border: 1px solid #c7a15a; border-radius: 10px; box-shadow: 0 0 0 3px rgba(5,3,2,.6), 0 14px 34px rgba(0,0,0,.7);
+  pointer-events: none; animation: an-in .22s ease-out; }
+@keyframes an-in { from { opacity: 0; transform: translate(-50%, 8px); } }
+body.low-motion .announce { animation: none; }
+.announce.out { opacity: 0; transition: opacity .25s; }
+.an-art { width: 70px; height: 70px; flex: none; border-radius: 6px; background: #222 center 22% / cover; box-shadow: 0 0 0 2px #8fa8e2; }
+.an-art.back { background: url('../../assets/ui/card-back.jpg') center / cover, #3a1410; }
+.an-body { min-width: 0; }
+.an-lead { font: 700 12px Cinzel, serif; letter-spacing: .3em; color: #9fb4ee; }
+.an-name { font: 700 22px Cinzel, serif; color: #f6e7c7; line-height: 1.25; }
+.an-name span { font: 400 16px 'EB Garamond', Georgia, serif; color: rgba(246,231,199,.85); }
+.an-line { font-size: 15.5px; line-height: 1.35; color: rgba(246,231,199,.85); }

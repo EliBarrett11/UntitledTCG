@@ -369,6 +369,8 @@ const ACTIONS = {
       return finishTurn(s, who);
     }
     log(s, `${NAME[who]} played ${card.name} as Adapt.`);
+    // (V5: for the announcement of what the other player did; it changes nothing.)
+    emit(s, 'adapt', { who, uid, name: card.name, target: t });
     commit(s, { type: 'action', who, card, target: t });
   },
 
