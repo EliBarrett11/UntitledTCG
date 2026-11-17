@@ -1,0 +1,49 @@
+/* Playing a friend online (stage M): the lobby screens in the title screen's look, the title's Resume and news,
+   online match setup, the end screen's Rematch, and the connection light over the match. */
+
+/* The lobby: one panel with brass hairlines over the title art. */
+.screen-lobby .title-shade { background: linear-gradient(90deg, rgba(8,5,3,0.88) 0%, rgba(8,5,3,0.62) 40%, rgba(8,5,3,0.25) 70%), linear-gradient(0deg, rgba(8,5,3,0.5), rgba(8,5,3,0) 30%); }
+.lobby-panel { position: absolute; left: 120px; top: 150px; width: 640px; padding: 40px 48px 36px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  background: linear-gradient(180deg, rgba(42,29,19,0.94), rgba(22,15,10,0.96)); border: 1px solid #8f7140; border-radius: 10px;
+  box-shadow: inset 0 0 0 3px rgba(5,3,2,0.55), inset 0 0 0 4px rgba(194,163,106,0.3), 0 20px 50px rgba(0,0,0,0.6); }
+.lobby-h { font-family: Cinzel, serif; font-size: 34px; font-weight: 700; letter-spacing: 0.22em; color: #e8d6ae; text-shadow: 0 2px 8px #000; }
+.lobby-k { margin-top: 6px; font-family: Cinzel, serif; font-size: 14px; letter-spacing: 0.3em; color: #c9a46a; }
+.lobby-code { font-family: Cinzel, serif; font-size: 84px; font-weight: 700; letter-spacing: 0.32em; line-height: 1.15; color: #f6dc8a; text-shadow: 0 0 22px rgba(246,220,138,0.35), 0 3px 10px #000; user-select: all; }
+.lobby-code.small { font-size: 44px; }
+.lobby-linkrow { display: flex; gap: 12px; align-items: center; width: 100%; }
+.lobby-link, .lobby-input { flex: 1; min-width: 0; height: 46px; padding: 0 14px; font: 18px 'EB Garamond', Georgia, serif; color: #f1e4c8; background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(199,161,90,0.6); border-radius: 4px; outline: none; user-select: text; }
+.lobby-input { font-family: Cinzel, serif; font-size: 24px; letter-spacing: 0.3em; text-transform: uppercase; max-width: 260px; }
+.lobby-link:focus, .lobby-input:focus { border-color: #f6dc8a; box-shadow: 0 0 0 2px rgba(246,220,138,0.35); }
+.scr-btn.small { width: 140px; height: 46px; font-size: 17px; letter-spacing: 0.18em; flex: none; }
+.lobby-form { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 8px; }
+.lobby-p { margin: 0; font-size: 19px; line-height: 1.4; color: #e8d6ae; }
+.lobby-wait { margin: 6px 0 0; font-family: Cinzel, serif; font-size: 20px; letter-spacing: 0.08em; color: #f2b0a4; }
+.lobby-err { margin: 0; font-size: 19px; line-height: 1.45; color: #ffcbbd; }
+.screen-lobby .scr-btn { margin-top: 6px; }
+
+/* The title: news, and a match to resume. */
+.title-notice { margin: -12px 0 18px; max-width: 520px; font-size: 19px; color: #f6dc8a; }
+.title-resume { display: flex; flex-direction: column; gap: 8px; margin: -6px 0 22px; }
+.title-resume .scr-btn { width: 520px; font-size: 18px; letter-spacing: 0.14em; }
+.title-resume-sub { font-size: 16px; color: rgba(232,214,176,0.8); display: flex; align-items: center; gap: 6px; }
+.scr-btn.link { width: auto; height: auto; padding: 0 2px; font: italic 16px 'EB Garamond', Georgia, serif; letter-spacing: 0; color: #f6dc8a; background: none; border: 0; box-shadow: none; text-decoration: underline; }
+
+/* Online match setup and the end screen. */
+.setup-wait { width: 300px; padding: 18px 10px; text-align: center; font-family: Cinzel, serif; font-size: 19px; letter-spacing: 0.08em; color: #f6dc8a;
+  border: 1px solid rgba(199,161,90,0.6); border-radius: 4px; background: rgba(0,0,0,0.35); }
+.scr-btn.waiting { display: flex; align-items: center; justify-content: center; font-size: 17px; letter-spacing: 0.12em; cursor: default; opacity: 0.85; }
+.end-note { position: absolute; left: 0; right: 0; top: 1036px; text-align: center; font-size: 19px; color: #f6dc8a; }
+.settings .btn.leave { margin-top: 4px; background: #4a1611; border-color: #c46a55; }
+
+/* The connection light (top right), the banner and news, in a layer scaled with the stage. */
+#net-layer { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center center; transform: translate(-50%, -50%); pointer-events: none; z-index: 40; }
+.net-light { position: absolute; right: 6px; top: 3px; display: flex; align-items: center; gap: 6px; height: 14px; font-size: 13px; color: #f1e4c8; pointer-events: auto; }
+.net-light i { width: 11px; height: 11px; border-radius: 50%; background: #5fd37a; box-shadow: 0 0 6px #5fd37a, 0 0 0 1px rgba(0,0,0,0.7); }
+.net-light.slow i { background: #f0b442; box-shadow: 0 0 6px #f0b442, 0 0 0 1px rgba(0,0,0,0.7); }
+.net-light.lost i { background: #f05a4a; box-shadow: 0 0 6px #f05a4a, 0 0 0 1px rgba(0,0,0,0.7); }
+.net-light span { padding: 0 6px; background: rgba(10,6,4,0.85); border-radius: 3px; }
+.net-banner { position: absolute; left: 790px; top: 126px; transform: translateX(-50%); max-width: 1100px; padding: 6px 20px; font-size: 18px; color: #ffe1d6;
+  background: rgba(74,22,17,0.95); border: 1px solid #c46a55; border-radius: 18px; box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
+.net-toast { position: absolute; left: 790px; top: 170px; transform: translateX(-50%); padding: 6px 20px; font-size: 18px; color: #f1e4c8;
+  background: rgba(23,17,12,0.95); border: 1px solid var(--brass); border-radius: 18px; }

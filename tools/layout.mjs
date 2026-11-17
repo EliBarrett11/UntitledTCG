@@ -48,6 +48,12 @@ const SCENES = [
   // Stage P: two Location tiles mid-match, and the hover preview of a creature in hand with its series curve strip.
   { name: 'tiles', query: '?seed=1&scene=mid&pace=100000', need: '.loc .loc-art' },
   { name: 'series', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card:has(.cv-level)', 0); }, need: '.preview:not([hidden]) .series-line', preview: true },
+  // Stage M: playing a friend: the title with a match to resume, each lobby screen, and online match setup from both
+  // seats (?lobby=…: drawn with sample words; nothing connects).
+  { name: 'm-title', query: '?lobby=title', need: '[data-act="net-resume"]' },
+  ...['waiting', 'join', 'connecting', 'error', 'mismatch', 'full'].map((k) => ({ name: `m-lobby-${k}`, query: `?lobby=${k}`, need: '[data-region="lobby"] .lobby-panel' })),
+  { name: 'm-setup-host', query: '?lobby=setup-host', need: '[data-region="setup"] [data-act="begin"]' },
+  { name: 'm-setup-guest', query: '?lobby=setup-guest', need: '[data-region="setup"] .setup-wait' },
   // Stage G: the Codex, opened by a real right-click, for each kind of card.
   { name: 'codex-hand', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await rightClickHand(p, 'Character'); }, need: '#codex:not([hidden]) .cx-tab' },
   { name: 'codex-board', query: '?seed=2&scene=mid&pace=100000', steps: async (p) => { await rightClickTop(p, '[data-hover="board"][data-who="p2"]', 0); }, need: '#codex:not([hidden]) .cx-tab' },
@@ -94,13 +100,13 @@ function inspect() {
   if (sr.left < -1 || sr.top < -1 || sr.right > innerWidth + 1 || sr.bottom > innerHeight + 1) out.push('the stage is off-screen');
   if (document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight) out.push('the page scrolls');
   // Nothing off-screen.
-  for (const el of stage.querySelectorAll('[data-region], .hand-card, .preview, .menu, .react-opt, .dialog, .slot-card, .loc-label, .side-marker, .caption, .prompt, .toast, .preview-badge, .gear, .scr-btn, .end-panel, .end-head, .end-heroes, .end-buttons, .title-block, .setup-side, .setup-mid, .rx-panel, .rx-plate, .rx-chip, .rx-dmg, .rx-lift:not(.opt)')) {
+  for (const el of stage.querySelectorAll('[data-region], .hand-card, .preview, .menu, .react-opt, .dialog, .slot-card, .loc-label, .side-marker, .caption, .prompt, .toast, .preview-badge, .gear, .scr-btn, .end-panel, .end-head, .end-heroes, .end-buttons, .title-block, .setup-side, .setup-mid, .lobby-panel, .title-resume, .rx-panel, .rx-plate, .rx-chip, .rx-dmg, .rx-lift:not(.opt)')) {
     if (!visible(el)) continue;
     const b = box(el);
     if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
   }
   // No text clipped or cut off.
-  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c b, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b')) {
+  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c b, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .lobby-h, .lobby-code, .lobby-k, .lobby-p, .lobby-wait, .lobby-err, .title-notice, .title-resume-sub, .setup-wait, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b')) {
     if (!visible(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
@@ -136,7 +142,7 @@ function inspect() {
     ['.end-panel', '.end-panel'], ['.end-panel', '.end-heroes'], ['.end-panel', '.end-heroes-label'], ['.end-how', '.end-panel'], ['.end-buttons', '.hero-note'],
     ['.loc-label', '.slot-card'], ['.preview .series-line', '.preview .card'],
     ['.prime-tab', '.hand-card .cv-well'], ['.prime-tab', '.hand-card .cv-name'], ['.prime-tab', '.slot-card'], ['.end-panel', '.end-head'], ['.end-heroes', '.end-buttons'], ['.hero', '.hero'],
-    ['.setup-side', '.setup-mid'], ['.title-block', '.title-note'], ['.scr-btn', '.scr-btn'],
+    ['.setup-side', '.setup-mid'], ['.title-block', '.title-note'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);
   const labels = one('.loc-label');

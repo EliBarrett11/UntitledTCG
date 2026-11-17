@@ -2,7 +2,7 @@
 // It only draws: every action goes through src/ui/app.js, legalActions and applyAction.
 import { RULES } from '../engine/rules.js';
 import { baseEnergyFor, availableExert } from '../engine/energy.js';
-import { isReady, locationAt, lanesOf, lanesHere, creaturesOf } from '../engine/game.js';
+import { isReady, locationAt, lanesOf, lanesHere, creaturesOf, actor } from '../engine/game.js';
 import { cardDef } from '../engine/cards.js';
 import { renderCard, cardBack, icon, chipFor, STAR_PATH } from './cards.js';
 import { legendaryCreatureOf, cardAtRound } from '../engine/cards.js';
@@ -273,7 +273,8 @@ function menu(ui) {
 
 
 function mulligan(s, ui) {
-  if (s.phase !== 'mulligan' || s.players[HUMAN].mulliganed) return '';
+  // (Stage M: the mulligan is taken in turn, Player 1 first; online, your dialog waits until it's yours.)
+  if (s.phase !== 'mulligan' || s.players[HUMAN].mulliganed || actor(s) !== HUMAN) return '';
   const cards = s.players[HUMAN].hand;
   const n = ui.mulligan.size;
   return `<div class="overlay" data-region="mulligan"><div class="dialog mull">
@@ -334,6 +335,7 @@ export function settingsPanel(ui) {
     <div class="label">REACT TIMER</div>
     <div class="set-row">${[5, 8, 12, 20].map((v) => opt('reactSeconds', v, `${v} s`, st.reactSeconds === v)).join('')}</div>
     <button type="button" class="btn" data-act="settings" data-nav>Close</button>
+    ${ui.online ? '<button type="button" class="btn leave" data-act="net-leave" data-nav>Leave match</button>' : ''}
   </div>`;
 }
 

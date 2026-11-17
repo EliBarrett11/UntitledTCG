@@ -17,6 +17,7 @@ import { arrowSvg } from './arrow.js';
 import { titleScreen, setupScreen, openingBanner } from './screens.js';
 import { firstScreen, nextScreen } from './flow.js';
 import { createCodex } from './codex.js';
+import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
 
 // The presentation art (V3), fetched and decoded before it's first shown.
 const ART = ['war-table', 'campaign-map', 'campaign-map-scorched', 'title-key-art', 'banner-crimson', 'banner-blue', 'card-back'].map((n) => `assets/ui/${n}.jpg`);
@@ -68,6 +69,34 @@ export function startApp(params) {
   applyMotionClass();
   // Stage G: the Codex, in its own layer over the right-hand column (made first, so its Escape comes before the game's).
   const codex = createCodex(document.getElementById('viewport'), { state: () => (screen === 'match' ? s : null), viewer: () => HUMAN, lowMotion: () => !!settings.lowMotion });
+  // Stage M: playing a friend online (src/ui/online.js). Its connection light, banner and news sit in their own
+  // layer over the stage, so they never disturb a redraw or an animation.
+  const netLayer = document.createElement('div');
+  netLayer.id = 'net-layer';
+  document.getElementById('viewport').appendChild(netLayer);
+  let previewResume = null;   // (the ?lobby=title dev aid)
+  let notice = '';            // a line of news for the title screen ("Your friend left the match.")
+  const updates = [];         // online: actions the host has applied, waiting to be played in turn
+  let waiting = false;        // online guest: an action sent, its answer not back yet
+  let hostClock = null;       // online host: the countdown of the guest's React window
+  const online = createOnline({
+    draw: () => { renderNet(); if (screen !== 'match' && !presenting) draw(); },
+    screen: (name) => { renderNet(); go(name); },
+    start: (game, opts) => startOnline(game, opts),
+    update: (prev, next, who) => onlineUpdate(prev, next, who),
+    clock: (left, total) => { if (ui?.react) { ui.react.total = total; ui.react.deadline = performance.now() + left; tickMoment(stage, ui.react); } },
+    rejected: (message) => { waiting = false; toast(message); advance(); },
+    toTitle: (msg) => { stopHostClock(); updates.length = 0; waiting = false; notice = msg ?? ''; renderNet(); go('title'); },
+    reactSeconds: () => (params.get('timer') === 'off' ? 0 : settings.reactSeconds),
+  });
+  const renderNet = () => { netLayer.innerHTML = online.active() && screen !== 'title' && screen !== 'lobby' ? netOverlay(online.state) : ''; };
+  // This screen's seat: online, the host is the first seat and the guest the second; against the AI, the first
+  // (or the second with ?seat=p2).
+  const placeSeat = () => {
+    if (online.active()) setSeat(online.role === 'host' ? 'p1' : 'p2', { online: true });
+    else setSeat(params.get('seat') === 'p2' ? 'p2' : 'p1');
+  };
+  window.addEventListener('pagehide', () => online.goodbye());
   let presenting = false;
   let suppressClick = false;
   let skips = 0;
@@ -119,13 +148,21 @@ export function startApp(params) {
   }
   // The screens around a match, with a quick crossfade (instant in low motion).
   let fading = null;
+  let goCount = 0;
   async function go(next, then = null) {
     if (!next) return;
     hidePreview();   // (stage G: a change of screen ends any hover)
     const lm = !!settings.lowMotion;
+    // (Stage M: screens can change twice in a moment online, connecting then setup: each change ends any fade still
+    // running and keeps its own, so none is left holding the stage faded out.)
+    const mineGo = ++goCount;
+    if (fading) { fading.cancel(); fading = null; }
+    let fade = null;
     if (!lm && stage.animate) {
-      fading = stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards', easing: 'ease-in' });
-      await fading.finished.catch(() => {});
+      fade = stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards', easing: 'ease-in' });
+      fading = fade;
+      await fade.finished.catch(() => {});
+      if (mineGo !== goCount) { fade.cancel(); return; }
     }
     clearTimeout(timer);
     stopReact();
@@ -134,7 +171,7 @@ export function startApp(params) {
     ui = ui ?? freshUi();
     ui.settingsOpen = false;
     if (then) then(); else draw();
-    if (fading) { fading.cancel(); fading = null; if (!lm) stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' }); }
+    if (fade) { fade.cancel(); if (fading === fade) fading = null; if (!lm) stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' }); }
   }
   function freshUi() {
     return { sel: null, menu: null, picks: {}, prompt: '', caption: '', log: [], mulligan: new Set(), react: null, toast: '', previews: {}, settingsOpen: false, settings };
@@ -182,8 +219,73 @@ export function startApp(params) {
     if (mine !== version) return;   // a new match started meanwhile
     presenting = false;
     document.body.dataset.presenting = '';
+    if (updates.length) return presentNext();
     advance();
   }
+
+  // --- Online (stage M): the host's updates, from either player's action, played one after another ----------------
+  function startOnline(game, { resume = false } = {}) {
+    clearTimeout(timer);
+    stopReact();
+    stopHostClock();
+    updates.length = 0;
+    waiting = false;
+    const midMatch = screen === 'match' && resume;
+    s = game;
+    version += 1;
+    placeSeat();
+    if (!midMatch) { ui = freshUi(); vfx.clear(); }
+    ui.log = s.log.slice(-60).map(displayLine);
+    presenting = false;
+    document.body.dataset.presenting = '';
+    if (midMatch) { advance(); renderNet(); return; }
+    const opening = !resume && s.phase === 'mulligan';
+    go('match', () => {
+      screen = 'match';
+      advance();
+      renderNet();
+      if (opening) {
+        stage.insertAdjacentHTML('beforeend', openingBanner(s.initiative));
+        setTimeout(() => stage.querySelector('[data-region="opening"]')?.remove(), settings.lowMotion ? 900 : 1600);
+      }
+    });
+  }
+  function onlineUpdate(prev, next, who) {
+    const lines = next.log.slice(prev.log.length).map(displayLine);
+    updates.push({ prev, next, events: next.events, lines, who });
+    if (!presenting && screen === 'match') presentNext();
+  }
+  function presentNext() {
+    const r = updates.shift();
+    if (!r) return advance();
+    stopHostClock();
+    s = r.next;
+    version += 1;
+    if (r.who === HUMAN) waiting = false;
+    ui.log.push(...r.lines);
+    if (ui.log.length > 60) ui.log.splice(0, ui.log.length - 60);
+    ui.caption = r.who === HUMAN ? '' : r.events.some((e) => e.type === 'decline') ? `${foe()} lets it happen.` : r.lines.find((l) => !/^Round \d/.test(l)) ?? r.lines[0] ?? '';
+    present(r);
+  }
+  // The host times the guest's React window (with the guest's own timer setting) and tells the guest how long is
+  // left; when it runs out, the host lets it happen for the guest.
+  function startHostClock() {
+    stopHostClock();
+    const secs = online.guestTimer() ?? settings.reactSeconds;
+    if (!secs || params.get('timer') === 'off') return;
+    const total = secs * 1000;
+    const deadline = performance.now() + total;
+    const mine = version;
+    const tick = () => {
+      if (mine !== version || !online.active()) return stopHostClock();
+      const left = Math.max(0, deadline - performance.now());
+      online.clock(Math.round(left), total);
+      if (left <= 0) { stopHostClock(); online.declineForGuest(); }
+    };
+    tick();
+    hostClock = setInterval(tick, 500);
+  }
+  function stopHostClock() { clearInterval(hostClock); hostClock = null; }
   function setCaption(text) {
     let el = stage.querySelector('.caption');
     if (!el) { el = document.createElement('div'); el.className = 'caption'; el.dataset.region = 'caption'; stage.appendChild(el); }
@@ -199,7 +301,16 @@ export function startApp(params) {
     ui.attacker = null;
     const who = actor(s);
     if (s.phase === 'gameOver' || !who) return draw();
-    if (who === AI || autoplay) {
+    if (online.active()) {
+      // Online: the friend's move comes from the host (as an update); this screen waits, and says so.
+      if (who === AI) {
+        ui.locked = true;
+        ui.caption = `${foe()} is choosing…`;
+        if (online.role === 'host' && s.reactWindow?.reactor === AI) startHostClock();
+        return draw();
+      }
+      if (waiting) { ui.locked = true; return draw(); }
+    } else if (who === AI || autoplay) {
       ui.locked = true;
       draw();
       timer = setTimeout(() => aiStep(who), pace);
@@ -247,6 +358,15 @@ export function startApp(params) {
 
   function act(a) {
     ui.caption = '';
+    if (online.active()) {
+      if (waiting || presenting) return;
+      let sent;
+      try { sent = online.act(a); } catch (err) { return toast(err.message); }
+      if (!sent) return toast('Not connected to your friend right now: wait for them to reconnect.');
+      // (The host's action comes straight back as an update; the guest waits for the host's answer.)
+      if (online.role === 'guest' && !presenting) { waiting = true; stopReact(); ui.sel = null; ui.menu = null; ui.prompt = ''; ui.locked = true; draw(); }
+      return;
+    }
     present(apply(a));
   }
 
@@ -390,6 +510,11 @@ export function startApp(params) {
       total, left: total, deadline: performance.now() + total, chosen: null, shown: false };
     // (?timer=off, a dev aid for screenshots and checks: the window waits for a choice.)
     if (params.get('timer') === 'off') return;
+    // (Online, the guest's window runs on the host's clock: this countdown only follows it; the host lets it happen.)
+    if (online.active() && online.role === 'guest') {
+      reactTick = setInterval(() => { if (ui.react) { ui.react.left = Math.max(0, ui.react.deadline - performance.now()); tickMoment(stage, ui.react); } }, 100);
+      return;
+    }
     reactTick = setInterval(() => {
       if (!ui.react) return;
       ui.react.left = Math.max(0, ui.react.deadline - performance.now());
@@ -399,9 +524,9 @@ export function startApp(params) {
   }
   function stopReact() { clearInterval(reactTick); reactTick = null; ui.react = null; }
   function reactWhat(p) {
-    const foe = s.players[AI];
+    const them = s.players[AI];
     if (p.type === 'attack') {
-      const a = foe.row[p.from];
+      const a = them.row[p.from];
       const d = p.target.kind === 'creature' ? s.players[HUMAN].row[p.target.space] : null;
       return `${foes()} ${a?.name ?? 'creature'} is attacking ${d ? `your ${d.name}` : 'your Warlord'}.`;
     }
@@ -435,21 +560,28 @@ export function startApp(params) {
       const d = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1;
       list[(i < 0 ? 0 : i + d + list.length) % list.length].focus({ preventScroll: true });
     } else if (e.key === 'Escape') {
-      if (ui?.settingsOpen) { ui.settingsOpen = false; draw(); } else if (screen === 'setup') go('title');
+      if (ui?.settingsOpen) { ui.settingsOpen = false; draw(); } else if (online.active() && (screen === 'setup' || screen === 'lobby')) online.leave(); else if (screen === 'setup') go('title');
     }
   });
 
   // --- Drawing ---------------------------------------------------------------------------------------------
   function draw() {
     document.body.dataset.screen = screen;
-    if (screen === 'title' || screen === 'setup') {
+    document.body.dataset.online = online.active() ? online.role : '';
+    placeSeat();
+    renderNet();
+    if (screen === 'title' || screen === 'setup' || screen === 'lobby') {
       codex.close();
       const keep = focusKey();
       stage.style.translate = '';
-      stage.innerHTML = screen === 'title' ? titleScreen(ui) : setupScreen(ui);
+      ui.resume = screen === 'title' && !online.active() ? previewResume ?? savedHostMatch() : null;
+      ui.notice = notice;
+      ui.online = online.active() ? { role: online.role } : null;
+      stage.innerHTML = screen === 'title' ? titleScreen(ui) : screen === 'setup' ? setupScreen(ui) : lobbyScreen(online.state);
       document.body.dataset.step = ui.settingsOpen ? 'settings' : 'idle';
       return refocus(keep);
     }
+    ui.online = online.active() ? { role: online.role, rematch: online.state.rematch } : null;
     if (!ui.sel && !ui.menu) { ui.picks = basePicks(); ui.handSel = null; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = ui.attacker ?? null; }
     const keep = focusKey();
     // The end screen shows once the match is over and its last beats have played.
@@ -628,9 +760,17 @@ export function startApp(params) {
       case 'mull-keep': return act({ type: 'mulligan', who: HUMAN, cards: [] });
       case 'mull-go': { const cards = [...ui.mulligan]; ui.mulligan = new Set(); return act({ type: 'mulligan', who: HUMAN, cards }); }
       case 'again': seed += 1; return go(nextScreen('end', 'again'));
-      case 'to-title': return go('title');
-      case 'play': return go(nextScreen('title', 'play'));
-      case 'begin': return go(nextScreen('setup', 'begin'), () => newMatch({ opening: true }));
+      case 'to-title': if (online.active()) return online.leave(); notice = ''; return go('title');
+      case 'play': notice = ''; return go(nextScreen('title', 'play'));
+      case 'begin': if (online.active()) return online.beginMatch(); return go(nextScreen('setup', 'begin'), () => newMatch({ opening: true }));
+      // Stage M: playing a friend.
+      case 'friend': case 'net-host': notice = ''; return online.hostNew(params.has('seed') ? seed : (Date.now() >>> 0));
+      case 'net-resume': notice = ''; return online.hostResume();
+      case 'net-forget': forgetHostMatch(); return draw();
+      case 'net-copy': return online.copy();
+      case 'net-retry': return online.retry();
+      case 'net-leave': return online.leave();
+      case 'net-rematch': return online.rematch();
       case 'codex': location.href = `${location.pathname}?sheet=full&from=title`; return undefined;
       case 'settings': ui.settingsOpen = !ui.settingsOpen; return draw();
       case 'set': {
@@ -897,13 +1037,28 @@ export function startApp(params) {
     const scale = Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H);
     stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
     codex.layer.style.transform = stage.style.transform;
+    netLayer.style.transform = stage.style.transform;
     vfx.resize();
   };
   window.addEventListener('resize', fit);
   fit();
   // The first screen: the title (once its art is decoded), or straight to a match for the test hooks.
   ui = freshUi();
-  if (screen === 'match') newMatch();
+  // The join form on the lobby screens (a typed room code).
+  stage.addEventListener('submit', (e) => {
+    const form = e.target.closest('[data-region="join-form"]');
+    if (!form) return;
+    e.preventDefault();
+    online.join(form.querySelector('input[name="code"]').value);
+  });
+  // Stage M: an invite link (?join=CODE) opens straight onto joining that match.
+  if (params.has('join')) { screen = 'lobby'; online.join(params.get('join')); } else if (params.has('lobby')) {
+    // (Dev aid: ?lobby=waiting|join|connecting|error|mismatch|full|setup-host|setup-guest draws that screen with sample
+    // words, and ?lobby=title the title screen with a match to resume and a line of news; nothing connects.)
+    const k = params.get('lobby');
+    if (k === 'title') { screen = 'title'; notice = 'Your friend left the match.'; previewResume = { code: 'HMQXT', round: 4, started: true }; } else screen = online.preview(k);
+    draw();
+  } else if (screen === 'match') newMatch();
   else Promise.race([preloadArt(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
   preloadArt();
   // Dev hooks for the checks (they read; they never change the match).

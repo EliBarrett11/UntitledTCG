@@ -30,8 +30,11 @@ export function titleScreen(ui) {
       <h1 class="title-main">UNTITLED</h1>
       <div class="title-sub">FANTASY TCG</div>
       <div class="title-rule"></div>
+      ${ui.notice ? `<div class="title-notice" role="status">${esc(ui.notice)}</div>` : ''}
+      ${ui.resume ? `<div class="title-resume">${btn('net-resume', 'Resume your match with your friend', 'primary')}<div class="title-resume-sub">Room ${esc(ui.resume.code)}${ui.resume.started ? ` · Round ${ui.resume.round}` : ''} · ${btn('net-forget', 'Forget it', 'link')}</div></div>` : ''}
       <div class="title-buttons" role="menu">
         ${btn('play', 'Play', 'primary')}
+        ${btn('friend', 'Play a friend')}
         ${btn('codex', 'Codex')}
         ${btn('settings', 'Settings')}
       </div>
@@ -48,8 +51,8 @@ function side(who, ui) {
   const card = camp ? renderCard({ ...camp, uid: `setup-${who}` }, { size: 'full' }) : '';
   return `<div class="setup-side setup-${who === HUMAN ? 'you' : 'enemy'}">
     <div class="setup-banner" aria-hidden="true"></div>
-    <div class="setup-who">${who === HUMAN ? 'YOUR WARLORD' : 'ENEMY WARLORD'}</div>
-    <div class="setup-deck">${esc(deckName())} · ${FIRST_DECK.length} cards${who === AI ? ' · played by the AI' : ''}</div>
+    <div class="setup-who">${who === HUMAN ? 'YOUR WARLORD' : ui.online ? 'YOUR FRIEND\'S WARLORD' : 'ENEMY WARLORD'}</div>
+    <div class="setup-deck">${esc(deckName())} · ${FIRST_DECK.length} cards${who === AI ? (ui.online ? ' · played by your friend' : ' · played by the AI') : ''}</div>
     <div class="setup-card">${card}</div>
   </div>`;
 }
@@ -71,8 +74,8 @@ export function setupScreen(ui) {
           <div class="label">REACT TIMER</div>
           <div class="set-row">${[5, 8, 12, 20].map((v) => opt('reactSeconds', v, `${v} s`, st.reactSeconds === v)).join('')}</div>
         </div>
-        ${btn('begin', 'Begin', 'primary big')}
-        ${btn('to-title', 'Title screen')}
+        ${!ui.online || ui.online.role === 'host' ? btn('begin', 'Begin', 'primary big') : '<div class="setup-wait" role="status">Waiting for your friend to begin…</div>'}
+        ${ui.online ? btn('net-leave', 'Leave match') : btn('to-title', 'Title screen')}
       </div>
       ${side(AI, ui)}
     </div>
@@ -96,7 +99,7 @@ export function resultLine(s) {
   // (Out of creatures: S5's end-screen words.)
   return `Neither side has a creature left (Round ${r.round}).${r.winner ? '' : ' The Renown and the Warlord damage are tied.'}`;
 }
-export function endScreen(s) {
+export function endScreen(s, ui = {}) {
   const st = matchStats(s);
   const win = s.result?.winner === HUMAN;
   const draw = !s.result?.winner;
@@ -130,6 +133,8 @@ export function endScreen(s) {
     ${heroes.length ? `<div class="end-heroes-label label">HEROES OF THE MATCH</div>
     <div class="end-heroes">${heroes.map((h) => `<div class="hero">${renderCard(h.card, { size: 'mini' })}<div class="hero-note">+${h.renown} Renown from its attacks</div></div>`).join('')}</div>` : ''}
     </div>
-    <div class="end-buttons">${btn('again', 'Play again', 'primary big')}${btn('to-title', 'Title screen', 'big')}</div>
+    <div class="end-buttons">${ui.online ? `${ui.online.rematch === 'waiting' ? '<div class="scr-btn big waiting" role="status">Waiting for your friend…</div>' : btn('net-rematch', ui.online.rematch === 'accept' ? 'Accept rematch' : 'Rematch', 'primary big')}${btn('net-leave', 'Leave match', 'big')}`
+      : `${btn('again', 'Play again', 'primary big')}${btn('to-title', 'Title screen', 'big')}`}</div>
+    ${ui.online?.rematch === 'accept' ? '<div class="end-note" role="status">Your friend wants a rematch</div>' : ''}
   </div>`;
 }
