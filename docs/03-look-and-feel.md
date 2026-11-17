@@ -237,7 +237,7 @@ The docs don't settle these interface details; S3 uses the simplest reading.
 9. **The victory screen:** the result line sits on a darker glow over the burst, the Renown panel gains the "Prime summons" row, and the Heroes of the match are drawn at 80% so they fit under the panels. The heroes show their Prime tag at their final Level, like any card drawn by the renderer.
 10. **The checks' seeds:** the new cards change how the AI's matches go, so the victory screen's scene now uses seed 9 (a win in Round 9 with the Last Battle and Aldric). The attack-preview scene uses seed 2, and the two-tile board seed 1.
 
-## 11. Readings from stage F (play-test feedback 1): needing Elliott's approval
+## 11. Readings from stage F (play-test feedback 1): approved by Elliott, 17 November 2026
 
 Stage F replaces section 10's items 1, 2 and 4 (the Prime tag and the curve strip) with the one Level well and the series line.
 
@@ -268,9 +268,9 @@ Stage F replaces section 10's items 1, 2 and 4 (the Prime tag and the curve stri
     - Low motion keeps the fades and the burn-away, without the motions.
 12. **`?timer=off`** (a dev aid for the checks and screenshots) stops a React window's countdown. The timer and its setting are unchanged for play.
 
-## 12. Readings from stage G (play-test feedback 2): needing Elliott's approval
+## 12. Readings from stage G (play-test feedback 2): approved by Elliott, 17 November 2026
 
-Built to the approved mockups in `docs/mockups/feedback-v2/`. Section 11 (stage F) is still waiting for approval and is unchanged.
+Built to the approved mockups in `docs/mockups/feedback-v2/`.
 
 1. **The crystal is for Energy only.**
    - A Legendary Creature keeps its ★ well: it arrives free, so it has no Energy cost to show.
@@ -338,7 +338,7 @@ Built to the approved mockups in `docs/mockups/feedback-v2/`. Section 11 (stage 
 
 ## 13. Readings from stage M (playing a friend online): needing Elliott's approval
 
-Ported from the old game's Multiplayer M1 to M3. No rules changed. Sections 11 and 12 are still waiting for approval and are unchanged.
+Ported from the old game's Multiplayer M1 to M3. No rules changed.
 
 1. **The AI's look-ahead still sees two things it always has: its own Draw Pile (in order) and the random state.**
    - The AI now plays from the engine's `viewFor`, the same view a friend gets. It can't see your hand, your Draw Pile or your sealed Strats, as before.

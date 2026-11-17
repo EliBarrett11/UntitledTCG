@@ -431,4 +431,4 @@ node tools/compare.mjs
     
     It saves both screens at the same moments (`tools/screenshots/m-*.png`).
   - The layout check adds the lobby screens and online match setup at all three sizes.
-- Stage F's and G's readings are still waiting for approval (`docs/03-look-and-feel.md` sections 11 and 12). Stage M's readings: section 13.
+- Stage F's and G's readings are approved (17 November 2026). Stage M's readings, for Elliott's approval: `docs/03-look-and-feel.md` section 13.
