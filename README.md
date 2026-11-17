@@ -432,3 +432,62 @@ node tools/compare.mjs
     It saves both screens at the same moments (`tools/screenshots/m-*.png`).
   - The layout check adds the lobby screens and online match setup at all three sizes.
 - Stage F's and G's readings are approved (17 November 2026). Stage M's readings, for Elliott's approval: `docs/03-look-and-feel.md` section 13.
+
+### V5: Keyword tips, turns, pacing, effects, dominance by Might and the Energy display (17 November 2026)
+- Built to `docs/15-v5-players-experience.md` as Elliott reduced it, and its "Added with V5". Mockups: `docs/mockups/v5/` (v5-turn, v5-enemy) and `docs/mockups/dominance-v1/`, in stage G's crystal cyan, from either seat online. The guided battle, the rules overlay, "You can", the Dusk summary and the accessibility tab weren't built.
+- **Dominance by Might** (rulebook 9 and 11; decided at Elliott's request):
+  - **The rule:** a creature's Might is its current Attack plus current Health. The side with more total Might in a placed Location dominates it at Dusk (+3); the Last Battle works the same way across the battlefield (+5, 8 with the passive). Ties and empty Locations score nothing.
+  - **The engine and the AI:** the engine's `dominantIn` uses Might. The AI's evaluation follows it, since it scores dominance through `dominantOf`.
+  - **The rest:** the Codex's glossary and Location lines, the keyword tips, and `tests/v5-might.test.js` (ties, damage, buffs, Items, Prime, the Last Battle).
+- **50 AI-vs-AI matches before and after** (`docs/balance/v5-before.txt`, `v5-after.txt`):
+
+  | | Before (Health) | After (Might) |
+  |---|---|---|
+  | Average length | 8.96 Rounds (median 9, 7–13) | 9.08 Rounds (median 9, 7–14) |
+  | Defeats | 33.5% of Renown | 31.5% |
+  | Damage to the Warlord | 22.0% | 25.5% |
+  | Location dominance | 21.8% | 21.0% |
+  | Favours | 11.2% | 10.3% |
+  | Prime summons | 6.4% | 6.7% |
+  | Last Battle dominance | 3.9% | 3.9% |
+  | Quests | 1.2% | 1.0% |
+  | Last Battle reached | 48 of 50 | 50 of 50 |
+  | Player 1's wins | 27 of 50 | 27 of 50 |
+
+- **The dominance line:**
+  - Each Location's label shows "N ENEMY ━━━|━━━ YOU N" (the bar split by share, a gold halfway mark, the leader in gold) and who scores at Dusk. The Last Battle's line runs above the board.
+  - Each creature's Might shows as a hexagon only while the pointer is over the line.
+  - The numbers and bar animate when Might changes.
+  - At Dusk the hexagons pop and count into the totals before the Renown flies.
+- **The Energy display** sits beside your hand, above your piles:
+  - one cyan crystal, one big number and "ENERGY";
+  - "EXERT" as three amber rune tiles (ready ones glow; exhausted ones are dark, with the Round they come back);
+  - a cost preview ("4 → 1") while you hover or pick up a card, with the runes it would spend pulsing;
+  - the number counts and the crystal pulses as Energy changes, and a spent rune flares into the number.
+  
+  The other player's Energy shows the same way, small, in their top bar.
+- **Whose turn:**
+  - "YOUR TURN" (crimson) or "ENEMY'S TURN · thinking" ("YOUR FRIEND'S TURN · choosing" online, blue) in the column under the Round panel, with one line of why.
+  - The active Warlord glows, and a banner sweep passes over the plaque as the turn changes.
+  - "MUST ATTACK BEFORE YOU PASS" sits on a creature that blocks your Pass.
+- **The other player's pacing:**
+  - animated dots;
+  - against the AI, a minimum think time;
+  - each of their actions announced over the board where it happens, from the engine's events (so a sealed Strat or a Retained card is never named);
+  - pace controls on the plaque: Slow, Normal, Fast, pause after each action, Replay (online too), and hold Space to skip ahead.
+- **Keyword tips:** hovering a game term on a card shows its kind and one or two sentences from the Codex's glossary. The term underlines while the tip is open; tips stay clear of the term and the hover preview, and go away under stage G's rules.
+- **Effects on top:**
+  - **The cause:** the presenter's copies of cards (ghosts of defeated cards, thrown Items) were in the DOM effects layer, above the WebGL effects. So an impact on a defeated card played under its ghost.
+  - **The fix:** they have their own layer under every effect, and the effects check asserts that each targeted effect draws above its target.
+- **Thrown Items** fly one smooth sampled arc: a wind-up, an eased launch, a spin, an ember trail, and the impact on the frame they land. Every card slide shares the gentler version of the arc. Low motion: a fade at the target.
+- **Fixed from stage M:** the presenter's side colours now follow the seat.
+- **Checks:**
+  - new layout scenes for the tips, both plaques, an announcement, each dominance line, the Might hexagons and the Energy preview;
+  - an online test that announcements never show hidden information;
+  - the two-browser check compares both seats' plaques, Energy and dominance lines (they agreed 129 times) and checks that announcements name "your friend";
+  - the effects check's layering assertion.
+- **Tools:**
+  - `tools/v5compare.mjs` saves the mockups beside the game and the Energy display at each size;
+  - `tools/v5clips.mjs` records the clips, each with a frame strip;
+  - `tools/aiprint.mjs` fingerprints the AI's play.
+- Readings for Elliott's approval: `docs/03-look-and-feel.md` section 14.
