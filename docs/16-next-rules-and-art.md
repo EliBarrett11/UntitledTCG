@@ -14,3 +14,9 @@
 
 ## Style test 1: Gloomfang Wolf (17 November 2026)
 Elliott loved it on the first generation: **this is the direction.** Files in `docs/mockups/style-test/`: the full art, the 5:7 crop (x 535 to 1266 of 1536), and the crop drawn by the game's renderer beside the old art (`wolf-cards.png`) and on the board (`wolf-board.png`). It's not yet card art: the old wolf stays in `assets/cards/` until the style guide and batches.
+
+## Style tests 2 and 3: Oathsworn Captain and Ironroot Pass (17 November 2026)
+Both approved by Elliott. Files in `docs/mockups/style-test/` (full art, crops, `test2-cards.png`, `test2-board.png`). Learned:
+- **Faces carry it:** the Captain reads instantly even at board size; expressive faces are the style's strongest asset.
+- **The Location tile isn't wide:** a 2-lane tile is a tall shape on the board, so its crop needs its own focus point (the landmark), separate from the card's. Wider tiles (3 or 4 lanes) show more of the scene.
+- **Bright art needs stronger text backing:** the tile's label and dominance line need a deeper shadow behind them over bright skies; the card text panels already work.
