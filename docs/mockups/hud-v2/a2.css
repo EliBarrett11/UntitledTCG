@@ -1,0 +1,37 @@
+.H { position:fixed; z-index:9000; font-family:'Alegreya Sans',sans-serif; color:#efe4c8; box-sizing:border-box; }
+.H * { box-sizing:border-box; }
+.zslab { position:absolute; border-radius:12px; background: linear-gradient(180deg, rgba(34,22,13,.94), rgba(17,11,6,.95));
+  box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(226,190,120,.42), inset 0 1px 0 rgba(255,225,170,.10), 0 16px 30px rgba(0,0,0,.55); }
+.zslab.zenemy { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(140,170,235,.5), inset 0 1px 0 rgba(200,220,255,.10), 0 16px 30px rgba(0,0,0,.55); }
+.zslab.zyou { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(240,150,130,.5), inset 0 1px 0 rgba(255,210,200,.10), 0 16px 30px rgba(0,0,0,.55); }
+.zslab.zactive.zenemy { box-shadow: 0 0 0 1px #000, 0 0 0 2px #9cc0ff, 0 0 26px rgba(90,140,255,.45), 0 16px 30px rgba(0,0,0,.55); }
+.zslab.zactive.zyou { box-shadow: 0 0 0 1px #000, 0 0 0 2px #ffb4a6, 0 0 26px rgba(255,110,80,.4), 0 16px 30px rgba(0,0,0,.55); }
+.zrow { display:flex; align-items:stretch; height:100%; }
+.zcell { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:7px; padding:0 14px; min-width:0; }
+.zcell.zl { align-items:flex-start; }
+.zvr { width:1px; margin:16px 0; background:linear-gradient(transparent, rgba(226,190,120,.4), transparent); flex:none; }
+.zhr { height:1px; margin:0 16px; background:linear-gradient(90deg, transparent, rgba(226,190,120,.4), transparent); flex:none; }
+.zcap { font:700 10px/1 Cinzel,serif; letter-spacing:2.6px; color:rgba(241,217,160,.68); white-space:nowrap; }
+.zval { display:flex; align-items:center; gap:9px; height:34px; white-space:nowrap; }
+.znum { font:700 30px/1 Cinzel,serif; color:#f4ead2; }
+.zsub { font-size:13px; color:rgba(239,228,200,.6); white-space:nowrap; }
+.zgem { position:relative; flex:none; clip-path: polygon(50% 0,100% 27%,100% 73%,50% 100%,0 73%,0 27%); background:linear-gradient(160deg,#e9fdff 0%,#7fe6ff 24%,#19a9d6 54%,#06506e 80%,#3ad0f5 100%); filter:drop-shadow(0 0 6px rgba(90,220,255,.7)); }
+.zgem::after { content:''; position:absolute; inset:0; clip-path: polygon(50% 0,100% 27%,50% 50%,0 27%); background:rgba(255,255,255,.55); }
+.zrune { flex:none; width:26px; height:29px; clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); display:grid; place-items:center; font:700 9.5px Cinzel,serif; }
+.zrune.zon { background:linear-gradient(160deg,#ffe2a0,#f0a93a 55%,#9a5a10); box-shadow:0 0 10px rgba(255,170,60,.8); }
+.zrune.zoff { background:linear-gradient(160deg,#3d3328,#1d1712); color:rgba(239,228,200,.6); }
+.zcoin { flex:none; border-radius:50%; background: radial-gradient(circle at 38% 32%, #fff3c4, #f0c55a 45%, #a8741f 85%); box-shadow: 0 0 0 2px #3a2208, inset 0 0 0 3px rgba(120,80,20,.6); }
+.zpips { display:flex; gap:5px; flex:none; } .zpips i { width:10px; height:10px; transform:rotate(45deg); border:1px solid rgba(190,150,255,.8); }
+.zpips i.zon { background:linear-gradient(135deg,#d8c4ff,#8a62e0); box-shadow:0 0 6px rgba(170,130,255,.7); }
+.zpile { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.zpile b { font:700 22px/1 Cinzel,serif; color:#f4ead2; }
+.zbacks { display:flex; } .zbacks i { width:17px; height:24px; border-radius:3px; margin-left:-6px; background:url('assets/ui/card-back.jpg') center/cover; box-shadow:0 0 0 1px rgba(0,0,0,.8), 0 0 0 2px rgba(226,190,120,.45); }
+.zbacks i:first-child { margin-left:0; }
+.zphase { display:flex; gap:4px; } .zphase span { flex:1; text-align:center; padding:6px 0; border-radius:5px; font:700 10.5px Cinzel,serif; letter-spacing:2px; color:rgba(239,228,200,.55); box-shadow: inset 0 0 0 1px rgba(226,190,120,.25); }
+.zphase span.zon { background:linear-gradient(#f3d58f,#c99a4a); color:#1a0f08; box-shadow:none; }
+.zpace { display:flex; gap:5px; } .zpace span { flex:1 1 auto; text-align:center; padding:4px 8px; border-radius:999px; font:700 9.5px Cinzel,serif; letter-spacing:1.4px; color:rgba(255,236,214,.75); box-shadow: inset 0 0 0 1px rgba(255,220,190,.35); }
+.zpace span.zon { background:linear-gradient(#f3d58f,#c99a4a); color:#1a0f08; box-shadow:none; }
+.zbtn { display:grid; place-items:center; border-radius:10px; font:700 26px Cinzel,serif; letter-spacing:9px; }
+.zgear { width:38px; height:38px; border-radius:50%; display:grid; place-items:center; font-size:18px; color:#f1d9a0; box-shadow: inset 0 0 0 1px rgba(226,190,120,.5); flex:none; }
+.zpace span.zic { flex:0 0 34px; padding:4px 0; }
+.zslab.zenemy .zpile .zcap { letter-spacing:1.6px; font-size:9px; }
