@@ -9,7 +9,7 @@
 import { renderCard, cardBack } from './cards.js';
 import { accentOf, esc, HUMAN, AI, artOf, tintOf, foe, foes } from './text.js';
 import { handLayout, LANE_W, HAND } from './view.js';
-import { hasGuard } from '../engine/game.js';
+import { hasGuard, mightOf } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
 import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS } from './vfx/library.js';
 
@@ -201,6 +201,47 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   function pulse(ctx, el, colour = '#f0c86e') {
     if (!el) return Promise.resolve();
     return ctx.anim(el, [{ boxShadow: `0 0 0 0 ${colour}` }, { boxShadow: `0 0 0 4px ${colour}, 0 0 26px 8px ${colour}`, offset: 0.4 }, { boxShadow: '0 0 0 0 transparent' }], { duration: 700, fill: 'none' });
+  }
+  // V5 (dominance by Might, at Dusk): over the scored lanes, each creature's Might pops up as a hexagon, one after
+  // another, then they fly into a tally that counts up both sides' totals, before the Renown flies. st: the state
+  // before Dusk (the creatures as they stood). Low motion: the hexagons and totals simply show for a moment.
+  async function mightCount(ctx, st, lanes, key = null) {
+    const items = [];
+    for (const who of [AI, HUMAN]) {
+      for (const lane of lanes) {
+        const c = st.players[who].row[lane];
+        const el = cell(who, lane);
+        if (!c || !el) continue;
+        items.push({ who, m: mightOf(c), at: box(el) });
+      }
+    }
+    if (!items.length) return;
+    const xs = lanes.map((l) => cell(HUMAN, l)).filter(Boolean).map(box);
+    const cx = xs.length ? (Math.min(...xs.map((b) => b.x)) + Math.max(...xs.map((b) => b.x + b.w))) / 2 : 790;
+    // (Over the Location's own dominance line, counting up in place; or across the board in the Last Battle.)
+    const line = key ? q(`.dom-line[data-dom="${CSS.escape(key)}"]`) : null;
+    const at = line ? box(line) : { cy: 461 };
+    const tally = add(`<span class="dom-n them">0</span><span class="dom-k them">${foe() === 'Your friend' ? 'FRIEND' : 'ENEMY'}</span><span class="dom-k you">YOU</span><span class="dom-n you">0</span>`, cx, at.cy - 13, 'might-tally');
+    const [nThem, , , nYou] = tally.children;
+    const total = { [AI]: 0, [HUMAN]: 0 };
+    const low = settings().lowMotion;
+    const hexes = items.map((it, i) => {
+      const h = add(`<span>${it.m}</span>`, it.at.cx - 23, it.at.cy - 26, `might-hex ${it.who === HUMAN ? 'you' : 'them'}`);
+      if (!low) h.animate([{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1.25)', opacity: 1, offset: 0.6 }, { transform: 'scale(1)', opacity: 1 }], { duration: ctx.ms(260), delay: ctx.ms(i * 90), fill: 'backwards', easing: 'ease-out' });
+      return h;
+    });
+    await ctx.wait(low ? 500 : items.length * 90 + 280);
+    // Into the totals: each hexagon flies to its side's number, which counts up as it arrives.
+    await Promise.all(items.map((it, i) => (async () => {
+      const h = hexes[i];
+      const to = box(it.who === HUMAN ? nYou : nThem);
+      if (!low) await ctx.anim(h, [{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${to.cx - it.at.cx}px, ${to.cy - it.at.cy}px) scale(0.4)`, opacity: 0.2 }], { duration: 380, delay: i * 60, easing: 'cubic-bezier(.4,0,.8,.6)' });
+      h.remove();
+      total[it.who] += it.m;
+      (it.who === HUMAN ? nYou : nThem).textContent = String(total[it.who]);
+    })()));
+    await ctx.wait(low ? 300 : 420);
+    tally.remove();
   }
   // Ash and embers drifting from a point towards a pile.
   async function crumble(ctx, ghost, toEl) {
@@ -1104,6 +1145,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           if (rn && vfx?.on) { mergedRenown.add(ei + 1); rBefore = held.renown[e.who]; held.renown[e.who] += rn.amount; rAfter = held.renown[e.who]; }
           B('dominance', `${NAME[e.who]} ${e.who === HUMAN ? 'dominate' : 'dominates'} ${l?.name ?? 'a Location'}.`, async (ctx) => {
             if (!l) return;
+            await mightCount(ctx, prev, Array.from({ length: l.width }, (_, i) => l.start + i), l.uid);
             const a = cell(e.who, l.start); const b = cell(e.who, l.start + l.width - 1);
             if (!a || !b) return;
             const ba = box(a); const bb = box(b);
@@ -1113,6 +1155,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
           }, async (ctx) => {
             if (!l) return;
+            await mightCount(ctx, prev, Array.from({ length: l.width }, (_, i) => l.start + i), l.uid);
             const a = cell(e.who, l.start); const b = cell(e.who, l.start + l.width - 1);
             if (!a || !b) return;
             const ba = box(a); const bb = box(b);
@@ -1135,11 +1178,13 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         }
         case 'lastBattleDominance':
           if (e.who) B('dominance', `${NAME[e.who]} ${e.who === HUMAN ? 'dominate' : 'dominates'} the Last Battle.`, async (ctx) => {
+            await mightCount(ctx, prev, Array.from({ length: 9 }, (_, i) => i), 'lb');
             const el = add('', 30, 136, `dominate ${e.who === HUMAN ? 'mine' : 'theirs'}`);
             el.style.width = '1520px';
             focus = { cx: 790, cy: e.who === HUMAN ? 640 : 250 };
             await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
           }, async (ctx) => {
+            await mightCount(ctx, prev, Array.from({ length: 9 }, (_, i) => i), 'lb');
             focus = { cx: 790, cy: e.who === HUMAN ? 640 : 250, w: 1520, h: 230 };
             await fxRun(ctx, 'dominance.scored', { anchors: anchors({ dst: focus, banner: { cx: 790, cy: 452, w: 70, h: 145 } }), sideTint: BANNER_TINT[e.who], hooks: { highlight: () => {
               const el = add('', 30, 136, `dominate ${e.who === HUMAN ? 'mine' : 'theirs'}`);

@@ -2,13 +2,13 @@
 // It only draws: every action goes through src/ui/app.js, legalActions and applyAction.
 import { RULES } from '../engine/rules.js';
 import { baseEnergyFor, availableExert } from '../engine/energy.js';
-import { isReady, locationAt, lanesOf, lanesHere, creaturesOf, actor } from '../engine/game.js';
+import { isReady, locationAt, lanesOf, lanesHere, creaturesOf, actor, mightIn, mightOf, dominantIn, allLanes, boosted } from '../engine/game.js';
 import { energyDisplay, turnPlaque, mustAttack } from './turn.js';
 import { cardDef } from '../engine/cards.js';
 import { renderCard, cardBack, icon, chipFor, STAR_PATH } from './cards.js';
 import { legendaryCreatureOf, cardAtRound } from '../engine/cards.js';
 import { chipCardFor, energyHtml } from './text.js';
-import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText, foe, foes } from './text.js';
+import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText, foe, foes, ONLINE } from './text.js';
 import { endScreen } from './screens.js';
 
 export const LANE_W = 1532 / 9;
@@ -93,6 +93,25 @@ function sealedStrats(s, who) {
 
 // --- The map --------------------------------------------------------------------------------------------------
 
+// V5: dominance by Might (docs/mockups/dominance-v1): "13 ENEMY ━━━|━━━ YOU 20", the bar split by each side's share,
+// a gold mark at halfway and the leader's number in gold, with who scores at Dusk beneath. Hovering the line shows
+// each creature's Might (its hexagon); key names the Location ('lb': the Last Battle).
+export function domLine(s, lanes, key, renown) {
+  const you = mightIn(s, lanes, HUMAN);
+  const them = mightIn(s, lanes, AI);
+  const d = dominantIn(s, lanes);
+  const lead = d === HUMAN ? 'you' : d === AI ? 'them' : '';
+  const total = you + them;
+  const pt = total ? (100 * them) / total : 50;
+  const say = d === HUMAN ? `YOU DOMINATE · +${renown} RENOWN AT DUSK` : d ? `${ONLINE ? 'YOUR FRIEND DOMINATES' : 'THE ENEMY DOMINATES'} · +${renown} RENOWN AT DUSK` : total ? 'TIED · NO ONE SCORES' : 'EMPTY · NO ONE SCORES';
+  return `<div class="dom-line" data-dom="${esc(key)}" data-you="${you}" data-them="${them}" title="Might: each creature's Attack plus Health. Hover to see each creature's.">
+      <span class="dom-n them${lead === 'them' ? ' lead' : ''}">${them}</span><span class="dom-k them">${ONLINE ? 'FRIEND' : 'ENEMY'}</span>
+      <span class="dom-bar"><i class="them" style="width:${pt.toFixed(1)}%"></i><i class="you" style="width:${(100 - pt).toFixed(1)}%"></i><b class="half"></b></span>
+      <span class="dom-k you">YOU</span><span class="dom-n you${lead === 'you' ? ' lead' : ''}">${you}</span>
+    </div>
+    <div class="dom-say ${lead || 'tie'}" data-region="dom-say">${say}</div>`;
+}
+
 function map(s, ui) {
   const lines = Array.from({ length: 8 }, (_, i) => `<div class="lane-line" style="left:${Math.round((i + 1) * LANE_W)}px"></div>`).join('');
   const covered = new Set(s.locations.flatMap((l) => lanesOf(l)));
@@ -116,11 +135,12 @@ function map(s, ui) {
           <div class="loc-name">${esc(l.name.toUpperCase())}</div>
           <div class="loc-rule" aria-hidden="true"></div>
           <div class="loc-line" data-full="${esc(full)}" data-short="${esc(short)}">${full}</div>
-          <div class="loc-time"><span class="pips" aria-hidden="true">${pips}</span>${l.roundsLeft} ROUND${l.roundsLeft === 1 ? '' : 'S'} LEFT · <span class="own ${mine ? 'mine' : 'theirs'}">${mine ? 'YOURS' : 'ENEMY’S'}</span></div>
+          <div class="loc-time"><span class="pips" aria-hidden="true">${pips}</span>${l.roundsLeft} ROUND${l.roundsLeft === 1 ? '' : 'S'} LEFT · <span class="own ${mine ? 'mine' : 'theirs'}">${mine ? 'YOURS' : ONLINE ? 'YOUR FRIEND’S' : 'ENEMY’S'}</span></div>
+          ${domLine(s, lanesOf(l), l.uid, RULES.perDominance)}
         </div>
       </div>`;
   }).join('');
-  const wilds = s.lastBattle ? `<div class="lb-label">THE LAST BATTLE<span>All Renown +50% · dominance at Dusk +5</span></div>` : Array.from({ length: RULES.lanes }, (_, i) => (covered.has(i) ? '' : `<div class="wilds" style="left:${i * LANE_W}px;width:${LANE_W}px">THE WILDS</div>`)).join('');
+  const wilds = s.lastBattle ? `<div class="lb-label">THE LAST BATTLE<span>All Renown +50% · dominance at Dusk +5</span></div><div class="lb-dom">${domLine(s, allLanes(), 'lb', boosted(s, RULES.perLastBattleDominance))}</div>` : Array.from({ length: RULES.lanes }, (_, i) => (covered.has(i) ? '' : `<div class="wilds" style="left:${i * LANE_W}px;width:${LANE_W}px">THE WILDS</div>`)).join('');
   const nums = Array.from({ length: RULES.lanes }, (_, i) => `<div class="lane-num" style="left:${i * LANE_W}px;width:${LANE_W}px">${i + 1}</div>`).join('');
   // (V3: the painted campaign map, and its scorched twin for the Last Battle, crossfaded when it begins.)
   return `<div class="map${s.lastBattle ? ' last-battle' : ''}" data-region="map">
@@ -154,7 +174,10 @@ function row(s, who, ui) {
       const tag = c.spent ? '<div class="tag tag-spent">SPENT</div>' : ready ? '<div class="tag tag-ready">READY</div>' : '';
       // (V5: a creature of yours that blocks your Pass, 5.2.)
       const must = who === HUMAN && ui.mustAttack?.includes(lane) ? '<div class="must-tag" data-region="must-attack">MUST ATTACK BEFORE YOU PASS</div>' : '';
-      body = `<div class="slot-card ${cls}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board">${tag}${renderCard(c, { size: 'token', live: true })}${must}</div>`;
+      // (V5: its Might, shown while the pointer is over its Location's dominance line; none in the Wilds.)
+      const mloc = s.lastBattle ? 'lb' : locationAt(s, lane)?.uid;
+      const hex = mloc ? `<div class="might-hex ${who === HUMAN ? 'you' : 'them'}" data-mloc="${esc(mloc)}"><span>${mightOf(c)}</span></div>` : '';
+      body = `<div class="slot-card ${cls}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board">${tag}${renderCard(c, { size: 'token', live: true })}${must}${hex}</div>`;
     }
     const attrs = cpick ? `data-pick="${esc(cpick)}"` : pick ? `data-pick="${esc(pick)}"` : ui.picks?.attacker?.[lane] && who === HUMAN && c ? 'data-act="attacker"' : '';
     // The preview of choosing this target (on a Location target, once, on its leftmost lane).

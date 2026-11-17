@@ -102,6 +102,7 @@ export function startApp(params) {
   window.addEventListener('blur', () => { skipHeld = false; });
   let lastShown = null;       // the last action presented, for Replay
   let lastWhose = null;       // whose turn the plaque last showed (for its sweep)
+  let lastDom = {};           // each dominance line's last totals (for their count)
   let lastEnergy = null;      // the Energy number last shown, and the Exert spent (for the count and the flare)
   let lastExhaust = null;
   let previewResume = null;   // (the ?lobby=title dev aid)
@@ -739,6 +740,25 @@ export function startApp(params) {
     lastEnergy = p.baseEnergy;
     lastExhaust = p.exhaust.length;
     shownPreview = JSON.stringify(ui.energyPreview);
+    // Might changed: a dominance line's numbers count and its bar slides to the new shares.
+    const now = {};
+    for (const el of stage.querySelectorAll('.dom-line[data-dom]')) {
+      const k = el.dataset.dom;
+      const v = [Number(el.dataset.them), Number(el.dataset.you)];
+      now[k] = v;
+      const was = lastDom[k];
+      if (!was || (was[0] === v[0] && was[1] === v[1]) || settings.lowMotion) continue;
+      const nums = el.querySelectorAll('.dom-n');
+      const t0 = performance.now();
+      const tick = (t) => { const q = Math.min(1, (t - t0) / 500); if (!el.isConnected) return; nums[0].textContent = String(Math.round(was[0] + (v[0] - was[0]) * q)); nums[1].textContent = String(Math.round(was[1] + (v[1] - was[1]) * q)); if (q < 1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+      const share = (a) => (a[0] + a[1] ? (100 * a[0]) / (a[0] + a[1]) : 50);
+      const [bt, by] = el.querySelectorAll('.dom-bar i');
+      bt?.animate([{ width: `${share(was)}%` }, { width: `${share(v)}%` }], { duration: 500, easing: 'ease-out' });
+      by?.animate([{ width: `${100 - share(was)}%` }, { width: `${100 - share(v)}%` }], { duration: 500, easing: 'ease-out' });
+    }
+    lastDom = now;
+    syncMight(true);
     // The turn passed: the plaque's banner sweep.
     const plaque = stage.querySelector('[data-region="turn-plaque"]');
     const whose = plaque?.dataset.whose ?? null;
@@ -1016,7 +1036,8 @@ export function startApp(params) {
   const cardUnderPointer = () => {
     if (hover.x < 0) return null;
     const t = document.elementFromPoint(hover.x, hover.y);
-    return t && stage.contains(t) ? t.closest('[data-hover]') : null;
+    // (V5: the dominance line shows the creatures' Might instead; it opens no preview of its own.)
+    return t && stage.contains(t) && !t.closest('.dom-line') ? t.closest('[data-hover]') : null;
   };
   const hoverBlocked = () => !!(ui?.menu || drag || aimEl || screen !== 'match' || ui?.react);
   function showPreviewFor(el) {
@@ -1065,7 +1086,18 @@ export function startApp(params) {
     if (el === hover.el && pv && !pv.hidden) return;
     showPreviewFor(el);
   }
-  document.addEventListener('pointermove', (e) => { hover.x = e.clientX; hover.y = e.clientY; syncHover(); syncTip(); }, { capture: true, passive: true });
+  document.addEventListener('pointermove', (e) => { hover.x = e.clientX; hover.y = e.clientY; syncHover(); syncTip(); syncMight(); }, { capture: true, passive: true });
+
+  // V5: each creature's Might shows (its hexagon) only while the pointer is over that Location's dominance line.
+  let mightKey = null;
+  function syncMight(force = false) {
+    const t = hover.x < 0 || hoverBlocked() ? null : document.elementFromPoint(hover.x, hover.y);
+    const key = t && stage.contains(t) ? t.closest('.dom-line')?.dataset.dom ?? null : null;
+    if (key === mightKey && !force) return;
+    mightKey = key;
+    for (const el of stage.querySelectorAll('.might-hex.on')) el.classList.remove('on');
+    if (key) for (const el of stage.querySelectorAll(`.might-hex[data-mloc="${CSS.escape(key)}"]`)) el.classList.add('on');
+  }
 
   // V5: keyword tips. The term under the pointer is found in the card text it's really over (the caret position at
   // the pointer), and only where that text is big enough to read; after a short delay its tip shows, and the term
