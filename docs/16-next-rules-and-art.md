@@ -11,3 +11,6 @@
 - **Full art, then crops.** Every illustration is generated as a wide 3:2 scene (1536 × 1024, ChatGPT's native landscape size). The card and board crops are a 5:7 portrait window, about 48% of the width and the full height, placed on the subject. The Codex shows the whole scene ("View full art"). Each card will store its crop's centre.
 - **Composition rule for every prompt:** the subject's head and upper body sit inside a central portrait window, in its upper half; the lower third of that window stays simpler, for card text; the rest of the width is a real scene, not empty space.
 - **First test:** Gloomfang Wolf (prompt in the design chat, 17 November 2026).
+
+## Style test 1: Gloomfang Wolf (17 November 2026)
+Elliott loved it on the first generation: **this is the direction.** Files in `docs/mockups/style-test/`: the full art, the 5:7 crop (x 535 to 1266 of 1536), and the crop drawn by the game's renderer beside the old art (`wolf-cards.png`) and on the board (`wolf-board.png`). It's not yet card art: the old wolf stays in `assets/cards/` until the style guide and batches.
