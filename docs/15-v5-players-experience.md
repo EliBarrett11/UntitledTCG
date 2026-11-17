@@ -1,5 +1,7 @@
 # V5: The player's experience (proposal, 17 November 2026)
 
+**Built (V5, 17 November 2026):** keyword tips, the turn plaque, the other player's pacing, effects on top, thrown Items, dominance by Might and the new Energy display; readings in `docs/03-look-and-feel.md` section 14.
+
 **Status (Elliott, 17 November 2026): reduced.** Only three parts go ahead now: **keyword tips (2), whose turn it is (4, the turn display only) and the AI's pacing (5)**. The guided battle, the rules overlay, the "You can" list, the Dusk summary and the accessibility tab are not wanted at this point in the build. Originally proposed by the design chat. Mockups: `docs/mockups/v5/` (drawn over the build before stage G, so Energy is still gold there; stage G's crystal cyan applies).
 
 V5 makes the game learnable and readable without anyone explaining it. Seven parts:

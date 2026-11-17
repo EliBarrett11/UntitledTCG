@@ -144,3 +144,7 @@ body.low-motion .might-hex.on { animation: none; }
 .dom-say { font-size: 9.5px; letter-spacing: 1.4px; }
 /* (The top bar keeps its Warlord and Campaign panels whole; the other player's Energy sits in the slack.) */
 .topbar > .warlord, .topbar > .quest, .foe-energy { flex: none; }
+/* (Cinzel's capitals reach past a line-height of 1: room for them, so nothing clips.) */
+.en-num { line-height: 1.25; }
+.dom-line { height: 22px; }
+.dom-n { line-height: 1.3; }

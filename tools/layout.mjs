@@ -36,18 +36,18 @@ const SCENES = [
   { name: 'react', query: `?seed=${SEED}&scene=react-attack&pace=100000&timer=off`, need: '[data-region="react-moment"][data-kind="attack"]' },
   { name: 'react-hover', query: `?seed=${SEED}&scene=react-attack&pace=100000&timer=off`, steps: async (p) => { await hoverTop(p, '.rx-plate[data-i="0"]', 0); }, need: '.rx.previewing' },
   { name: 'react-adapt', query: '?seed=2&scene=react-adapt&pace=100000&timer=off', need: '[data-region="react-moment"][data-kind="adapt"]' },
-  { name: 'react-strat', query: '?seed=5&scene=react-strat&pace=100000&timer=off', need: '[data-region="react-moment"][data-kind="strat"]' },
+  { name: 'react-strat', query: '?seed=4&scene=react-strat&pace=100000&timer=off', need: '[data-region="react-moment"][data-kind="strat"]' },
   { name: 'lastbattle', query: `?seed=${SEED}&scene=lastbattle&pace=100000`, need: '.map.last-battle' },
   { name: 'end', query: `?seed=${SEED}&scene=end&pace=100000`, need: '[data-region="end"]' },
   // Stage V3's screens around a match.
   { name: 'title', query: '?screen=title', need: '[data-region="title"]' },
   { name: 'title-settings', query: '?screen=title', steps: async (p) => { await clickTop(p, '[data-act="settings"]', 0); }, need: '[data-region="settings"]' },
   { name: 'setup', query: '?screen=setup', need: '[data-region="setup"]' },
-  { name: 'victory', query: '?seed=9&scene=end&pace=100000', need: '.screen-end.victory' },
-  { name: 'defeat', query: '?seed=7&scene=end&pace=100000', need: '.screen-end.defeat' },
+  { name: 'victory', query: '?seed=2&scene=end&pace=100000', need: '.screen-end.victory' },
+  { name: 'defeat', query: '?seed=3&scene=end&pace=100000', need: '.screen-end.defeat' },
   // Stage P: two Location tiles mid-match, and the hover preview of a creature in hand with its series curve strip.
   { name: 'tiles', query: '?seed=1&scene=mid&pace=100000', need: '.loc .loc-art' },
-  { name: 'series', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card:has(.cv-level)', 0); }, need: '.preview:not([hidden]) .series-line', preview: true },
+  { name: 'series', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card:has(.cv-level:not(.legend))', 0); }, need: '.preview:not([hidden]) .series-line', preview: true },
   // V5: keyword tips, both turn plaques, an announcement, each kind of dominance line, the Might hexagons on hover,
   // and the Energy display with ready and exhausted Exert and a cost preview.
   { name: 'v5-tip', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverText(p, 'On Summon', '.hand-card'); }, need: '.kw-tip' },

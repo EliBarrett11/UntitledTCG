@@ -373,3 +373,47 @@ Ported from the old game's Multiplayer M1 to M3. No rules changed.
     - `?seat=p2` plays the AI from the second seat;
     - `?lobby=waiting|join|connecting|error|mismatch|full|setup-host|setup-guest|title` draws a lobby screen with sample words for the layout check;
     - `?peerserver=host:port` uses a local PeerServer.
+
+## 14. Readings from V5 (keyword tips, turns, pacing, effects, dominance by Might, the Energy display): needing Elliott's approval
+
+Built to `docs/15-v5-players-experience.md` as reduced (17 November 2026) and its "Added with V5". The mockups `docs/mockups/v5/v5-turn.png` (the keyword tip), `v5-enemy.png` and `docs/mockups/dominance-v1/` were drawn before stages G and M, so Energy uses stage G's crystal cyan, and everything works from either seat online.
+
+1. **Keyword tips.**
+   - The terms tipped: Ambush, Armour, Riposte, Patient, Shield, Ward, On Summon, On Defeat, On Retain, Prime, Release, Favour, React, Adapt, Strat, (Campaign) Order, Quest, Legendary Creature, Legendary, Held, Consumed, Slow, Steady, Swift, Martial, Arcane, until Dusk, dominance and Might.
+   - Words that are everywhere on a card (Attack, Health, Level, Energy, creature) aren't tipped.
+   - The text is the first one or two sentences of the Codex's glossary entry, quoted from the rulebook. For Ward that's the Shield sentence and "A Ward does the same against Arcane attacks."
+   - A tip opens after 0.38 s. It shows only where the text is at least 6.5 px tall on screen, so a board token's keywords have tips at 1920×1080 and 1366×768 but not at 1280×720.
+   - It sits above the term, else below, else beside it, avoiding the hover preview where there's room.
+2. **The turn plaque** sits in the Energy panel's old slot.
+   - **On your turn:** "YOUR TURN", with the first line that applies: "Round 1 · keep your hand or mulligan"; "the enemy acted · React, or let it happen"; "the enemy passed last · Dusk is next if you pass"; or who has initiative.
+   - **On theirs:** "ENEMY'S TURN · thinking" ("YOUR FRIEND'S TURN · choosing" online), with the matching line.
+   - The Round panel's line now says only who has initiative.
+3. **Pace (against the AI):**
+   - Slow, Normal and Fast are the existing game-speed setting. They also set the AI's minimum think time: 1.5, 0.9 and 0.45 s.
+   - "Pause after each action" (❚❚) waits before the AI's next action until you press Next or Space.
+   - Holding Space skips every beat and the think time.
+   - Replay plays the last action again, whoever took it. Online, only Replay shows.
+   - The choices are saved with the other settings. (`?pace=` still overrides the think time, for the checks.)
+4. **Announcements:**
+   - Every action of the other player is announced over the lane where it happens, or the board's centre: summon, attack, place, buy, use, play (Adapt or Event), React, Order, Retain, seal a Strat, Pass, let it happen, mulligan.
+   - A sealed Strat and a Retained card are shown face down, never named.
+   - An announcement stays 3.2, 2.3 or 1.4 s (Slow, Normal, Fast), or until you act. While it shows it hides the caption line, which says the same in the same place.
+   - The engine gains an `adapt` event (presentation only: no rule changed), so an Adapt with no React window can be announced.
+5. **The Energy display:**
+   - **Cost preview:** for an Action card in hand, it uses its cheapest Adapt or Strat mode. When a cost needs Exert, the runes that would be spent pulse.
+   - **Your friend's or the enemy's Energy** was not shown anywhere before. It now sits small in their top bar, between their hand and their piles.
+6. **MUST ATTACK BEFORE YOU PASS** sits just above the creature's READY tab.
+7. **Might** is Attack plus current Health as they stand: no Attack below 0 is possible today, so none is floored. A Location with no creatures says "EMPTY · NO ONE SCORES" (a tie says "TIED · NO ONE SCORES"). The Codex's Location line now says "Might here now".
+8. **The Might hexagons** sit at the middle of each creature's card. The Last Battle's line runs across the top of the board.
+9. **The Dusk count-up** plays when a side dominates. A tie scores nothing, so it isn't counted.
+10. **The AI's evaluation** didn't need a new formula: it scores dominance through the engine's `dominantOf`, which now uses Might.
+11. **Effects on top:**
+    - **The cause:** the presenter put its copies of cards (the ghost of a defeated card, a thrown Item, a revealed Strat) in the same layer as its DOM effects, above the WebGL effects. So a WebGL impact on a defeated card played under its ghost.
+    - **The fix:** card copies now have their own layer under every effect. Bottom to top: the React moment, its dimming, card copies, WebGL effects, DOM effects and the 2D fallback, the letterbox bars.
+    - The effects check asserts it for every targeted effect.
+12. **Thrown Items:**
+    - An Item used on a creature is thrown at it along one sampled arc: a wind-up, an eased flight, a spin (none on your own creature), and a trail of embers. It's gone on the frame it lands, and the impact starts on that frame.
+    - Flask of Wildfire's second projectile, thrown from the hand, is gone.
+    - Every card that slides across the table (bought, played, Released, put in the Bag) shares the gentler version of the same arc.
+    - Low motion: the card fades in at its target.
+13. **Fixed from stage M:** the presenter's side colours (and planted banners) were captured at start-up, so an online guest saw them the wrong way round. They now follow the seat.
