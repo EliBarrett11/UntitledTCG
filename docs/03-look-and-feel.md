@@ -335,3 +335,41 @@ Built to the approved mockups in `docs/mockups/feedback-v2/`. Section 11 (stage 
 14. **The search** looks through glossary terms (names and text) and the rulebook's sections (titles and text). Enter opens the first result. The sections are read from `docs/01-rulebook.md` itself.
 15. **The series' forms** are each shown at the current Level if it falls in that form, otherwise at the Prime if it falls there, otherwise at the form's first Level. Clicking a form opens that form's page.
 16. **Low motion:** the Codex appears at once. Otherwise it slides in over 0.18 s.
+
+## 13. Readings from stage M (playing a friend online): needing Elliott's approval
+
+Ported from the old game's Multiplayer M1 to M3. No rules changed. Sections 11 and 12 are still waiting for approval and are unchanged.
+
+1. **The AI's look-ahead still sees two things it always has: its own Draw Pile (in order) and the random state.**
+   - The AI now plays from the engine's `viewFor`, the same view a friend gets. It can't see your hand, your Draw Pile or your sealed Strats, as before.
+   - Its look-ahead (it tries each move on a copy of the game) has always used its own Draw Pile in order and the real random state. So, for example, it knows what a "Draw 2" would bring.
+   - Hiding those two as well changes its play (checked: 20 seeded matches then play differently). Stage M keeps them, so the AI plays exactly as before: the same 2,999 actions in 20 seeded matches (`tools/aiprint.mjs`).
+   - **Elliott's choice:** keep this, or hide them too (a slightly weaker, fairer AI).
+2. **Seats.** The host is always Player 1 and the friend Player 2. Initiative in Round 1 is still decided at random from the match's seed, which the host's browser picks.
+3. **The mulligan is taken in turn,** Player 1 first, as the engine already does (`actor`). The friend's mulligan dialog appears once the host has chosen; until then it says "Your friend is choosing…".
+4. **The React timer** runs on the host's clock for both players, and each player's own React-timer setting times their own windows: the friend's setting is sent when they connect. When the friend's time runs out, the host lets it happen for them. The friend's countdown follows the host's, so it's not affected by the friend's own clock.
+5. **Words.**
+   - Online, "the enemy" becomes "your friend" in:
+     - the log, the captions and the turn line;
+     - the React lines, the target previews and the result line;
+     - the end screen's totals ("Friend 102").
+   - The board's Warlord panel still says ENEMY WARLORD, and the React headline still says THE ENEMY ATTACKS: they name the opposing side.
+   - Match setup says YOUR FRIEND'S WARLORD.
+6. **Play a friend hosts at once,** as in the old game: the room code, the invite link and Copy, with "Got a code from a friend?" and a Join box underneath for the friend.
+7. **A rematch** goes back to match setup with a new seed (a new shuffle and a new initiative); the host presses Begin again.
+8. **Leave match** is in the settings panel during a match (the gear), on match setup, and on the end screen. Each asks for confirmation during a match.
+9. **A refused action** (only possible if the two screens disagree) shows as a short message on the friend's screen, and the friend chooses again.
+10. **The version check** compares a build name (`BUILD` in `src/ui/online.js`). It must be changed whenever the rules, the cards or the messages change, so an old page and a new one never play each other.
+11. **What the friend's browser receives** is only `viewFor(state, friend)`, with:
+    - the host's hand and both Draw Piles as unknown cards (only how many);
+    - the host's sealed Strats as unknown cards (with their targets);
+    - no random state;
+    - a Quest tracker's link to its Campaign card only while that card is somewhere the friend can see.
+    
+    Two small engine changes support this:
+    - a Strat's uid is now numbered, rather than made from its card's uid;
+    - a Strat whose card is unknown is set aside in a view's look-ahead (it never happens in a real match).
+12. **Dev aids:**
+    - `?seat=p2` plays the AI from the second seat;
+    - `?lobby=waiting|join|connecting|error|mismatch|full|setup-host|setup-guest|title` draws a lobby screen with sample words for the layout check;
+    - `?peerserver=host:port` uses a local PeerServer.

@@ -1,8 +1,30 @@
 # Untitled Fantasy TCG
 
-*Working title.* A one-player browser card game against an AI opponent, set in an original, dark-leaning high-fantasy world. Two players summon heroes and creatures into lanes on a war-table map, fight over Locations, buy Items from the Market, chase their Campaign Quests and race to 100 Renown. It's built in plain HTML, CSS and JavaScript modules, one stage at a time; the design docs and the rulebook are in [`docs/`](docs/), starting with [`docs/00-START-HERE.md`](docs/00-START-HERE.md).
+*Working title.* A browser card game against an AI opponent or a friend online, set in an original, dark-leaning high-fantasy world. Two players summon heroes and creatures into lanes on a war-table map, fight over Locations, buy Items from the Market, chase their Campaign Quests and race to 100 Renown. It's built in plain HTML, CSS and JavaScript modules, one stage at a time; the design docs and the rulebook are in [`docs/`](docs/), starting with [`docs/00-START-HERE.md`](docs/00-START-HERE.md).
 
-**Play:** https://elibarrett11.github.io/UntitledTCG/ (a match against the AI; add `?seed=N` to replay one)
+**Play:** https://elibarrett11.github.io/UntitledTCG/ (against the AI, or a friend online; add `?seed=N` to replay a match against the AI)
+
+## How to play a friend
+
+1. On the title screen, choose **Play a friend**. You get a 5-letter room code and an invite link.
+2. Send your friend the link (the **Copy** button copies it). They open it, or open the game, choose Play a friend and type the code under "Got a code from a friend?".
+3. You both see match setup with both Warlords. When you're ready, press **Begin** (the host does). You both play the shared first deck.
+
+Your browser (the host's) runs the match; your friend's only sends its moves. If either of you refreshes or loses the connection, the match waits:
+- your friend just opens the same link again (or waits: it retries by itself every few seconds);
+- you (the host) choose **Resume your match with your friend** on the title screen.
+
+The light at the top right shows the connection: green connected, amber slow or reconnecting, red disconnected. **Leave match** (in the settings, or on match setup) ends it for both of you. After a match, **Rematch** starts another once you've both accepted. You both need the same version of the game: if it says you're on different versions, both refresh the page.
+
+### If your friend can't connect
+
+Most home networks connect directly. Some (strict firewalls, some school, office or mobile networks) block that, and then the connection needs a relay (a TURN server). To add a free one:
+
+1. Sign up at https://www.metered.ca/tools/openrelay/ (the free plan has a monthly allowance).
+2. Create an app and copy its name and its TURN API key.
+3. In `src/net/ice.js`, put them in `METERED_TURN` (`app: 'your-app-name'`, `apiKey: 'your key'`), then commit and push to `main`.
+
+The game fetches fresh relay credentials each time; with the key left empty it connects directly only. (For testing without the PeerJS cloud server, `?peerserver=127.0.0.1:9000` uses a local PeerServer.)
 
 ## Play locally
 
@@ -361,3 +383,52 @@ node tools/compare.mjs
   - the layout check adds six Codex scenes and checks the panel;
   - `tools/gcompare.mjs` puts each mockup beside the game and saves the Market and Codex screenshots.
 - Stage F's readings are still waiting for approval (`docs/03-look-and-feel.md` section 11). Stage G's readings for Elliott's approval: section 12.
+
+### M: Play a friend online (17 November 2026)
+- Ported from the old game's Multiplayer M1 to M3 (its `src/net/`, `src/online.js`, `src/ui/lobby.js` and `tests/online.test.js`): the approach, not its rules. See "How to play a friend" above.
+- **The engine** (`src/engine/view.js`, no DOM):
+  - `viewFor(state, seat)` is the game as one seat may see it. It hides:
+    - the other player's hand and both Draw Piles (unknown cards, numbered by position, only how many);
+    - the other player's sealed Strats (their targets show);
+    - where a hidden Campaign card is;
+    - the random state and the seed.
+  - `redactEvents` does the same for what an action did, and `restoreState` takes a state back from JSON.
+  - The AI now plays from `viewFor` and plays exactly as before: `tools/aiprint.mjs` records 20 seeded matches, 2,999 actions, identical before and after (a reading on what its look-ahead still sees: `docs/03-look-and-feel.md` section 13).
+  - A Strat's uid no longer says which card it is.
+- **Either seat:** the interface works from "this screen's seat" (`setSeat` in `src/ui/text.js`): your cards at the bottom, your hand, Energy, Gold and Market, React moments, the Codex, the stats and the end screens. `?seat=p2` plays the AI from the second seat.
+- **The connection:**
+  - WebRTC through PeerJS 1.5.5, vendored in `src/vendor/` with its licence (checked byte for byte against npm's), and loaded only when playing a friend. The free PeerJS cloud server only introduces the two browsers.
+  - `src/net/ice.js`: Google STUN, plus an empty Metered TURN slot (see "If your friend can't connect").
+- **Host-authoritative sessions** (`src/net/session.js`, `protocol.js`):
+  - The host's browser runs the real game; the guest only sends actions.
+  - The host checks each action with `applyAction` and refuses illegal ones. A guest can only ever act for its own seat.
+  - After every action, the host sends the guest only `viewFor(state, guest)` and its redacted events, which play through the normal presenter.
+  - Both sides swap a build version when they connect ("Your friend is on a different version"), and each answers the first hello it hears.
+- **Turns and React:**
+  - "Your friend is choosing…" on their moves; their actions animate exactly like the AI's.
+  - The mulligan and React windows follow `actor(state)`.
+  - The React timer runs on the host's clock, with each player's own timer setting; the guest's countdown follows it.
+  - The log calls the other player "Your friend".
+- **Reconnect, resume, rematch, leave:**
+  - The guest keeps a reconnect token: reopening the invite link, or the automatic retry, rejoins. Anyone else is told "This match already has two players".
+  - The host's browser saves the match after every action; the title screen offers "Resume your match with your friend" (or Forget it), on the same room code.
+  - A heartbeat drives the connection light (green, amber, red), with plain words when a connection can't be made.
+  - Leave match tells the friend. Rematch needs both, and uses a new seed.
+- **The lobby screens** use the title screen's look: a brass-lined panel, a large room code, Copy, and a join box.
+- **Checks:**
+  - `tests/online.test.js` plays whole host-and-guest matches over an in-memory link:
+    - a winner;
+    - the guest's view equals `viewFor(hostState, guest)` after every action;
+    - no message holds the random state, a Draw Pile card, a card in the host's hand or a face-down Strat;
+    - illegal and wrong-seat actions are refused with nothing changed;
+    - a React window where the guest Reacts, and the host's clock;
+    - a guest drop and reconnect, a host save and restore (finishing exactly as an unbroken match), rematch and leave, and a stranger turned away.
+  - `tests/view.test.js` checks the views through whole matches, the same legal moves from a view, and a JSON round trip at every action.
+  - `tools/online2.mjs` has two browsers play by real clicks through a local PeerServer:
+    - the lobby and a whole match;
+    - a guest refresh (it rejoins) and a host refresh (it resumes);
+    - a rematch, then leave.
+    
+    It saves both screens at the same moments (`tools/screenshots/m-*.png`).
+  - The layout check adds the lobby screens and online match setup at all three sizes.
+- Stage F's and G's readings are still waiting for approval (`docs/03-look-and-feel.md` sections 11 and 12). Stage M's readings: section 13.

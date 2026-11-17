@@ -5,7 +5,7 @@ import { RULES } from '../engine/rules.js';
 import { cardDef } from '../engine/cards.js';
 import { DECKS, FIRST_DECK } from '../data/cards.js';
 import { renderCard } from './cards.js';
-import { esc, HUMAN, AI } from './text.js';
+import { esc, HUMAN, AI, ONLINE, foes } from './text.js';
 import { settingsPanel } from './view.js';
 import { matchStats, heroesOf, RENOWN_SOURCES } from './stats.js';
 
@@ -86,7 +86,7 @@ export function setupScreen(ui) {
 export function openingBanner(who) {
   return `<div class="opening ${who === HUMAN ? 'you' : 'enemy'}" data-region="opening" aria-live="polite">
     <div class="opening-banner" aria-hidden="true"></div>
-    <div class="opening-text"><div class="opening-k">ROUND 1</div><div class="opening-t">${who === HUMAN ? 'YOU HAVE INITIATIVE' : 'THE ENEMY HAS INITIATIVE'}</div></div>
+    <div class="opening-text"><div class="opening-k">ROUND 1</div><div class="opening-t">${who === HUMAN ? 'YOU HAVE INITIATIVE' : ONLINE ? 'YOUR FRIEND HAS INITIATIVE' : 'THE ENEMY HAS INITIATIVE'}</div></div>
   </div>`;
 }
 
@@ -95,7 +95,7 @@ export function openingBanner(who) {
 export function resultLine(s) {
   const r = s.result;
   if (!r) return '';
-  if (r.how === 'renown') return `${r.winner === HUMAN ? 'Your Warlord' : 'The enemy Warlord'} reached ${RULES.win} Renown in Round ${r.round}`;
+  if (r.how === 'renown') return `${r.winner === HUMAN ? 'Your Warlord' : ONLINE ? `${foes()} Warlord` : 'The enemy Warlord'} reached ${RULES.win} Renown in Round ${r.round}`;
   // (Out of creatures: S5's end-screen words.)
   return `Neither side has a creature left (Round ${r.round}).${r.winner ? '' : ' The Renown and the Warlord damage are tied.'}`;
 }
@@ -125,7 +125,7 @@ export function endScreen(s, ui = {}) {
     <div class="end-body">
     <div class="end-panels">
       <div class="end-panel"><div class="label">RENOWN</div>
-        <div class="end-totals"><span class="you">You ${you.total}</span><span class="enemy">Enemy ${them.total}</span></div>
+        <div class="end-totals"><span class="you">You ${you.total}</span><span class="enemy">${ONLINE ? 'Friend' : 'Enemy'} ${them.total}</span></div>
         ${rows}</div>
       <div class="end-panel"><div class="label">THE MATCH</div>
         ${facts.map(([k, v]) => `<div class="fact"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>

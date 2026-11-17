@@ -43,7 +43,7 @@
 .net-light.slow i { background: #f0b442; box-shadow: 0 0 6px #f0b442, 0 0 0 1px rgba(0,0,0,0.7); }
 .net-light.lost i { background: #f05a4a; box-shadow: 0 0 6px #f05a4a, 0 0 0 1px rgba(0,0,0,0.7); }
 .net-light span { padding: 0 6px; background: rgba(10,6,4,0.85); border-radius: 3px; }
-.net-banner { position: absolute; left: 790px; top: 126px; transform: translateX(-50%); max-width: 1100px; padding: 6px 20px; font-size: 18px; color: #ffe1d6;
+.net-banner { position: absolute; left: 790px; top: 119px; transform: translateX(-50%); max-width: 1100px; padding: 2px 18px; font-size: 16px; color: #ffe1d6;
   background: rgba(74,22,17,0.95); border: 1px solid #c46a55; border-radius: 18px; box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
-.net-toast { position: absolute; left: 790px; top: 170px; transform: translateX(-50%); padding: 6px 20px; font-size: 18px; color: #f1e4c8;
+.net-toast { position: absolute; left: 790px; top: 119px; transform: translateX(-50%); padding: 2px 18px; font-size: 16px; color: #f1e4c8;
   background: rgba(23,17,12,0.95); border: 1px solid var(--brass); border-radius: 18px; }
