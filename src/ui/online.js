@@ -358,7 +358,7 @@ export function lobbyScreen(net) {
     body = `<div class="lobby-h">PLAY A FRIEND</div>
       ${joinForm('Type the room code your friend sent you.')}
       ${net?.message ? `<p class="lobby-err">${esc(net.message)}</p>` : ''}
-      ${btn('net-host', 'Host a match instead')}
+      ${btn('net-host', 'Host a match')}
       ${btn('net-leave', 'Back')}`;
   } else if (k === 'connecting') {
     body = `<div class="lobby-h">PLAY A FRIEND</div>

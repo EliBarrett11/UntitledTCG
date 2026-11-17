@@ -110,7 +110,11 @@ function inspect() {
     if (!visible(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
-  if (/…/.test(stage.textContent)) out.push('text trimmed with "…"');
+  // (Stage M: a status line that ends in "…" on purpose, "Waiting for your friend to join…", isn't trimmed text.)
+  const said = [];
+  const walk = document.createTreeWalker(stage, NodeFilter.SHOW_TEXT);
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) if (!n.parentElement.closest('.lobby-wait, .setup-wait, .caption, .net-banner')) said.push(n.textContent);
+  if (/…/.test(said.join(' '))) out.push('text trimmed with "…"');
   // Stage G: the Codex (in its own layer, scaled with the stage): inside the window, nothing clipped, its card beside its text.
   const cx = document.querySelector('#codex:not([hidden])');
   if (cx) {
