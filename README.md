@@ -531,4 +531,11 @@ node tools/compare.mjs
   - `tools/hcompare.mjs` saves the mockups beside the game and the hand at 10 cards at each size;
   - `tools/handread.mjs` measures the hand;
   - `?hand=N` (a dev aid for the scenes) sets how many cards you hold.
+- **Results:**
+  - all 35 test files pass;
+  - the layout check passes all 164 scenes at the three sizes;
+  - real input passes at each size, in low motion, and from Player 2's seat;
+  - the presenter check passes all four runs, including Player 2's seat;
+  - the neat-text and effects checks pass (every targeted effect on top);
+  - the two-browser online check passes: a whole match, a refresh on each side, rematch and leave, with the seats agreeing 113 times.
 - Readings for Elliott's approval: `docs/03-look-and-feel.md` section 15.
