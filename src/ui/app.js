@@ -723,6 +723,14 @@ export function startApp(params) {
   }
   function afterDraw() {
     if (screen !== 'match' || !s) return;
+    // (V5: the Location labels are taller now; where one would be under the prompt line, the prompt moves up to the
+    // top of the band, under the upper row of cards.)
+    const prompt = stage.querySelector('.prompt');
+    if (prompt) {
+      const pr = prompt.getBoundingClientRect();
+      const hit = [...stage.querySelectorAll('.loc-label')].some((l) => { const r = l.getBoundingClientRect(); return r.left < pr.right && pr.left < r.right && r.top < pr.bottom && pr.top < r.bottom; });
+      if (hit) prompt.classList.add('high');
+    }
     const p = s.players[HUMAN];
     const disp = stage.querySelector('.my-energy .en-disp');
     // Energy changed: the number counts to its new value and the crystal pulses; a spent Exert point flares into it.

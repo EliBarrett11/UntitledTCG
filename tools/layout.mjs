@@ -180,15 +180,15 @@ function inspect() {
     // (Stage F: in a React moment, the plates and headline never cover a card involved, a mark or each other.)
     ['.rx-panel', '.rx-lift:not(.opt)'], ['.rx-panel', '.rx-lift.opt'], ['.rx-panel', '.rx-chip'], ['.rx-panel', '.rx-dmg'], ['.rx-chip', '.rx-chip'], ['.rx-plate', '.rx-plate'],
     ['.caption', '.loc-label'], ['.prompt', '.loc-label'], ['.caption', '.prompt'], ['.caption', '.slot-card'], ['.prompt', '.slot-card'],
-    ['.loc-label', '.slot-card'], ['.menu', '[data-region="map"] .slot-card.ready'],
+    ['.loc-label', '[data-region="map"] .slot-card'], ['.menu', '[data-region="map"] .slot-card.ready'],
     ['.gear', '[data-region="piles-p2"]'], ['.gear', '[data-region="column"]'], ['.preview-badge', '.preview-badge'], ['.preview-badge', '.loc-label'],
     ['.end-panel', '.end-panel'], ['.end-panel', '.end-heroes'], ['.end-panel', '.end-heroes-label'], ['.end-how', '.end-panel'], ['.end-buttons', '.hero-note'],
-    ['.loc-label', '.slot-card'], ['.preview .series-line', '.preview .card'],
+    ['.loc-label', '[data-region="map"] .slot-card'], ['.preview .series-line', '.preview .card'],
     ['.prime-tab', '.hand-card .cv-well'], ['.prime-tab', '.hand-card .cv-name'], ['.prime-tab', '.slot-card'], ['.end-panel', '.end-head'], ['.end-heroes', '.end-buttons'], ['.hero', '.hero'],
     ['.setup-side', '.setup-mid'], ['.title-block', '.title-note'],
     // (V5: the Energy display beside the hand never meets the hand, the piles, the board, the column or the marker.)
     ['.my-energy', '.hand-card'], ['.my-energy', '.me-piles .piles'], ['.my-energy', '[data-region="map"]'], ['.my-energy', '[data-region="column"]'], ['.my-energy', '.side-marker'],
-    ['.dom-say', '.slot-card'], ['.caption', '.dom-line'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
+    ['.dom-say', '[data-region="map"] .slot-card'], ['.caption', '.dom-line'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);
   const labels = one('.loc-label');
