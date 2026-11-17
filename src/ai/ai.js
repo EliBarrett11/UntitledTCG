@@ -6,20 +6,19 @@ import { applyAction, legalActions, resolveStrats, drainTriggers, opponentOf, cr
 import { isCreature } from '../engine/cards.js';
 import { RULES } from '../engine/rules.js';
 import { makeRng } from '../engine/random.js';
+import { viewFor } from '../engine/view.js';
 
-// The AI's view: the other player's hand and Draw Pile are unknown cards (only how many), and their
-// sealed Strats are left out. The log is dropped, which keeps look-ahead copies small.
-const HIDDEN = (c) => ({ uid: c.uid, id: 'hidden', cardType: 'Hidden', name: 'an unknown card' });
+// The AI's view (stage M): the engine's viewFor, the same view a friend gets online. The other player's hand and
+// Draw Pile are unknown cards (only how many), and the other player's sealed Strats are unknown; the AI leaves those
+// Strats out of its look-ahead (it can't know what they'll do), and drops the log, which keeps look-ahead copies small.
+//
+// Two things the AI has always used in its look-ahead are put back, so that it plays exactly as it did before
+// stage M: its own Draw Pile (in order) and the random-number state. With them hidden too, it plays differently
+// (a reading for Elliott's approval; see docs/03-look-and-feel.md section 13).
 export function hiddenView(s, who) {
-  const foe = opponentOf(who);
-  const fp = s.players[foe];
-  return {
-    ...s,
-    log: [],
-    events: [],
-    strats: s.strats.filter((x) => x.owner === who),
-    players: { ...s.players, [foe]: { ...fp, hand: fp.hand.map(HIDDEN), drawPile: fp.drawPile.map(HIDDEN) } },
-  };
+  const v = viewFor(s, who);
+  const own = { ...v.players[who], drawPile: s.players[who].drawPile };
+  return { ...v, rng: s.rng, players: { ...v.players, [who]: own }, log: [], events: [], strats: v.strats.filter((x) => x.owner === who) };
 }
 
 // A sealed Strat changes nothing yet, so a state with the AI's own pending Strats is judged partly as if they had

@@ -357,8 +357,11 @@ const ACTIONS = {
     payCost(p, card.modes[mode].cost, s.round);
     const t = lockTarget(s, target);
     if (mode === 'strat') {
-      s.strats.push({ uid: `strat-${uid}`, owner: who, card, target: t, playedRound: s.round });
-      emit(s, 'stratSealed', { who, uid: `strat-${uid}`, target: t });
+      // (Stage M: the Strat's uid is numbered, not made from the card's, so it says nothing about the card.)
+      s.stratsSealed = (s.stratsSealed ?? 0) + 1;
+      const sid = `strat-${s.stratsSealed}`;
+      s.strats.push({ uid: sid, owner: who, card, target: t, playedRound: s.round });
+      emit(s, 'stratSealed', { who, uid: sid, target: t });
       log(s, `${NAME[who]} sealed a Strat${t.none ? '' : ` on ${targetName(s, t)}`}.`);
       return finishTurn(s, who);
     }
@@ -593,6 +596,8 @@ export function resolveStrats(s, owner, at) {
     const x = s.strats.find((y) => !owner || y.owner === owner);
     if (!x) return true;
     s.strats = s.strats.filter((y) => y !== x);
+    // (Only in a view's look-ahead, never in a match: a Strat whose card is unknown can't be resolved, so it's set aside.)
+    if (x.card.cardType === 'Hidden') continue;
     const foe = opponentOf(x.owner);
     const pending = { type: 'strat', who: x.owner, strat: x, owner, at };
     s.reactWindow = { reactor: foe, pending };
