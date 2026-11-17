@@ -51,7 +51,7 @@ const SCENES = [
   // V5: keyword tips, both turn plaques, an announcement, each kind of dominance line, the Might hexagons on hover,
   // and the Energy display with ready and exhausted Exert and a cost preview.
   { name: 'v5-tip', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverText(p, 'On Summon', '.hand-card'); }, need: '.kw-tip' },
-  { name: 'v5-tip-token', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverText(p, 'Ward', '.slot-card'); }, need: '.kw-tip', only: [1920, 1366] },
+  { name: 'v5-tip-token', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverText(p, 'Ward', '.slot-card'); }, need: '.kw-tip', only: [1920] },
   { name: 'v5-turn-you', query: '?seed=10&scene=mid&pace=100000', need: '[data-region="turn-plaque"][data-whose="you"]' },
   { name: 'v5-turn-enemy', query: '?seed=10&scene=enemy&pace=100000', need: '[data-region="turn-plaque"][data-whose="them"]' },
   { name: 'v5-announce', query: '?seed=10&scene=mid&autoplay=1&pace=600&speed=slow&lowmotion=1', steps: async (p) => { await p.waitForSelector('[data-region="announce"]:not(.out)', { timeout: 90000 }); await p.waitForTimeout(150); }, need: '[data-region="announce"]' },

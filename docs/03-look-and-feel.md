@@ -382,7 +382,7 @@ Built to `docs/15-v5-players-experience.md` as reduced (17 November 2026) and it
    - The terms tipped: Ambush, Armour, Riposte, Patient, Shield, Ward, On Summon, On Defeat, On Retain, Prime, Release, Favour, React, Adapt, Strat, (Campaign) Order, Quest, Legendary Creature, Legendary, Held, Consumed, Slow, Steady, Swift, Martial, Arcane, until Dusk, dominance and Might.
    - Words that are everywhere on a card (Attack, Health, Level, Energy, creature) aren't tipped.
    - The text is the first one or two sentences of the Codex's glossary entry, quoted from the rulebook. For Ward that's the Shield sentence and "A Ward does the same against Arcane attacks."
-   - A tip opens after 0.38 s. It shows only where the text is at least 6.5 px tall on screen, so a board token's keywords have tips at 1920×1080 and 1366×768 but not at 1280×720.
+   - A tip opens after 0.38 s. It shows only where the text is at least 6.5 px tall on screen, so a board token's keywords (7.7 px at 1920×1080) have tips at 1920×1080 but not at the smaller sizes; hand cards, the Market and Location tiles have them at every size.
    - It sits above the term, else below, else beside it, avoiding the hover preview where there's room.
 2. **The turn plaque** sits in the Energy panel's old slot.
    - **On your turn:** "YOUR TURN", with the first line that applies: "Round 1 · keep your hand or mulligan"; "the enemy acted · React, or let it happen"; "the enemy passed last · Dusk is next if you pass"; or who has initiative.
