@@ -326,3 +326,38 @@ node tools/compare.mjs
 
   The effects figures move with quality scaling in this container. The gold glow in hand is a box-shadow, not a filter: as a filter it cost a third of the idle frame rate here.
 - Stage P's readings are approved. Stage F's readings for Elliott's approval: `docs/03-look-and-feel.md` section 11.
+
+### G: Play-test feedback 2 (17 November 2026)
+- Built to the approved mockups in `docs/mockups/feedback-v2/` (m9-cards, m9-board, m9-codex). Their sketches are now part of the game's own code and styles. No rules changed.
+- **Energy is crystal cyan:**
+  - a faceted cyan crystal replaces the amber well for every Energy cost, on every size: creatures' and Actions' wells, Action modes, the Campaign Order, and "N Energy" in rules text, the log, prompts and menus;
+  - an Item's price stays a gold coin.
+- **Costs only where Energy is paid:** Events and Locations have no well, and the Campaign shows its Order's cost from the data (Lady Corwen's Commission: 2).
+- **LVL** sits in tiny capitals under every Level number (dark on the gold at Prime). Legendaries keep LEGEND.
+- **Event text** starts with its effect. The Release reminder sentence is gone, and "Event · Release N" says it.
+- **The Energy panel:** "ENERGY", a large crystal with the number, and a row of lit crystals. Exert sits on one line: a bright starred crystal for each ready point, a dark cracked one for each exhausted point, with the Round it comes back.
+- **Your Gold in the Market:**
+  - "YOUR GOLD" with a coin, under the Market's title; the enemy's Gold stays where it was;
+  - the Buy button is bright gold when you can afford the Item ("Buy for 2 Gold · you have 2"). Otherwise it's dimmed and says how much more you need, or why it can't be used now;
+  - Gold gains and spends animate into and out of it.
+- **The hover bug, found and fixed:**
+  - **The cause:** the preview followed `mouseover`, which also fires when an animating card (a drawn card, the hand closing up) moves under a still pointer. Nothing fired when that card moved away, so its preview stayed.
+  - **The fix:** the preview now shows only while `elementFromPoint` finds its card under the pointer. This is checked on every pointer move and every frame while it shows. Leaving, scrolling, pressing, dragging, a React moment, a change of screen and a redraw all hide it.
+- **The Codex** (`src/ui/codex.js`, `codex.css`; `src/engine/explain.js` and `glossary.js`, with no DOM):
+  - **Opening and moving around:**
+    - right-click any card (hand, board, Market, Bag, piles, Locations, the Campaign, the log's chips, React plates), or hover one and press C;
+    - choices in progress carry on, and the browser menu never opens;
+    - breadcrumbs, a rules search (glossary terms and rulebook sections), Back, and ✕ or Esc to close.
+  - **A card's page:**
+    - the card at Full size beside its name, traits and what it means right now, with the Levels line;
+    - "Where its numbers come from": each stat split into its sources, adding up to the number shown;
+    - its abilities, with game terms linked to the glossary;
+    - for a creature, the series' three forms; for other cards, their modes, Release and Favour, Held effect, passive and lanes, or Order, Quest and Legendary Creature.
+  - **Its sources:** every number comes from the engine's state. The glossary is quoted word for word from the rulebook. Nothing hidden shows: not the enemy's hand, not a face-down Strat, not a Draw Pile's order.
+- **Checks:**
+  - `tests/codex.test.js` checks the glossary against the rulebook, the search, and that every breakdown adds up with no hidden information, through whole AI matches;
+  - the card render tests cover the crystals, coins, LVL and the Event text;
+  - the real-input check adds the hover sweep (fast, slow, diagonal, during animations and the AI's turn, after drags) and real right-clicks into the Codex, while choosing targets and in React moments;
+  - the layout check adds six Codex scenes and checks the panel;
+  - `tools/gcompare.mjs` puts each mockup beside the game and saves the Market and Codex screenshots.
+- Stage F's readings are still waiting for approval (`docs/03-look-and-feel.md` section 11). Stage G's readings for Elliott's approval: section 12.

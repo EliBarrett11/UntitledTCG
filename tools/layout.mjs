@@ -19,7 +19,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 'f';
+const STAGE = 'g';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -48,10 +48,17 @@ const SCENES = [
   // Stage P: two Location tiles mid-match, and the hover preview of a creature in hand with its series curve strip.
   { name: 'tiles', query: '?seed=1&scene=mid&pace=100000', need: '.loc .loc-art' },
   { name: 'series', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card:has(.cv-level)', 0); }, need: '.preview:not([hidden]) .series-line', preview: true },
+  // Stage G: the Codex, opened by a real right-click, for each kind of card.
+  { name: 'codex-hand', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await rightClickHand(p, 'Character'); }, need: '#codex:not([hidden]) .cx-tab' },
+  { name: 'codex-board', query: '?seed=2&scene=mid&pace=100000', steps: async (p) => { await rightClickTop(p, '[data-hover="board"][data-who="p2"]', 0); }, need: '#codex:not([hidden]) .cx-tab' },
+  { name: 'codex-action', query: '?seed=2&scene=mid&pace=100000', steps: async (p) => { await rightClickHand(p, 'Action'); }, need: '#codex:not([hidden]) .cx-mode' },
+  { name: 'codex-event', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await rightClickHand(p, 'Event'); }, need: '#codex:not([hidden]) .cx-mode' },
+  { name: 'codex-location', query: '?seed=2&scene=mid&pace=100000', steps: async (p) => { await rightClickTop(p, '.loc-label', 0); }, need: '#codex:not([hidden]) .cx-kv' },
+  { name: 'codex-campaign', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await rightClickTop(p, '[data-region="quest-p1"]', 0); }, need: '#codex:not([hidden]) .cx-segs' },
 ];
 // The labels on the painted map, checked for contrast in these scenes.
 const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles']);
-const SHOT_ALL_SIZES = new Set(['mid', 'react', 'tiles']);
+const SHOT_ALL_SIZES = new Set(['mid', 'react', 'tiles', 'codex-hand']);
 
 async function topPoint(p, sel, i) {
   return p.evaluate(([s, k]) => {
@@ -67,6 +74,11 @@ async function topPoint(p, sel, i) {
   }, [sel, i]);
 }
 async function hoverTop(p, sel, i) { const pt = await topPoint(p, sel, i); if (pt) { await p.mouse.move(pt.x, pt.y); await p.waitForTimeout(250); } }
+async function rightClickTop(p, sel, i) { const pt = await topPoint(p, sel, i); if (pt) { await p.mouse.click(pt.x, pt.y, { button: 'right' }); await p.waitForTimeout(300); } }
+async function rightClickHand(p, type) {
+  const i = await p.evaluate((t) => [...document.querySelectorAll('.hand-card')].findIndex((el) => window.__match.state().players.p1.hand.find((c) => c.uid === el.dataset.uid)?.cardType === t), type);
+  if (i >= 0) await rightClickTop(p, '.hand-card', i);
+}
 async function clickTop(p, sel, i) { const pt = await topPoint(p, sel, i); if (pt) { await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(250); } }
 
 // Everything the page checks about itself (in stage pixels, so every size is judged the same way).
@@ -93,6 +105,20 @@ function inspect() {
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
   if (/…/.test(stage.textContent)) out.push('text trimmed with "…"');
+  // Stage G: the Codex (in its own layer, scaled with the stage): inside the window, nothing clipped, its card beside its text.
+  const cx = document.querySelector('#codex:not([hidden])');
+  if (cx) {
+    const b = box(cx);
+    if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`the Codex is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
+    for (const el of cx.querySelectorAll('.cx-crumb, .cx-search, .cx-id h2, .cx-th, .cx-tl, .cx-now, .cx-lv, .cx-tab td, .cx-ab, .cx-gl, .cx-mode, .cx-cost, .cx-fm, .cx-foot, .cx-res a')) {
+      if (!visible(el)) continue;
+      if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in the Codex ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
+      const e = box(el);
+      if (e.r > b.r + 1 || e.l < b.l - 1) out.push(`the Codex ${name(el)} sticks out of its panel`);
+    }
+    const cw = cx.querySelector('.cx-cw'); const id = cx.querySelector('.cx-id');
+    if (cw && id && box(cw).r > box(id).l + 1) out.push('the Codex card covers its text');
+  }
   // Each Location label on one line.
   for (const el of stage.querySelectorAll('.loc-line')) if (el.getBoundingClientRect().height / scale > 22) out.push(`a Location label wraps: "${el.textContent}"`);
   // Panels that must not cover each other.

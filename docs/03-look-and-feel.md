@@ -267,3 +267,71 @@ Stage F replaces section 10's items 1, 2 and 4 (the Prime tag and the curve stri
     - **Summons:** settle as they land. **Healing:** gets the springy numbers.
     - Low motion keeps the fades and the burn-away, without the motions.
 12. **`?timer=off`** (a dev aid for the checks and screenshots) stops a React window's countdown. The timer and its setting are unchanged for play.
+
+## 12. Readings from stage G (play-test feedback 2): needing Elliott's approval
+
+Built to the approved mockups in `docs/mockups/feedback-v2/`. Section 11 (stage F) is still waiting for approval and is unchanged.
+
+1. **The crystal is for Energy only.**
+   - A Legendary Creature keeps its ★ well: it arrives free, so it has no Energy cost to show.
+   - An Action's well shows its cheapest to dearest mode cost ("1–2") in one crystal, as before.
+   - The crystal also marks "N Energy" in the log, the prompts, the menus, the Codex and the rulebook quotes in the Codex.
+2. **No Release reminder on Events.** The Full card's "Release N: choose N other card(s) from your hand" line (an S4 reminder line, section 7 item 3) is removed. "Event · Release N" on the type line says it. The Event's text now starts with its effect.
+3. **The Energy panel** shows up to 12 crystals in its row. Exert's exhausted points are listed soonest first, each with the Round it comes back.
+4. **The Buy button.** When you can't buy, it's dimmed and gives the first reason that applies:
+   - "you need X more", when your Gold is short;
+   - "after the mulligan", "in the Battle Phase", "not during a React", "not your turn" or "wait for the action to finish";
+   - "no target, and your Bag is full";
+   - "not now", for anything else.
+5. **The hover preview** shows only while the pointer is over its card. It checks every pointer move and every frame while it shows. A card that slides under a still pointer (a drawn card, the hand closing up) opens no preview until the pointer moves. A scroll, a press, a drag, a React moment, a change of screen, a redraw, leaving the window, or opening the Codex all hide it.
+6. **Opening the Codex:**
+   - Right-clicking anywhere on the table during a match never opens the browser's menu.
+   - A right-click on something that isn't a card opens a glossary entry instead:
+     - the Energy panel opens **Energy**;
+     - your Gold opens **Gold**;
+     - a Warlord opens **Warlord**;
+     - the sealed-Strat note opens **Strat**.
+   - C opens the Codex for whatever is under the pointer, even while the hover preview is hidden (in a React moment, for example).
+   - Neither a right-click nor C changes a choice in progress.
+7. **Closing and moving around:**
+   - Esc always closes the Codex, even with text in the search. ✕ closes it too.
+   - Backspace (outside the search) and the ‹ button go back one step. Each step in the breadcrumbs is a link.
+   - A long trail keeps CODEX and its last two steps; the middle folds into "…", which goes back one step.
+   - The Codex closes when the match ends or you leave it.
+8. **It follows the match.** It redraws as the state changes. If the card moves somewhere it can't be followed (played from hand, defeated), it keeps the card as it last stood, with "It has moved on".
+9. **Where its numbers come from:**
+   - **Attack:** "on the curve at Level N" (the printed number less the Prime bonus), "Prime bonus +1", then on the battlefield its Location's passive, its Held Item, effects until Dusk and effects for good.
+   - **Health** shows the number on the card now. On the battlefield that's its current Health, so its rows end with "damage taken −N".
+   - Legendary cards and Legendary Creatures show "as printed", since they're off the curve.
+   - Armour and Riposte get rows of their own when a creature has them, split the same way.
+   - Each breakdown adds up to the number shown (tested through whole AI matches).
+10. **"What it means right now"** gives:
+    - where it is: the hand, or the side, lane and Location (with Rounds left);
+    - its Level and stage, and the Prime as a Round;
+    - its cost and why ("half its Level, rounded up"; "Legendary cards cost 5");
+    - your Energy and Exert left;
+    - Ready, Active or Spent, with the fastest Active Speed;
+    - its Held Item, its damage, and a sealed Strat aimed at it (yours by name, the enemy's not).
+    
+    For other cards:
+    - **Location:** the Health each side has there and who would score it at Dusk.
+    - **Item:** the Market's Stock and your Gold.
+    - **Campaign:** the Quest's progress and whether the card is in your hand.
+11. **Links:**
+    - The first mention of each game term in a block of text links to its glossary entry.
+    - In the "right now" lines, Round, Level, Summon, Attack, Health and creature aren't linked: they're linked in the table and the Levels line just below.
+    - On a card's page, a link opens the entry in the box below the abilities. Elsewhere it opens the entry as its own page.
+12. **The glossary** is made only of rulebook sentences, quoted word for word (a test checks each one).
+    - Ward quotes the Shield sentence too, because the rulebook defines Ward as "the same" as Shield.
+    - Exhaust starts mid-sentence, as the rulebook's line begins with its bold name.
+    - "Gain N Energy this Round" quotes reading 10 (section 13), which Elliott approved.
+    - **Terms not written, because the rulebook has no settled rule to quote:** Damage (as a word on its own), Heal, and a Monster's Kind (only in the open questions).
+13. **Hidden information.** The Codex never shows:
+    - the enemy's hand: it gives the number of cards only;
+    - an enemy sealed Strat's card: only the Round it was sealed and its target;
+    - any Draw Pile's order: the number of cards only.
+    
+    Discard and Released Piles show their count. A test checks all of this through whole AI matches.
+14. **The search** looks through glossary terms (names and text) and the rulebook's sections (titles and text). Enter opens the first result. The sections are read from `docs/01-rulebook.md` itself.
+15. **The series' forms** are each shown at the current Level if it falls in that form, otherwise at the Prime if it falls there, otherwise at the form's first Level. Clicking a form opens that form's page.
+16. **Low motion:** the Codex appears at once. Otherwise it slides in over 0.18 s.

@@ -111,6 +111,14 @@ export function createCodex(viewport, { state, viewer, lowMotion }) {
     const shown = items.length > 4 ? [items[0], { html: `<a href="#" data-crumb="${items[items.length - 3].i ?? -1}" title="Back">…</a>` }, ...items.slice(-2)] : items;
     return shown.map((x) => x.html).join('<span class="cx-sep">›</span>');
   }
+  // A long trail tightens its spacing, then its size, so it's never cut off.
+  function fitCrumb() {
+    crumb.style.letterSpacing = ''; crumb.style.fontSize = '';
+    for (const [ls, fs] of [[2, 12], [1, 12], [1, 11], [0.5, 10], [0, 9]]) {
+      crumb.style.letterSpacing = `${ls}px`; crumb.style.fontSize = `${fs}px`;
+      if (crumb.scrollWidth <= crumb.clientWidth + 1) return;
+    }
+  }
   function labelOf(e, i) {
     if (e.kind === 'card') {
       const ex = i === stack.length - 1 ? lastEx : null;
@@ -134,6 +142,7 @@ export function createCodex(viewport, { state, viewer, lowMotion }) {
     else html = searchPage(e.q);
     crumb.innerHTML = crumbs();
     panel.querySelector('.cx-back').hidden = stack.length < 2;
+    fitCrumb();
     if (html === lastHtml && !fresh) return;
     const y = body.scrollTop;
     body.innerHTML = html;
