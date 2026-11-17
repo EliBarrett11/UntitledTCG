@@ -1,6 +1,6 @@
 # Information panels, direction A refined (design chat, 17 November 2026)
 
-Elliott chose direction A from `hud-v1` and asked for it to be tidied so the format is very neat and each panel fills its space. Purely visual; no rules change. Drawn over the real game by `a2.mjs` + `a2.css`. Awaiting Elliott's approval.
+Elliott chose direction A from `hud-v1` and asked for it to be tidied so the format is very neat and each panel fills its space. Purely visual; no rules change. Drawn over the real game by `a2.mjs` + `a2.css`. **Approved by Elliott, 17 November 2026,** with one change: the Energy panel right of the hand is slimmer (about 270 px instead of 356, starting at x ≈ 1286), Exert stacked under the Energy number, so the hand has room for 10 cards that read as easily as 7 do now.
 
 - `a2-you.png` (your turn) and `a2-enemy.png` (the enemy's turn).
 - **One grid.** Every panel sits on the same edges and gutters: the enemy band spans the board's exact width; the right column's three panels share its width and run from the band's top edge to the bottom panels' bottom edge (16 px gaps); your two bottom panels fill the space left and right of the hand to the board's edges.
