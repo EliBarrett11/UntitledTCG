@@ -53,7 +53,7 @@ test('11: all Renown earned is increased by half, rounded up', () => {
   assert.equal(s.players.p1.renown, 5);
 });
 
-test('11: dominance: more total current Health across the battlefield gains 5 Renown (8 with the passive); ties give nothing', () => {
+test('11: dominance: more total Might across the battlefield gains 5 Renown (8 with the passive); ties give nothing', () => {
   let s = blank();
   s.lastBattle = { startedRound: 3, reason: 'test' };
   put(s, 'p1', 0, 'x-slow', { spent: true });

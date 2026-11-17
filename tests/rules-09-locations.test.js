@@ -66,7 +66,7 @@ test('9: duration counts down at Dusk after scoring; when it expires it goes to 
   assert.equal(s.players.p2.row[0].id, 'x-slow');
 });
 
-test('9: dominance: more total current Health there gains 3 Renown; ties and empty Locations give nothing; the Wilds are never scored', () => {
+test('9: dominance: more total Might there gains 3 Renown; ties and empty Locations give nothing; the Wilds are never scored', () => {
   let s = blank();
   put(s, 'p1', 0, 'x-slow', { spent: true, currentHealth: 3 });
   put(s, 'p2', 1, 'x-slow', { spent: true, currentHealth: 2 });

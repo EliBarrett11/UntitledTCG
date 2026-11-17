@@ -118,8 +118,10 @@ export const GLOSSARY = Object.freeze({
     'Placing one is an action that costs no Energy. It covers the lane you choose and the lanes to its right (2, 3 or 4 lanes, set per card) on both sides.',
     'Duration: a Location stays for a set number of Rounds, counting down at Dusk after scoring.',
     'Passive: each Location has one rule that applies to both players\' cards in it, immediately and while they stay. Losing a Health bonus never defeats a card: at least 1 Health is left.'], see: ['dominance'] },
-  dominance: { term: 'Dominance', section: '9', names: ['dominance', 'Dominate', 'dominated'], quotes: [
-    'Dominance: at Dusk, for each placed Location, the player with more total current Health there gains 3 Renown. Ties and empty Locations give nothing. The Wilds are never scored.'] },
+  dominance: { term: 'Dominance', section: '9', names: ['dominance', 'Dominate', 'dominated', 'dominates', 'DOMINATES', 'DOMINATE'], quotes: [
+    'Dominance: at Dusk, for each placed Location, the player with more total Might there gains 3 Renown. Ties and empty Locations give nothing. The Wilds are never scored.'], see: ['might'] },
+  might: { term: 'Might', section: '9', names: ['Might'], quotes: [
+    'Might: a creature\'s Might is its current Attack plus its current Health. Damage, buffs, Prime, Items and Location passives all count, because Might uses current stats.'], see: ['dominance'] },
   gold: { term: 'Gold', section: '10', names: ['Gold'], quotes: ['Gold: +1 at each Dawn, +1 for each enemy card defeated.'] },
   item: { term: 'Item', section: '10', names: ['Items', 'Item'], quotes: [
     'Buying an Item is an action. Buy one Item from your hand or the Market, then use it now (with its target) or store it in your Bag (6 spaces). A stored Item can be used from your next turn.'], see: ['held', 'consumed'] },

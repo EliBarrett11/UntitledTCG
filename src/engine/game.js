@@ -121,12 +121,15 @@ export function unmatchedReady(s, who) {
 // replaced in tests to stage the no-target case.)
 export const passBlockers = (s, who, targetsOf = attackTargets) => unmatchedReady(s, who).filter((sp) => targetsOf(s, who, sp).length);
 
-// 9, 11: dominance by total current Health.
+// 9, 11: dominance by total Might (V5, decided at Elliott's request, 17 November 2026). A creature's Might is its
+// current Attack plus its current Health, so damage, buffs, Prime, Items and Location passives all count.
+export const mightOf = (card) => (card ? card.attack + card.currentHealth : 0);
+export const mightIn = (s, lanes, who) => lanes.reduce((n, i) => n + mightOf(s.players[who].row[i]), 0);
 export const healthIn = (s, lanes, who) => lanes.reduce((n, i) => n + (s.players[who].row[i]?.currentHealth ?? 0), 0);
-const allLanes = () => Array.from({ length: RULES.lanes }, (_, i) => i);
+export const allLanes = () => Array.from({ length: RULES.lanes }, (_, i) => i);
 export function dominantIn(s, lanes) {
-  const a = healthIn(s, lanes, 'p1');
-  const b = healthIn(s, lanes, 'p2');
+  const a = mightIn(s, lanes, 'p1');
+  const b = mightIn(s, lanes, 'p2');
   return a > b ? 'p1' : b > a ? 'p2' : null;
 }
 export const dominantOf = (s, l) => dominantIn(s, lanesOf(l));

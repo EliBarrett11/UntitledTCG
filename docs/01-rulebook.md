@@ -200,7 +200,8 @@ Each Action card has up to three **modes**, each with its own cost and effect.
 - **Placing one** is an action that costs no Energy. It covers the lane you choose and the lanes to its right (2, 3 or 4 lanes, set per card) on both sides. It can be placed over lanes where cards already stand. Either player may place one, limited only by free lanes.
 - **Duration:** a Location stays for a set number of Rounds, counting down at Dusk after scoring. When it expires, it goes to its owner's Discard Pile, its lanes become the Wilds again, and cards stay where they are.
 - **Passive:** each Location has one rule that applies to both players' cards in it, immediately and while they stay. Losing a Health bonus never defeats a card: at least 1 Health is left.
-- **Dominance:** at Dusk, for each placed Location, the player with more total current Health there gains 3 Renown. Ties and empty Locations give nothing. The Wilds are never scored.
+- **Might:** a creature's Might is its current Attack plus its current Health. Damage, buffs, Prime, Items and Location passives all count, because Might uses current stats. (Decided at Elliott's request, 17 November 2026.)
+- **Dominance:** at Dusk, for each placed Location, the player with more total Might there gains 3 Renown. Ties and empty Locations give nothing. The Wilds are never scored.
 
 ## 10. Items, Gold and the Market
 
@@ -225,7 +226,7 @@ Each Action card has up to three **modes**, each with its own cost and effect.
   - Location passives no longer apply, and no Location can be placed for the rest of the match.
   - The Last Battle lasts until the match ends.
 - **Passive:** all Renown earned is increased by half, rounded up.
-- **Dominance:** at each Dusk, the player with more total current Health across the battlefield gains 5 Renown (8 with the passive). Ties give nothing. It counts as dominating a Location for any Quest that asks for that.
+- **Dominance:** at each Dusk, the player with more total Might across the battlefield gains 5 Renown (8 with the passive). Ties give nothing. It counts as dominating a Location for any Quest that asks for that.
 - **Guards:** every lane is one Location, so a guard protects its whole side.
 
 ## 12. Keywords, triggers and effects

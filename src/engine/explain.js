@@ -12,7 +12,7 @@
 import { cardDef, cardAtRound, creatureAtLevel, formAt, levelsOf, isCreature, legendaryCreatureOf, allDefs, primeRoundOf } from './cards.js';
 import { levelFor, RULES, SPEED_ORDER } from './rules.js';
 import { availableExert } from './energy.js';
-import { opponentOf, locationAt, lanesOf, passiveOps, isReady, topSpeed, keywordAmount, healthIn, dominantIn, guardsOf } from './game.js';
+import { opponentOf, locationAt, lanesOf, passiveOps, isReady, topSpeed, keywordAmount, mightIn, dominantIn, guardsOf } from './game.js';
 import { KEYWORDS } from './abilities.js';
 import { chosenTargetWords } from './wording.js';
 
@@ -288,11 +288,11 @@ function otherNow(s, found, viewer) {
   if (found.placed) {
     const l = found.placed;
     const lanes = lanesOf(l);
-    const mine = healthIn(s, lanes, viewer);
-    const theirs = healthIn(s, lanes, opponentOf(viewer));
+    const mine = mightIn(s, lanes, viewer);
+    const theirs = mightIn(s, lanes, opponentOf(viewer));
     const dom = dominantIn(s, lanes);
     lines.push(`Placed by ${who === viewer ? 'you' : 'the enemy'} over lanes ${lanes[0] + 1}–${lanes[lanes.length - 1] + 1}, with **${plural(l.roundsLeft, 'Round')} left**.`);
-    lines.push(`Health here now: you ${mine}, the enemy ${theirs}. ${dom === viewer ? `**You dominate** it: +${RULES.perDominance} Renown at Dusk.` : dom ? `**The enemy dominates** it: +${RULES.perDominance} Renown to them at Dusk.` : 'Tied: nobody scores it at Dusk.'}`);
+    lines.push(`Might here now: you ${mine}, the enemy ${theirs}. ${dom === viewer ? `**You dominate** it: +${RULES.perDominance} Renown at Dusk.` : dom ? `**The enemy dominates** it: +${RULES.perDominance} Renown to them at Dusk.` : 'Tied: nobody scores it at Dusk.'}`);
     return lines;
   }
   if (found.quest) {
