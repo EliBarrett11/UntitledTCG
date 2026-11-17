@@ -131,6 +131,35 @@ async function bothShots(name) {
   say(`saved m-${name}.png`);
 }
 const waitFor = (p, fn, arg, ms = 30000) => p.page.waitForFunction(fn, arg, { timeout: ms });
+// V5: what each screen reads, to compare the two seats: the turn plaque, both Energy displays, every dominance line,
+// and any announcement showing.
+const reads = (p) => p.page.evaluate(() => ({
+  presenting: document.body.dataset.presenting, version: document.body.dataset.version,
+  whose: document.querySelector('[data-region="turn-plaque"]')?.dataset.whose ?? null,
+  mine: Number(document.querySelector('.my-energy .en-num')?.dataset.energy), theirs: Number(document.querySelector('.foe-energy .en-num')?.dataset.energy),
+  dom: Object.fromEntries([...document.querySelectorAll('.dom-line[data-dom]')].map((el) => [el.dataset.dom, [Number(el.dataset.them), Number(el.dataset.you)]])),
+  announce: document.querySelector('[data-region="announce"]')?.textContent.replace(/\s+/g, ' ').trim() ?? null,
+}));
+const v5 = { compared: 0, announceHost: new Set(), announceGuest: new Set() };
+async function compareSeats() {
+  const [a, b] = await Promise.all([reads(host), reads(guest)]);
+  if (a.announce) v5.announceHost.add(a.announce);
+  if (b.announce) v5.announceGuest.add(b.announce);
+  if (a.presenting === '1' || b.presenting === '1') return;
+  const hv = await host.page.evaluate(() => window.__match.state().players.p2 ? { v: document.body.dataset.version } : null);
+  if (!hv) return;
+  // (Only at the same moment: both screens idle on the same update.)
+  const same = await Promise.all([host.page.evaluate(() => JSON.stringify(window.__match.state().log.length)), guest.page.evaluate(() => JSON.stringify(window.__match.state().log.length))]);
+  if (same[0] !== same[1]) return;
+  if (a.whose && b.whose && a.whose !== 'none' && !((a.whose === 'you' && b.whose === 'them') || (a.whose === 'them' && b.whose === 'you'))) throw new Error(`the turn plaques disagree: host ${a.whose}, guest ${b.whose}`);
+  if (a.mine !== b.theirs || a.theirs !== b.mine) throw new Error(`the Energy displays disagree: host ${a.mine}/${a.theirs}, guest ${b.mine}/${b.theirs}`);
+  for (const [k, [t, y]] of Object.entries(a.dom)) {
+    const g = b.dom[k];
+    if (!g) throw new Error(`the guest has no dominance line for ${k}`);
+    if (g[0] !== y || g[1] !== t) throw new Error(`the dominance line ${k} disagrees: host ${t}-${y}, guest ${g[0]}-${g[1]}`);
+  }
+  v5.compared += 1;
+}
 const hostState = () => host.page.evaluate(() => { const s = window.__match?.state(); return s ? { round: s.round, phase: s.phase, winner: s.winner } : null; });
 
 let failed = null;
@@ -213,6 +242,7 @@ try {
       await bothShots('host-back');
       continue;
     }
+    await compareSeats();
     const acted = (await move(host)) || (await move(guest));
     if (!acted) await host.page.waitForTimeout(120);
   }
@@ -244,6 +274,14 @@ try {
   say('the guest left; the host was told');
   if (errors.length) throw new Error(errors.join('; '));
   for (const p of [host, guest]) say(`${p.name}: ${Object.entries(p.counts).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+  // V5: the two seats read alike, and each side's announcements of the other's actions name "your friend".
+  if (v5.compared < 20) throw new Error(`the two seats were compared only ${v5.compared} times`);
+  for (const [who, set] of [['host', v5.announceHost], ['guest', v5.announceGuest]]) {
+    if (!set.size) throw new Error(`the ${who} saw no announcement of their friend's actions`);
+    const wrong = [...set].find((t) => !/^YOUR FRIEND /.test(t));
+    if (wrong) throw new Error(`an announcement on the ${who}'s screen doesn't name "your friend": ${wrong}`);
+  }
+  say(`V5: the seats agreed ${v5.compared} times (turn plaques, Energy, dominance lines); announcements: host ${v5.announceHost.size}, guest ${v5.announceGuest.size}`);
 } catch (e) {
   failed = e;
   await host.page.screenshot({ path: join(shots, 'm-fail-host.png') }).catch(() => {});

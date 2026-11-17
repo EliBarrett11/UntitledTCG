@@ -19,7 +19,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 'g';
+const STAGE = 'v5';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -48,6 +48,18 @@ const SCENES = [
   // Stage P: two Location tiles mid-match, and the hover preview of a creature in hand with its series curve strip.
   { name: 'tiles', query: '?seed=1&scene=mid&pace=100000', need: '.loc .loc-art' },
   { name: 'series', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card:has(.cv-level)', 0); }, need: '.preview:not([hidden]) .series-line', preview: true },
+  // V5: keyword tips, both turn plaques, an announcement, each kind of dominance line, the Might hexagons on hover,
+  // and the Energy display with ready and exhausted Exert and a cost preview.
+  { name: 'v5-tip', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverText(p, 'On Summon', '.hand-card'); }, need: '.kw-tip' },
+  { name: 'v5-tip-token', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverText(p, 'Ward', '.slot-card'); }, need: '.kw-tip', only: [1920, 1366] },
+  { name: 'v5-turn-you', query: '?seed=10&scene=mid&pace=100000', need: '[data-region="turn-plaque"][data-whose="you"]' },
+  { name: 'v5-turn-enemy', query: '?seed=10&scene=enemy&pace=100000', need: '[data-region="turn-plaque"][data-whose="them"]' },
+  { name: 'v5-announce', query: '?seed=10&scene=mid&autoplay=1&pace=600&speed=slow&lowmotion=1', steps: async (p) => { await p.waitForSelector('[data-region="announce"]:not(.out)', { timeout: 90000 }); await p.waitForTimeout(150); }, need: '[data-region="announce"]' },
+  { name: 'v5-dom-you', query: '?seed=11&scene=mid&pace=100000', need: '.dom-say.you' },
+  { name: 'v5-dom-enemy', query: '?seed=10&scene=mid&pace=100000', need: '.dom-say.them' },
+  { name: 'v5-dom-tie', query: '?seed=4&scene=mid&pace=100000', need: '.dom-say.tie' },
+  { name: 'v5-might-hover', query: '?seed=11&scene=mid&pace=100000', steps: async (p) => { await hoverTop(p, '.dom-line', 0); }, need: '.might-hex.on' },
+  { name: 'v5-energy-preview', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverTop(p, '.hand-card', 1); }, need: '[data-region="energy-preview"]' },
   // Stage M: playing a friend: the title with a match to resume, each lobby screen, and online match setup from both
   // seats (?lobby=…: drawn with sample words; nothing connects).
   { name: 'm-title', query: '?lobby=title', need: '[data-act="net-resume"]' },
@@ -64,7 +76,7 @@ const SCENES = [
 ];
 // The labels on the painted map, checked for contrast in these scenes.
 const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles']);
-const SHOT_ALL_SIZES = new Set(['mid', 'react', 'tiles', 'codex-hand']);
+const SHOT_ALL_SIZES = new Set(['mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie']);
 
 async function topPoint(p, sel, i) {
   return p.evaluate(([s, k]) => {
@@ -84,6 +96,25 @@ async function rightClickTop(p, sel, i) { const pt = await topPoint(p, sel, i); 
 async function rightClickHand(p, type) {
   const i = await p.evaluate((t) => [...document.querySelectorAll('.hand-card')].findIndex((el) => window.__match.state().players.p1.hand.find((c) => c.uid === el.dataset.uid)?.cardType === t), type);
   if (i >= 0) await rightClickTop(p, '.hand-card', i);
+}
+// Hovers a word in card text (V5's keyword tips), on the element that is really on top there.
+async function hoverText(p, word, within) {
+  const pt = await p.evaluate(([w, sel]) => {
+    for (const host of document.querySelectorAll(sel)) {
+      const walk = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+      for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+        const i = n.textContent.indexOf(w);
+        if (i < 0) continue;
+        const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + w.length);
+        const b = r.getBoundingClientRect();
+        const x = b.left + b.width / 2; const y = b.top + b.height / 2;
+        const top = document.elementFromPoint(x, y);
+        if (b.width > 1 && top && (n.parentElement === top || n.parentElement.contains(top) || top.contains(n.parentElement))) return { x, y };
+      }
+    }
+    return null;
+  }, [word, within]);
+  if (pt) { await p.mouse.move(pt.x - 30, pt.y - 30); await p.mouse.move(pt.x, pt.y, { steps: 4 }); await p.waitForTimeout(800); }
 }
 async function clickTop(p, sel, i) { const pt = await topPoint(p, sel, i); if (pt) { await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(250); } }
 
@@ -106,7 +137,7 @@ function inspect() {
     if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
   }
   // No text clipped or cut off.
-  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c b, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .lobby-h, .lobby-code, .lobby-k, .lobby-p, .lobby-wait, .lobby-err, .title-notice, .title-resume-sub, .setup-wait, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b')) {
+  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c b, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .tp-title, .tp-line, .tp-btn, .tp-hint, .en-num, .en-label, .ex-word, .dom-line, .dom-say, .must-tag, .lobby-h, .lobby-code, .lobby-k, .lobby-p, .lobby-wait, .lobby-err, .title-notice, .title-resume-sub, .setup-wait, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b')) {
     if (!visible(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
@@ -115,6 +146,14 @@ function inspect() {
   const walk = document.createTreeWalker(stage, NodeFilter.SHOW_TEXT);
   for (let n = walk.nextNode(); n; n = walk.nextNode()) if (!n.parentElement.closest('.lobby-wait, .setup-wait, .caption, .net-banner')) said.push(n.textContent);
   if (/…/.test(said.join(' '))) out.push('text trimmed with "…"');
+  // V5: the announcement (in its own layer) and a keyword tip: on screen, nothing clipped, the tip clear of its term.
+  for (const el of document.querySelectorAll('#announce-layer .announce, #announce-layer .an-name, #announce-layer .an-line, .kw-tip, .kw-text, .kw-head')) {
+    const b = box(el);
+    if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen`);
+    if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
+  }
+  const tipEl = document.querySelector('.kw-tip'); const lineEl = document.querySelector('.kw-line');
+  if (tipEl && lineEl) { const a = box(tipEl); const u = box(lineEl); if (a.l < u.r && u.l < a.r && a.t < u.b && u.t - 16 < a.b) out.push('the keyword tip covers its term'); }
   // Stage G: the Codex (in its own layer, scaled with the stage): inside the window, nothing clipped, its card beside its text.
   const cx = document.querySelector('#codex:not([hidden])');
   if (cx) {
@@ -146,7 +185,10 @@ function inspect() {
     ['.end-panel', '.end-panel'], ['.end-panel', '.end-heroes'], ['.end-panel', '.end-heroes-label'], ['.end-how', '.end-panel'], ['.end-buttons', '.hero-note'],
     ['.loc-label', '.slot-card'], ['.preview .series-line', '.preview .card'],
     ['.prime-tab', '.hand-card .cv-well'], ['.prime-tab', '.hand-card .cv-name'], ['.prime-tab', '.slot-card'], ['.end-panel', '.end-head'], ['.end-heroes', '.end-buttons'], ['.hero', '.hero'],
-    ['.setup-side', '.setup-mid'], ['.title-block', '.title-note'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
+    ['.setup-side', '.setup-mid'], ['.title-block', '.title-note'],
+    // (V5: the Energy display beside the hand never meets the hand, the piles, the board, the column or the marker.)
+    ['.my-energy', '.hand-card'], ['.my-energy', '.me-piles .piles'], ['.my-energy', '[data-region="map"]'], ['.my-energy', '[data-region="column"]'], ['.my-energy', '.side-marker'],
+    ['.dom-say', '.slot-card'], ['.caption', '.dom-line'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);
   const labels = one('.loc-label');
@@ -215,6 +257,7 @@ let failures = 0;
 
 for (const [w, h] of SIZES) {
   for (const sc of SCENES) {
+    if (sc.only && !sc.only.includes(w)) continue;   // (V5: a token's text is too small to tip at 1280×720)
     const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });

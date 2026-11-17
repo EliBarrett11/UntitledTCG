@@ -220,6 +220,8 @@ export function startApp(params) {
       'react-adapt': () => s.reactWindow?.reactor === HUMAN && s.reactWindow.pending.type === 'action',
       'react-strat': () => s.reactWindow?.reactor === HUMAN && s.reactWindow.pending.type === 'strat',
       lastbattle: () => s.lastBattle && s.phase === 'battle' && !s.reactWindow && actor(s) === HUMAN,
+      // (V5: the other player's turn, for the turn plaque's scene.)
+      enemy: () => s.round >= 4 && s.phase === 'battle' && !s.reactWindow && actor(s) === AI,
       end: () => s.phase === 'gameOver',
       quest: () => s.phase === 'battle' && !s.reactWindow && Object.values(s.players).some((p) => (p.quests ?? []).some((qq) => !qq.complete && qq.progress >= qq.quest.need - 2)),
     }[scene];

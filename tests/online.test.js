@@ -319,4 +319,32 @@ test('leave match: the other player is told, and nothing more happens', async ()
   assert.equal(again.log.left, 1, 'the guest is told the host left');
 });
 
+test('V5: announcing the host\'s actions to the guest never shows hidden information', async () => {
+  const { setSeat } = await import('../src/ui/text.js');
+  const { announcement, announcementHtml } = await import('../src/ui/turn.js');
+  setSeat(GUEST_SEAT, { online: true });
+  const { host, guest, log } = await connect({ seed: 53 });
+  host.begin();
+  await flush();
+  const seen = [];
+  const prevs = [];
+  guest.on.update = (prev, next, who) => { if (who === HOST_SEAT) prevs.push({ prev, next, real: host.state }); };
+  await playOn(host, guest, makeRng(53), { until: () => host.seq > 160 });
+  let sealed = 0;
+  for (const { prev, next, real } of prevs) {
+    const a = announcement(prev, next, next.events, HOST_SEAT);
+    if (!a) continue;
+    const html = announcementHtml(a);
+    seen.push(a.verb);
+    for (const c of [...real.players[HOST_SEAT].hand, ...real.players.p1.drawPile, ...real.players.p2.drawPile]) assert.ok(!html.includes(c.uid), `an announcement showed ${c.uid}`);
+    for (const x of real.strats.filter((y) => y.owner === HOST_SEAT)) assert.ok(!html.includes(x.card.uid));
+    if (a.verb === 'SEALS A STRAT') { sealed++; assert.equal(a.name, 'A sealed Strat'); assert.ok(a.back, 'shown face down'); const sealedIds = next.events.filter((e) => e.type === 'stratSealed').map((e) => e.uid); for (const x of real.strats.filter((y) => sealedIds.includes(y.uid))) assert.ok(!html.includes(x.card.name), `a sealed Strat was named: ${x.card.name}`); }
+    if (a.verb === 'RETAINS A CARD') assert.ok(a.back);
+  }
+  assert.ok(seen.length > 20, `${seen.length} announcements`);
+  console.log(`  ${seen.length} announcements of the host's actions; ${sealed} sealed Strats, never named.`);
+  void log;
+  setSeat('p1');
+});
+
 run('online');
