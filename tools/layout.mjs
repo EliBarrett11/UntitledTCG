@@ -47,7 +47,7 @@ const SCENES = [
   { name: 'defeat', query: '?seed=3&scene=end&pace=100000', need: '.screen-end.defeat' },
   // Stage P: two Location tiles mid-match, and the hover preview of a creature in hand with its series curve strip.
   { name: 'tiles', query: '?seed=1&scene=mid&pace=100000', need: '.loc .loc-art' },
-  { name: 'series', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card:has(.cv-level:not(.legend))', 0); }, need: '.preview:not([hidden]) .series-line', preview: true },
+  { name: 'series', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card', await p.evaluate(() => [...document.querySelectorAll('.hand-card')].findIndex((el) => { const c = window.__match.state().players.p1.hand.find((x) => x.uid === el.dataset.uid); return c && (c.cardType === 'Character' || c.cardType === 'Monster') && c.series !== 'Legendary'; }))); }, need: '.preview:not([hidden]) .series-line', preview: true },
   // V5: keyword tips, both turn plaques, an announcement, each kind of dominance line, the Might hexagons on hover,
   // and the Energy display with ready and exhausted Exert and a cost preview.
   { name: 'v5-tip', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverText(p, 'On Summon', '.hand-card'); }, need: '.kw-tip' },
