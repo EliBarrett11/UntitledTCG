@@ -21,6 +21,7 @@ const RUNS = [
   { label: 'fast, skipping often', query: 'speed=fast&lowmotion=0', skip: 0.5 },
   { label: 'normal, skipping sometimes', query: 'speed=normal&lowmotion=0', skip: 0.15, maxActions: 140 },
   { label: 'low motion', query: 'speed=fast&lowmotion=1', skip: 0.2 },
+  { label: "from Player 2's seat", query: 'speed=fast&lowmotion=0&seat=p2', skip: 0.3 },
 ];
 const server = staticServer(root);
 await new Promise((r) => server.listen(0, '127.0.0.1', r));

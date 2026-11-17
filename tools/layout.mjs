@@ -11,6 +11,7 @@ import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { staticServer } from './serve.mjs';
+import { measureHand } from './handread.mjs';
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -19,7 +20,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 'v5';
+const STAGE = 'h';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -48,6 +49,14 @@ const SCENES = [
   // Stage P: two Location tiles mid-match, and the hover preview of a creature in hand with its series curve strip.
   { name: 'tiles', query: '?seed=1&scene=mid&pace=100000', need: '.loc .loc-art' },
   { name: 'series', query: `?seed=${SEED}&scene=mid&pace=100000`, steps: async (p) => { await hoverTop(p, '.hand-card', await p.evaluate(() => [...document.querySelectorAll('.hand-card')].findIndex((el) => { const c = window.__match.state().players.p1.hand.find((x) => x.uid === el.dataset.uid); return c && (c.cardType === 'Character' || c.cardType === 'Monster') && c.series !== 'Legendary'; }))); }, need: '.preview:not([hidden]) .series-line', preview: true },
+  // Stage H: the hand at 7, 8, 9 and 10 cards (with two at their Prime), each card's name and cost no more hidden
+  // than with 7 before stage H; a 10-card hand hovered; both turn states; the full log; and the guest's seat online.
+  ...[7, 8, 9, 10].map((n) => ({ name: `h-hand-${n}`, query: `?seed=10&scene=mid&pace=100000&hand=${n}`, need: '.hand-card.at-prime', hand: n })),
+  { name: 'h-hand-10-hover', query: '?seed=10&scene=mid&pace=100000&hand=10', steps: async (p) => { await hoverTop(p, '.hand-card', 4); }, preview: true, lifted: 4 },
+  { name: 'h-turn-you', query: '?seed=10&scene=mid&pace=100000', need: '.hud.you-panel.active' },
+  { name: 'h-turn-enemy', query: '?seed=10&scene=enemy&pace=100000', need: '.hud.band.active .hc-warlord' },
+  { name: 'h-full-log', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await clickTop(p, '[data-act="log"]', 0); }, need: '[data-region="full-log"] .log-line' },
+  { name: 'h-guest', query: '?seed=10&scene=mid&pace=100000&seat=p2', need: '[data-region="warlord-p2"] .ring.you' },
   // V5: keyword tips, both turn plaques, an announcement, each kind of dominance line, the Might hexagons on hover,
   // and the Energy display with ready and exhausted Exert and a cost preview.
   { name: 'v5-tip', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverText(p, 'On Summon', '.hand-card'); }, need: '.kw-tip' },
@@ -76,7 +85,7 @@ const SCENES = [
 ];
 // The labels on the painted map, checked for contrast in these scenes.
 const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles']);
-const SHOT_ALL_SIZES = new Set(['mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie']);
+const SHOT_ALL_SIZES = new Set(['mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
 
 async function topPoint(p, sel, i) {
   return p.evaluate(([s, k]) => {
@@ -137,7 +146,7 @@ function inspect() {
     if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
   }
   // No text clipped or cut off.
-  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .panel, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c b, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .tp-title, .tp-line, .tp-btn, .tp-hint, .en-num, .en-label, .ex-word, .dom-line, .dom-say, .must-tag, .lobby-h, .lobby-code, .lobby-k, .lobby-p, .lobby-wait, .lobby-err, .title-notice, .title-resume-sub, .setup-wait, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b')) {
+  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .hud, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c b, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .tp-title, .tp-line, .tp-btn, .tp-hint, .en-num, .en-label, .ex-word, .ex-ready, .dom-line, .dom-say, .hud .cap, .hud .sub, .pile-n, .round-n, .phase, .pass-note, .stock, .log-line, .log-open, .warlord-title, .quest-name, .quest-line, .dial-n, .dial-of, .hud .num, .gold-n, .lb-note, .lobby-h, .lobby-code, .lobby-k, .lobby-p, .lobby-wait, .lobby-err, .title-notice, .title-resume-sub, .setup-wait, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b')) {
     if (!visible(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
@@ -175,8 +184,10 @@ function inspect() {
   const overlap = (a, b) => { const x = box(a); const y = box(b); return x.l < y.r - 1 && y.l < x.r - 1 && x.t < y.b - 1 && y.t < x.b - 1; };
   const pairs = [
     ['[data-region="topbar"]', '[data-region="map"]'], ['[data-region="topbar"]', '[data-region="column"]'], ['[data-region="map"]', '[data-region="column"]'],
-    ['.hand-card', '.me-piles .piles'], ['.hand-card', '.me-left .quest'], ['.hand-card', '.me-left .warlord'], ['.hand-card', '[data-region="column"]'],
-    ['.side-marker', '[data-region="map"]'], ['.side-marker', '.hand-card'], ['.side-marker', '.me-left .quest'],
+    ['.hand-card', '[data-region="you-panel"]'], ['.hand-card', '[data-region="energy-panel"]'], ['.hand-card', '.column > .hud'],
+    ['.side-marker', '[data-region="map"]'], ['.side-marker', '.hand-card'], ['.side-marker', '.hud'],
+    // (Stage H: no panel covers another, or the board; the full log is the one that lies over the board.)
+    ['.hud:not(.full-log)', '.hud:not(.full-log)'], ['.hud:not(.full-log)', '[data-region="map"]'],
     // (Stage F: in a React moment, the plates and headline never cover a card involved, a mark or each other.)
     ['.rx-panel', '.rx-lift:not(.opt)'], ['.rx-panel', '.rx-lift.opt'], ['.rx-panel', '.rx-chip'], ['.rx-panel', '.rx-dmg'], ['.rx-chip', '.rx-chip'], ['.rx-plate', '.rx-plate'],
     ['.caption', '.loc-label'], ['.prompt', '.loc-label'], ['.caption', '.prompt'], ['.caption', '.slot-card'], ['.prompt', '.slot-card'],
@@ -186,11 +197,24 @@ function inspect() {
     ['.loc-label', '[data-region="map"] .slot-card'], ['.preview .series-line', '.preview .card'],
     ['.prime-tab', '.hand-card .cv-well'], ['.prime-tab', '.hand-card .cv-name'], ['.prime-tab', '.slot-card'], ['.end-panel', '.end-head'], ['.end-heroes', '.end-buttons'], ['.hero', '.hero'],
     ['.setup-side', '.setup-mid'], ['.title-block', '.title-note'],
-    // (V5: the Energy display beside the hand never meets the hand, the piles, the board, the column or the marker.)
-    ['.my-energy', '.hand-card'], ['.my-energy', '.me-piles .piles'], ['.my-energy', '[data-region="map"]'], ['.my-energy', '[data-region="column"]'], ['.my-energy', '.side-marker'],
+    // (V5: the Energy display beside the hand never meets the hand or its piles.)
+    ['.my-energy', '.hand-card'], ['.my-energy', '.me-piles .piles'],
     ['.dom-say', '[data-region="map"] .slot-card'], ['.caption', '.dom-line'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);
+  // Stage H: one grid. Every panel on the same edges, 16 px apart: the band spans the board, the column's three
+  // panels share its width from the band's top to the bottom panels' bottom, the bottom panels reach the board's edges.
+  const at = (sel) => { const el = stage.querySelector(sel); return el && visible(el) ? box(el) : null; };
+  const g = { band: at('.hud.band'), map: at('[data-region="map"]'), cmd: at('.hud.command'), mkt: at('.hud.market-panel'), log: at('.hud.log-panel'), you: at('.hud.you-panel'), en: at('.hud.energy-panel-h') };
+  if (g.band && g.map && g.cmd && g.mkt && g.log && g.you && g.en) {
+    const near = (a, b, what) => { if (Math.abs(a - b) > 1) out.push(`the grid: ${what} (${a.toFixed(1)} vs ${b.toFixed(1)})`); };
+    near(g.band.l, g.map.l, 'the band\'s left edge'); near(g.band.r, g.map.r, 'the band\'s right edge'); near(g.map.t - g.band.b, 16, 'the band to the board');
+    near(g.cmd.l - g.map.r, 16, 'the board to the column'); near(g.cmd.t, g.band.t, 'the column\'s top');
+    for (const k of ['mkt', 'log']) { near(g[k].l, g.cmd.l, `${k}'s left edge`); near(g[k].r, g.cmd.r, `${k}'s right edge`); }
+    near(g.mkt.t - g.cmd.b, 16, 'command to Market'); near(g.log.t - g.mkt.b, 16, 'Market to last actions'); near(g.log.b, g.you.b, 'the column\'s bottom');
+    near(g.you.t - g.map.b, 16, 'the board to your panels'); near(g.en.t, g.you.t, 'your panels\' tops'); near(g.en.b, g.you.b, 'your panels\' bottoms');
+    near(g.you.l, g.map.l, 'your Warlord panel\'s left edge'); near(g.en.r, g.map.r, 'your Energy panel\'s right edge');
+  }
   const labels = one('.loc-label');
   for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) if (overlap(labels[i], labels[j])) out.push('two Location labels overlap');
   return out;
@@ -271,6 +295,30 @@ for (const [w, h] of SIZES) {
     if (sc.need && !(await page.$(sc.need))) problems.push(`the scene didn't reach ${sc.need}`);
     if (sc.preview && !(await page.$('.preview:not([hidden]) .card-full'))) problems.push('the hover preview did not show');
     problems.push(...(await page.evaluate(inspect)), ...errors);
+    // (Stage H: with up to 10 cards, no card's name is hidden by a neighbour more than with 7 before stage H (46%,
+    // tools/handread.mjs), and no cost well at all.)
+    if (sc.hand) {
+      await page.mouse.move(2, 2); await page.waitForTimeout(300);
+      const n = await page.$$eval('.hand-card', (els) => els.length);
+      if (n !== sc.hand) problems.push(`the hand holds ${n}, not ${sc.hand}`);
+      const m = await measureHand(page);
+      if (m.worst.name > 0.47) problems.push(`a card's name is ${(100 * m.worst.name).toFixed(0)}% hidden (7 cards before stage H: 46%)`);
+      if (m.worst.cost > 0) problems.push(`a card's cost is ${(100 * m.worst.cost).toFixed(0)}% hidden`);
+      console.log(`      hand (${sc.hand} cards, ${w}×${h}): names hidden up to ${(100 * m.worst.name).toFixed(0)}%, costs ${(100 * m.worst.cost).toFixed(0)}%`);
+    }
+    // (A hovered card lifts clear: on top of its neighbours, and still clear of the panels.)
+    if (sc.lifted !== undefined) {
+      const r = await page.evaluate((i) => {
+        const el = document.querySelectorAll('.hand-card')[i];
+        const b = el.getBoundingClientRect();
+        const pts = [[0.5, 0.15], [0.15, 0.5], [0.85, 0.5], [0.5, 0.85]].map(([x, y]) => document.elementFromPoint(b.left + b.width * x, b.top + b.height * y));
+        const covered = pts.filter((t) => !t || !el.contains(t)).length;
+        const hit = [...document.querySelectorAll('.hud')].filter((h) => { const a = h.getBoundingClientRect(); return a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1; }).map((h) => h.dataset.region);
+        return { covered, hit };
+      }, sc.lifted);
+      if (r.covered) problems.push(`the hovered card is covered at ${r.covered} of 4 points`);
+      if (r.hit.length) problems.push(`the hovered card meets ${r.hit.join(', ')}`);
+    }
     if (CONTRAST.has(sc.name)) {
       const cs = await contrast(page);
       for (const c of cs) if (!c.ok) problems.push(`low contrast on the map: ${c.label} ${c.low.toFixed(2)}:1 (needs ${c.need}:1)`);

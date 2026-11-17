@@ -43,49 +43,15 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0806; }
 .ic svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* --- Top bar (the enemy) and the bottom (you) --- */
-.topbar { position: absolute; left: 24px; top: 12px; width: 1532px; height: 104px; display: flex; align-items: center; gap: 22px; }
-.warlord { display: flex; align-items: center; gap: 12px; border: 1px solid var(--brass); border-radius: 6px 6px 18px 18px; padding: 8px 14px 8px 10px; }
-.warlord-enemy { background: linear-gradient(#23324f, #1c130c); }
-.warlord-you { background: linear-gradient(#6e1c22, #1c130c); }
-.warlord-title { font-family: Cinzel, serif; font-size: 16px; font-weight: 700; letter-spacing: 1px; }
-.warlord-text { display: flex; flex-direction: column; gap: 2px; }
-.dial { border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.dial-in { border-radius: 50%; background: #1c130c; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; }
-.dial-n { font-size: 22px; font-weight: 700; line-height: 1; }
-.dial-of { font-size: 9px; letter-spacing: 1px; color: var(--muted); }
 
-.quest { display: flex; flex-direction: column; gap: 4px; background: rgba(28,19,12,0.85); border: 1px solid rgba(199,161,90,0.5); border-radius: 6px; padding: 8px 12px; width: 290px; }
-.quest-name { font-family: Cinzel, serif; font-size: 13px; }
-.quest-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.segs { display: flex; gap: 4px; }
-.seg { flex-grow: 1; height: 8px; border-radius: 2px; background: rgba(232,220,192,0.15); }
-.seg.on { background: #6d4aa0; }
-.quest-line { font-size: 11px; color: var(--muted); line-height: 1.25; }
 
-.enemy-hand { display: flex; align-items: center; padding-left: 14px; }
 /* A face-down card: the painted back, in the cards' rounded outline (radius 10 of 340), with a brass hairline. */
 .back { border-radius: 2.9% / 2.1%; border: 1px solid #c2a36a; background: #0b0806 url('../../assets/ui/card-back.jpg') center / cover no-repeat; box-shadow: 0 0 0 1px #050302, 0 2px 4px rgba(0,0,0,0.6); box-sizing: border-box; }
 .back-small { width: 40px; height: 56px; margin-left: -14px; }
 .back-chip { width: 18px; height: 25px; display: inline-block; vertical-align: middle; }
-.enemy-count { white-space: nowrap; }
 .sealed-note { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 
-.piles { display: flex; gap: 14px; align-items: flex-end; }
-.pile { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.pile-card { width: 46px; height: 64px; border-radius: 5px; border: 1px solid var(--brass); background: repeating-linear-gradient(45deg, #3a2414 0 6px, #2a190e 6px 12px); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; box-shadow: 2px 3px 0 #120c07, 4px 6px 0 #0c0805; }
-.bag { display: flex; flex-direction: column; gap: 4px; align-items: center; }
-.bag-grid { display: grid; grid-template-columns: repeat(3, 22px); gap: 4px; }
-.bag-slot { width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(199,161,90,0.6); background: rgba(232,220,192,0.06); }
-.bag-slot.usable { box-shadow: 0 0 0 2px var(--target), 0 0 10px var(--target); cursor: pointer; }
-.gold { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.gold-n { display: flex; align-items: center; gap: 5px; color: var(--gold); font-size: 24px; font-weight: 700; }
-.gold-ic { width: 22px; height: 22px; }
 
-.me-left { position: absolute; left: 24px; bottom: 18px; width: 300px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
-.me-left .quest { width: 290px; }
-.me-piles { position: absolute; right: 364px; bottom: 22px; }
-.me-piles .piles { gap: 20px; }
-.side-marker { position: absolute; left: 24px; top: 780px; font-size: 11px; letter-spacing: 2px; color: rgba(232,220,192,0.45); }
 
 /* --- The map --- */
 .map { position: absolute; left: 24px; top: 128px; width: 1532px; height: 644px; border-radius: 10px;
@@ -158,17 +124,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0806; }
 .preview { position: absolute; z-index: 91; pointer-events: none; filter: drop-shadow(0 18px 30px rgba(0,0,0,0.75)); }
 
 /* --- The right-hand column --- */
-.column { position: absolute; right: 0; top: 0; width: 340px; height: 1080px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;
-  background: linear-gradient(90deg, rgba(10,6,3,0.2), rgba(10,6,3,0.75)); border-left: 1px solid rgba(199,161,90,0.35); z-index: 5; }
-.panel { background: var(--panel); border: 1px solid var(--brass); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-.round-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-.round-n { font-family: Cinzel, serif; font-size: 26px; font-weight: 700; white-space: nowrap; }
-.round-head .muted { text-align: right; }
-.lb-note { font-family: Cinzel, serif; font-size: 12px; letter-spacing: 1px; color: #ffcf9a; text-align: right; }
-.phases { display: flex; gap: 6px; }
-.phase { flex-grow: 1; text-align: center; font-size: 12px; letter-spacing: 1px; padding: 4px 0; border-radius: 4px; color: var(--muted); background: rgba(232,220,192,0.06); }
-.phase.on { color: var(--ink); background: var(--brass); font-weight: 700; }
-.turn-line { font-size: 15px; }
 .energy-head { display: flex; align-items: center; gap: 10px; }
 .energy-n { font-size: 34px; font-weight: 700; line-height: 1; }
 .pips { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -182,19 +137,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0806; }
 .btn { font-family: inherit; color: var(--parch); background: #2a1b10; border: 1px solid var(--brass); border-radius: 6px; font-size: 14px; padding: 6px 12px; cursor: pointer; }
 .btn:disabled { opacity: 0.45; cursor: default; }
 .btn.primary { background: linear-gradient(#8a2a24, #5e1612); border-color: var(--parch); }
-.btn.pass { height: 64px; border-radius: 8px; border: 1px solid var(--parch); background: linear-gradient(#8a2a24, #5e1612); font-family: Cinzel, serif; font-size: 22px; font-weight: 700; letter-spacing: 3px; flex-shrink: 0; }
-.pass-note { margin-top: -6px; line-height: 1.25; }
-.market-head { display: flex; justify-content: space-between; align-items: center; }
-.stock { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.market-row { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.market-card { width: 200px; height: 280px; }
-.btn.buy { height: 36px; width: 200px; }
-.sold-out { height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: Cinzel, serif; font-size: 18px; letter-spacing: 3px; color: var(--muted); border: 1px dashed rgba(199,161,90,0.4); border-radius: 9px; text-align: center; }
-.log-panel { flex: 1 1 auto; min-height: 0; overflow: hidden; border-color: rgba(199,161,90,0.5); padding: 10px 14px; gap: 6px; }
-.log-line { font-size: 13px; color: var(--muted); line-height: 1.3; display: flex; gap: 8px; align-items: flex-start; }
-.log-line .card-chip { margin-top: 1px; }
-.log-dot { width: 24px; flex-shrink: 0; }
-.log-line.latest { color: var(--parch); }
 
 /* --- Prompts, captions, menus, React, overlays --- */
 .prompt { position: absolute; left: 790px; top: 494px; transform: translateX(-50%); z-index: 30; font-size: 15px; color: var(--parch); text-align: center;
@@ -280,15 +222,12 @@ body.debug #viewport { position: static; }
 
 /* --- Previews --- */
 .preview-badge { position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); z-index: 7; background: rgba(23,17,12,0.96); border: 1px solid var(--target); color: #ffe9b8; font-size: 12px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; pointer-events: none; }
-.warlord { position: relative; }
-.warlord-badge { left: 170px; top: 104px; bottom: auto; z-index: 40; }
 .react-opt { display: flex; gap: 10px; align-items: flex-start; }
 .react-preview { width: 180px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 1.3; color: var(--muted); padding-top: 26px; }
 .react-preview b { color: var(--parch); }
 .react-cost { right: auto; left: 132px; }
 
 /* --- Settings --- */
-.gear { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--brass); background: #2a1b10; color: var(--parch); font-size: 18px; line-height: 1; cursor: pointer; align-self: center; }
 .settings { position: absolute; left: 1276px; top: 108px; width: 280px; z-index: 92; background: rgba(23,17,12,0.98); border: 1px solid var(--brass); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 12px 30px rgba(0,0,0,0.7); }
 .settings-title { font-family: Cinzel, serif; font-size: 15px; letter-spacing: 2px; }
 .set-row { display: flex; gap: 6px; }
@@ -298,7 +237,6 @@ body.debug #viewport { position: static; }
 /* --- Drag to play --- */
 .drag-ghost { position: absolute; z-index: 94; pointer-events: none; transform: translate(-50%, -60%) rotate(-3deg) scale(0.9); opacity: 0.92; }
 .drop-ok .empty-slot, .drop-ok .slot-card { box-shadow: 0 0 0 2px rgba(240,200,110,0.7); }
-.warlord.drop-ok, .bag.drop-ok { box-shadow: 0 0 0 2px rgba(240,200,110,0.7); }
 .drop-hover .empty-slot, .drop-hover .slot-card, .warlord.drop-hover, .bag.drop-hover { box-shadow: 0 0 0 3px #fff2c4, 0 0 22px 6px rgba(255,230,150,0.85); }
 
 /* --- Low motion: no tilt, sheen, embers or ribbons --- */
@@ -379,34 +317,5 @@ body.low-motion .tarrow.draw * { animation: none !important; opacity: 1 !importa
 .aim { position: absolute; inset: 0; pointer-events: none; z-index: 89; }
 
 /* Stage G: the Energy panel (docs/mockups/feedback-v2/m9-board.png). Energy is crystal cyan. */
-.energy-panel { gap: 8px; }
-.en-top { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; }
-.en-top .label, .en-ex .label { margin: 0; white-space: nowrap; }
-.en-big { display: flex; align-items: center; gap: 7px; }
-.en-big .energy-n { font: 700 34px/1 Cinzel, serif; color: #c9f6ff; text-shadow: 0 0 12px rgba(90,220,255,.6); }
-.en-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
-.en-ex { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
-.en-ex .label { align-self: center; }
-.en-ex .ex { width: 46px; gap: 3px; }
-.en-ex small { font: 600 10.5px/1.2 'Alegreya Sans', 'EB Garamond', serif; color: rgba(232,220,192,.65); white-space: nowrap; }
-.en-ex small b { color: #c9f6ff; }
-i.cr { display: block; position: relative; width: 20px; height: 26px; flex: none; clip-path: polygon(50% 0, 100% 28%, 100% 72%, 50% 100%, 0 72%, 0 28%);
-  background: linear-gradient(160deg, #e9fdff 0%, #7fe6ff 25%, #19a9d6 55%, #06506e 80%, #3ad0f5 100%); }
-i.cr::after { content: ''; position: absolute; inset: 0; clip-path: polygon(50% 0, 100% 28%, 50% 50%, 0 28%); background: rgba(255,255,255,.55); }
-.en-row i.cr:not(.off), .en-big i.cr { filter: drop-shadow(0 0 4px rgba(90,220,255,.7)); }
-i.cr.off { background: linear-gradient(160deg, rgba(120,200,230,.2), rgba(20,60,80,.4)); }
-i.cr.off::after { background: rgba(255,255,255,.06); }
-i.cr.big { width: 26px; height: 34px; }
-i.cr.exert { width: 22px; height: 28px; background: linear-gradient(160deg, #ffffff 0%, #b8f3ff 20%, #2fc6ef 50%, #0a5d7d 80%, #6fe0ff 100%); filter: drop-shadow(0 0 4px #9ff0ff) drop-shadow(0 0 10px rgba(120,230,255,.9)); }
-i.cr.exert::before { content: '✦'; position: absolute; z-index: 2; left: 0; right: 0; top: 6px; text-align: center; font-size: 12px; line-height: 1; font-style: normal; color: #fff; text-shadow: 0 0 5px #fff; }
-i.cr.tired { width: 22px; height: 28px; background: linear-gradient(160deg, #39505a, #142228); }
-i.cr.tired::before { content: ''; position: absolute; z-index: 2; left: 45%; top: 15%; width: 2px; height: 70%; background: rgba(0,0,0,.6); transform: rotate(18deg); }
 /* Stage G: your Gold lives in the Market, and the Buy button says what you have or what you need. */
-.your-gold { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 4px; padding: 5px 12px; border-radius: 10px;
-  background: linear-gradient(rgba(60,40,12,.65), rgba(30,18,6,.65)); box-shadow: inset 0 0 0 1px rgba(240,200,110,.45); }
-.your-gold .l { font: 700 11px/1.3 Cinzel, serif; letter-spacing: 2.5px; color: rgba(240,214,150,.85); white-space: nowrap; }
-.your-gold .gold-n { display: flex; align-items: center; gap: 9px; font: 700 24px/1.1 Cinzel, serif; color: #ffd77a; text-shadow: 0 0 10px rgba(255,200,90,.5); }
 .coin-i { width: 20px; height: 20px; border-radius: 50%; flex: none; background: radial-gradient(circle at 38% 32%, #fff3c4, #f0c55a 45%, #a8741f 85%); box-shadow: 0 0 0 2px #3a2208, inset 0 0 0 3px rgba(120,80,20,.6); }
-.btn.buy { width: auto; min-width: 200px; max-width: 100%; padding: 0 14px; white-space: nowrap; font-size: 15px; }
-.btn.buy.ok { background: linear-gradient(#f3d58f, #c99a4a); color: #1a0f08; font-weight: 700; border-color: #fff2c8; box-shadow: 0 0 0 1px #fff2c8, 0 0 14px rgba(255,200,90,.45); }
-.btn.buy:disabled { opacity: .78; font-size: 14px; }

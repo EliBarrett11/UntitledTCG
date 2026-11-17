@@ -7,6 +7,7 @@ import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lan
 import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
 import { render, fitLabels } from './view.js';
+import { fitMarket } from './hud.js';
 import { renderCard, seriesLine } from './cards.js';
 import { displayLine, HUMAN, AI, esc, foe, foes, setSeat } from './text.js';
 import { createPresenter } from './presenter.js';
@@ -17,7 +18,7 @@ import { arrowSvg } from './arrow.js';
 import { titleScreen, setupScreen, openingBanner } from './screens.js';
 import { firstScreen, nextScreen } from './flow.js';
 import { createCodex } from './codex.js';
-import { announcement, announcementHtml, costPreview, energyDisplay, mustAttack } from './turn.js';
+import { announcement, announcementHtml, costPreview, energyDisplay } from './turn.js';
 import { termAtOffset, tipHtml } from './tips.js';
 import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
 
@@ -227,6 +228,15 @@ export function startApp(params) {
     }[scene];
     if (!done) return;
     for (let i = 0; i < 4000 && !done() && s.phase !== 'gameOver'; i++) apply(chooseAction(s, actor(s), rng));
+    // (Stage H, a dev aid for the hand's layout scenes: ?hand=N moves cards between your Draw Pile and your hand
+    // until you hold N. Only the checks use it; it is never part of play.)
+    if (params.has('hand')) {
+      const n = Math.max(0, Math.min(12, Number(params.get('hand')) || 0));
+      s = structuredClone(s);
+      const me = s.players[HUMAN];
+      while (me.hand.length > n) me.drawPile.unshift(me.hand.pop());
+      while (me.hand.length < n && me.drawPile.length) me.hand.push(me.drawPile.shift());
+    }
   }
 
   function apply(a) {
@@ -236,7 +246,7 @@ export function startApp(params) {
     version += 1;
     const lines = s.log.slice(before).map(displayLine);
     ui.log.push(...lines);
-    if (ui.log.length > 60) ui.log.splice(0, ui.log.length - 60);
+    if (ui.log.length > 400) ui.log.splice(0, ui.log.length - 400);
     return { prev, next: s, events: s.events, lines };
   }
 
@@ -302,7 +312,7 @@ export function startApp(params) {
     version += 1;
     placeSeat();
     if (!midMatch) { ui = freshUi(); vfx.clear(); }
-    ui.log = s.log.slice(-60).map(displayLine);
+    ui.log = s.log.slice(-400).map(displayLine);
     presenting = false;
     document.body.dataset.presenting = '';
     if (midMatch) { advance(); renderNet(); return; }
@@ -330,7 +340,7 @@ export function startApp(params) {
     version += 1;
     if (r.who === HUMAN) waiting = false;
     ui.log.push(...r.lines);
-    if (ui.log.length > 60) ui.log.splice(0, ui.log.length - 60);
+    if (ui.log.length > 400) ui.log.splice(0, ui.log.length - 400);
     ui.caption = r.who === HUMAN ? '' : r.events.some((e) => e.type === 'decline') ? `${foe()} lets it happen.` : r.lines.find((l) => !/^Round \d/.test(l)) ?? r.lines[0] ?? '';
     present(r);
   }
@@ -656,8 +666,8 @@ export function startApp(params) {
       return refocus(keep);
     }
     ui.online = online.active() ? { role: online.role, rematch: online.state.rematch } : null;
-    // V5: the creatures that must attack before you can Pass, the pace controls, and the cost preview.
-    ui.mustAttack = mustAttack(s);
+    // V5: the pace controls and the cost preview. (Stage H: the red must-attack tag is gone, Elliott, 17 November
+    // 2026; the hint under Pass says it.)
     ui.pace = { speed: settings.speed, pause: settings.pauseAfter, waiting: paceWaiting, canReplay: !!lastShown && lastShown.next === s && !presenting };
     ui.energyPreview = energyPreviewNow();
     if (!ui.sel && !ui.menu) { ui.picks = basePicks(); ui.handSel = null; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = ui.attacker ?? null; }
@@ -673,6 +683,7 @@ export function startApp(params) {
     if (ui.showEnd) { refocus(keep); document.body.dataset.version = String(version); document.body.dataset.phase = s.phase; document.body.dataset.actor = ''; document.body.dataset.step = 'idle'; return; }
     vfx.attach(s);
     fitLabels(stage);
+    fitMarket(stage);
     fitLog();
     document.fonts.ready.then(fitLog);
     document.body.dataset.version = String(version);
@@ -880,7 +891,7 @@ export function startApp(params) {
       });
       const dial = stage.querySelector(`[data-region="warlord-${who}"] .dial-n`);
       if (dial && dial.textContent !== String(s.players[who].renown)) out.push(`${who}: Renown shows ${dial.textContent}, the state has ${s.players[who].renown}`);
-      const gold = stage.querySelector(`[data-region="piles-${who}"] .gold-n`);
+      const gold = stage.querySelector(who === HUMAN ? '[data-region="your-gold"] .gold-n' : `[data-region="gold-${who}"] .gold-n`);
       if (gold && gold.lastChild.textContent !== String(s.players[who].gold)) out.push(`${who}: Gold shows ${gold.lastChild.textContent}`);
     }
     if (stage.querySelectorAll('.hand-card').length !== s.players[HUMAN].hand.length) out.push('the hand on screen differs');
@@ -888,10 +899,11 @@ export function startApp(params) {
     return out;
   }
 
-  // The log keeps only the lines that fit (newest first): no line is ever cut off. (Again once the fonts load.)
+  // The last actions keep only the lines that fit (newest first): no line is ever cut off; the newest always stays,
+  // clamped to its lines. (Again once the fonts load.)
   function fitLog() {
     const logPanel = stage.querySelector('.log-panel');
-    while (logPanel && logPanel.scrollHeight > logPanel.clientHeight + 1 && logPanel.querySelectorAll('.log-line').length > 0) logPanel.querySelector('.log-line:last-child').remove();
+    while (logPanel && logPanel.scrollHeight > logPanel.clientHeight + 1 && logPanel.querySelectorAll('.log-line').length > 1) logPanel.querySelector('.log-line:last-child').remove();
   }
 
   // --- Input -------------------------------------------------------------------------------------------------
@@ -904,6 +916,8 @@ export function startApp(params) {
     if (suppressClick) { suppressClick = false; return; }
     const pv = stage.querySelector('#preview');
     if (pv) pv.hidden = true;
+    // (Stage H: a click outside the full log closes it.)
+    if (ui.logOpen && !e.target.closest('.full-log, [data-act="log"]')) { ui.logOpen = false; draw(); return; }
     const el = e.target.closest('[data-pick],[data-act]');
     if (!el) { if (ui.sel || ui.menu) cancel(); return; }
     if (el.dataset.pick) {
@@ -961,6 +975,7 @@ export function startApp(params) {
       case 'net-rematch': return online.rematch();
       case 'codex': location.href = `${location.pathname}?sheet=full&from=title`; return undefined;
       case 'settings': ui.settingsOpen = !ui.settingsOpen; return draw();
+      case 'log': ui.logOpen = !ui.logOpen; return draw();
       // V5: the pace controls (against the AI; Replay online too).
       case 'pace': settings = { ...settings, speed: el.dataset.v }; ui.settings = settings; saveSettings(settings); return draw();
       case 'pace-pause':
@@ -989,7 +1004,7 @@ export function startApp(params) {
       if (e.key === 'Escape') { e.preventDefault(); if (ui.sel) cancel(); else act({ type: 'decline', who: HUMAN }); return; }
       return;
     }
-    if (e.key === 'Escape') cancel();
+    if (e.key === 'Escape') { if (ui.logOpen) { ui.logOpen = false; draw(); return; } cancel(); }
   });
 
   // Stage G: the Codex. Right-click any card (or a pile, a sealed Strat, the log's chips) to open it, or hover and

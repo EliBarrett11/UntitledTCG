@@ -1,7 +1,7 @@
 // V5 (docs/15-v5-players-experience.md, reduced by Elliott, 17 November 2026): whose turn it is, the Energy display,
 // and the announcement of each of the other player's actions. They only draw; src/ui/app.js decides when.
 // Every word about the other player follows this screen's seat: "the enemy" against the AI, "your friend" online.
-import { actor, locationAt, lanesOf, passBlockers } from '../engine/game.js';
+import { actor, locationAt, lanesOf } from '../engine/game.js';
 import { availableExert } from '../engine/energy.js';
 import { isHidden } from '../engine/view.js';
 import { esc, HUMAN, AI, ONLINE, foe, foes, artOf, defText, creatureLines, energyHtml } from './text.js';
@@ -12,7 +12,8 @@ const CRYSTAL = '<svg class="en-crys" viewBox="0 0 40 48" aria-hidden="true"><de
 const RUNE = '<svg viewBox="0 0 36 40" aria-hidden="true"><polygon class="rn-hex" points="18,2 34,11 34,29 18,38 2,29 2,11"/><path class="rn-bolt" d="M20 7 L11 22 L17 22 L14 33 L25 16 L19 16 Z"/></svg>';
 
 // --- The Energy display: one crystal and one number, and three Exert runes ------------------------------------------
-// size 'full' (yours, right of your hand) or 'small' (the other player's, in their top bar).
+// size 'full' (yours, right of your hand: the crystal and number, the runes stacked beneath with how many are ready)
+// or 'row' (the other player's, in their band: one row).
 export function energyDisplay(s, who, size = 'full', preview = null) {
   const p = s.players[who];
   const ready = availableExert(p);
@@ -30,7 +31,7 @@ export function energyDisplay(s, who, size = 'full', preview = null) {
   return `<div class="en-disp ${size} ${who === HUMAN ? 'mine' : 'theirs'}" data-region="energy-${who}" data-codex="term" data-term="energy" title="${whose} Energy left this Round, and Exert">
     <div class="en-main">${CRYSTAL}<span class="en-num" data-energy="${p.baseEnergy}">${p.baseEnergy}</span>${after}</div>
     <div class="en-label">ENERGY</div>
-    <div class="ex-box" data-codex="term" data-term="exert"><div class="ex-runes">${runes.join('')}</div><div class="ex-word">EXERT</div></div>
+    <div class="ex-box" data-codex="term" data-term="exert"><div class="ex-word">EXERT</div><div class="ex-runes">${runes.join('')}</div><div class="ex-ready">${ready} ready</div></div>
   </div>`;
 }
 // What a cost would leave: Base Energy first, then Exert (rulebook 6).
@@ -59,7 +60,9 @@ export function turnPlaque(s, ui, pace) {
     cls = 'them';
     line = s.phase === 'mulligan' ? 'Round 1 · the mulligan' : s.reactWindow ? 'deciding whether to React' : s.passesInARow === 1 ? 'you passed last · Dusk is next if they pass' : s.initiative === HUMAN ? 'you have initiative this Round' : `${foe(false)} has initiative this Round`;
   }
-  const doing = !mine && who ? `<span class="tp-doing">${ONLINE ? 'choosing' : 'thinking'}<i class="dots"><b></b><b></b><b></b></i></span>` : '';
+  // (Stage H: the dots beside the title, and what they're doing leads the line: "thinking · you passed last".)
+  const doing = !mine && who ? '<i class="dots" aria-hidden="true"><b></b><b></b><b></b></i>' : '';
+  if (!mine && who) line = `${ONLINE ? 'choosing' : 'thinking'} · ${line}`;
   const btn = (act, label, on = false, extra = '') => `<button type="button" class="tp-btn${on ? ' on' : ''}" data-act="${act}" ${extra}>${label}</button>`;
   let controls = '';
   if (pace) {
@@ -78,8 +81,6 @@ export function turnPlaque(s, ui, pace) {
   </div>`;
 }
 
-// The creatures that must attack before you can Pass (5.2), for their red tag.
-export const mustAttack = (s) => (actor(s) === HUMAN && s.phase === 'battle' && !s.reactWindow ? passBlockers(s, HUMAN) : []);
 
 // --- The other player's action, announced over the board ------------------------------------------------------------
 const LANE_W = 170;

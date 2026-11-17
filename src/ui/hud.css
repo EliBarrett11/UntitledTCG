@@ -1,0 +1,249 @@
+/* Stage H: the information panels (docs/mockups/hud-v2, approved by Elliott, 17 November 2026, with a slimmer
+   Energy panel). One grid, 16 px gutters: the band spans the board's width above it; the right column's three panels
+   share one width from the band's top to the bottom panels' bottom; your two panels fill the room beside the hand.
+   One panel style: a dark slab, a fine brass hairline, radius 12; yours edged crimson, the other player's blue, and
+   the side whose turn it is glows. Sections inside a panel are split by fading hairlines; every value sits under the
+   same small Cinzel caption. (The geometry is GRID in src/ui/hud.js.) */
+
+.hud { position: absolute; box-sizing: border-box; border-radius: 12px; font-family: 'Alegreya Sans', 'EB Garamond', serif; color: #efe4c8;
+  background: linear-gradient(180deg, rgba(34,22,13,.94), rgba(17,11,6,.95));
+  box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(226,190,120,.42), inset 0 1px 0 rgba(255,225,170,.10), 0 16px 30px rgba(0,0,0,.55);
+  transition: box-shadow .35s ease; }
+.hud.them { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(140,170,235,.5), inset 0 1px 0 rgba(200,220,255,.10), 0 16px 30px rgba(0,0,0,.55); }
+.hud.you { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(240,150,130,.5), inset 0 1px 0 rgba(255,210,200,.10), 0 16px 30px rgba(0,0,0,.55); }
+.hud.them.active { box-shadow: 0 0 0 1px #000, 0 0 0 2px #9cc0ff, 0 0 26px rgba(90,140,255,.45), 0 16px 30px rgba(0,0,0,.55); }
+.hud.you.active { box-shadow: 0 0 0 1px #000, 0 0 0 2px #ffb4a6, 0 0 26px rgba(255,110,80,.4), 0 16px 30px rgba(0,0,0,.55); }
+body.low-motion .hud { transition: none; }
+
+/* The shared pieces: the caption, a value's smaller line, the fading hairlines. */
+.cap { font: 700 10px/1.3 Cinzel, serif; letter-spacing: 2.6px; color: rgba(241,217,160,.68); white-space: nowrap; }
+.sub { font-size: 13px; line-height: 1.3; color: rgba(239,228,200,.62); white-space: nowrap; }
+.hud .vr { width: 1px; margin: 16px 0; flex: none; background: linear-gradient(transparent, rgba(226,190,120,.4), transparent); }
+.hud .hr { height: 1px; flex: none; background: linear-gradient(90deg, transparent, rgba(226,190,120,.4), transparent); }
+.warlord-title { font: 700 17px/1.35 Cinzel, serif; letter-spacing: 3px; white-space: nowrap; text-shadow: 0 1px 3px #000; }
+.quest-name { font: 700 14px/1.45 Cinzel, serif; letter-spacing: 1px; color: #f1d9a0; white-space: nowrap; }
+
+/* A Renown ring. */
+.ring { position: relative; flex: none; }
+.ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ring-bg { fill: rgba(0,0,0,.45); stroke: rgba(255,255,255,.1); stroke-width: 7; }
+.ring-arc { fill: none; stroke-width: 7; stroke-linecap: round; }
+.ring.them .ring-arc { stroke: #7fa6f0; }
+.ring.you .ring-arc { stroke: #ff8a7a; }
+.ring-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring .dial-n { font: 700 26px/1.45 Cinzel, serif; color: #f4ead2; }
+.ring .dial-of { font: 700 8px/1.2 Cinzel, serif; letter-spacing: 1px; color: rgba(239,228,200,.55); }
+.warlord-you .ring .dial-n { font-size: 33px; }
+.warlord-you .ring .dial-of { font-size: 9.5px; }
+
+/* The Quest's pips: a diamond per step. */
+.pips { display: inline-flex; gap: 5px; flex: none; padding: 3px 2px; }
+.pips .seg { width: 10px; height: 10px; transform: rotate(45deg); box-sizing: border-box; border: 1px solid rgba(190,150,255,.8); }
+.pips .seg.on { background: linear-gradient(135deg, #d8c4ff, #8a62e0); box-shadow: 0 0 6px rgba(170,130,255,.7); }
+
+/* The piles: a number over its caption; the Bag's slots. */
+.hud .piles { display: flex; align-items: flex-end; justify-content: space-between; width: 100%; }
+.hud .pile { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.hud .pile-n { font: 700 22px/1.45 Cinzel, serif; color: #f4ead2; }
+.hud .bag { display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: 6px; }
+.hud .bag-grid { display: grid; grid-template-columns: repeat(3, 15px); gap: 3px; }
+.hud .bag-slot { display: block; width: 15px; height: 15px; box-sizing: border-box; border-radius: 3px; border: 1px solid rgba(199,161,90,.55); background: rgba(232,220,192,.05); }
+.hud .bag-slot.full { background: linear-gradient(160deg, #c99a5a, #7a4f22); border-color: #e6c88a; }
+.hud .bag-slot.usable { box-shadow: 0 0 0 2px var(--target), 0 0 10px var(--target); cursor: pointer; }
+.bag.drop-ok, .warlord.drop-ok { box-shadow: 0 0 0 2px rgba(240,200,110,.7); }
+
+/* Gold: a coin and its number. */
+.hud .gold-n { display: flex; align-items: center; gap: 9px; font: 700 28px/1.45 Cinzel, serif; color: #ffd77a; text-shadow: 0 0 10px rgba(255,200,90,.45); }
+.coin-i { width: 20px; height: 20px; border-radius: 50%; flex: none; background: radial-gradient(circle at 38% 32%, #fff3c4, #f0c55a 45%, #a8741f 85%); box-shadow: 0 0 0 2px #3a2208, inset 0 0 0 3px rgba(120,80,20,.6); }
+
+/* The settings button. */
+.gear { width: 38px; height: 38px; flex: none; border-radius: 50%; display: grid; place-items: center; padding: 0; font-size: 18px; line-height: 1; cursor: pointer;
+  color: #f1d9a0; background: rgba(0,0,0,.25); border: 0; box-shadow: inset 0 0 0 1px rgba(226,190,120,.5); }
+.gear:hover { box-shadow: inset 0 0 0 1px #f1d9a0, 0 0 10px rgba(241,217,160,.35); }
+
+.sealed-note { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: rgba(239,228,200,.7); white-space: nowrap; }
+.back-chip { width: 14px; height: 20px; display: inline-block; vertical-align: middle; }
+
+/* --- The other player's band ----------------------------------------------------------------------------------- */
+.band { left: 24px; top: 12px; width: 1532px; height: 100px; display: flex; align-items: stretch; z-index: 5; }
+.band .hc { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; padding: 0 14px; }
+.band .hv { display: flex; align-items: center; gap: 9px; height: 34px; white-space: nowrap; }
+.band .hv-sub { display: flex; align-items: center; gap: 10px; }
+.hc.hc-warlord, .rx-lift .hc-warlord { flex: none; display: flex; flex-direction: row; align-items: center; gap: 14px; padding: 0 20px 0 14px; border-radius: 12px 0 0 12px; position: relative; }
+.hc-warlord .wl-text { display: flex; flex-direction: column; gap: 6px; }
+.warlord-enemy .warlord-title { color: #cfe0ff; }
+.hc-warlord.target { cursor: pointer; box-shadow: inset 0 0 0 3px #ff9d6b, 0 0 24px 6px rgba(255,120,70,.8); }
+.band .hc-quest { flex: 1.5; align-items: flex-start; gap: 4px; }
+.band .hc-quest .hv { height: 30px; }
+.band .hc-quest .card-chip { flex: none; }
+.band .hc-hand { flex: .9; }
+.band .backs { display: flex; }
+.band .backs i { width: 17px; height: 24px; margin-left: -6px; border-radius: 3px; background: #0b0806 url('../../assets/ui/card-back.jpg') center / cover; box-shadow: 0 0 0 1px rgba(0,0,0,.8), 0 0 0 2px rgba(226,190,120,.45); }
+.band .backs i:first-child { margin-left: 0; }
+.band .num { font: 700 26px/1.45 Cinzel, serif; color: #f4ead2; }
+.band .reacting .enemy-hand, .band.reacting .sealed-note { visibility: visible; }
+.band .hc-energy { flex: 1.25; }
+.band .hc-gold { flex: .6; }
+.band .hc-piles { flex: 1.8; padding: 0 12px; }
+.band .hc-piles .cap { font-size: 9px; letter-spacing: 1.6px; }
+.band .hc-piles .bag-grid { grid-template-columns: repeat(3, 12px); gap: 3px; }
+.band .hc-piles .bag-slot { width: 12px; height: 12px; }
+.band .hc-gear { flex: none; padding: 0 16px; }
+
+/* --- Yours: the Warlord and Quest ------------------------------------------------------------------------------- */
+.you-panel { left: 24px; top: 788px; width: 296px; height: 280px; padding: 18px 18px 16px; display: flex; flex-direction: column; z-index: 5; }
+.warlord-you { display: flex; align-items: center; gap: 16px; position: relative; border-radius: 10px; }
+.warlord-you .wl-text { display: flex; flex-direction: column; gap: 7px; }
+.warlord-you .warlord-title { font-size: 18px; line-height: 1.35; color: #ffd6cc; }
+.you-panel .hr { margin: 16px 0 14px; }
+.you-panel .quest { display: flex; flex-direction: column; gap: 4px; position: relative; }
+.you-panel .quest-name { margin-top: 2px; }
+.you-panel .quest-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-right: 6px; }
+.you-panel .quest-line { font-size: 13px; line-height: 1.3; color: rgba(239,228,200,.62); }
+
+/* --- Yours: Energy, Exert and the piles (slimmer than the mockup, Elliott's change) ------------------------------ */
+.energy-panel-h { left: 1286px; top: 788px; width: 270px; height: 280px; display: flex; flex-direction: column; z-index: 5; }
+.energy-panel-h .my-energy { flex: 1; min-height: 0; padding: 14px 20px 0; }
+.energy-panel-h .hr { margin: 0 14px; }
+.energy-panel-h .me-piles { padding: 12px 14px 14px; }
+.energy-panel-h .me-piles .cap { font-size: 9px; letter-spacing: 1.5px; }
+
+/* The Energy display (V5's crystal, number and amber Exert runes), at panel and band size. */
+.en-disp { position: relative; }
+.en-label { font: 700 10px/1.3 Cinzel, serif; letter-spacing: 2.6px; color: rgba(143,216,238,.85); white-space: nowrap; }
+.en-main { display: flex; align-items: center; gap: 14px; white-space: nowrap; }
+.en-crys { flex: none; filter: drop-shadow(0 0 10px rgba(90,220,255,.65)); transform-origin: 50% 55%; }
+.en-num { font: 700 58px/1.45 Cinzel, serif; color: #e8fbff; text-shadow: 0 0 14px rgba(90,220,255,.5), 0 2px 6px #000; min-width: 36px; }
+.en-after { font: 600 30px/1.3 Cinzel, serif; color: rgba(201,246,255,.55); }
+.ex-word { font: 700 10px/1.3 Cinzel, serif; letter-spacing: 2.6px; color: rgba(232,165,74,.85); white-space: nowrap; }
+.ex-runes { display: flex; gap: 8px; }
+.ex-rune { position: relative; display: flex; flex-direction: column; align-items: center; }
+.ex-rune .rn-hex { fill: rgba(40,22,6,.85); stroke: #6b4a22; stroke-width: 2; }
+.ex-rune .rn-bolt { fill: #4a3218; }
+.ex-rune.ready .rn-hex { fill: #5a2c06; stroke: #ffb54a; stroke-width: 2.4; }
+.ex-rune.ready .rn-bolt { fill: #ffd27a; }
+.ex-rune.ready svg { filter: drop-shadow(0 0 7px rgba(255,170,60,.85)); }
+.ex-rune.ready.spend svg { animation: rune-spend .9s ease-in-out infinite alternate; }
+@keyframes rune-spend { to { opacity: .35; } }
+.ex-rune.tired svg { opacity: .8; }
+.ex-rune small { position: absolute; left: 0; right: 0; text-align: center; font: 700 10px/1.2 Cinzel, serif; color: #c8a578; letter-spacing: .04em; }
+.ex-rune.none { visibility: hidden; }
+.ex-ready { font-size: 13px; line-height: 1.3; color: rgba(239,228,200,.62); white-space: nowrap; }
+
+/* Yours: ENERGY, then the crystal and number; then EXERT, its runes and how many are ready. */
+.en-disp.full { display: flex; flex-direction: column; gap: 4px; height: 100%; }
+.en-disp.full .en-label { order: -1; }
+.en-disp.full .en-crys { width: 44px; height: 54px; }
+.en-disp.full .ex-box { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 14px; row-gap: 5px; margin-top: 4px; }
+.en-disp.full .ex-word { grid-column: 1 / -1; }
+.en-disp.full .ex-rune { width: 34px; height: 44px; }
+.en-disp.full .ex-rune svg { width: 34px; height: 38px; }
+.en-disp.full .ex-rune small { top: 11px; }
+/* Theirs: one row in the band (the caption above it is the band's). */
+.en-disp.row { display: flex; align-items: center; gap: 10px; }
+.en-disp.row .en-label, .en-disp.row .ex-word, .en-disp.row .ex-ready { display: none; }
+.en-disp.row .en-main { gap: 8px; }
+.en-disp.row .en-crys { width: 24px; height: 30px; }
+.en-disp.row .en-num { font-size: 28px; line-height: 1.45; min-width: 18px; }
+.en-disp.row .en-after { display: none; }
+.en-disp.row .ex-runes { gap: 4px; }
+.en-disp.row .ex-rune { width: 26px; height: 30px; }
+.en-disp.row .ex-rune svg { width: 26px; height: 29px; }
+.en-disp.row .ex-rune small { top: 8px; font-size: 9px; }
+/* Energy changes: the number counts and the crystal pulses (V5). */
+.en-disp.pulse .en-crys { animation: crys-pulse .6s ease-out; }
+@keyframes crys-pulse { 0% { transform: scale(1); } 35% { transform: scale(1.22); filter: drop-shadow(0 0 22px #9ff0ff); } 100% { transform: scale(1); } }
+body.low-motion .en-disp.pulse .en-crys { animation: none; }
+
+/* --- The right-hand column ------------------------------------------------------------------------------------- */
+.column { position: absolute; left: 1572px; top: 12px; width: 324px; height: 1056px; z-index: 5; }
+.column > .hud { left: 0; width: 324px; }
+
+/* The command panel: Round, the phases; whose turn it is; Pass. */
+.command { top: 0; height: 400px; display: flex; flex-direction: column; overflow: hidden; }
+.cmd-round { padding: 16px 18px 14px; display: flex; flex-direction: column; gap: 5px; }
+.round-n { font: 700 30px/1.45 Cinzel, serif; color: #f4ead2; }
+.cmd-round .sub { font-size: 12.5px; }
+.lb-note { font: 700 12px/1.3 Cinzel, serif; letter-spacing: 1px; color: #ffcf9a; }
+.phases { display: flex; gap: 4px; margin-top: 7px; }
+.phase { flex: 1; text-align: center; padding: 6px 0; border-radius: 5px; font: 700 10.5px/1.3 Cinzel, serif; letter-spacing: 2px; color: rgba(239,228,200,.55); box-shadow: inset 0 0 0 1px rgba(226,190,120,.25); }
+.phase.on { background: linear-gradient(#f3d58f, #c99a4a); color: #1a0f08; box-shadow: none; }
+
+.turn-plaque { position: relative; overflow: hidden; padding: 12px 18px 10px; display: flex; flex-direction: column; gap: 3px;
+  background: linear-gradient(#2a1d13, #170f0a); border-top: 1px solid rgba(226,190,120,.25); border-bottom: 1px solid rgba(226,190,120,.25); }
+.turn-plaque.you { background: linear-gradient(#6e1816, #420c0c); border-color: rgba(255,190,150,.3); }
+.turn-plaque.them { background: linear-gradient(#24477e, #132a52); border-color: rgba(180,205,255,.3); }
+.tp-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; white-space: nowrap; }
+.tp-title { font: 700 20px/1.3 Cinzel, serif; letter-spacing: 4px; color: #fff1d6; }
+.turn-plaque.them .tp-title { color: #e8f0ff; letter-spacing: 3px; }
+.dots { display: inline-flex; gap: 5px; }
+.dots b { width: 7px; height: 7px; border-radius: 50%; background: #e8f0ff; animation: dot 1.2s ease-in-out infinite; }
+.dots b:nth-child(2) { animation-delay: .2s; } .dots b:nth-child(3) { animation-delay: .4s; }
+@keyframes dot { 0%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
+body.low-motion .dots b { animation: none; opacity: .8; }
+.tp-line { font-size: 13.5px; line-height: 1.3; color: rgba(255,236,214,.82); white-space: nowrap; }
+.turn-plaque.them .tp-line { color: rgba(232,240,255,.82); }
+.tp-controls { display: flex; gap: 5px; margin-top: 7px; }
+.tp-btn { flex: 1 1 auto; padding: 4px 8px; border-radius: 999px; font: 700 9.5px/1.3 Cinzel, serif; letter-spacing: 1.4px; white-space: nowrap; cursor: pointer;
+  color: rgba(255,236,214,.8); background: rgba(0,0,0,.18); border: 0; box-shadow: inset 0 0 0 1px rgba(255,220,190,.35); }
+.tp-btn:hover:not(:disabled) { box-shadow: inset 0 0 0 1px #fff1d6; }
+.tp-btn.on { background: linear-gradient(#f3d58f, #c99a4a); color: #1a0f08; box-shadow: none; }
+.tp-btn:disabled { opacity: .4; cursor: default; }
+.tp-btn[data-act="pace-pause"] { flex: 0 0 auto; min-width: 34px; }
+.tp-hint { font-size: 11.5px; line-height: 1.3; color: rgba(255,236,214,.55); white-space: nowrap; margin-top: 2px; }
+.turn-plaque.sweep::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 0%, rgba(255,240,210,0) 30%, rgba(255,240,210,.45) 50%, rgba(255,240,210,0) 70%, transparent 100%);
+  transform: translateX(-100%); animation: tp-sweep .7s ease-out forwards; pointer-events: none; }
+@keyframes tp-sweep { to { transform: translateX(100%); } }
+body.low-motion .turn-plaque.sweep::after { animation: none; display: none; }
+
+.cmd-pass { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 12px 16px 14px; }
+.btn.pass { height: 62px; width: 100%; border-radius: 10px; border: 0; font: 700 26px/1.2 Cinzel, serif; letter-spacing: 9px; padding: 0 0 0 9px;
+  color: #ffe6d8; background: linear-gradient(#8a2a24, #5e1612); box-shadow: inset 0 0 0 1px rgba(255,190,160,.6), 0 0 16px rgba(220,70,50,.35); }
+.btn.pass:hover:not(:disabled) { box-shadow: inset 0 0 0 1px #ffe6d8, 0 0 22px rgba(240,90,60,.55); }
+.btn.pass:disabled { opacity: 1; color: rgba(255,220,200,.5); background: linear-gradient(#6a1d18, #3d0f0c); box-shadow: inset 0 0 0 1px rgba(255,170,140,.35); }
+.btn.pass.waiting:disabled { color: rgba(239,228,200,.3); background: linear-gradient(#2a2119, #17110c); box-shadow: inset 0 0 0 1px rgba(226,190,120,.2); }
+.pass-note { font-size: 13px; line-height: 1.3; text-align: center; color: rgba(239,228,200,.62); }
+
+/* The Market: the title and stock, your Gold, the Item as large as fits, and Buy. */
+.market-panel { top: 416px; height: 506px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.market-head { display: flex; align-items: center; justify-content: space-between; }
+.stock { font: 700 9.5px/1.3 Cinzel, serif; letter-spacing: 1.6px; color: rgba(239,228,200,.6); white-space: nowrap; }
+.stock b { color: #f4ead2; font-size: 11px; }
+.your-gold { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-radius: 9px; background: rgba(60,40,12,.5); box-shadow: inset 0 0 0 1px rgba(240,200,110,.4); }
+.your-gold .gold-n { font-size: 22px; gap: 8px; }
+.your-gold .coin-i { width: 18px; height: 18px; }
+.market-fit { flex: 1; min-height: 0; display: grid; place-items: center; position: relative; }
+.market-card { width: 200px; height: 280px; transform-origin: 50% 50%; }
+.sold-out { display: flex; flex-direction: column; align-items: center; gap: 6px; font: 700 18px/1.3 Cinzel, serif; letter-spacing: 3px; color: rgba(239,228,200,.6); text-align: center; }
+.sold-out .sub { font-family: 'Alegreya Sans', 'EB Garamond', serif; font-weight: 400; letter-spacing: 0; white-space: normal; max-width: 260px; }
+.btn.buy { height: 40px; width: 100%; border-radius: 9px; border: 0; padding: 0 10px; font: 700 13.5px/1.3 Cinzel, serif; letter-spacing: 1px; white-space: nowrap; text-transform: uppercase;
+  color: rgba(239,228,200,.4); background: transparent; box-shadow: inset 0 0 0 1px rgba(226,190,120,.25); }
+.btn.buy.ok { color: #1a0f08; background: linear-gradient(#f3d58f, #c99a4a); box-shadow: 0 0 0 1px #fff2c8, 0 0 14px rgba(255,200,90,.4); cursor: pointer; }
+.btn.buy.ok:hover { box-shadow: 0 0 0 1px #fff2c8, 0 0 20px rgba(255,200,90,.65); }
+.btn.buy:disabled { opacity: 1; }
+
+/* Last actions: the latest, the line before it, and the full log. */
+.log-panel { top: 938px; height: 118px; padding: 12px 18px 10px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+.log-head { display: flex; align-items: center; justify-content: space-between; }
+.log-open { font: 700 10px/1.3 Cinzel, serif; letter-spacing: 2.6px; color: #f1d9a0; background: none; border: 0; padding: 2px 0; cursor: pointer; white-space: nowrap; }
+.log-open:hover { color: #fff3d6; text-shadow: 0 0 8px rgba(241,217,160,.6); }
+.log-line { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.3; color: rgba(239,228,200,.6); }
+.log-line.latest { font-size: 14px; color: #efe4c8; }
+.log-chip { flex: none; margin-top: 1px; padding: 0 4px 4px 0; }
+.full-log { left: 1036px; top: 128px; width: 520px; height: 644px; z-index: 60; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.full-log-lines { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; padding-right: 6px; }
+.full-log .log-line { font-size: 14px; }
+
+/* The side marker, in the gutter under the board's left edge. */
+.side-marker { position: absolute; left: 30px; top: 773px; font: 700 10px/1.3 Cinzel, serif; letter-spacing: 2.4px; color: rgba(244,232,206,.6); text-shadow: 0 1px 3px #000; }
+/* The badge for choosing the other Warlord as a target: under their ring. */
+.warlord-badge { left: 110px; top: 116px; bottom: auto; z-index: 40; }
+
+/* --- The hand: the fan scales a little past 8 cards (handLayout in src/ui/view.js) ------------------------------ */
+.hand-card { transform: rotate(var(--r, 0deg)) scale(var(--k, 1)); transition: top .15s, transform .15s; }
+.hand-card:hover { --k: 1; }
+body.low-motion .hand-card { transition: top .15s; }
+
+/* The React moment lifts a Warlord above its dimming: its copy keeps the panel's slab behind it. */
+.rx-lift.warlord > .warlord { width: max-content; background: linear-gradient(180deg, rgba(34,22,13,.97), rgba(17,11,6,.97)); box-shadow: 0 0 0 2px rgba(226,190,120,.5); }
+.rx-lift.warlord > .hc-warlord { height: 100px; border-radius: 12px; }

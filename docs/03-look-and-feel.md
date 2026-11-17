@@ -417,3 +417,51 @@ Built to `docs/15-v5-players-experience.md` as reduced (17 November 2026) and it
     - Every card that slides across the table (bought, played, Released, put in the Bag) shares the gentler version of the same arc.
     - Low motion: the card fades in at its target.
 13. **Fixed from stage M:** the presenter's side colours (and planted banners) were captured at start-up, so an online guest saw them the wrong way round. They now follow the seat.
+
+## 15. Readings from stage H (the information panels): needing Elliott's approval
+
+Built to `docs/mockups/hud-v2/` (approved by Elliott, 17 November 2026: `a2-you.png` and `a2-enemy.png`, with the slimmer Energy panel). No rule changed. Everything works from either seat, against the AI and online.
+
+1. **The grid** (stage pixels; the stage scales to the window, so the other sizes follow).
+   - The board is unchanged: x 24 to 1556, y 128 to 772.
+   - The band is the board's width, at y 12 to 112.
+   - The column is at x 1572 to 1896, y 12 to 1068: command 400 px, then the Market, then last actions 118 px.
+   - Your panels are at y 788 to 1068: your Warlord and Quest at x 24 to 320, Energy at x 1286 to 1556.
+   - The mockup's column started at x 1598. I used 1572 so that every gap is 16 px, as its README says, with the same 24 px margin on both sides of the screen.
+2. **The hand.**
+   - The fan fills x 348 to 1258, which is 16 px from each bottom panel, less 12 px for the fan's tilt.
+   - Up to 7 cards keep their full size. With more, every card shrinks a little, so that each still shows 106/200 of its width beside its neighbour; before stage H, 7 cards showed 105/200. That is 97% at 8 cards and 78% at 10.
+   - **Measured** (`tools/handread.mjs`):
+     - Before stage H, 7 cards hid up to 46% of a name. Now 10 cards hide no more: 46% at 8, 9 and 10, and 38% at 7.
+     - No cost well is covered at any size.
+     - A creature's Level well, at the top right, is covered by its neighbour as before.
+   - **Hovering a card** brings it to full size, on top of its neighbours and clear of the panels. The tilt is 5° across the fan, down from 7°.
+3. **The panels' text** is the mockup's: Alegreya Sans for values and lines, under 10 px Cinzel captions.
+4. **The opponent's band** shows their Warlord ring, the Quest with its Legendary Creature's chip, the hand (up to 8 card backs and the count, plus any sealed Strats), Energy and Exert, Gold, the four piles and settings.
+   - Online, their Warlord is titled "YOUR FRIEND'S WARLORD".
+5. **The Bag** shows its six slots, filled ones in gold, over "BAG 1/6", rather than the mockup's bare "1/6". Your usable Items can still be clicked (and dragged to) there, and either side's Items previewed.
+6. **Your Quest:** under its name, the pips with the Legendary Creature's chip at the end of their row, then "Dominate at Dusk: 0 of 8 · then Aldric the Unbroken".
+7. **Your Energy panel:** ENERGY, the crystal and number (with the V5 cost preview "4 → 1"), then EXERT with its three runes and "1 ready" beside them, then the four piles in one row.
+8. **The command panel:**
+   - The turn strip keeps V5's "↺ REPLAY" label and its "hold Space to skip ahead" hint under the pace controls. The mockup drew only icons.
+   - On the other player's turn, its line starts with what they're doing: "thinking · you passed last" ("choosing" online).
+   - Pass's hint on their turn says "Waiting for the enemy." ("Waiting for your friend." online).
+9. **Buy, in the panel's words:**
+   - "Buy · 2 Gold" when you can buy. "you have N" is gone, because YOUR GOLD sits just above.
+   - Otherwise:
+     - "Buy on your turn"
+     - "Buy · 2 Gold · need 1 more"
+     - "Buy after the mulligan"
+     - "Buy in the Battle Phase"
+     - "Not during a React"
+     - "Wait for the action"
+     - "No target · Bag full"
+     - "Not now"
+   - The Market's stock dial became "STOCK · 4 TURNS LEFT".
+10. **Last actions:**
+    - The newest line and the one before. The older one is left out when the newest needs three lines.
+    - "FULL LOG ▸" opens every line, newest first, in a panel over the board's right side (x 1036 to 1556). Esc, the button, or a click outside it closes the panel.
+    - The match now keeps its last 400 lines, up from 60.
+11. **The "ENEMY ▲ · ▼ YOU" marker** (the mockup left it out) sits in the 16 px gutter under the board's left edge.
+12. **Right-click** now also opens the Codex on the Round, each phase, the Last Battle line, Pass, the Market's title and stock, and the Bag.
+13. **Fixed from V5:** the Energy sparks (Desperate Gambit, and the Dawn refill) were aimed at stage G's Energy panel, which V5 removed, so they had been landing on the Warlord. They now land on the Energy crystal, and recovered Exert glints on its ready runes.

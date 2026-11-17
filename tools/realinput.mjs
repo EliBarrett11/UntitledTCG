@@ -47,6 +47,8 @@ const sig = (page) => page.evaluate(() => {
 });
 
 async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
+  // (Stage H: the seat this screen plays, p1 unless ?seat=p2.)
+  const ME = /[?&]seat=p2\b/.test(url) ? 'p2' : 'p1';
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
   const errors = [];
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
@@ -117,7 +119,7 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
   // chips, React plates) opens the Codex, the browser menu stays shut, and a choice in progress isn't broken; Escape
   // then closes the Codex and nothing else.
   async function codexCheck(when) {
-    const sels = ['[data-hover="hand"]', '[data-hover="board"]', '.market-card', '.loc-label', '[data-region="quest-p1"]', '[data-codex="pile"]', '.log-chip', '.rx-plate[data-i]'];
+    const sels = ['[data-hover="hand"]', '[data-hover="board"]', '.market-card', '.loc-label', `[data-region="quest-${ME}"]`, '[data-codex="pile"]', '.log-chip', '.rx-plate[data-i]'];
     const opts = [];
     for (const sel of sels) { const n = await count(sel); for (let i = 0; i < n; i++) opts.push([sel, i]); }
     if (!opts.length) return;
@@ -231,12 +233,12 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
       await click('[data-act="mull-go"]', 0, 'mulligan');
       continue;
     }
-    if (st.actor !== 'p1') {
+    if (st.actor !== ME) {
       // The AI is thinking (with the page's pause); wait for its move.
       if (pick() < 0.15) await hoverSweep('on the AI\'s turn', 1);
       const v = st.version;
-      for (let i = 0; i < 200 && (await page.evaluate(() => document.body.dataset.version)) === v && (await state()).actor !== 'p1'; i++) await page.waitForTimeout(25);
-      if ((await page.evaluate(() => document.body.dataset.version)) === v && (await state()).actor !== 'p1' && !(await state()).end) throw new Error('stall: the AI made no move');
+      for (let i = 0; i < 200 && (await page.evaluate(() => document.body.dataset.version)) === v && (await state()).actor !== ME; i++) await page.waitForTimeout(25);
+      if ((await page.evaluate(() => document.body.dataset.version)) === v && (await state()).actor !== ME && !(await state()).end) throw new Error('stall: the AI made no move');
       continue;
     }
     // Between actions the board must match the state.
@@ -290,7 +292,9 @@ let failures = 0;
 console.log(`Real-input check: full matches against the AI, real mouse clicks only (seed ${SEED}).`);
 // Animations on, at normal speed, at each size; then once in low motion.
 const RUNS = [...SIZES.map((size) => ({ size, query: 'speed=normal&lowmotion=0', label: `${size[0]}×${size[1]}` })),
-  { size: SIZES[1], query: 'speed=normal&lowmotion=1', label: `${SIZES[1][0]}×${SIZES[1][1]} low motion` }];
+  { size: SIZES[1], query: 'speed=normal&lowmotion=1', label: `${SIZES[1][0]}×${SIZES[1][1]} low motion` },
+  // (Stage H: the panels from the other seat, the one a guest plays online.)
+  { size: SIZES[2], query: 'speed=normal&lowmotion=0&seat=p2', label: `${SIZES[2][0]}×${SIZES[2][1]} from Player 2's seat` }];
 for (const run of RUNS) {
   try {
     await playOne(browser, `${base}?seed=${SEED}&pace=60&${run.query}`, run.size, console.log);

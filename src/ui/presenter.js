@@ -41,10 +41,13 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   const token = (who, lane) => q(`[data-cell="${who}:${lane}"] .slot-card`);
   const warlordEl = (who) => q(`[data-region="warlord-${who}"]`);
   const dialEl = (who) => q(`[data-region="warlord-${who}"] .dial-n`);
-  // (Stage G: your Gold is in the Market; the enemy's stays in their piles.)
-  const goldEl = (who) => q(who === HUMAN ? '[data-region="your-gold"] .gold-n' : `[data-region="piles-${who}"] .gold-n`);
-  const pileEl = (who, i) => q(`[data-region="piles-${who}"] .pile:nth-child(${i}) .pile-card`);
+  // (Stage G: your Gold is in the Market. Stage H: the other player's has its own place in their band.)
+  const goldEl = (who) => q(who === HUMAN ? '[data-region="your-gold"] .gold-n' : `[data-region="gold-${who}"] .gold-n`);
+  const pileEl = (who, i) => q(`[data-region="piles-${who}"] .pile:nth-child(${i}) .pile-n`);
   const centre = { cx: 790, cy: 450, x: 790, y: 450, w: 0, h: 0 };
+  // (Stage H: the other player's hand is in their band; yours fills the room between your two panels.)
+  const foeHand = () => { const el = q('[data-region="enemy-hand"]'); return el ? box(el) : { cx: 720, cy: 60 }; };
+  const myHand = { cx: 803, cy: 930 };
 
   // --- One beat: animations and waits that a click finishes at once --------------------------------------
   function beatCtx() {
@@ -394,7 +397,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   }
   // Cards fly from the Draw Pile into the hand (yours face up, the enemy's as backs).
   async function flyDrawn(ctx, who, uids) {
-    const pile = q(`[data-region="piles-${who}"] .pile:nth-child(1) .pile-card`);
+    const pile = pileEl(who, 1);
     const from = pile ? box(pile) : (who === HUMAN ? { cx: 1215, cy: 1010 } : { cx: 1184, cy: 57 });
     const runs = [];
     if (who === HUMAN) {
@@ -407,7 +410,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       });
     } else {
       const hand = q('[data-region="enemy-hand"]');
-      const to = hand ? box(hand) : { cx: 720, cy: 60 };
+      const to = hand ? box(hand) : foeHand();
       uids.forEach((u, i) => {
         const el = add(cardBack('back-ghost'), from.cx - 23, from.cy - 32, 'ghost');
         runs.push(ctx.anim(el, [{ transform: 'translate(0,0) scale(1)', opacity: 0.9 }, { transform: `translate(${to.cx - from.cx}px, ${to.cy - from.cy}px) scale(0.8)`, opacity: 0.2 }], { duration: 380, delay: i * 80 }).then(() => el.remove()));
@@ -432,10 +435,10 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     const B = (kind, caption, run, gl, extra = {}) => beats.push({ kind, caption, run, gl, ...(activeCine && !extra.cine ? { cine: activeCine } : {}), ...extra });
     const where = (who, space) => { const el = cell(who, space); return el ? box(el) : centre; };
     const handPos = (who, uid) => {
-      if (who === AI) return { cx: 720, cy: 60 };
+      if (who === AI) return foeHand();
       const i = prev.players[HUMAN].hand.findIndex((c) => c.uid === uid);
       const pos = handLayout(prev.players[HUMAN].hand.length)[i];
-      return pos ? { cx: pos.x + 100, cy: HAND.y + 140 } : { cx: 760, cy: 940 };
+      return pos ? { cx: pos.cx, cy: HAND.y + 280 - 140 * pos.k } : { cx: 800, cy: 940 };
     };
     // A number landing; a stat on a card flashes as it changes (card design v4: the tab's number).
     const setText = (el, v) => {
@@ -735,11 +738,11 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           const c = prevCard(e.who, e.space);
           B('returned', `${POSS[e.who]} ${e.name} returns to ${e.who === HUMAN ? 'your' : 'their'} hand.`, async (ctx) => {
             if (!c) return;
-            await slide(ctx, renderCard(c, { size: 'token', live: true }), where(e.who, e.space), e.who === HUMAN ? { cx: 760, cy: 930 } : { cx: 720, cy: 60 }, { size: 'token', scaleTo: 0.7 });
+            await slide(ctx, renderCard(c, { size: 'token', live: true }), where(e.who, e.space), e.who === HUMAN ? myHand : foeHand(), { size: 'token', scaleTo: 0.7 });
           }, async (ctx) => {
             const at = where(e.who, e.space);
             await fxRun(ctx, 'returned', { anchors: anchors({ dst: at }), hooks: {
-              slide: () => (c ? slide(ctx, renderCard(c, { size: 'token', live: true }), at, e.who === HUMAN ? { cx: 760, cy: 930 } : { cx: 720, cy: 60 }, { size: 'token', scaleTo: 0.7 }) : null),
+              slide: () => (c ? slide(ctx, renderCard(c, { size: 'token', live: true }), at, e.who === HUMAN ? myHand : foeHand(), { size: 'token', scaleTo: 0.7 }) : null),
             } });
           });
           break;
@@ -764,7 +767,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const srcInfo = cardByName(e.name);
             const onRow = [next, prev].map((st) => st.players[e.who].row.findIndex((x) => x && x.name === e.name)).find((i) => i >= 0);
             const srcCard = onRow != null ? next.players[e.who].row[onRow] ?? prev.players[e.who].row[onRow] : null;
-            const src = onRow != null ? where(e.who, onRow) : castFrom ?? (e.who === HUMAN ? { cx: 760, cy: 930, w: 200, h: 280 } : { cx: 720, cy: 60, w: 200, h: 280 });
+            const src = onRow != null ? where(e.who, onRow) : castFrom ?? (e.who === HUMAN ? { ...myHand, w: 200, h: 280 } : { ...foeHand(), w: 200, h: 280 });
             const targets = e.targets.map((t) => ({ box: where(t.who, t.space), el: token(t.who, t.space) }));
             focus = targets[0].box;
             const id = effectFor(e.op, e.name, e.kind);
@@ -1081,7 +1084,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           B('draw', `${NAME[e.who]} ${e.who === HUMAN ? 'draw' : 'draws'} ${n} card${n === 1 ? '' : 's'}${e.name ? ` (${e.name})` : ''}.`, async () => {
             if (e.who === HUMAN) for (const u of e.uids) { const el = q(`.hand-card[data-uid="${u}"]`); if (el) el.style.opacity = ''; }
           }, async (ctx) => {
-            const pile = q(`[data-region="piles-${e.who}"] .pile:nth-child(1) .pile-card`);
+            const pile = pileEl(e.who, 1);
             await fxRun(ctx, 'draw', { anchors: anchors({ drawPile: pile ? box(pile) : centre }), hooks: { fly: () => flyDrawn(ctx, e.who, e.uids) } });
           });
           break;
@@ -1089,7 +1092,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         // Energy gained (Desperate Gambit): sparks fly into the Energy pips.
         case 'energy': {
           B('energy', `${NAME[e.who]}: +${e.amount} Energy (${e.name}).`, async (ctx) => { await ctx.wait(200); }, async (ctx) => {
-            const pips = e.who === HUMAN ? boxesOf('.energy-panel .pips .pip.on').slice(-e.amount) : [];
+            // (Stage H: into the crystal of the Energy display, yours or theirs.)
+            const pips = boxesOf(`[data-region="energy-${e.who}"] .en-crys`);
             const targets = (pips.length ? pips : [boxOf(warlordEl(e.who)) ?? centre]).map((b) => ({ box: b }));
             await fxRun(ctx, 'energy', { anchors: anchors({ src: castFrom ?? centre, dst: targets[0].box }), targets });
           });
@@ -1212,8 +1216,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           if (e.round > 1) B('dawn', `Round ${e.round} · Dawn.`, async (ctx) => { await banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'); }, async (ctx) => {
             // 5.7: the sweep, Energy pips refilling with sparks, recovered Exert glinting (new cards fly in next).
             const recovered = Math.max(0, prev.players[HUMAN].exhaust.length - next.players[HUMAN].exhaust.length);
-            const exerts = boxesOf('.energy-panel .pip.exert.on');
-            await fxRun(ctx, 'dawn', { anchors: anchors(), lists: { pips: boxesOf('.energy-panel .pips .pip.on'), exerts: recovered ? exerts.slice(-recovered) : [] },
+            // (Stage H: the sparks land on your Energy crystal; recovered Exert glints on its ready runes.)
+            const exerts = boxesOf(`[data-region="energy-${HUMAN}"] .ex-rune.ready`);
+            await fxRun(ctx, 'dawn', { anchors: anchors(), lists: { pips: boxesOf(`[data-region="energy-${HUMAN}"] .en-crys`), exerts: recovered ? exerts.slice(-recovered) : [] },
               hooks: { banner: () => banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn') } });
           });
           break;

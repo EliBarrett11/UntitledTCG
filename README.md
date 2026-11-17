@@ -491,3 +491,44 @@ node tools/compare.mjs
   - `tools/v5clips.mjs` records the clips, each with a frame strip;
   - `tools/aiprint.mjs` fingerprints the AI's play.
 - Readings for Elliott's approval: `docs/03-look-and-feel.md` section 14.
+
+### H: The information panels (17 November 2026)
+- Built to `docs/mockups/hud-v2/` (`a2-you.png`, `a2-enemy.png`), approved by Elliott on 17 November 2026 with a slimmer Energy panel. `a2.mjs` and `a2.css` were treated as a sketch: the panels are the game's own code (`src/ui/hud.js`) and styles (`src/ui/hud.css`), and the old Warlord plaques, Quest boxes, top pile row, Round panel, turn plaque, Pass box and V5 Energy box are gone from the code and the stylesheets. Purely visual: no rule changed.
+- **One grid, one panel style:**
+  - **The grid:** every panel sits on the same edges with 16 px gutters. The band spans the board's width; the column's three panels share its width from the band's top to the bottom panels' bottom; your two panels reach the board's edges.
+  - **The style:** a dark slab, a fine brass hairline and a 12 px radius, edged crimson for you and blue for the other player. The side whose turn it is glows. Sections are split by fading hairlines, and every value sits under a small Cinzel caption.
+  - The layout check measures every gutter.
+- **The other player's band:** their Warlord ring, name and damage taken; the Quest's name and pips; their hand (card backs and count); Energy and Exert (V5's crystal and runes at band size); Gold; Draw, Discard, Released and Bag; and settings.
+- **Left of your hand:** a larger Renown ring with your name and damage taken, then the Quest: its name, pips, progress and the Legendary Creature it leads to.
+- **Right of your hand**, about 270 px wide from x 1286 (Elliott's change):
+  - the big crystal and number;
+  - the three Exert runes with "1 ready";
+  - the four piles in a row.
+  
+  All of V5's Energy behaviour is kept.
+- **The hand** fills the room between your panels:
+  - Up to 7 cards keep their size. With more, each card shrinks just enough that it shows as much of itself as 7 did before (97% at 8 cards, 78% at 10).
+  - Hovering a card brings it to full size, on top of its neighbours.
+  - With 10 cards, no name is hidden more than with 7 before (46%), and no cost well at all. `tools/handread.mjs` measures this, at every size and with Prime tabs.
+- **The column:**
+  - **The command panel:** Round, the Last Battle rule and the phases; the crimson or blue turn strip, with its thinking dots, its line and the pace controls; and Pass with its hint, dimmed with "Waiting for the enemy" on their turn.
+  - **The Market:** the title and stock, YOUR GOLD, the Item at the largest size that fits, and Buy. Buy keeps stage G's states in shorter words, such as "Buy on your turn".
+  - **Last actions:** the latest line, the one before, and "Full log ▸", which opens every line in a panel.
+- **The red "MUST ATTACK BEFORE YOU PASS" tag is gone** (Elliott, 17 November 2026); the hint under Pass explains it.
+- **Everything aimed at these areas follows them:**
+  - Renown and Gold fly to the new rings and numbers. Warlord, pile and Quest effects land there, and cards fly to and from the hand's new fan and the band's card backs.
+  - The Codex, keyword tips and right-click work on all of it; right-click also opens the Round, phases, Pass, the Market and the Bag.
+  - The React moment's dimming covers the panels, and a lifted Warlord keeps its slab.
+- **Fixed from V5:** the Energy sparks now land on the Energy crystal and the ready runes, instead of the Warlord.
+- **Checks:**
+  - `tests/h-hud.test.js`: the grid, the fan, both turns, the guest's seat, and the full log.
+  - The layout check:
+    - new scenes: the hand at 7, 8, 9 and 10 cards; 10 cards hovered; both turn states; the full log; Player 2's seat;
+    - a readability bar for the hand;
+    - the grid's gutters.
+  - Real-input and presenter runs from Player 2's seat.
+- **Tools:**
+  - `tools/hcompare.mjs` saves the mockups beside the game and the hand at 10 cards at each size;
+  - `tools/handread.mjs` measures the hand;
+  - `?hand=N` (a dev aid for the scenes) sets how many cards you hold.
+- Readings for Elliott's approval: `docs/03-look-and-feel.md` section 15.
