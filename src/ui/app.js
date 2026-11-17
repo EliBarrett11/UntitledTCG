@@ -16,6 +16,7 @@ import { buildMoment, tickMoment, stageBox } from './react.js';
 import { arrowSvg } from './arrow.js';
 import { titleScreen, setupScreen, openingBanner } from './screens.js';
 import { firstScreen, nextScreen } from './flow.js';
+import { createCodex } from './codex.js';
 
 // The presentation art (V3), fetched and decoded before it's first shown.
 const ART = ['war-table', 'campaign-map', 'campaign-map-scorched', 'title-key-art', 'banner-crimson', 'banner-blue', 'card-back'].map((n) => `assets/ui/${n}.jpg`);
@@ -63,6 +64,8 @@ export function startApp(params) {
   let settings = loadSettings(params);
   const applyMotionClass = () => document.body.classList.toggle('low-motion', !!settings.lowMotion);
   applyMotionClass();
+  // Stage G: the Codex, in its own layer over the right-hand column (made first, so its Escape comes before the game's).
+  const codex = createCodex(document.getElementById('viewport'), { state: () => (screen === 'match' ? s : null), viewer: HUMAN, lowMotion: () => !!settings.lowMotion });
   let presenting = false;
   let suppressClick = false;
   let skips = 0;
@@ -116,6 +119,7 @@ export function startApp(params) {
   let fading = null;
   async function go(next, then = null) {
     if (!next) return;
+    hidePreview();   // (stage G: a change of screen ends any hover)
     const lm = !!settings.lowMotion;
     if (!lm && stage.animate) {
       fading = stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards', easing: 'ease-in' });
@@ -437,6 +441,7 @@ export function startApp(params) {
   function draw() {
     document.body.dataset.screen = screen;
     if (screen === 'title' || screen === 'setup') {
+      codex.close();
       const keep = focusKey();
       stage.style.translate = '';
       stage.innerHTML = screen === 'title' ? titleScreen(ui) : setupScreen(ui);
@@ -449,7 +454,9 @@ export function startApp(params) {
     ui.showEnd = s.phase === 'gameOver' && !presenting;
     if (ui.showEnd) screen = 'end';
     document.body.dataset.screen = screen;
+    hover.el = null;   // (the redraw brings a fresh, hidden preview; a still pointer opens none until it moves)
     stage.innerHTML = render(s, ui);
+    if (ui.showEnd) codex.close(); else codex.refresh();
     if (ui.showEnd) { refocus(keep); document.body.dataset.version = String(version); document.body.dataset.phase = s.phase; document.body.dataset.actor = ''; document.body.dataset.step = 'idle'; return; }
     vfx.attach(s);
     fitLabels(stage);
@@ -649,16 +656,69 @@ export function startApp(params) {
     if (e.key === 'Escape') cancel();
   });
 
+  // Stage G: the Codex. Right-click any card (or a pile, a sealed Strat, the log's chips) to open it, or hover and
+  // press C. It never cancels a choice in progress: a right-click only opens the panel, and the browser menu stays shut.
+  function codexRef(target) {
+    if (!target || !stage.contains(target) || screen !== 'match' || !s) return null;
+    const plate = target.closest('.rx-plate[data-i]');
+    if (plate && ui.react) { const o = ui.react.options[Number(plate.dataset.i)]; return o?.card ? { zone: 'hand', who: HUMAN, uid: o.card.uid } : null; }
+    const el = target.closest('[data-codex], [data-hover]');
+    if (!el) return null;
+    const d = el.dataset;
+    if (d.codex === 'card') return d.lc ? { zone: 'lc', id: d.lc } : d.series ? { zone: 'series', id: d.id, level: Number(d.level) } : { zone: 'card', id: d.id };
+    if (d.codex === 'pile') return { zone: 'pile', who: d.who, pile: d.pile };
+    if (d.codex === 'strat') return { zone: 'strat', uid: d.uid };
+    if (d.codex === 'enemy-hand') return { zone: 'enemyHand' };
+    if (d.codex === 'term') return { term: d.term };
+    if (d.hover === 'hand' || d.hover === 'react') return { zone: 'hand', who: HUMAN, uid: d.uid };
+    if (d.hover === 'board') return { zone: 'board', who: d.who, space: Number(d.space) };
+    if (d.hover === 'bag') return { zone: 'bag', who: d.who, uid: d.uid };
+    if (d.hover === 'market') return { zone: 'market' };
+    if (d.hover === 'location') return { zone: 'location', loc: d.loc, id: d.id };
+    if (d.hover === 'quest') return { zone: 'quest', who: d.who, id: d.id };
+    return null;
+  }
+  function openCodexAt(target) {
+    const ref = codexRef(target);
+    if (!ref) return false;
+    hidePreview();
+    if (ref.term) codex.openTerm(ref.term); else codex.open(ref);
+    return true;
+  }
+  stage.addEventListener('contextmenu', (e) => {
+    if (screen !== 'match') return;
+    e.preventDefault();
+    if (drag) return;
+    openCodexAt(e.target);
+  });
+  document.addEventListener('keydown', (e) => {
+    if ((e.key !== 'c' && e.key !== 'C') || e.ctrlKey || e.metaKey || e.altKey || screen !== 'match') return;
+    if (e.target.closest?.('input, textarea, select')) return;
+    if (hover.x < 0) return;
+    if (openCodexAt(document.elementFromPoint(hover.x, hover.y))) e.preventDefault();
+  });
+
   // Hover: any card at Full size (340 px), placed beside it inside the stage.
-  stage.addEventListener('mouseover', (e) => {
-    const el = e.target.closest('[data-hover]');
+  //
+  // Stage G (the hover fix): the preview shows only while the pointer is over its card. It used to follow 'mouseover'
+  // alone, which also fires when a card moves under a still pointer (a drawn card flying in, the hand closing up after a
+  // card is played) and fires nothing when that card moves on; so its preview stayed up with the pointer over the map.
+  // Now the card under the pointer is found with elementFromPoint on every pointer move; while a preview shows, each
+  // frame checks its card is still under the pointer and still in the page; and anything that ends a hover (leaving
+  // the stage or the window, a scroll, a press, a drag, a React moment, a change of screen, a redraw) hides it.
+  const hover = { el: null, x: -1, y: -1, raf: 0 };
+  const cardUnderPointer = () => {
+    if (hover.x < 0) return null;
+    const t = document.elementFromPoint(hover.x, hover.y);
+    return t && stage.contains(t) ? t.closest('[data-hover]') : null;
+  };
+  const hoverBlocked = () => !!(ui?.menu || drag || aimEl || screen !== 'match' || ui?.react);
+  function showPreviewFor(el) {
     const pv = stage.querySelector('#preview');
     if (!pv) return;
-    // (Stage F: from picking a card up until it's dropped or the drag is cancelled, no preview shows.)
-    // (And while the targeting arrow is out, so it stays clear what you're aiming at.)
-    if (!el || ui.menu || drag || aimEl) { pv.hidden = true; return; }
     const h = hoverCard(el);
-    if (!h) { pv.hidden = true; return; }
+    if (!h) { hidePreview(); return; }
+    hover.el = el;
     // Stage F: a creature in hand shows its series line under the card (Levels, this Round's, the Prime).
     const strip = h.strip ? seriesLine(h.card, s.round) : '';
     pv.innerHTML = `${renderCard(h.card, { size: 'full', ...h.opts })}${strip}`;
@@ -676,8 +736,36 @@ export function startApp(params) {
     y = Math.max(M, Math.min(STAGE_H - H - M, y));
     pv.style.left = `${Math.round(x)}px`;
     pv.style.top = `${Math.round(y)}px`;
-  });
-  stage.addEventListener('mouseleave', () => { const pv = stage.querySelector('#preview'); if (pv) pv.hidden = true; });
+    watchHover();
+  }
+  // While a preview shows: each frame, is its card still under the pointer, and still in the page?
+  function watchHover() {
+    if (hover.raf) return;
+    const tick = () => {
+      hover.raf = 0;
+      const pv = stage.querySelector('#preview');
+      if (!pv || pv.hidden || !hover.el) return;
+      if (hoverBlocked() || !hover.el.isConnected || cardUnderPointer() !== hover.el) { hidePreview(); return; }
+      hover.raf = requestAnimationFrame(tick);
+    };
+    hover.raf = requestAnimationFrame(tick);
+  }
+  function syncHover() {
+    if (hoverBlocked()) { hidePreview(); return; }
+    const el = cardUnderPointer();
+    if (!el) { hidePreview(); return; }
+    const pv = stage.querySelector('#preview');
+    if (el === hover.el && pv && !pv.hidden) return;
+    showPreviewFor(el);
+  }
+  document.addEventListener('pointermove', (e) => { hover.x = e.clientX; hover.y = e.clientY; syncHover(); }, { capture: true, passive: true });
+  stage.addEventListener('pointerleave', () => { hover.x = -1; hidePreview(); });
+  document.addEventListener('pointerleave', () => { hover.x = -1; hidePreview(); });
+  window.addEventListener('blur', () => hidePreview());
+  window.addEventListener('wheel', () => hidePreview(), { passive: true });
+  window.addEventListener('scroll', () => hidePreview(), { capture: true, passive: true });
+  document.addEventListener('pointerdown', () => hidePreview(), true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hidePreview(); }, true);
   // Full cards tilt slightly under the pointer: the preview follows the pointer over the card it shows.
   stage.addEventListener('mousemove', (e) => {
     const pv = stage.querySelector('#preview');
@@ -748,6 +836,8 @@ export function startApp(params) {
   function hidePreview() {
     const pv = stage.querySelector('#preview');
     if (pv) { pv.hidden = true; pv.innerHTML = ''; }
+    hover.el = null;
+    if (hover.raf) { cancelAnimationFrame(hover.raf); hover.raf = 0; }
   }
   // A drag is cancelled by Escape or a cancelled pointer: the card goes back, nothing is played.
   function cancelDrag() {
@@ -804,6 +894,7 @@ export function startApp(params) {
   const fit = () => {
     const scale = Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H);
     stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    codex.layer.style.transform = stage.style.transform;
     vfx.resize();
   };
   window.addEventListener('resize', fit);

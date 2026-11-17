@@ -81,6 +81,36 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
   const count = (sel) => page.evaluate((s) => document.querySelectorAll(s).length, sel);
   const state = () => page.evaluate(() => ({ ...document.body.dataset, end: !!document.querySelector('[data-region="end"]'), mull: !!document.querySelector('[data-region="mulligan"]'), react: !!document.querySelector('[data-region="react-moment"]') }));
 
+  // Stage G: the hover check. Moves the pointer onto hand cards and off the hand in many ways (fast, slow,
+  // diagonally, to the map, the column and the window's edges), at any moment (during animations, the AI's turn,
+  // after a drag), and fails if a hover preview stays while the pointer isn't over a card.
+  async function hoverSweep(when, moves = 4) {
+    for (let i = 0; i < moves; i++) {
+      const n = await count('.hand-card');
+      if (!n) return;
+      const hb = await page.evaluate((k) => { const r = document.querySelectorAll('.hand-card')[k]?.getBoundingClientRect(); return r ? { x: r.left, y: r.top, w: r.width, h: r.height } : null; }, Math.floor(pick() * n));
+      if (!hb) return;
+      const steps = [1, 2, 6, 20];
+      await page.mouse.move(hb.x + hb.w * (0.2 + pick() * 0.6), hb.y + hb.h * (0.2 + pick() * 0.6), { steps: steps[Math.floor(pick() * 4)] });
+      await page.waitForTimeout(30 + pick() * 120);
+      // Across the hand first, now and then.
+      if (pick() < 0.4) await page.mouse.move(pick() * w, hb.y + hb.h * 0.5, { steps: steps[Math.floor(pick() * 4)] });
+      const exits = [[pick() * w, h * 0.4], [w * 0.9, h * (0.3 + pick() * 0.6)], [pick() * w, h - 1], [1, pick() * h], [w - 1, pick() * h], [hb.x - 120, hb.y - 200], [hb.x + hb.w + 160, hb.y - 260]];
+      const [x, y] = exits[Math.floor(pick() * exits.length)];
+      await page.mouse.move(x, y, { steps: steps[Math.floor(pick() * 4)] });
+      await page.waitForTimeout(60);
+      const stuck = await page.evaluate(([x, y]) => {
+        const pv = document.getElementById('preview');
+        if (!pv || pv.hidden || getComputedStyle(pv).visibility === 'hidden') return null;
+        const top = document.elementFromPoint(x, y);
+        if (top?.closest?.('[data-hover]')) return null;
+        return top ? `${top.tagName.toLowerCase()}.${String(top.className).trim().split(/\s+/).join('.')}` : 'nothing';
+      }, [x, y]);
+      counts['hover sweep'] = (counts['hover sweep'] ?? 0) + 1;
+      if (stuck) throw new Error(`a hover preview stayed on screen ${when}, with the pointer over ${stuck} at (${Math.round(x)}, ${Math.round(y)})`);
+    }
+  }
+
   // Drag a hand card onto one of the places it lights up (or onto the map, for a card with no target).
   async function dragHand(index) {
     const p = await pointOf(page, '[data-act="hand"]', index);
@@ -161,7 +191,8 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
         const p = await pointOf(page, '[data-region="map"]', 0);
         if (p) { await page.mouse.click(p.x, p.y); clicks += 1; counts.skip = (counts.skip ?? 0) + 1; }
         await page.waitForTimeout(40);
-      } else await page.waitForTimeout(60);
+      } else if (pick() < 0.12) await hoverSweep('during an animation', 1);
+      else await page.waitForTimeout(60);
       continue;
     }
     if (st.mull) {
@@ -172,6 +203,7 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
     }
     if (st.actor !== 'p1') {
       // The AI is thinking (with the page's pause); wait for its move.
+      if (pick() < 0.15) await hoverSweep('on the AI\'s turn', 1);
       const v = st.version;
       for (let i = 0; i < 200 && (await page.evaluate(() => document.body.dataset.version)) === v && (await state()).actor !== 'p1'; i++) await page.waitForTimeout(25);
       if ((await page.evaluate(() => document.body.dataset.version)) === v && (await state()).actor !== 'p1' && !(await state()).end) throw new Error('stall: the AI made no move');
@@ -193,7 +225,8 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
     const r = pick();
     if (attackers && (r < 0.6 || !hand)) { await click('[data-act="attacker"]', Math.floor(pick() * attackers), 'attacker'); await finishSelection(); continue; }
     if (hand && r < 0.72) { await click('[data-act="hand"]', Math.floor(pick() * hand), 'hand card'); await finishSelection(); continue; }
-    if (hand && r < 0.85) { await dragHand(Math.floor(pick() * hand)); await finishSelection(); continue; }
+    if (hand && r < 0.85) { await dragHand(Math.floor(pick() * hand)); await hoverSweep('after a drag', 2); await finishSelection(); continue; }
+    if (hand && pick() < 0.1) await hoverSweep('on my turn', 3);
     if (await count('[data-act="buy-market"]') && pick() < 0.5) { await click('[data-act="buy-market"]', 0, 'Buy'); await finishSelection(); continue; }
     if (await count('.bag-slot.usable') && pick() < 0.5) { await click('.bag-slot.usable', 0, 'Bag'); await finishSelection(); continue; }
     if (await count('[data-act="pass"]')) { await click('[data-act="pass"]', 0, 'Pass'); continue; }

@@ -152,7 +152,7 @@ export function chipCardFor(line) {
     for (const def of CARDS) {
       if (isCreature(def)) for (const f of def.forms) NAMED.push([f.name, creatureAtLevel(def, Number(Object.keys(f.levels)[0]), `chip-${f.id}`)]);
       else NAMED.push([def.name, cardAtRound(def.id, 1, `chip-${def.id}`)]);
-      if (def.legendaryCreature) NAMED.push([def.legendaryCreature.name, legendaryCreatureOf(def, 'chip-lc')]);
+      if (def.legendaryCreature) NAMED.push([def.legendaryCreature.name, { ...legendaryCreatureOf(def, 'chip-lc'), campaignId: def.id }]);
     }
     NAMED.sort((a, b) => b[0].length - a[0].length);
   }

@@ -17,6 +17,8 @@ export const cardDef = (id) => {
   return d;
 };
 export const hasCard = (id) => LIBRARY.has(id);
+// Every definition (the Codex finds a Legendary Creature's Campaign this way).
+export const allDefs = () => [...LIBRARY.values()];
 
 export const CREATURE_TYPES = Object.freeze(['Character', 'Monster']);
 export const isCreature = (c) => !!c && CREATURE_TYPES.includes(c.cardType);

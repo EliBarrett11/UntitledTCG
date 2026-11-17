@@ -25,7 +25,7 @@ function warlord(s, who, ui) {
   const p = s.players[who];
   const pick = ui.picks?.warlord;
   const pick2 = who === AI ? pick : null;
-  return `<div class="warlord ${who === HUMAN ? 'warlord-you' : 'warlord-enemy'}${pick2 ? ' target' : ''}" ${pick2 ? `data-pick="${esc(pick2)}"` : ''} data-region="warlord-${who}">
+  return `<div class="warlord ${who === HUMAN ? 'warlord-you' : 'warlord-enemy'}${pick2 ? ' target' : ''}" ${pick2 ? `data-pick="${esc(pick2)}"` : ''} data-region="warlord-${who}" data-codex="term" data-term="warlord">
 
     ${dial(p.renown, RULES.win, 74, 58).replace('$', `<div class="dial-n">${p.renown}</div><div class="dial-of">/ ${RULES.win}</div>`)}
     <div class="warlord-text">
@@ -53,9 +53,16 @@ function quest(s, who) {
   </div>`;
 }
 
+// Stage G: what a log chip opens in the Codex (a series at the Level the line names, a card, or a Legendary Creature).
+function codexAttrs(c) {
+  if (c.legendaryCreature) return c.campaignId ? `data-codex="card" data-lc="${esc(c.campaignId)}"` : '';
+  if (c.level !== undefined && c.series) return `data-codex="card" data-series="1" data-id="${esc(c.id)}" data-level="${c.level}"`;
+  return `data-codex="card" data-id="${esc(c.id)}"`;
+}
+
 function piles(s, who, ui) {
   const p = s.players[who];
-  const pile = (n, label) => `<div class="pile"><div class="pile-card">${n}</div><div class="label">${label}</div></div>`;
+  const pile = (n, label) => `<div class="pile" data-codex="pile" data-who="${who}" data-pile="${label.toLowerCase()}"><div class="pile-card">${n}</div><div class="label">${label}</div></div>`;
   const bag = Array.from({ length: RULES.bagSize }, (_, i) => {
     const c = p.bag[i];
     if (!c) return '<div class="bag-slot"></div>';
@@ -72,12 +79,12 @@ function piles(s, who, ui) {
 function enemyHand(s) {
   const n = s.players[AI].hand.length;
   const shown = Math.min(n, 10);
-  return `<div class="enemy-hand" data-region="enemy-hand">${Array.from({ length: shown }, () => cardBack('back-small')).join('')}</div><div class="muted enemy-count">${n} in hand</div>`;
+  return `<div class="enemy-hand" data-region="enemy-hand" data-codex="enemy-hand">${Array.from({ length: shown }, () => cardBack('back-small')).join('')}</div><div class="muted enemy-count">${n} in hand</div>`;
 }
 
 function sealedStrats(s, who) {
   const n = s.strats.filter((x) => x.owner === who && x.target.none).length;
-  return n ? `<div class="sealed-note" title="A sealed Strat with no target">${cardBack('back-chip')} ${n} sealed Strat${n === 1 ? '' : 's'}</div>` : '';
+  return n ? `<div class="sealed-note" data-codex="term" data-term="strat" title="A sealed Strat with no target">${cardBack('back-chip')} ${n} sealed Strat${n === 1 ? '' : 's'}</div>` : '';
 }
 
 // --- The map --------------------------------------------------------------------------------------------------
@@ -134,7 +141,7 @@ function row(s, who, ui) {
     const pick = ui.picks?.cell?.[`${who}:${lane}`];
     const cpick = ui.picks?.creature?.[`${who}:${lane}`];
     const chips = s.strats.filter((x) => !x.target.none && x.target.who === who && (x.target.area ? lanesHere(s, x.target.space).includes(lane) && (x.target.space === lane) : x.target.space === lane))
-      .map((x) => `<div class="strat-chip ${x.owner === HUMAN ? 'mine' : 'theirs'}" title="${x.owner === HUMAN ? `Your sealed Strat (${esc(x.card.name)})` : 'The enemy\'s sealed Strat'} targets ${x.target.area ? 'this Location' : 'this creature'}">${cardBack('back-chip')}<span>STRAT</span></div>`).join('');
+      .map((x) => `<div class="strat-chip ${x.owner === HUMAN ? 'mine' : 'theirs'}" data-codex="strat" data-uid="${esc(x.uid)}" title="${x.owner === HUMAN ? `Your sealed Strat (${esc(x.card.name)})` : 'The enemy\'s sealed Strat'} targets ${x.target.area ? 'this Location' : 'this creature'}">${cardBack('back-chip')}<span>STRAT</span></div>`).join('');
     // (Stage P: an empty space on a Location's tile is dark glass with a dashed brass outline.)
     let body = `<div class="empty-slot${!s.lastBattle && locationAt(s, lane) ? ' on-tile' : ''}"></div>`;
     if (c) {
@@ -182,7 +189,7 @@ function column(s, ui) {
       </div>`
     : `<div class="sold-out">${m.soldOut ? 'SOLD OUT' : 'NOTHING ON SALE'}<div class="muted small">${m.soldOut ? `Restocks after ${m.soldOut.by === HUMAN ? 'your' : 'the enemy\'s'} next turn` : ''}</div></div>`;
   const stockRing = item ? `<div class="stock">${dial(m.stock, stockFull, 34, 26).replace('$', `<b>${m.stock}</b>`)}Stock · turns left</div>` : '';
-  const log = ui.log.slice(-7).reverse().map((l, i) => { const c = chipCardFor(l); return `<div class="log-line${i === 0 ? ' latest' : ''}">${c ? chipFor(c, 24) : '<span class="log-dot"></span>'}<span>${energyHtml(esc(l))}</span></div>`; }).join('');
+  const log = ui.log.slice(-7).reverse().map((l, i) => { const c = chipCardFor(l); return `<div class="log-line${i === 0 ? ' latest' : ''}">${c ? `<span class="log-chip" ${codexAttrs(c)}>${chipFor(c, 24)}</span>` : '<span class="log-dot"></span>'}<span>${energyHtml(esc(l))}</span></div>`; }).join('');
   const passable = ui.picks?.pass;
   return `<div class="column" data-region="column">
     <div class="panel round-panel">
@@ -190,7 +197,7 @@ function column(s, ui) {
       <div class="phases">${phases}</div>
       <div class="turn-line">${esc(turnLine)}</div>
     </div>
-    <div class="panel energy-panel" title="Base Energy left this Round; Exert points beyond it">
+    <div class="panel energy-panel" data-codex="term" data-term="energy" title="Base Energy left this Round; Exert points beyond it">
       <div class="en-top"><span class="label">ENERGY</span><div class="en-big"><i class="cr big"></i><span class="energy-n">${base}</span></div><div class="en-row">${energyPips}</div></div>
       <div class="en-ex"><span class="label">EXERT · ${availableExert(me)} OF ${me.exertMax}</span>${exertDots || '<span class="muted small">none yet</span>'}</div>
     </div>
@@ -198,7 +205,7 @@ function column(s, ui) {
     <div class="muted small center pass-note">${ui.passNote ?? 'Passing gives you +1 Base Energy this Round'}</div>
     <div class="panel market-panel">
       <div class="market-head"><div class="label">THE MARKET</div>${stockRing}</div>
-      <div class="your-gold" data-region="your-gold"><span class="l">YOUR GOLD</span><span class="gold-n"><i class="coin-i" aria-hidden="true"></i>${me.gold}</span></div>
+      <div class="your-gold" data-region="your-gold" data-codex="term" data-term="gold"><span class="l">YOUR GOLD</span><span class="gold-n"><i class="coin-i" aria-hidden="true"></i>${me.gold}</span></div>
       ${market}
     </div>
     <div class="panel log-panel">
