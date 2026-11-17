@@ -7,8 +7,21 @@ import { ART } from '../data/art.js';
 import { KEYWORDS, TRIGGERS } from '../engine/abilities.js';
 import { SPEED_ORDER } from '../engine/rules.js';
 
-export const HUMAN = 'p1';
-export const AI = 'p2';
+// This screen's seat (stage M). HUMAN is the seat this screen plays (its cards at the bottom, its hand, Energy, Gold
+// and Market), AI the other seat: the AI, or a friend online. They are live bindings, so every module that imports
+// them follows setSeat(). Playing the AI, this screen is Player 1, as always.
+export let HUMAN = 'p1';
+export let AI = 'p2';
+// Online, the other player is "Your friend", not "the enemy" (in the log, the captions and the turn line).
+export let ONLINE = false;
+export function setSeat(me, { online = false } = {}) {
+  HUMAN = me;
+  AI = me === 'p1' ? 'p2' : 'p1';
+  ONLINE = online;
+}
+// The other player, as words: "The enemy" / "Your friend", with its possessive, and lower case.
+export const foe = (cap = true) => (ONLINE ? (cap ? 'Your friend' : 'your friend') : cap ? 'The enemy' : 'the enemy');
+export const foes = (cap = true) => `${foe(cap)}'s`;
 
 // Legendary Creatures aren't deck cards: find their definitions inside the Campaign cards.
 const LEGENDARY_CREATURES = new Map(CARDS.filter((c) => c.legendaryCreature).map((c) => [c.legendaryCreature.id, c.legendaryCreature]));
@@ -131,8 +144,10 @@ export const CRYSTAL_ICON = '<svg class="crys-i" viewBox="0 0 20 24" aria-hidden
 export const energyHtml = (html) => String(html).replace(/(?<![\w>])(\+?\d+(?:–\d+)?) (Base )?Energy\b/g, `<span class="en-word">${CRYSTAL_ICON}$1 $2Energy</span>`);
 
 // The engine's log, as the human sees it.
-export function displayLine(line) {
-  return line
+export function displayLine(raw) {
+  // (From the second seat, Player 2 is "You": the engine's names are swapped first.)
+  const line = HUMAN === 'p2' ? raw.replace(/Player ([12])/g, (m, n) => `Player ${n === '1' ? '2' : '1'}`) : raw;
+  const out = line
     .replace(/Player 1's/g, 'Your').replace(/Player 2's/g, 'The enemy\'s')
     .replace(/Player 1 has/g, 'You have').replace(/Player 1 kept their hand/g, 'You kept your hand')
     .replace(/Player 1 shuffled their/g, 'You shuffled your').replace(/Player 1 stored (.+?) in their Bag/g, 'You stored $1 in your Bag')
@@ -142,6 +157,7 @@ export function displayLine(line) {
     .replace(/Player 1/g, 'You').replace(/Player 2/g, 'The enemy')
     .replace(/(^|[.:] )the enemy/g, (m, a) => `${a}The enemy`)
     .replace(/(\w) The enemy/g, '$1 the enemy').replace(/(\w) Your /g, '$1 your ');
+  return ONLINE ? out.replace(/The enemy/g, 'Your friend').replace(/the enemy/g, 'your friend') : out;
 }
 
 // The card a log line is about, for its Chip: the longest card name the line mentions (or null).

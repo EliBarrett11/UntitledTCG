@@ -7,12 +7,13 @@ import { cardDef } from '../engine/cards.js';
 import { renderCard, cardBack, icon, chipFor, STAR_PATH } from './cards.js';
 import { legendaryCreatureOf, cardAtRound } from '../engine/cards.js';
 import { chipCardFor, energyHtml } from './text.js';
-import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText } from './text.js';
+import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText, foe, foes } from './text.js';
 import { endScreen } from './screens.js';
 
 export const LANE_W = 1532 / 9;
 export const MAP = { x: 24, y: 128, w: 1532, h: 644 };
-export const ROW_Y = { [AI]: 18, [HUMAN]: 408 };
+// (Stage M: your side's row is at the bottom, whichever seat this screen plays.)
+export const ROW_Y = new Proxy({}, { get: (_, who) => (who === HUMAN ? 408 : 18) });
 // (Stage F: 8 px lower than before, so the "★ PRIME" tab above a card at its Prime clears the board.)
 export const HAND = { x: 340, w: 830, y: 794 };
 
@@ -167,8 +168,8 @@ function column(s, ui) {
   const phases = ['dawn', 'battle', 'dusk'].map((ph) => `<div class="phase${(s.phase === ph || (ph === 'battle' && s.phase === 'mulligan' && false)) ? ' on' : ''}">${ph === 'battle' ? 'BATTLE' : ph.toUpperCase()}</div>`).join('');
   const turnLine = s.phase === 'gameOver' ? 'The match is over'
     : s.phase === 'mulligan' ? 'Round 1 · mulligan'
-    : s.reactWindow ? (s.reactWindow.reactor === HUMAN ? 'The enemy acted · you may React' : 'Your action · the enemy may React')
-    : `${s.turn === HUMAN ? 'Your turn' : 'The enemy\'s turn'} · ${s.initiative === HUMAN ? 'you have' : 'the enemy has'} initiative this Round`;
+    : s.reactWindow ? (s.reactWindow.reactor === HUMAN ? `${foe()} acted · you may React` : `Your action · ${foe(false)} may React`)
+    : `${s.turn === HUMAN ? 'Your turn' : `${foes()} turn`} · ${s.initiative === HUMAN ? 'you have' : `${foe(false)} has`} initiative this Round`;
   const lb = s.lastBattle ? `<div class="lb-note">THE LAST BATTLE · since Round ${s.lastBattle.startedRound}</div>` : `<div class="muted small">Last Battle: Round ${RULES.lastBattleRound} or ${RULES.lastBattleRenown} Renown</div>`;
   const base = me.baseEnergy;
   const pips = Math.max(base, baseEnergyFor(s.round));

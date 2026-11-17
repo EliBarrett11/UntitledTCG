@@ -2,7 +2,7 @@
 // through applyAction (the other player lets it happen; a Strat is resolved as if its turn had come), then
 // compares: damage, healing and stat changes, defeats, Renown and Gold. Nothing here changes the real state.
 import { applyAction, resolveStrats, drainTriggers } from '../engine/game.js';
-import { HUMAN, AI, esc } from './text.js';
+import { HUMAN, AI, esc, foe } from './text.js';
 
 // The state after an action, as far as it can be seen now.
 export function outcome(s, action) {
@@ -83,9 +83,9 @@ export function badgeFor(s, action, d) {
 export function summary(d) {
   if (!d) return '';
   const parts = d.creatures.map((c) => `${c.who === HUMAN ? 'your' : 'their'} ${c.name}: ${changeText(c)}`);
-  if (d.renown[AI]) parts.push(`the enemy +${d.renown[AI]} Renown`);
+  if (d.renown[AI]) parts.push(`${foe(false)} +${d.renown[AI]} Renown`);
   if (d.renown[HUMAN]) parts.push(`you +${d.renown[HUMAN]} Renown`);
-  if (d.gameOver === AI) parts.push('the enemy wins');
+  if (d.gameOver === AI) parts.push(`${foe(false)} wins`);
   return parts.length ? parts.slice(0, 3).join('; ') : 'no change';
 }
 
@@ -108,8 +108,8 @@ export function outcomeLine(s, d, base = null) {
     }
   }
   for (const b of base?.creatures ?? []) if (b.defeated && !d.creatures.some((x) => x.uid === b.uid)) parts.push(`${esc(b.name)} <b class="up">survives</b>`);
-  if (d.renown[AI]) parts.push(`the enemy gains ${d.renown[AI]} Renown`);
+  if (d.renown[AI]) parts.push(`${foe(false)} gains ${d.renown[AI]} Renown`);
   if (d.renown[HUMAN]) parts.push(`you gain ${d.renown[HUMAN]} Renown`);
-  if (d.gameOver === AI) parts.push('<s>the enemy wins</s>');
+  if (d.gameOver === AI) parts.push(`<s>${foe(false)} wins</s>`);
   return parts.length ? parts.slice(0, 4).join(' · ') : 'nothing changes';
 }

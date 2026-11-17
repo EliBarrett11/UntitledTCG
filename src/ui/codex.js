@@ -47,7 +47,9 @@ const NOW_SKIP = ['round', 'level', 'summon', 'attack', 'health', 'creature'];
 
 // --- The panel ---------------------------------------------------------------------------------------------
 
-export function createCodex(viewport, { state, viewer, lowMotion }) {
+export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
+  // (Stage M: the seat this screen plays, looked up each time.)
+  const seat = () => (typeof seatOf === 'function' ? seatOf() : seatOf);
   const layer = document.createElement('div');
   layer.id = 'codex-layer';
   layer.innerHTML = `<aside id="codex" data-region="codex" hidden aria-label="The Codex">
@@ -153,7 +155,7 @@ export function createCodex(viewport, { state, viewer, lowMotion }) {
 
   function cardPage(e) {
     const s = state();
-    let ex = s ? explain(s, e.ref, viewer) : null;
+    let ex = s ? explain(s, e.ref, seat()) : null;
     let gone = false;
     if (!ex && lastEx) { ex = lastEx; gone = true; }
     if (!ex) return '<p class="cx-now">This card is no longer there.</p>';
@@ -274,7 +276,7 @@ export function createCodex(viewport, { state, viewer, lowMotion }) {
     for (const [i, f] of lastEx.forms.entries()) {
       const slot = body.querySelector(`[data-form-card="${i}"]`);
       if (!slot || slot.childElementCount) continue;
-      const ex = explain(state(), { zone: 'series', id: f.id, level: f.level }, viewer);
+      const ex = explain(state(), { zone: 'series', id: f.id, level: f.level }, seat());
       if (ex) slot.innerHTML = renderCard(ex.card, { size: 'full' });
     }
   }

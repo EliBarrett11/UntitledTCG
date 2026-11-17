@@ -8,7 +8,7 @@ import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
 import { render, fitLabels } from './view.js';
 import { renderCard, seriesLine } from './cards.js';
-import { displayLine, HUMAN, AI, esc } from './text.js';
+import { displayLine, HUMAN, AI, esc, foe, foes, setSeat } from './text.js';
 import { createPresenter } from './presenter.js';
 import { createVfx } from './vfx/index.js';
 import { outcome, diff, badgeFor, summary, outcomeLine } from './preview.js';
@@ -58,6 +58,8 @@ const tkey = (t) => (!t ? '-' : t.none ? 'none' : t.kind ? `${t.kind}:${t.space 
 const MODE = { adapt: 'Adapt', strat: 'Strat', react: 'React' };
 
 export function startApp(params) {
+  // Dev aid (stage M): ?seat=p2 plays the AI from the second seat, to check the interface from either seat.
+  if (params.get('seat') === 'p2') setSeat('p2');
   const stage = document.getElementById('stage');
   const pace = Math.max(0, Number(params.get('pace') ?? 500));
   const autoplay = params.get('autoplay') === '1';
@@ -65,7 +67,7 @@ export function startApp(params) {
   const applyMotionClass = () => document.body.classList.toggle('low-motion', !!settings.lowMotion);
   applyMotionClass();
   // Stage G: the Codex, in its own layer over the right-hand column (made first, so its Escape comes before the game's).
-  const codex = createCodex(document.getElementById('viewport'), { state: () => (screen === 'match' ? s : null), viewer: HUMAN, lowMotion: () => !!settings.lowMotion });
+  const codex = createCodex(document.getElementById('viewport'), { state: () => (screen === 'match' ? s : null), viewer: () => HUMAN, lowMotion: () => !!settings.lowMotion });
   let presenting = false;
   let suppressClick = false;
   let skips = 0;
@@ -236,7 +238,7 @@ export function startApp(params) {
     present(r);
   }
   function captionFor(a, lines) {
-    if (a.type === 'decline') return 'The enemy lets it happen.';
+    if (a.type === 'decline') return `${foe()} lets it happen.`;
     return lines.find((l) => !/^Round \d/.test(l)) ?? lines[0] ?? '';
   }
 
@@ -401,11 +403,11 @@ export function startApp(params) {
     if (p.type === 'attack') {
       const a = foe.row[p.from];
       const d = p.target.kind === 'creature' ? s.players[HUMAN].row[p.target.space] : null;
-      return `The enemy's ${a?.name ?? 'creature'} is attacking ${d ? `your ${d.name}` : 'your Warlord'}.`;
+      return `${foes()} ${a?.name ?? 'creature'} is attacking ${d ? `your ${d.name}` : 'your Warlord'}.`;
     }
-    if (p.type === 'action') return `The enemy plays ${p.card.name} (Adapt): ${p.card.modes.adapt.text}`;
-    if (p.type === 'strat') return `The enemy's sealed Strat is resolving: ${p.strat.card.name}: ${p.strat.card.modes.strat.text}`;
-    return 'The enemy acted.';
+    if (p.type === 'action') return `${foe()} plays ${p.card.name} (Adapt): ${p.card.modes.adapt.text}`;
+    if (p.type === 'strat') return `${foes()} sealed Strat is resolving: ${p.strat.card.name}: ${p.strat.card.modes.strat.text}`;
+    return `${foe()} acted.`;
   }
 
   function toast(msg) {

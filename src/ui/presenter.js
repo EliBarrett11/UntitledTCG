@@ -7,15 +7,16 @@
 // attacker's accent colour; numbers rise and fade like ink; a defeat crumbles into ash and embers towards the
 // Released Pile; Renown flows to the Warlord's dial as a ribbon of light.
 import { renderCard, cardBack } from './cards.js';
-import { accentOf, esc, HUMAN, AI, artOf, tintOf } from './text.js';
+import { accentOf, esc, HUMAN, AI, artOf, tintOf, foe, foes } from './text.js';
 import { handLayout, LANE_W, HAND } from './view.js';
 import { hasGuard } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
 import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS } from './vfx/library.js';
 
 const STAGE_W = 1920;
-const NAME = { [HUMAN]: 'You', [AI]: 'The enemy' };
-const POSS = { [HUMAN]: 'Your', [AI]: "The enemy's" };
+// (Stage M: looked up each time, so they follow this screen's seat.)
+const NAME = new Proxy({}, { get: (_, who) => (who === HUMAN ? 'You' : foe()) });
+const POSS = new Proxy({}, { get: (_, who) => (who === HUMAN ? 'Your' : foes()) });
 
 // Base durations (ms) at normal speed.
 export const T = { summon: 750, attack: 1250, hit: 650, defeat: 950, renown: 750, gold: 450, strat: 900, stratResolve: 2000, legendary: 2500,

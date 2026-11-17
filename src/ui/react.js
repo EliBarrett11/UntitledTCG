@@ -11,7 +11,7 @@
 // It only draws: app.js builds it after each render while a React window is open, and every plate goes through the
 // usual data-act (react, decline). Copies of the involved cards are drawn over the dimming at their exact places.
 import { isReady, locationAt, lanesHere } from '../engine/game.js';
-import { HUMAN, AI, esc, artOf } from './text.js';
+import { HUMAN, AI, esc, artOf, foes } from './text.js';
 import { arrowSvg, curvePoints } from './arrow.js';
 import { outcomeLine } from './preview.js';
 
@@ -63,7 +63,7 @@ export function momentFacts(s) {
   const on = t?.area ? ` on the creatures in ${place(t)}` : victim ? ` on ${whose(victim, t.who)}` : '';
   return {
     kind: mode, title: mode === 'strat' ? 'A SEALED STRAT RESOLVES' : `THE ENEMY PLAYS ${esc(card.name.toUpperCase())}`,
-    line: `${mode === 'strat' ? 'The enemy\'s ' : ''}<em>${esc(card.name)}</em>${on}: ${esc(card.modes[mode].text)}`,
+    line: `${mode === 'strat' ? `${foes()} ` : ''}<em>${esc(card.name)}</em>${on}: ${esc(card.modes[mode].text)}`,
     why: p.type === 'strat' ? 'It was sealed on an earlier turn; it resolves now.' : '',
     card, target: t && !t.none ? (t.area ? { area: t } : { who: t.who, space: t.space }) : null,
   };
