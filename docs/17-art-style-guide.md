@@ -68,3 +68,22 @@ The young and elder forms (batch 2) keep their series' identity but each get a d
 4. **Batch 4: the presentation art** (title key art, war table, campaign maps, banners and card back), with warmer, brighter versions to match.
 
 The game switches to the new art all at once, after the batches are in, so the two styles never mix on the board.
+
+## 8. Character names (Elliott, 17 November 2026)
+Characters get a first name followed by what they are: "Brenna, the Deepforge Priest". One person ages through a series, so all three forms share the first name ("Brenna, the Deepforge Acolyte" → "Brenna, the Deepforge Priest" → "Brenna, the Deepforge High Priest"). Monsters keep their descriptive names (Gloomfang Wolf). Aldric the Unbroken and Lady Corwen are already named. Proposed first names, awaiting Elliott's approval:
+
+| Series | First name | Forms |
+|---|---|---|
+| Oathsworn | Garrick | Recruit, Captain, Veteran |
+| Hollowfoot | Fennick | Cutpurse, Knifemaster, Fence |
+| Ashen Spire | Corvin | Apprentice, Spire Magus, Archmagus |
+| Deepforge | Brenna | Acolyte, Priest, High Priest |
+| Thornwood | Ilyra | Scout, Pathfinder, Warden |
+| Ironhide | Gorran | Brawler, Champion, Warchief |
+| Cinderwick | Tilda | Prodigy, Adept, Hermit |
+| Duskmere | Elowen | Novice, Oracle, Sibyl |
+
+**On the card:** the first name is the card's name line in Cinzel; "the Thornwood Pathfinder" sits on a smaller line beneath it, above the type line, so long titles never shrink the name. Board tokens show the first name only; the Codex, log and announcements use the full "Ilyra, the Thornwood Pathfinder".
+
+## 9. Batch 1 status
+All 13 anchors delivered and staged in `assets/cards-v2/` as full 1536 × 1024 art, with the three style tests; each card's crop centre is in `assets/cards-v2/crops.json`. Contact sheet: `docs/mockups/style-test/batch1-crops.jpg`. The game keeps using `assets/cards/` until every batch is in.

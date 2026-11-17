@@ -1,0 +1,50 @@
+{
+ "spire-magus": {
+  "cardX": 700
+ },
+ "thornwood-pathfinder": {
+  "cardX": 640
+ },
+ "deepforge-priest": {
+  "cardX": 640
+ },
+ "duskmere-oracle": {
+  "cardX": 740
+ },
+ "cinderwick-adept": {
+  "cardX": 690
+ },
+ "hollowfoot-knifemaster": {
+  "cardX": 760
+ },
+ "ironhide-champion": {
+  "cardX": 660
+ },
+ "aldric-the-unbroken": {
+  "cardX": 760
+ },
+ "the-ashen-wyrm": {
+  "cardX": 730
+ },
+ "barrow-shade": {
+  "cardX": 720
+ },
+ "mossback-treant": {
+  "cardX": 690
+ },
+ "stonehide-basilisk": {
+  "cardX": 720
+ },
+ "lady-corwens-commission": {
+  "cardX": 760
+ },
+ "gloomfang-wolf": {
+  "cardX": 900
+ },
+ "oathsworn-captain": {
+  "cardX": 770
+ },
+ "ironroot-pass": {
+  "cardX": 800
+ }
+}
