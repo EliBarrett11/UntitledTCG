@@ -8,6 +8,7 @@
 //   - both Draw Piles: unknown cards (only how many), so neither the order nor the cards show;
 //   - the other player's face-down Strats: the card is unknown; that a Strat is sealed, when, and its target show
 //     (rulebook 8.2);
+//   - where a Campaign card is, while it's hidden (a Quest tracker shows, without its link to a hidden card);
 //   - the random-number state and the seed (a view can't say what a shuffle or the Market will bring).
 // Everything else on the table is public: the board, the Locations, both Bags, both Discard and Released Piles,
 // the Market and its pool, Energy, Gold, Renown, Quests, the log.
@@ -28,6 +29,9 @@ const pileUid = (who, i) => `hidden-${who}-draw-${i}`;
 
 export function viewFor(s, seat) {
   const foe = opponentOf(seat);
+  // The cards this seat can see (its own hand, and every Discard and Released Pile).
+  const seen = new Set();
+  for (const who of PLAYERS) for (const c of [...s.players[who].discard, ...s.players[who].released, ...(who === seat ? s.players[who].hand : [])]) seen.add(c.uid);
   const players = {};
   for (const who of PLAYERS) {
     const p = s.players[who];
@@ -35,6 +39,9 @@ export function viewFor(s, seat) {
       ...p,
       hand: who === foe ? p.hand.map((c, i) => hiddenCard(handUid(who, i))) : p.hand,
       drawPile: p.drawPile.map((c, i) => hiddenCard(pileUid(who, i))),
+      // (A Quest tracker is public, but its link to the Campaign card would say where that card is: it's kept only
+      // while the card is where this seat can see it.)
+      quests: p.quests.map((q) => (seen.has(q.cardUid) ? q : { ...q, cardUid: null })),
     };
   }
   let k = 0;
