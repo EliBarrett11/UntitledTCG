@@ -28,7 +28,10 @@ const base = `http://127.0.0.1:${server.address().port}/`;
 const browser = await chromium.launch();
 const errors = [];
 
+// (node tools/v5clips.mjs [name…]: only the clips whose names start with one of these.)
+const only = process.argv.slice(2);
 async function record(name, query, script) {
+  if (only.length && !only.some((x) => name.startsWith(x))) return;
   const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, recordVideo: { dir: rawDir, size: { width: 1280, height: 720 } } });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(`${name}: ${e.message}`));
@@ -51,12 +54,11 @@ const until = async (page, fn, arg, ms = 240000) => page.waitForFunction(fn, arg
 
 // The enemy's turn at each pace (no ?pace: the pace setting decides its think time).
 for (const speed of ['slow', 'normal', 'fast']) {
-  await record(`enemy-${speed}`, `?seed=10&scene=enemy&speed=${speed}&lowmotion=0`, async (page, now) => {
+  // (Both sides play themselves for 12 s; the enemy's actions take its think time at this pace, and are announced.)
+  await record(`enemy-${speed}`, `?seed=10&scene=mid&autoplay=1&speed=${speed}&lowmotion=0`, async (page, now) => {
     await page.waitForTimeout(600);
     const from = now();
-    // Until it's your turn again (or 14 s).
-    await until(page, () => document.body.dataset.actor === 'p1' && document.body.dataset.presenting !== '1', null, 14000).catch(() => {});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(12000);
     return [from, now()];
   });
 }
@@ -92,14 +94,15 @@ await record('dusk-might', '?seed=1&autoplay=1&pace=30&speed=normal&lowmotion=0'
   await page.waitForTimeout(1800);
   return [from, now()];
 });
-// Spending Energy, then Exert, by real clicks: Spire Magus (3 of your 4 Energy), then a 2-cost card (1 Energy and
-// 1 Exert).
-await record('energy-spend', '?seed=10&scene=mid&pace=100000&speed=normal&lowmotion=0', async (page, now) => {
+// Spending Energy and Exert, by real clicks: The Ashen Wyrm costs 5 with 4 Energy left, so it spends the 4 and then
+// an Exert point (one action per turn: a single card that needs both).
+await record('energy-spend', '?seed=7&scene=mid&pace=100000&speed=normal&lowmotion=0', async (page, now) => {
   await page.waitForTimeout(800);
   const from = now();
   const play = async (cost) => {
     const i = await page.evaluate((c) => [...document.querySelectorAll('.hand-card')].findIndex((el) => window.__match.state().players.p1.hand.find((x) => x.uid === el.dataset.uid && (x.cardType === 'Character' || x.cardType === 'Monster') && x.cost === c)), cost);
     if (i < 0) throw new Error(`no ${cost}-cost creature in hand`);
+    // (The hover preview first: the cost preview shows on the Energy display.)
     const b = await (await page.$$('.hand-card'))[i].boundingBox();
     await page.mouse.move(b.x + b.width / 2, b.y + 80, { steps: 6 });
     await page.waitForTimeout(900);   // the cost preview
@@ -107,13 +110,18 @@ await record('energy-spend', '?seed=10&scene=mid&pace=100000&speed=normal&lowmot
     await page.waitForTimeout(300);
     const summon = await page.$('.menu-item:has-text("Summon")');
     if (summon) { await summon.click(); await page.waitForTimeout(300); }
-    const space = await page.$('[data-pick^="space"]');
-    if (space) await space.click();
-    await until(page, () => document.body.dataset.presenting !== '1', null, 15000);
+    // (Then whatever it asks: its space, and a target for its On Summon.)
+    for (let k = 0; k < 4 && (await page.evaluate(() => (document.body.dataset.step ?? '').startsWith('sel'))); k++) {
+      const pick = await page.$('[data-pick]');
+      if (!pick) break;
+      await pick.click();
+      await page.waitForTimeout(350);
+    }
+    await page.waitForTimeout(400);
+    await until(page, () => document.body.dataset.presenting !== '1', null, 30000).catch(() => {});
     await page.waitForTimeout(900);
   };
-  await play(3);
-  await play(2);
+  await play(5);
   return [from, now()];
 });
 
