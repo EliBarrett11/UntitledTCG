@@ -148,3 +148,18 @@ body.low-motion .might-hex.on { animation: none; }
 .en-num { line-height: 1.25; }
 .dom-line { height: 22px; }
 .dom-n { line-height: 1.3; }
+/* (Measured: Cinzel's digits need more than 1.25 at 64 px; the label keeps clear of both rows of cards.) */
+.en-num { line-height: 1.45; }
+.en-disp.small .en-num { line-height: 1.45; }
+.loc-label-wrap { top: 282px; }
+.loc-label:has(.dom-line) .loc-rule { display: none; }
+.loc-label .dom-line { height: 20px; }
+.loc-label .dom-n { font-size: 15px; line-height: 1.3; }
+.dom-say { line-height: 1.25; }
+/* The Last Battle's line: one compact row in the gap between the top bar and the board. */
+.lb-dom { top: -22px; flex-direction: row; justify-content: center; gap: 14px; background: none; padding: 0; height: 20px; align-items: center; }
+.lb-dom .dom-line { height: 20px; }
+.lb-dom .dom-n { font-size: 15px; line-height: 1.3; }
+.lb-dom .dom-say { text-shadow: 0 1px 2px #000, 0 0 8px #000; }
+/* (Two lines inside the card's art, under its READY tab: neighbours never overlap, and it stays clear of the label.) */
+.must-tag { left: 50%; top: 18px; transform: translateX(-50%); width: 148px; white-space: normal; text-align: center; line-height: 1.25; font-size: 10.5px; letter-spacing: .1em; padding: 3px 6px; }
