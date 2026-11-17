@@ -311,6 +311,7 @@ export function render(s, ui) {
 
   ${mulligan(s, ui)}
   ${ui.toast ? `<div class="toast">${esc(ui.toast)}</div>` : ''}
+  <div id="fx-cards" aria-hidden="true"></div>
   <div id="fx" aria-hidden="true"></div>
   <div class="preview" id="preview" hidden></div>`;
 }

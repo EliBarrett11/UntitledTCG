@@ -81,7 +81,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     el.style.left = `${Math.round(x)}px`;
     el.style.top = `${Math.round(y)}px`;
     el.innerHTML = html;
-    fx().appendChild(el);
+    // (V5: copies of cards go below the effects, so an effect aimed at one draws over it.)
+    (/\b(ghost|loc-ghost|reveal)\b/.test(cls) ? q('#fx-cards') ?? fx() : fx()).appendChild(el);
     return el;
   }
   // A number that rises and fades like ink.
@@ -131,14 +132,66 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       el.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleTo})`;
       await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.3 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 500 + hold });
     } else {
-      await ctx.anim(el, [
-        { transform: 'translate(0,0) rotate(-3deg) scale(1)', opacity: 0.2 },
-        { transform: `translate(${dx * 0.9}px, ${dy * 0.9 - 14}px) rotate(1.5deg) scale(${scaleTo * 1.04})`, opacity: 1, offset: 0.7 },
-        { transform: `translate(${dx}px, ${dy}px) rotate(0deg) scale(${scaleTo})`, opacity: 1 },
-      ], { duration: 650 });
+      // (V5: the same smooth arc as a thrown Item, gentler: a small wind-up, an eased flight, settling as it lands.)
+      await ctx.anim(el, arcFrames(dx, dy, { lift: Math.min(80, Math.hypot(dx, dy) * 0.12), spin: 0, tilt: 3, scale1: scaleTo, fadeIn: true }), { duration: 650, easing: 'linear' });
       if (hold) await ctx.wait(hold);
       await ctx.anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 180 });
     }
+    el.remove();
+  }
+  // V5 (thrown Items): one smooth arc as keyframes, sampled so it never jumps. A short wind-up (it draws back and
+  // grows a little), an eased launch along a curve (a quadratic arc lifted by `lift`), turning `spin` degrees, and
+  // arriving at full speed's end exactly at the last frame.
+  function arcFrames(dx, dy, { lift = 120, spin = 0, tilt = 0, scale0 = 1, scale1 = 1, wind = 0.16, fadeIn = false } = {}) {
+    const N = 30;
+    const back = { x: -dx * 0.05, y: -dy * 0.05 + 8 };
+    const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - ((-2 * u + 2) ** 3) / 2);   // ease in and out (cubic)
+    const frames = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      let x; let y; let rot; let sc;
+      if (t <= wind) {
+        const k = Math.sin((t / wind) * Math.PI / 2);
+        x = back.x * k; y = back.y * k; rot = -tilt * k - spin * 0.03 * k; sc = scale0 * (1 + 0.06 * k);
+      } else {
+        const u = ease((t - wind) / (1 - wind));
+        const cx = (back.x + dx) / 2; const cy = (back.y + dy) / 2 - lift;   // the arc's control point
+        x = (1 - u) ** 2 * back.x + 2 * (1 - u) * u * cx + u * u * dx;
+        y = (1 - u) ** 2 * back.y + 2 * (1 - u) * u * cy + u * u * dy;
+        rot = (-tilt - spin * 0.03) * (1 - u) + spin * u;
+        sc = scale0 * 1.06 * (1 - u) + scale1 * u;
+      }
+      frames.push({ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scale(${sc.toFixed(3)})`, opacity: fadeIn ? Math.min(1, 0.2 + t * 4) : 1, offset: t });
+    }
+    return frames;
+  }
+  // An Item thrown at a creature: the card flies the arc, spinning, with a trail of embers, and is gone the frame it
+  // lands (the impact plays from that frame). Low motion: it fades in at the target instead.
+  async function throwCard(ctx, html, from, to, { spin = 540, trail = '#ff9a4a', dur = 620 } = {}) {
+    const w = 200; const h = 280;
+    const el = add(html, from.cx - w / 2, from.cy - h / 2, 'ghost thrown');
+    const dx = to.cx - from.cx; const dy = to.cy - from.cy;
+    if (settings().lowMotion) {
+      el.style.transform = `translate(${dx}px, ${dy}px) scale(0.35)`;
+      await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.5 }, { opacity: 0 }], { duration: 360 });
+      el.remove();
+      return;
+    }
+    const lift = Math.max(120, Math.hypot(dx, dy) * 0.35);
+    const anim = ctx.anim(el, arcFrames(dx, dy, { lift, spin, tilt: 6, scale0: 0.6, scale1: 0.3 }), { duration: dur, easing: 'linear' });
+    // The trail: embers dropped where the card is, every few frames, fading behind it.
+    let alive = true;
+    const drop = () => {
+      if (!alive || !el.isConnected) return;
+      const b = box(el);
+      const p = add('', b.cx - 6, b.cy - 6, 'ember trail');
+      p.style.setProperty('--c', trail);
+      ctx.anim(p, [{ opacity: 0.9, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.3) translateY(10px)' }], { duration: 420, easing: 'ease-out' }).then(() => p.remove(), () => p.remove());
+      setTimeout(drop, 28);
+    };
+    setTimeout(drop, dur * 0.16);
+    await anim;
+    alive = false;
     el.remove();
   }
   function banner(ctx, title, sub = '', cls = '') {
@@ -194,14 +247,37 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     };
   }
   // (body data-effect names the effect playing, with its flags: for the checks and the clip recorder.)
+  // V5 (effects on top): for the effects check, each effect's targets, and whether the effect's layer is above them.
+  const layering = { n: 0, bad: [], by: {} };
+  const rootZ = (el) => {
+    let n = el;
+    while (n && n.parentElement && n.parentElement !== stage) n = n.parentElement;
+    const z = n ? Number.parseInt(getComputedStyle(n).zIndex, 10) : 0;
+    return Number.isFinite(z) ? z : 0;
+  };
+  const TARGETS = '.slot-card, .hand-card, #fx-cards .fx, .loc, .loc-label, .warlord, .pile, .bag, .rx-lift, .market-card, .quest, .gold-n';
+  function recordLayering(id, env) {
+    const layer = vfx?.on ? 88 : 89;
+    const boxes = [env.anchors?.dst, ...(env.targets ?? []).map((t) => t.box)].filter((b) => b && Number.isFinite(b.cx));
+    for (const b of boxes) {
+      const hit = [...stage.querySelectorAll(TARGETS)].filter((el) => { const r = box(el); return r.w > 0 && b.cx >= r.x && b.cx <= r.x + r.w && b.cy >= r.y && b.cy <= r.y + r.h; });
+      const top = hit.reduce((m, el) => Math.max(m, rootZ(el)), -1);
+      if (top < 0) continue;
+      layering.n += 1;
+      layering.by[id] = (layering.by[id] ?? 0) + 1;
+      if (top >= layer && layering.bad.length < 50) layering.bad.push({ id, layer, target: top });
+    }
+  }
   const fxRun = (ctx, id, env) => {
+    try { recordLayering(id, env); } catch { /* (a check aid only) */ }
     document.body.dataset.effect = id;
     document.body.dataset.effectFlags = Object.entries(env.flags ?? {}).filter(([, v]) => v).map(([k]) => k).join(' ');
     return runEffect(ctx, vfx, id, env);
   };
-  const SIDE_TINT = { [HUMAN]: '#ffd98a', [AI]: '#a9c6ff' };
+  // (Stage M fix: looked up each time, so they follow this screen's seat.)
+  const SIDE_TINT = new Proxy({}, { get: (_, who) => (who === HUMAN ? '#ffd98a' : '#a9c6ff') });
   // The Warlords' colours, for banners planted at Dusk (yours crimson, the enemy's blue).
-  const BANNER_TINT = { [HUMAN]: '#c0303a', [AI]: '#3a66c8' };
+  const BANNER_TINT = new Proxy({}, { get: (_, who) => (who === HUMAN ? '#c0303a' : '#3a66c8') });
   const boxOf = (el) => (el ? box(el) : null);
   // V3: a Warlord's banner ripples when its Warlord gains Renown or takes damage (not in low motion).
   function ripple(who) {
@@ -860,13 +936,25 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               anchors: anchors({ gold: g ? box(g) : centre, market: from }), vars: { coins: Math.min(6, price * 2) },
               hooks: {
                 tick: () => { if (g) { g.lastChild.textContent = String(after); if (price) ink(ctx, `−${price} Gold`, box(g), 'gold'); } },
-                slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), from, to, { scaleTo: e.then === 'store' || onCreature ? 0.35 : 1, hold: e.then === 'store' || onCreature ? 0 : 300 }) : null),
+                // (V5: an Item used on a creature is thrown at it; at the enemy, spinning hard, with a trail.)
+                slide: () => (!c ? null : onCreature ? throwCard(ctx, renderCard(c, { size: 'mini' }), from, to, used.target.who === e.who ? { spin: 0, trail: '#ffe1a0', dur: 560 } : {}) : slide(ctx, renderCard(c, { size: 'mini' }), from, to, { scaleTo: e.then === 'store' ? 0.35 : 1, hold: e.then === 'store' ? 0 : 300 })),
               },
             });
           });
           break;
         }
         case 'itemUsed':
+          // V5: a Consumed Item used from the Bag on a creature is thrown at it from the Bag (bought and used at once,
+          // the purchase's beat already threw it).
+          if (e.kind !== 'Held' && e.target && !e.target.none && e.target.who && !events.slice(0, ei).some((x) => x.type === 'itemBought' && x.uid === e.uid)) {
+            const c = prev.players[e.who].bag.find((x) => x.uid === e.uid) ?? cardIn(prev, e.uid);
+            B('item', `${NAME[e.who]} used ${e.name}.`, async (ctx) => { castFrom = where(e.target.who, e.target.space); }, async (ctx) => {
+              const bag = q(`[data-region="piles-${e.who}"] .bag`);
+              const to = where(e.target.who, e.target.space);
+              castFrom = to;
+              if (c && bag) await throwCard(ctx, renderCard(c, { size: 'mini' }), box(bag), to, e.target.who === e.who ? { spin: 0, trail: '#ffe1a0', dur: 560 } : {});
+            });
+          }
           if (e.kind === 'Held') B('item', `${e.name} is now held.`, async (ctx) => { if (e.target && !e.target.none) await tag(ctx, e.name.toUpperCase(), where(e.who, e.target.space)); }, async (ctx) => {
             if (!e.target || e.target.none) return;
             const at = where(e.who, e.target.space);
@@ -1166,6 +1254,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     skip: () => { if (cine) cine.skip = true; if (current) current.skip(); },
     get busy() { return !!current; },
     get counts() { return { started, done }; },
+    // (V5: for the effects check.)
+    layering: () => ({ n: layering.n, bad: layering.bad.slice(), by: { ...layering.by } }),
   };
 }
 

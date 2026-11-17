@@ -155,7 +155,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0806; }
 .hand.dimmed .hand-card { opacity: 0.45; }
 .favour-tag { position: absolute; top: -10px; right: 12px; background: #6a3d6e; color: #fff; font-size: 10px; letter-spacing: 2px; padding: 2px 6px; border-radius: 3px; font-weight: 700; z-index: 6; }
 
-.preview { position: absolute; z-index: 90; pointer-events: none; filter: drop-shadow(0 18px 30px rgba(0,0,0,0.75)); }
+.preview { position: absolute; z-index: 91; pointer-events: none; filter: drop-shadow(0 18px 30px rgba(0,0,0,0.75)); }
 
 /* --- The right-hand column --- */
 .column { position: absolute; right: 0; top: 0; width: 340px; height: 1080px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;
@@ -243,7 +243,12 @@ body.debug #viewport { position: static; }
 #debug-log { white-space: pre-wrap; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.45; background: rgba(0, 0, 0, 0.35); padding: 12px; border: 1px solid rgba(184, 146, 90, 0.35); }
 
 /* --- S5: the presenter's effects layer --- */
-#fx { position: absolute; inset: 0; pointer-events: none; z-index: 88; }
+/* V5 (effects on top): the order over the board, bottom to top: the React moment (85) and its dimming (86); the
+   presenter's card copies (ghosts of defeated cards, thrown Items, revealed Strats: #fx-cards, 87); the WebGL effects
+   (#vfx, 88); the DOM effects and the 2D fallback (#fx, 89); the letterbox bars (90). So every effect aimed at a card,
+   token, tile, Warlord or pile draws above it, whichever layer the target is on. */
+#fx-cards { position: absolute; inset: 0; pointer-events: none; z-index: 87; }
+#fx { position: absolute; inset: 0; pointer-events: none; z-index: 89; }
 .fx { position: absolute; pointer-events: none; }
 .ink { transform: translate(-50%, 0); font-family: Cinzel, serif; font-weight: 700; font-size: 30px; white-space: nowrap; text-shadow: 0 2px 6px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.9); }
 .ink-dmg { color: #ff8a6a; }
@@ -303,7 +308,7 @@ body.debug #viewport { position: static; }
 
 /* --- V1: the effects layer ---------------------------------------------------------------------------------- */
 /* The WebGL canvas covers the stage (its buffer follows the stage's size on screen); numbers stay above it. */
-#vfx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 87; }
+#vfx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 88; }
 /* A defeated card burns away from the centre. */
 @property --burn { syntax: '<percentage>'; inherits: false; initial-value: -15%; }
 .burning { -webkit-mask-image: linear-gradient(to top, transparent var(--burn), #000 calc(var(--burn) + 7%)); mask-image: linear-gradient(to top, transparent var(--burn), #000 calc(var(--burn) + 7%)); }
@@ -335,7 +340,7 @@ body.low-motion .ambient { display: none; }
 /* Cinematics: the board dims around the moment, slim letterbox bars, the caption in the lower bar. */
 .cine-dim { position: absolute; inset: 0; z-index: 86; pointer-events: none; opacity: 0;
   background: radial-gradient(circle at var(--fx, 790px) var(--fy, 450px), rgba(6,3,2,0) 130px, rgba(6,3,2,0.35) 260px, rgba(6,3,2,0.66) 520px); }
-.cine-bar { position: absolute; left: 0; right: 0; z-index: 89; pointer-events: none; background: #050302; }
+.cine-bar { position: absolute; left: 0; right: 0; z-index: 90; pointer-events: none; background: #050302; }
 .cine-bar.top { top: 0; height: 34px; }
 .cine-bar.bottom { bottom: 0; height: 46px; display: flex; align-items: center; justify-content: center; }
 .cine-caption { font-size: 18px; color: #f3e6c8; letter-spacing: 1px; text-shadow: 0 1px 4px #000; white-space: nowrap; }
@@ -371,7 +376,7 @@ body.low-motion .ambient { display: none; }
 .tarrow .ar-reticle:not(.locked) .ar-ring { opacity: .55; }
 body.low-motion .tarrow .ar-core { animation: none; }
 body.low-motion .tarrow.draw * { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; }
-.aim { position: absolute; inset: 0; pointer-events: none; z-index: 88; }
+.aim { position: absolute; inset: 0; pointer-events: none; z-index: 89; }
 
 /* Stage G: the Energy panel (docs/mockups/feedback-v2/m9-board.png). Energy is crystal cyan. */
 .energy-panel { gap: 8px; }

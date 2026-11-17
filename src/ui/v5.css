@@ -105,3 +105,6 @@ body.low-motion .announce { animation: none; }
 .kw-text { margin-top: 3px; font-size: 15.5px; line-height: 1.38; color: #f1e4c8; }
 .kw-foot { margin-top: 6px; font-size: 12.5px; color: rgba(232,220,192,.55); }
 .kw-line { position: absolute; z-index: 94; height: 2px; background: var(--kw); box-shadow: 0 0 6px var(--kw); pointer-events: none; }
+
+/* --- A thrown Item's trail of embers --------------------------------------------------------------------------- */
+.fx.ember.trail { width: 12px; height: 12px; background: radial-gradient(circle, #fff3c4 0%, var(--c, #ff9a4a) 45%, rgba(255,140,40,0) 72%); box-shadow: none; }

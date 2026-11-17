@@ -61,10 +61,13 @@ async function match(browser, query, { actions = 400, route = null, label }) {
     if (Date.now() - t0 > 20 * 60 * 1000) { problems.push('stall'); break; }
     await page.waitForTimeout(20);
   }
-  const info = await page.evaluate(() => ({ mode: document.body.dataset.vfx, beats: window.__match.beats(), vfx: window.__match.vfx() }));
+  const info = await page.evaluate(() => ({ mode: document.body.dataset.vfx, beats: window.__match.beats(), vfx: window.__match.vfx(), layering: window.__match.layering() }));
+  // V5 (effects on top): every effect aimed at a card, token, tile, Warlord or pile drew on a layer above it.
+  for (const x of info.layering.bad) problems.push(`the effect ${x.id} drew under its target (its layer ${x.layer}, the target's ${x.target})`);
+  if (!info.layering.n && info.mode === 'webgl') problems.push('no targeted effect was checked for being on top');   // (the 2D fallback draws in #fx, above every target)
   await page.close();
   const all = [...problems, ...errors];
-  if (all.length) { failures += 1; console.log(`FAIL  ${label}`); for (const p of all.slice(0, 8)) console.log(`      ${p}`); } else console.log(`PASS  ${label}: effects ${info.mode}, ${info.beats.done} beats finished${info.vfx ? `, ${info.vfx.ready} painted textures in use` : ''}.`);
+  if (all.length) { failures += 1; console.log(`FAIL  ${label}`); for (const p of all.slice(0, 8)) console.log(`      ${p}`); } else console.log(`PASS  ${label}: effects ${info.mode}, ${info.beats.done} beats finished${info.vfx ? `, ${info.vfx.ready} painted textures in use` : ''}; ${info.layering.n} targeted effects, all on top of their targets.`);
   return { seen, info };
 }
 

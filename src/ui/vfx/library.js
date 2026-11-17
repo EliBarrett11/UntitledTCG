@@ -338,15 +338,16 @@ export const EFFECTS = {
     { at: 0, op: 'call', fn: 'tag' },
     { at: 0, op: 'sprite', tex: 'shield-sigil', on: 'dst', sizeK: 1.1, scale: [1.4, 1], curve: 'out', life: 600, fadeIn: 0.15, fadeOut: 0.5, alpha: 1.2 },
   ] },
-  'item.wildfire': { duration: 900, steps: [
-    { at: 0, op: 'projectile', tex: 'glass-shards-atlas', from: 'hand', to: 'each', dur: 320, size: 40, arc: -1400, spin: 720 },
-    { at: 320, op: 'sprite', tex: 'liquid-fire-splash', each: true, sizeK: 1.5, scale: [0.4, 1.1], curve: 'out', life: 520, fadeOut: 0.5, alpha: 1.3 },
-    { at: 320, op: 'burst', tex: 'glass-shards-atlas', each: true, n: 10, speed: [200, 520], spread: 360, life: [400, 600], size: [12, 26], gravity: 1100, spin: [-600, 600] },
-    { at: 320, op: 'emit', tex: 'flames-atlas', each: true, rate: 60, dur: 350, area: 'card', speed: [20, 60], angle: 'up', spread: 40, life: [250, 400], size: [36, 70], gravity: -200 },
-    { at: 320, op: 'heat', on: 'each', radius: 160, strength: 3, dur: 500 },
-    { at: 320, op: 'hitstop', ms: [50, 90] },
-    { at: 320, op: 'shake', px: [2, 4], dur: 220 },
-    { at: 340, op: 'call', fn: 'land' },
+  // (V5: the flask itself is thrown by the presenter (throwCard, one smooth arc); this is its impact, from the frame it
+  // lands.)
+  'item.wildfire': { duration: 600, steps: [
+    { at: 0, op: 'sprite', tex: 'liquid-fire-splash', each: true, sizeK: 1.5, scale: [0.4, 1.1], curve: 'out', life: 520, fadeOut: 0.5, alpha: 1.3 },
+    { at: 0, op: 'burst', tex: 'glass-shards-atlas', each: true, n: 10, speed: [200, 520], spread: 360, life: [400, 600], size: [12, 26], gravity: 1100, spin: [-600, 600] },
+    { at: 0, op: 'emit', tex: 'flames-atlas', each: true, rate: 60, dur: 350, area: 'card', speed: [20, 60], angle: 'up', spread: 40, life: [250, 400], size: [36, 70], gravity: -200 },
+    { at: 0, op: 'heat', on: 'each', radius: 160, strength: 3, dur: 500 },
+    { at: 0, op: 'hitstop', ms: [50, 90] },
+    { at: 0, op: 'shake', px: [2, 4], dur: 220 },
+    { at: 20, op: 'call', fn: 'land' },
   ] },
   'item.draught': { duration: 750, steps: [
     { at: 0, op: 'sprite', tex: 'crimson-draught-splash', each: true, sizeK: 1.3, scale: [0.5, 1.1], curve: 'out', life: 520, fadeOut: 0.5 },

@@ -394,12 +394,14 @@ export function startApp(params) {
   function preferred(who) {
     if (!prefer.length) return null;
     const hand = s.players[who].hand;
-    const idOf = (uid) => hand.find((c) => c.uid === uid)?.id;
+    // (V5: an Item too: from the hand, the Bag or the Market, used now: ?prefer=flask-of-wildfire:use.)
+    const idOf = (uid) => [...hand, ...s.players[who].bag, s.market.onSale].find((c) => c?.uid === uid)?.id;
     for (const a of legalActions(s, who)) {
       for (const [id, how] of prefer) {
         if (idOf(a.uid) !== id) continue;
         if (a.type === 'action' && a.mode === how) return a;
         if (a.type === 'react' && how === 'react') return a;
+        if ((a.type === 'buyItem' && a.then === 'use' && how === 'use') || (a.type === 'useItem' && how === 'use')) return a;
         if (a.type === 'event' && how === 'favour') {
           const card = hand.find((c) => c.uid === a.uid);
           if (card?.favour && a.release.some((u) => meetsCondition(hand.find((c) => c.uid === u), card.favour.condition))) return a;
@@ -1296,7 +1298,7 @@ export function startApp(params) {
   else Promise.race([preloadArt(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
   preloadArt();
   // Dev hooks for the checks (they read; they never change the match).
-  window.__match = { get seed() { return seed; }, get screen() { return screen; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
+  window.__match = { get seed() { return seed; }, get screen() { return screen; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
 }
 
 export { esc };
