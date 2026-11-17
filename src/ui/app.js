@@ -18,6 +18,7 @@ import { titleScreen, setupScreen, openingBanner } from './screens.js';
 import { firstScreen, nextScreen } from './flow.js';
 import { createCodex } from './codex.js';
 import { announcement, announcementHtml, costPreview, energyDisplay, mustAttack } from './turn.js';
+import { termAtOffset, tipHtml } from './tips.js';
 import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
 
 // The presentation art (V3), fetched and decoded before it's first shown.
@@ -661,6 +662,7 @@ export function startApp(params) {
     if (ui.showEnd) screen = 'end';
     document.body.dataset.screen = screen;
     hover.el = null;   // (the redraw brings a fresh, hidden preview; a still pointer opens none until it moves)
+    tip.key = null; tip.pending = null; clearTimeout(tip.timer);
     stage.innerHTML = render(s, ui);
     if (ui.showEnd) codex.close(); else codex.refresh();
     if (ui.showEnd) { refocus(keep); document.body.dataset.version = String(version); document.body.dataset.phase = s.phase; document.body.dataset.actor = ''; document.body.dataset.step = 'idle'; return; }
@@ -1061,7 +1063,75 @@ export function startApp(params) {
     if (el === hover.el && pv && !pv.hidden) return;
     showPreviewFor(el);
   }
-  document.addEventListener('pointermove', (e) => { hover.x = e.clientX; hover.y = e.clientY; syncHover(); }, { capture: true, passive: true });
+  document.addEventListener('pointermove', (e) => { hover.x = e.clientX; hover.y = e.clientY; syncHover(); syncTip(); }, { capture: true, passive: true });
+
+  // V5: keyword tips. The term under the pointer is found in the card text it's really over (the caret position at
+  // the pointer), and only where that text is big enough to read; after a short delay its tip shows, and the term
+  // underlines in its colour. The tip goes whenever the hover preview would (stage G's rules): it hides with it.
+  const tip = { key: null, pending: null, timer: 0 };
+  const nodeIds = new WeakMap();
+  let nodeN = 0;
+  function hideTip() {
+    clearTimeout(tip.timer);
+    tip.timer = 0; tip.key = null; tip.pending = null;
+    stage.querySelector('.kw-tip')?.remove();
+    stage.querySelector('.kw-line')?.remove();
+  }
+  function termUnderPointer() {
+    if (hover.x < 0 || hoverBlocked() || screen !== 'match') return null;
+    let node = null; let off = 0;
+    const pos = document.caretPositionFromPoint?.(hover.x, hover.y);
+    if (pos) { node = pos.offsetNode; off = pos.offset; } else {
+      const r = document.caretRangeFromPoint?.(hover.x, hover.y);
+      if (!r) return null;
+      node = r.startContainer; off = r.startOffset;
+    }
+    if (!node || node.nodeType !== 3) return null;
+    const host = node.parentElement;
+    if (!host || !stage.contains(host) || !host.closest('.card') || host.closest('#preview')) return null;
+    const found = termAtOffset(node.textContent, off);
+    if (!found) return null;
+    const range = document.createRange();
+    range.setStart(node, found.start);
+    range.setEnd(node, found.end);
+    const box = [...range.getClientRects()].find((r) => hover.x >= r.left - 1 && hover.x <= r.right + 1 && hover.y >= r.top - 1 && hover.y <= r.bottom + 1);
+    // (Readable: the term at least 6.5 px tall on screen.)
+    if (!box || box.height < 6.5) return null;
+    // (Known by its text and place in it, not its position: a hovered hand card lifts a little.)
+    if (!nodeIds.has(node)) nodeIds.set(node, ++nodeN);
+    return { term: found.term, box, id: `${found.term.key}|${nodeIds.get(node)}|${found.start}` };
+  }
+  function syncTip() {
+    const t = termUnderPointer();
+    if (!t) { if (tip.key || tip.pending) hideTip(); return; }
+    if (t.id === tip.key || t.id === tip.pending) return;
+    hideTip();
+    tip.pending = t.id;
+    tip.timer = setTimeout(() => { const now = termUnderPointer(); if (now?.id === t.id) showTip(now); else hideTip(); }, 380);
+  }
+  function showTip(t) {
+    tip.pending = null;
+    tip.key = t.id;
+    const sr = stage.getBoundingClientRect();
+    const k = sr.width / STAGE_W;
+    const b = { x: (t.box.left - sr.left) / k, y: (t.box.top - sr.top) / k, w: t.box.width / k, h: t.box.height / k };
+    stage.insertAdjacentHTML('beforeend', `<div class="kw-line" style="left:${b.x}px;top:${b.y + b.h - 1}px;width:${b.w}px;--kw:${t.term.color}"></div>${tipHtml(t.term)}`);
+    const el = stage.querySelector('.kw-tip');
+    const W = el.offsetWidth; const H = el.offsetHeight; const M = 8;
+    // Above the term, else below it, else beside it: never over the term or the hover preview, always on screen.
+    const clampX = (x) => Math.max(M, Math.min(STAGE_W - W - M, x));
+    const clampY = (y) => Math.max(M, Math.min(STAGE_H - H - M, y));
+    const cx = b.x + b.w / 2 - W / 2; const cy = b.y + b.h / 2 - H / 2;
+    const spots = [[clampX(cx), b.y - H - 10], [clampX(cx), b.y + b.h + 10], [b.x - W - 14, clampY(cy)], [b.x + b.w + 14, clampY(cy)]];
+    const pv = stage.querySelector('#preview:not([hidden])');
+    const pr = pv ? { x: pv.offsetLeft, y: pv.offsetTop, w: pv.offsetWidth, h: pv.offsetHeight } : null;
+    const hits = (x, y, r) => r && x < r.x + r.w && r.x < x + W && y < r.y + r.h && r.y < y + H;
+    const term = { x: b.x - 2, y: b.y - 2, w: b.w + 4, h: b.h + 4 };
+    const onScreen = (x, y) => x >= M - 0.5 && y >= M - 0.5 && x + W <= STAGE_W - M + 0.5 && y + H <= STAGE_H - M + 0.5;
+    const [x, y] = spots.find(([sx, sy]) => onScreen(sx, sy) && !hits(sx, sy, term) && !hits(sx, sy, pr)) ?? spots.find(([sx, sy]) => onScreen(sx, sy) && !hits(sx, sy, term)) ?? [clampX(cx), clampY(b.y - H - 10)];
+    el.style.left = `${Math.round(x)}px`;
+    el.style.top = `${Math.round(y)}px`;
+  }
   stage.addEventListener('pointerleave', () => { hover.x = -1; hidePreview(); });
   document.addEventListener('pointerleave', () => { hover.x = -1; hidePreview(); });
   window.addEventListener('blur', () => hidePreview());
@@ -1141,6 +1211,7 @@ export function startApp(params) {
     if (pv) { pv.hidden = true; pv.innerHTML = ''; }
     hover.el = null;
     if (hover.raf) { cancelAnimationFrame(hover.raf); hover.raf = 0; }
+    hideTip();
     refreshEnergy();
   }
   // A drag is cancelled by Escape or a cancelled pointer: the card goes back, nothing is played.
@@ -1225,7 +1296,7 @@ export function startApp(params) {
   else Promise.race([preloadArt(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
   preloadArt();
   // Dev hooks for the checks (they read; they never change the match).
-  window.__match = { get seed() { return seed; }, get screen() { return screen; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats() };
+  window.__match = { get seed() { return seed; }, get screen() { return screen; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
 }
 
 export { esc };

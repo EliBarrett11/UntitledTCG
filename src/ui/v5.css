@@ -95,3 +95,13 @@ body.low-motion .announce { animation: none; }
 .an-name { font: 700 22px Cinzel, serif; color: #f6e7c7; line-height: 1.25; }
 .an-name span { font: 400 16px 'EB Garamond', Georgia, serif; color: rgba(246,231,199,.85); }
 .an-line { font-size: 15.5px; line-height: 1.35; color: rgba(246,231,199,.85); }
+
+/* --- Keyword tips ---------------------------------------------------------------------------------------------- */
+.kw-tip { position: absolute; z-index: 95; width: 330px; padding: 10px 14px 9px; pointer-events: none; border-radius: 9px;
+  background: linear-gradient(180deg, rgba(34,24,15,.98), rgba(18,12,8,.98)); border: 1px solid rgba(226,190,120,.7); box-shadow: 0 0 0 3px rgba(5,3,2,.55), 0 12px 30px rgba(0,0,0,.65); }
+.kw-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.kw-head b { font: 700 15px Cinzel, serif; letter-spacing: .2em; color: var(--kw); }
+.kw-head span { font-size: 13px; font-style: italic; color: rgba(232,220,192,.65); white-space: nowrap; }
+.kw-text { margin-top: 3px; font-size: 15.5px; line-height: 1.38; color: #f1e4c8; }
+.kw-foot { margin-top: 6px; font-size: 12.5px; color: rgba(232,220,192,.55); }
+.kw-line { position: absolute; z-index: 94; height: 2px; background: var(--kw); box-shadow: 0 0 6px var(--kw); pointer-events: none; }
