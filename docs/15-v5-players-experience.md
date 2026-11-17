@@ -1,6 +1,6 @@
 # V5: The player's experience (proposal, 17 November 2026)
 
-**Status:** proposed by the design chat, awaiting Elliott's approval. Mockups: `docs/mockups/v5/` (drawn over the build before stage G, so Energy is still gold there; stage G's crystal cyan applies).
+**Status (Elliott, 17 November 2026): reduced.** Only three parts go ahead now: **keyword tips (2), whose turn it is (4, the turn display only) and the AI's pacing (5)**. The guided battle, the rules overlay, the "You can" list, the Dusk summary and the accessibility tab are not wanted at this point in the build. Originally proposed by the design chat. Mockups: `docs/mockups/v5/` (drawn over the build before stage G, so Energy is still gold there; stage G's crystal cyan applies).
 
 V5 makes the game learnable and readable without anyone explaining it. Seven parts:
 
@@ -50,3 +50,14 @@ Built in stage G (right-click any card). V5 links it with the tooltips and the r
 1. Lady Corwen as the guide, or a separate mentor character (a new portrait to generate)?
 2. Should the guided battle be required on first launch, offered, or only from the menu? (Proposed: offered once, skippable.)
 3. Any accessibility option to add or drop?
+
+## Added with V5 (Elliott, 17 November 2026)
+
+**Effects on top.** Effects aimed at a card must play above that card, never underneath it.
+
+**Thrown Items.** Smoother arcs for Items thrown at an opponent.
+
+**Dominance by Might.** Elliott asked the design chat to decide how dominance is calculated and shown.
+
+- **The decision:** a creature's **Might** is its current Attack plus its current Health. The side with more total Might in a Location dominates it, and the Last Battle works the same way. Total Health alone rewarded Health-heavy cards over a card's overall value. On the stat curve, Attack plus Health is a card's value at its Level, so Might measures value. Damage, buffs, Prime, Items and Location passives all count, because Might uses current stats. Ties and empty Locations still give nothing.
+- **The display** (`docs/mockups/dominance-v1/`): each Location's label gains a tug-of-war line, "13 ENEMY ━━━|━━━ YOU 20". The bar is split by each side's share, with a gold mark at the halfway point and the leader's number in gold. Under it: "YOU DOMINATE · +3 RENOWN AT DUSK" (or "THE ENEMY DOMINATES", or "TIED · NO ONE SCORES"). Hovering the tile shows each creature's Might as a small hexagon: gold for yours, blue for the enemy's. In the Last Battle, the same line runs across the top of the board.
