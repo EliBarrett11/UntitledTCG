@@ -70,7 +70,7 @@ The young and elder forms (batch 2) keep their series' identity but each get a d
 The game switches to the new art all at once, after the batches are in, so the two styles never mix on the board.
 
 ## 8. Character names (Elliott, 17 November 2026)
-Characters get a first name followed by what they are: "Brenna, the Deepforge Priest". One person ages through a series, so all three forms share the first name ("Brenna, the Deepforge Acolyte" → "Brenna, the Deepforge Priest" → "Brenna, the Deepforge High Priest"). Monsters keep their descriptive names (Gloomfang Wolf). Aldric the Unbroken and Lady Corwen are already named. Proposed first names, awaiting Elliott's approval:
+Characters get a first name followed by what they are: "Brenna, the Deepforge Priest". One person ages through a series, so all three forms share the first name ("Brenna, the Deepforge Acolyte" → "Brenna, the Deepforge Priest" → "Brenna, the Deepforge High Priest"). Monsters keep their descriptive names (Gloomfang Wolf). Aldric the Unbroken and Lady Corwen are already named. First names, **approved by Elliott (17 November 2026)**:
 
 | Series | First name | Forms |
 |---|---|---|

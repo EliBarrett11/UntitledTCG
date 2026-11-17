@@ -237,3 +237,441 @@ Composition: Lady Corwen and the scroll she offers in the centre of the frame, h
 
 Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
+
+---
+
+# Batch 2: the young and elder forms
+
+**For each, attach the anchor named above the prompt** (its new image from batch 1, in `assets/cards-v2/`). 24 images.
+
+## 1. Garrick, the Oathsworn Recruit → `oathsworn-recruit`
+
+*Attach `assets/cards-v2/oathsworn-captain.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same person, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Garrick as a gangly eighteen-year-old recruit: the same eyes and crooked grin, no beard yet, just fluff, hair sticking up. Borrowed armour two sizes too big, a dented helmet sliding over one eye, a plain wooden shield with a hand-painted, wobbly version of the golden oath-sigil. Full of eager, clumsy determination, he lunges at a straw training dummy with a wooden sword and has just snapped the sword in half, looking at it in surprise.
+
+Setting: a muddy fortress training yard during a bright spring shower: puddles, sunlight breaking through, a rainbow over the walls. Other recruits behind him in a ragged line; a gruff grey-haired sergeant facepalms; a goose has stolen someone's glove.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A fresh spring palette of rain-washed green, wet stone grey and sky blue, with fresh crimson and gold accents and sparkling sunlight. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the young recruit and his snapped sword in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (mud and puddles), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 2. Garrick, the Oathsworn Veteran → `oathsworn-veteran`
+
+*Attach `assets/cards-v2/oathsworn-captain.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same person, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Garrick in his late fifties, a beloved veteran: the same face, now with a full grey beard, deep laugh lines and an old scar through one eyebrow. Battered, many-times-repaired steel plate, a faded crimson cloak, and the kite shield with its golden oath-sigil, cracked and bound with iron bands, still glowing faintly. Now the sergeant himself, he stands patiently correcting a nervous young recruit's grip on a spear, one hand on her shoulder, smiling with quiet pride.
+
+Setting: the battlements of the same fortress in deep winter: fresh snow on the walls, a pale gold winter sunset, banners stiff with frost, breath steaming. Behind them, a row of new recruits stamp their feet against the cold; one is building a tiny snowman wearing a helmet.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A winter palette of snow white, pale ice blue and soft lilac shadow, warmed by a golden sunset, faded crimson and the oath-sigil's glow. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the veteran and the recruit he's teaching in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (snow-covered stone), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 3. Fennick, the Hollowfoot Cutpurse → `hollowfoot-cutpurse`
+
+*Attach `assets/cards-v2/hollowfoot-knifemaster.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same halfling, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Fennick as a scrawny young teenager: the same curly chestnut hair and foxlike grin, freckled and gap-toothed, in patched clothes with a too-big green hood. Hiding inside an open barrel (Ambush), only his head and one hand showing, he has just lifted a fat coin purse from the belt of a pompous merchant walking past, and he's grinning at the viewer with one finger to his lips.
+
+Setting: a busy riverside market on a sunny morning: striped awnings, crates of fruit, fish stalls, gulls, a canal with little boats. The merchant is oblivious, haggling loudly; a cat on the next barrel watches Fennick, clearly deciding whether to tell.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A sunny market palette of warm oranges, striped red and white, canal teal and morning gold, with his green hood as the accent. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the boy peeking from the barrel with the purse in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark wooden barrel and cobbles), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 4. Fennick, the Hollowfoot Fence → `hollowfoot-fence`
+
+*Attach `assets/cards-v2/hollowfoot-knifemaster.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same halfling, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Fennick in old age: the same foxlike grin and twinkling eyes, now grey curly hair, bushy grey sideburns, a round belly and spectacles on the end of his nose. A rich but threadbare velvet waistcoat, gold chains, his old throwing knives now hung on the wall as trophies. Behind his shop counter, he weighs a stolen ruby on little brass scales with exaggerated suspicion while counting a stack of gold coins with his other hand.
+
+Setting: his cramped, cosy back-room shop at dusk, lit by lanterns and a fire: shelves crammed with stolen treasures (crowns, candlesticks, a stuffed owl, a suspicious number of left boots). A shady customer in a hood waits nervously; a young apprentice pickpocket practises on a dummy covered in bells.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A cosy palette of lamplit amber, mahogany and old gold, with deep teal shadows and jewel-red accents. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the old fence at his counter with the scales in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark wooden counter top), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 5. Corvin, the Ashen Spire Apprentice → `ashen-spire-apprentice`
+
+*Attach `assets/cards-v2/spire-magus.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same person, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Corvin as a precocious, cocky fifteen-year-old apprentice: the same sharp face and dark hair, a wispy attempt at a goatee, the same superior half-smile. Oversized ash-grey apprentice robes, a stack of forbidden-looking books under one arm. In the spire's library he casts a showy little blue flame spell to impress no one in particular, and the sleeve of his robe has just caught fire without him noticing.
+
+Setting: the spire's great circular library on a bright morning: towering bookshelves, ladders, floating candles, sunbeams through tall windows, dust motes. A stern librarian hurries towards him with a bucket of water; a fellow apprentice points at the burning sleeve in alarm.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A bright library palette of warm parchment, honey wood and morning gold, with cool blue spell-light and ash-grey robes. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the young apprentice and his blue flame in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (the shadowed library table), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 6. Corvin, the Archmagus of the Ashen Spire → `archmagus-of-the-ashen-spire`
+
+*Attach `assets/cards-v2/spire-magus.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same person, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Corvin as an ancient archmagus: the same sharp features and knowing half-smile, now with a long silver-white beard braided with silver rings, ash-white hair streaming upward. Magnificent ash-grey and silver robes woven with glowing runes. He levitates above the spire's summit, calmly conducting a vast spiral of blue fire like an orchestra, an ancient spellbook floating open before him, utterly in command.
+
+Setting: the summit of the Ashen Spire at midnight under a sky of shimmering green and violet aurora. Below, the city of spires glitters with lights; on the stairs, a crowd of young apprentices watches in awe, one dropping her books.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A night palette of deep navy and aurora green and violet, with brilliant blue fire and silver as the highlights. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the levitating archmagus and his spiral of blue fire in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark stone summit), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 7. Brenna, the Deepforge Acolyte → `deepforge-acolyte`
+
+*Attach `assets/cards-v2/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same dwarf, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Brenna as a young dwarf acolyte of about sixteen: the same freckles, rosy cheeks and copper-red hair in two thick braids, a cheeky grin. A simple undyed acolyte's tunic with a leather apron and a small brass hammer pendant. Her first healing: she kneels and, with a tiny, flickering spark of golden light, mends the burned paw of a big, dopey mountain dog while he licks her face.
+
+Setting: the stables and kitchens beneath the forge-temple: warm hay, copper pots, bread ovens, ponies looking on from their stalls. A grumpy old cook watches from the doorway with a ladle, trying not to smile.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A homely palette of hay gold, terracotta and copper with soft warm light and cool blue-grey stone, her red braids the brightest accent. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the young acolyte healing the dog in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and slightly darker (the straw-covered floor), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 8. Brenna, the Deepforge High Priest → `deepforge-high-priest`
+
+*Attach `assets/cards-v2/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same dwarf, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Brenna as an elderly high priest: the same broad smile and freckles, her braids now white streaked with copper and bound with gold rings, a rosy weathered face. Heavy ceremonial gold-and-bronze vestments over chainmail, a great forge-hammer relic glowing with holy light. She raises it high to bless an entire procession, golden light washing over a line of dwarves, healing their scrapes and lighting up their delighted faces.
+
+Setting: a mountaintop shrine at sunrise above the clouds: snow on the peaks, a great open-air stone forge with a holy fire, prayer banners and bells. A long procession of dwarves climbs the stairs; one pushes a reluctant goat.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A dawn palette of snow white and soft pink-gold sky, warmed by holy gold light, bronze and her copper-streaked braids. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the high priest raising the glowing hammer in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and slightly darker (the shadowed stone stairs), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 9. Ilyra, the Thornwood Scout → `thornwood-scout`
+
+*Attach `assets/cards-v2/thornwood-pathfinder.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same elf, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Ilyra as a young elf scout on her first patrol: the same green eyes and wry smile, freckles, long dark hair loose and full of leaves, a smaller bow. Simple green leathers, a too-big cloak with the thorn brooch. Hanging upside-down from a branch by her knees, she sketches a map in a little notebook, trying to look professional, while a red squirrel steals an arrow from her quiver.
+
+Setting: an autumn forest in late afternoon: blazing red, orange and gold leaves, golden light, a mossy stream, leaves drifting. Her old hawk-friend, younger here, perches nearby with an unimpressed look.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A rich autumn palette of red, orange and gold leaves with cool mossy greens and a clear pale sky. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the upside-down scout and her notebook in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and slightly darker (the shadowed stream bank and leaves), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 10. Ilyra, the Thornwood Warden → `thornwood-warden`
+
+*Attach `assets/cards-v2/thornwood-pathfinder.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same elf, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Ilyra centuries later as the forest's warden: the same green eyes and wry smile, now with long silver hair braided with leaves and the white feather, a cloak grown through with living ivy and tiny flowers, an ornate pale-wood longbow. Calm and ancient, she stands on a moonlit branch while the forest itself answers her: owls gather, deer and foxes look up to her, fireflies circle her raised hand.
+
+Setting: an ancient forest in midwinter at night: frost-silvered trees, soft snow, a full moon, and the glowing windows of the elven treetop village far below. A young scout (her apprentice) peeks out from behind a tree, starstruck.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A midwinter night palette of silver, frost blue and soft moonlight, with warm firefly gold and living green ivy as accents. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the warden with her raised, firefly-ringed hand in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark snowy branch), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 11. Gorran, the Ironhide Brawler → `ironhide-brawler`
+
+*Attach `assets/cards-v2/ironhide-champion.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same orc, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Gorran as a young orc brawler in his late teens: the same delighted grin and topknot, both tusks still whole, fewer scars, lean and wiry rather than huge. Mismatched leather and iron scraps for armour, crimson cloth wrapped around his fists. In a tavern brawl he catches a flying chair with one hand (Riposte) while laughing, about to send it straight back.
+
+Setting: a rowdy roadside tavern at night: lanterns, flying tankards, a bard still playing on the table, a bartender ducking behind the bar. A huge rival (a burly human sailor) is mid-throw of a second chair; patrons cheer and place bets.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A rowdy tavern palette of warm lamplight amber, ale gold and wood brown, with crimson fist-wraps and cool blue night through the windows. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the young orc catching the chair in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark tavern floorboards), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 12. Gorran, the Ironhide Warchief → `ironhide-warchief`
+
+*Attach `assets/cards-v2/ironhide-champion.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same orc, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Gorran in old age as a warchief: the same huge grin, now with a broken tusk, a long grey topknot and braided grey beard, many scars. Heavy blackened iron armour hung with trophies from a lifetime of fights, his great axe planted beside him. Seated on a throne made of old arena shields, he roars with laughter at a young orc warrior's boast, raising a horn of ale as the whole war camp cheers.
+
+Setting: a vast war camp on the steppe at sunset: tents, banners, cooking fires, drums. The sky is a huge blaze of orange and purple; war-boars snort nearby.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A sunset palette of blazing orange, rose and purple, with dark iron, warm firelight and crimson banners. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the warchief on his shield throne in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (the shadowed ground before the throne), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 13. Gloomfang Whelp → `gloomfang-whelp`
+
+*Attach `assets/cards-v2/gloomfang-wolf.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same wolf, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: the same wolf as a half-grown pup: oversized paws, fluffy black fur already trailing little wisps of shadow-smoke at the tips, pale silver eyes, one ear flopped over, the same red ribbon tied around his neck, far too big for him. He is sprinting away from a camp with a whole string of sausages in his jaws, sausages trailing behind him, looking back with a proud, cheeky grin.
+
+Setting: a hunters' camp in a misty pine forest at dawn: a campfire, a cooking spit, tents. Two burly hunters give chase, one tripping over a log, the other's beard full of soup.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A misty dawn palette of soft pine green, blue-grey mist and peach sunrise, with the red ribbon and campfire orange as accents. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the pup and his sausages in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (dark pine needles and roots), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 14. Gloomfang Alpha → `gloomfang-alpha`
+
+*Attach `assets/cards-v2/gloomfang-wolf.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same wolf, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: the same wolf grown into a magnificent pack leader: huge and powerful, thick black fur pouring off him as drifting shadow-smoke, silver eyes glowing, the notched ear, the old red ribbon now joined by a collection of trophies (a guard's whistle, a medal, a golden key) on his neck. He stands on a moonlit rock with a sly, commanding grin as shadowy shapes of his pack emerge from the darkness around him (Ambush).
+
+Setting: a snowy mountain ridge under a huge full moon: pine trees heavy with snow, starlit sky, a lonely mountain road below where a lantern-lit carriage hurries past, unaware of the pack watching.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A cold moonlit palette of deep blue, silver and snow white, with shadow-smoke black, glowing silver eyes and the red ribbon as accents. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the alpha on his moonlit rock in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark snow-covered rock), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 15. Barrow Wisp → `barrow-wisp`
+
+*Attach `assets/cards-v2/barrow-shade.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same ghost, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: a small, newly risen ghost of the same barrow folk: a little teal wisp of a spirit with a tiny braided ghostly beard, a too-big ancient helmet and a little lantern of ghostlight, curious and shy. It peeks out from behind a standing stone at a group of children who have dared each other to come to the barrows, and it's waving at them.
+
+Setting: the same misty moor at twilight in autumn: purple heather, golden grass, drifting will-o'-the-wisps, the first stars. The children (one holding a stick 'sword', one hiding behind another) are half terrified, half delighted.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A twilight autumn palette of heather purple, dusk gold and soft teal ghostlight. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the little ghost behind the standing stone in the centre of the frame, its head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark heather and stone base), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 16. Barrow Lord → `barrow-lord`
+
+*Attach `assets/cards-v2/barrow-shade.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same ghost, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: the same ghostly warrior risen as a barrow-king: tall and regal, glowing teal, the long braided beard now crowned with a jagged bronze crown, ancient armour inlaid with gold, a great ghostly sword resting across his knees. He sits on a throne of standing stones presiding over a ghostly feast, raising a goblet in a toast with a grand, welcoming smile, as if you are the guest of honour.
+
+Setting: a vast underground barrow hall: a long table of ghostly warriors feasting and singing, glowing teal fire in great braziers, ancient treasures and tapestries. A very nervous living traveller sits at the end of the table, holding a ghostly goblet.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A ghostly hall palette of glowing teal and jade, ancient bronze and gold, with deep blue-black shadow. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the barrow-king on his throne raising a goblet in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and slightly darker (the shadowed stone floor), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 17. Stonehide Hatchling → `stonehide-hatchling`
+
+*Attach `assets/cards-v2/stonehide-basilisk.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same creature, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: the same species as a hatchling: a small, chubby, six-legged lizard the size of a cat, with soft pebbly sandstone scales, an oversized crested head and big amber eyes, still wearing half a cracked geode-egg shell on its head like a helmet. With the same grumpy expression, it glares at a beetle, which has just turned to stone mid-step.
+
+Setting: a glittering crystal cave lit by shafts of sunlight: purple and blue geodes, a clutch of geode eggs, a little underground pool. A wide-eyed young explorer with a lantern crouches nearby, delighted.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A crystal cave palette of amethyst purple and sapphire blue, with warm sandstone, amber eyes and shafts of sunlight. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the hatchling in its eggshell helmet in the centre of the frame, its head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark cave floor), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 18. Elder Stonehide → `elder-stonehide`
+
+*Attach `assets/cards-v2/stonehide-basilisk.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same creature, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: the same basilisk grown ancient and colossal, the size of a hill: its sandstone hide has become slabs of rock covered with grass, wildflowers and small trees, and a little ruined watchtower stands on its back. With the same grumpy, unimpressed amber eyes, it plods slowly across a valley while a whole village of tiny people go about their lives on its back.
+
+Setting: a wide golden savannah valley at sunset: mesas, a river, flocks of birds. A merchant caravan in the foreground has stopped to stare.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A sunset savannah palette of golden grass, terracotta and dusty pink, with a deep blue sky and the creature's amber eyes. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the colossal head and front of the basilisk in the centre of the frame, its head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and slightly darker (the shadowed grassland in front of it), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 19. Tilda, the Cinderwick Prodigy → `cinderwick-prodigy`
+
+*Attach `assets/cards-v2/cinderwick-adept.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same gnome, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Tilda as an eight-year-old gnome child prodigy: the same wild copper hair (already singed at the tips), freckles and huge gap-toothed grin, tiny round goggles. Blowing out the candles of her birthday cake, she has instead accidentally conjured a perfect swirling ring of fire around the whole cake, and she is utterly delighted with herself.
+
+Setting: her family's cosy little gnome-house kitchen on a sunny afternoon: round windows, hanging herbs, a party with bunting and gnome relatives. Her mother holds a fire bucket; her grandfather claps; the cat's tail is smoking.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A cheerful palette of buttery yellow, warm fire orange and party pinks and teals, with soft afternoon sunlight. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the child and the ring of fire around the cake in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark wooden kitchen table), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 20. Tilda, the Cinderwick Hermit → `cinderwick-hermit`
+
+*Attach `assets/cards-v2/cinderwick-adept.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same gnome, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Tilda as a very old gnome hermit: the same twinkling eyes and gap-toothed grin, white hair still singed at the tips, brass goggles pushed up on her head, a patched travelling cloak. She sits outside her cave, lighting a long pipe with a flame from her fingertip while a tiny fire-phoenix, grown fat and lazy, naps on her hat.
+
+Setting: a hillside cave at dusk, with a small garden of fire-lilies, wind chimes and a kettle on a little campfire. Two village children have climbed up to visit, wide-eyed, with a basket of bread.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A dusk palette of lavender and peach sky, warm ember orange and fire-lily red, with soft grey stone. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the old hermit lighting her pipe in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and slightly darker (the shadowed stony ground), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 21. Elowen, the Duskmere Novice → `duskmere-novice`
+
+*Attach `assets/cards-v2/duskmere-oracle.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same elf, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Elowen as a young elf novice: the same face and silver-blond hair in a simple braid, a violet silk blindfold tied over her eyes, simple grey novice robes. Blindfolded, she sits very still in a meditation pose, hand outstretched, catching a falling leaf without seeing it, a little smile of surprise on her face.
+
+Setting: a misty lakeside garden at early morning: dew on everything, still water, a flock of white geese, wisteria and stepping stones. A row of other novices behind her have their blindfolds askew; one has walked into a pond.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A misty morning palette of pearl white, soft grey-blue and pale lavender, with fresh greens. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the blindfolded novice catching the leaf in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and slightly darker (the misty stepping stones), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 22. Elowen, the Duskmere Sibyl → `duskmere-sibyl`
+
+*Attach `assets/cards-v2/duskmere-oracle.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same elf, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: Elowen as an ancient, ageless sibyl: the same face and gentle mischievous smile, silver hair flowing to the ground, glowing starlit eyes, robes woven with tiny mirrors. Around her float dozens of mirror shards, each showing a different vision (a dragon, a crowned king, a ship at sea, a child laughing). She reaches out to touch one as if choosing which future to tell you.
+
+Setting: a drowned temple at night: ruined columns standing in shallow still water that reflects a sky full of stars and a vast galaxy; floating candles. A whole queue of hopeful visitors waits on the steps with gifts, a nervous king among them.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A cosmic night palette of deep indigo and violet, with silver, starlight and the warm gold of the candles. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the sibyl among the floating mirror shards in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and slightly darker (the dark reflective water), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 23. Mossback Sapling → `mossback-sapling`
+
+*Attach `assets/cards-v2/mossback-treant.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same treant, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: the same tree-creature as a tiny sapling the height of a child: twig limbs, a few leaves on its head, moss on its shoulders, the same warm amber knot-hole eyes and sleepy, sweet smile. It is playing in a spring meadow, delighted, as baby rabbits climb over it, and a butterfly lands on its nose.
+
+Setting: a sunny spring meadow full of wildflowers, bluebells and blossoming trees, puffy clouds and a little brook. A mother rabbit watches suspiciously; a hedgehog has fallen asleep in its roots.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A spring palette of fresh green, bluebell blue, blossom pink and sunny yellow. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the sapling with the rabbits and butterfly in the centre of the frame, its head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and slightly darker (the shaded grass at its roots), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+## 24. Mossback Ancient → `mossback-ancient`
+
+*Attach `assets/cards-v2/mossback-treant.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a wide, cinematic full-art scene in landscape format, 3:2 (1536 × 1024). The attached image shows this character at another age: keep it recognisably the same treant, with the same face, colouring and signature details, but in a completely new scene.
+
+Subject: the same tree-creature grown colossal and ancient: a walking hill of bark and moss as tall as a castle, a small forest growing on its back, waterfalls spilling from its shoulders, the same warm amber eyes burning brighter. It strides slowly through an autumn storm, roots tearing through the earth, with a gentle but immovable expression as an invading army's siege towers topple harmlessly against it.
+
+Setting: a wide valley in an autumn storm: golden and red trees bending in the wind, lightning, leaves swirling. Behind it, a valley town is safe; tiny soldiers flee in comic panic.
+
+Style: elegant, high-end digital painting with the polish of premium fantasy card-game splash art. Stylised but grounded: confident shapes, clear silhouettes, expressive, characterful faces, beautifully rendered materials, light and texture. A stormy autumn palette of gold and russet leaves, deep storm grey and green, with flashes of lightning and the creature's amber eyes. Charismatic and full of story; heroic fantasy with warmth and wonder, not grim or gloomy. Painterly brushwork in the details, crisp focus on the subject, softer depth of field behind. Not photorealistic, not anime, not cartoonish, not 3D-rendered plastic.
+
+Composition: the ancient's huge face and shoulders in the centre of the frame, its head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and slightly darker (the torn earth and roots at its feet), as card text will sit there. Use the full width for the scene and the story on either side.
+
+Any magic runes or glyphs are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
