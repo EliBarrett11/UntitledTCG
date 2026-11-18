@@ -1,4 +1,16 @@
-# Art style guide (approved direction, 17 November 2026)
+# Art style guide
+
+> **Revised 18 November 2026 (Elliott):** batches 1 and 2 were a step forward in personality but read as corny, cartoonish and obviously AI-generated: over-emotive faces, gag props and busy backgrounds full of people. The direction is now **cinematic, beautiful and serious, with personality shown through restrained expression.** Section 0 overrides anything below it; the format, crops and naming (sections 2, 3, 5 and 8) still stand. The staged images in `assets/cards-v2/` are kept for reference, not for use.
+
+## 0. Cinematic revision (18 November 2026)
+- **A film still, not a cartoon.** Each image is one frame from an epic fantasy film: grounded anatomy and proportions, real materials, natural light with one motivated source, atmospheric depth and a shallow-focus lens feel.
+- **Expression through restraint.** Personality lives in the eyes, posture and a small, specific gesture: a half-smile, a level stare, a weary breath. No open-mouthed laughing, wide grins, gurning or comic surprise.
+- **One subject, alone in the frame.** At most one secondary figure, and only small, distant or out of focus. No crowds, no onlookers reacting, no background faces.
+- **Story through the environment,** not jokes: the weather, the place, a meaningful object, the aftermath of something. No gag props (pies, sausages, birthday cakes, snowmen, upside-down maps).
+- **The quiet moment** before or after the action is usually stronger than the action itself.
+- **Painterly restraint:** controlled, slightly desaturated palettes with one or two strong accents; detail concentrated on the subject's face and hands, with simpler, softer backgrounds. No god-rays everywhere, no rainbows, no glossy skin, no everything-in-focus clutter.
+- **Mature, believable faces** with real age, skin texture and asymmetry; not doll-like, not caricatured.
+
 
 Elliott approved the new style after three tests: Gloomfang Wolf, Oathsworn Captain and Ironroot Pass (`docs/mockups/style-test/`). This guide keeps every new image in that style. Prompts: `docs/18-art-prompts-v2.md`.
 
