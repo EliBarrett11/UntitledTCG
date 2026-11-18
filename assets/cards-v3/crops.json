@@ -115,5 +115,50 @@
  },
  "barrow-shade": {
   "cardX": 700
+ },
+ "mistveil-marshes": {
+  "cardX": 820
+ },
+ "emberfall-ruins": {
+  "cardX": 700
+ },
+ "tower-shield": {
+  "cardX": 740
+ },
+ "flask-of-wildfire": {
+  "cardX": 800
+ },
+ "runed-blade": {
+  "cardX": 900
+ },
+ "draught-of-vigour": {
+  "cardX": 720
+ },
+ "healers-salve": {
+  "cardX": 800
+ },
+ "desperate-gambit": {
+  "cardX": 740
+ },
+ "mending-prayer": {
+  "cardX": 720
+ },
+ "call-to-arms": {
+  "cardX": 820
+ },
+ "rumour-of-treasure": {
+  "cardX": 820
+ },
+ "night-raid": {
+  "cardX": 700
+ },
+ "parry": {
+  "cardX": 720
+ },
+ "firebolt": {
+  "cardX": 700
+ },
+ "stonehide-hatchling": {
+  "cardX": 820
  }
 }

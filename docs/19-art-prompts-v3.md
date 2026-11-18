@@ -974,3 +974,6 @@ Composition: the great willow over the glowing pools is the focal landmark, in t
 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
+
+## Status (18 November 2026)
+All card illustrations delivered in the final style and staged in `assets/cards-v3/` with their crop centres (`crops.json`). Next: batch 4, the table and presentation art; then the coding stage that switches the game over.
