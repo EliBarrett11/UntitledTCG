@@ -20,3 +20,7 @@ Both approved by Elliott. Files in `docs/mockups/style-test/` (full art, crops, 
 - **Faces carry it:** the Captain reads instantly even at board size; expressive faces are the style's strongest asset.
 - **The Location tile isn't wide:** a 2-lane tile is a tall shape on the board, so its crop needs its own focus point (the landmark), separate from the card's. Wider tiles (3 or 4 lanes) show more of the scene.
 - **Bright art needs stronger text backing:** the tile's label and dominance line need a deeper shadow behind them over bright skies; the card text panels already work.
+
+
+## Card renames for the art switch (Elliott, 18 November 2026)
+Oathsworn Veteran → Oathsworn Lord-Commander; Hollowfoot Fence → Hollowfoot Guildmaster; Cinderwick Hermit → Cinderwick Pyromancer. Characters' full names follow docs/17 section 8 ("Garrick, the Oathsworn Lord-Commander").

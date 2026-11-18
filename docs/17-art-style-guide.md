@@ -17,6 +17,11 @@
 
 Elliott approved the new style after three tests: Gloomfang Wolf, Oathsworn Captain and Ironroot Pass (`docs/mockups/style-test/`). This guide keeps every new image in that style. Prompts: `docs/18-art-prompts-v2.md`.
 
+## 0.1 How series progress (Elliott, 18 November 2026)
+- **Characters progress in rank and mastery, not age.** The same person in the prime of life (early twenties to forties, never elderly) in three forms: **Initiate** (finding their place: plain, borrowed or mismatched gear, humble setting), **Sworn** (serving their role: the proper kit and insignia of their order, practised and confident) and **Master** (defining their role: signature gear, a relic or heirloom, a title's regalia, visible mastery, real presence). The path can be rank, reputation, power or calling.
+- **Monsters progress in age and size:** young, adult, then alpha or elder (which may be ancient).
+- **Renames:** Oathsworn Veteran → **Oathsworn Lord-Commander**; Hollowfoot Fence → **Hollowfoot Guildmaster**; Cinderwick Hermit → **Cinderwick Pyromancer** (ids and abilities unchanged; the coding stage that switches the art makes the data change).
+
 ## 1. The pillars
 1. **Personality first.** Every Character and creature has a face, an attitude and a moment you can read in one second: cocky, kind, vain, grumpy, proud, mischievous. Faces carry the style; give them expressions, not poses.
 2. **A story in the scene.** Every image shows something happening, with a small, often funny, secondary story around the subject: the goblin chasing the wolf, the recruits losing a helmet, the stubborn pony. It's hidden in the card crop and revealed in the full art.
