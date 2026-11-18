@@ -2069,6 +2069,128 @@
    "h": 952,
    "blend": "light"
   },
+  "vfx-arcane-glyphring": {
+   "file": "assets/vfx/vfx-arcane-glyphring.webp",
+   "w": 1024,
+   "h": 1013,
+   "blend": "light"
+  },
+  "vfx-arcane-lance": {
+   "file": "assets/vfx/vfx-arcane-lance.webp",
+   "w": 1024,
+   "h": 316,
+   "blend": "light"
+  },
+  "vfx-arcane-ribbon": {
+   "file": "assets/vfx/vfx-arcane-ribbon.webp",
+   "w": 1024,
+   "h": 288,
+   "blend": "light"
+  },
+  "vfx-arcane-shards": {
+   "file": "assets/vfx/vfx-arcane-shards.webp",
+   "w": 1001,
+   "h": 1024,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 24,
+     "y": 13,
+     "w": 201,
+     "h": 231
+    },
+    {
+     "x": 296,
+     "y": 10,
+     "w": 164,
+     "h": 237
+    },
+    {
+     "x": 546,
+     "y": 16,
+     "w": 183,
+     "h": 226
+    },
+    {
+     "x": 816,
+     "y": 13,
+     "w": 159,
+     "h": 235
+    },
+    {
+     "x": 38,
+     "y": 265,
+     "w": 155,
+     "h": 236
+    },
+    {
+     "x": 298,
+     "y": 271,
+     "w": 158,
+     "h": 230
+    },
+    {
+     "x": 569,
+     "y": 265,
+     "w": 135,
+     "h": 235
+    },
+    {
+     "x": 794,
+     "y": 271,
+     "w": 193,
+     "h": 226
+    },
+    {
+     "x": 10,
+     "y": 523,
+     "w": 216,
+     "h": 234
+    },
+    {
+     "x": 289,
+     "y": 524,
+     "w": 180,
+     "h": 229
+    },
+    {
+     "x": 547,
+     "y": 529,
+     "w": 166,
+     "h": 226
+    },
+    {
+     "x": 801,
+     "y": 524,
+     "w": 190,
+     "h": 230
+    },
+    {
+     "x": 38,
+     "y": 780,
+     "w": 161,
+     "h": 232
+    },
+    {
+     "x": 280,
+     "y": 781,
+     "w": 190,
+     "h": 231
+    },
+    {
+     "x": 545,
+     "y": 788,
+     "w": 175,
+     "h": 225
+    },
+    {
+     "x": 812,
+     "y": 779,
+     "w": 162,
+     "h": 236
+    }
+   ]
+  },
   "vfx-ash": {
    "file": "assets/vfx/vfx-ash.webp",
    "w": 1024,
@@ -2295,6 +2417,128 @@
    "h": 975,
    "blend": "alpha"
   },
+  "vfx-fire-burst": {
+   "file": "assets/vfx/vfx-fire-burst.webp",
+   "w": 1024,
+   "h": 1011,
+   "blend": "light"
+  },
+  "vfx-fire-ring": {
+   "file": "assets/vfx/vfx-fire-ring.webp",
+   "w": 1024,
+   "h": 1015,
+   "blend": "light"
+  },
+  "vfx-fire-tongues": {
+   "file": "assets/vfx/vfx-fire-tongues.webp",
+   "w": 1016,
+   "h": 1024,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 28,
+     "y": 4,
+     "w": 186,
+     "h": 246
+    },
+    {
+     "x": 281,
+     "y": 9,
+     "w": 200,
+     "h": 243
+    },
+    {
+     "x": 554,
+     "y": 4,
+     "w": 163,
+     "h": 246
+    },
+    {
+     "x": 790,
+     "y": 10,
+     "w": 216,
+     "h": 235
+    },
+    {
+     "x": 26,
+     "y": 278,
+     "w": 209,
+     "h": 212
+    },
+    {
+     "x": 274,
+     "y": 261,
+     "w": 207,
+     "h": 242
+    },
+    {
+     "x": 519,
+     "y": 275,
+     "w": 239,
+     "h": 217
+    },
+    {
+     "x": 797,
+     "y": 258,
+     "w": 205,
+     "h": 244
+    },
+    {
+     "x": 39,
+     "y": 518,
+     "w": 159,
+     "h": 239
+    },
+    {
+     "x": 274,
+     "y": 520,
+     "w": 213,
+     "h": 238
+    },
+    {
+     "x": 545,
+     "y": 513,
+     "w": 166,
+     "h": 244
+    },
+    {
+     "x": 787,
+     "y": 515,
+     "w": 208,
+     "h": 242
+    },
+    {
+     "x": 10,
+     "y": 784,
+     "w": 229,
+     "h": 219
+    },
+    {
+     "x": 288,
+     "y": 771,
+     "w": 187,
+     "h": 243
+    },
+    {
+     "x": 529,
+     "y": 774,
+     "w": 210,
+     "h": 240
+    },
+    {
+     "x": 787,
+     "y": 784,
+     "w": 214,
+     "h": 225
+    }
+   ]
+  },
+  "vfx-fire-trail": {
+   "file": "assets/vfx/vfx-fire-trail.webp",
+   "w": 1024,
+   "h": 310,
+   "blend": "light"
+  },
   "vfx-ghost-veil": {
    "file": "assets/vfx/vfx-ghost-veil.webp",
    "w": 1024,
@@ -2362,6 +2606,122 @@
      "h": 330
     }
    ]
+  },
+  "vfx-holy-dome": {
+   "file": "assets/vfx/vfx-holy-dome.webp",
+   "w": 1024,
+   "h": 630,
+   "blend": "light"
+  },
+  "vfx-holy-motes": {
+   "file": "assets/vfx/vfx-holy-motes.webp",
+   "w": 1024,
+   "h": 1009,
+   "blend": "light",
+   "frames": [
+    {
+     "x": 11,
+     "y": 14,
+     "w": 218,
+     "h": 234
+    },
+    {
+     "x": 307,
+     "y": 10,
+     "w": 154,
+     "h": 224
+    },
+    {
+     "x": 579,
+     "y": 35,
+     "w": 157,
+     "h": 181
+    },
+    {
+     "x": 827,
+     "y": 39,
+     "w": 180,
+     "h": 180
+    },
+    {
+     "x": 42,
+     "y": 324,
+     "w": 137,
+     "h": 139
+    },
+    {
+     "x": 295,
+     "y": 302,
+     "w": 164,
+     "h": 160
+    },
+    {
+     "x": 558,
+     "y": 297,
+     "w": 175,
+     "h": 182
+    },
+    {
+     "x": 808,
+     "y": 269,
+     "w": 205,
+     "h": 234
+    },
+    {
+     "x": 46,
+     "y": 549,
+     "w": 132,
+     "h": 180
+    },
+    {
+     "x": 279,
+     "y": 569,
+     "w": 182,
+     "h": 153
+    },
+    {
+     "x": 545,
+     "y": 529,
+     "w": 201,
+     "h": 223
+    },
+    {
+     "x": 853,
+     "y": 584,
+     "w": 120,
+     "h": 116
+    },
+    {
+     "x": 32,
+     "y": 807,
+     "w": 153,
+     "h": 192
+    },
+    {
+     "x": 278,
+     "y": 801,
+     "w": 190,
+     "h": 191
+    },
+    {
+     "x": 580,
+     "y": 835,
+     "w": 143,
+     "h": 142
+    },
+    {
+     "x": 833,
+     "y": 804,
+     "w": 157,
+     "h": 187
+    }
+   ]
+  },
+  "vfx-holy-rays": {
+   "file": "assets/vfx/vfx-holy-rays.webp",
+   "w": 1024,
+   "h": 994,
+   "blend": "light"
   },
   "vfx-impact-star": {
    "file": "assets/vfx/vfx-impact-star.webp",
@@ -2473,6 +2833,34 @@
     }
    ]
   },
+  "vfx-noise-brush": {
+   "file": "assets/vfx/vfx-noise-brush.webp",
+   "w": 1024,
+   "h": 1024,
+   "blend": "noise",
+   "tile": true
+  },
+  "vfx-noise-cells": {
+   "file": "assets/vfx/vfx-noise-cells.webp",
+   "w": 1024,
+   "h": 1024,
+   "blend": "noise",
+   "tile": true
+  },
+  "vfx-noise-embers": {
+   "file": "assets/vfx/vfx-noise-embers.webp",
+   "w": 1024,
+   "h": 1024,
+   "blend": "noise",
+   "tile": true
+  },
+  "vfx-noise-wisps": {
+   "file": "assets/vfx/vfx-noise-wisps.webp",
+   "w": 1024,
+   "h": 1024,
+   "blend": "noise",
+   "tile": true
+  },
   "vfx-petals": {
    "file": "assets/vfx/vfx-petals.webp",
    "w": 1024,
@@ -2583,6 +2971,12 @@
    "h": 1020,
    "blend": "light"
   },
+  "vfx-renown-star": {
+   "file": "assets/vfx/vfx-renown-star.webp",
+   "w": 1017,
+   "h": 1024,
+   "blend": "light"
+  },
   "vfx-scorch-mark": {
    "file": "assets/vfx/vfx-scorch-mark.webp",
    "w": 1024,
@@ -2680,6 +3074,68 @@
    "w": 1024,
    "h": 330,
    "blend": "light"
+  },
+  "vfx-smoke-puffs": {
+   "file": "assets/vfx/vfx-smoke-puffs.webp",
+   "w": 1024,
+   "h": 1018,
+   "blend": "alpha",
+   "frames": [
+    {
+     "x": 18,
+     "y": 13,
+     "w": 298,
+     "h": 305
+    },
+    {
+     "x": 359,
+     "y": 17,
+     "w": 308,
+     "h": 293
+    },
+    {
+     "x": 734,
+     "y": 9,
+     "w": 276,
+     "h": 313
+    },
+    {
+     "x": 9,
+     "y": 351,
+     "w": 307,
+     "h": 304
+    },
+    {
+     "x": 360,
+     "y": 350,
+     "w": 303,
+     "h": 311
+    },
+    {
+     "x": 700,
+     "y": 358,
+     "w": 315,
+     "h": 302
+    },
+    {
+     "x": 16,
+     "y": 703,
+     "w": 295,
+     "h": 299
+    },
+    {
+     "x": 361,
+     "y": 694,
+     "w": 297,
+     "h": 315
+    },
+    {
+     "x": 711,
+     "y": 696,
+     "w": 294,
+     "h": 307
+    }
+   ]
   },
   "vfx-sparks": {
    "file": "assets/vfx/vfx-sparks.webp",

@@ -400,3 +400,11 @@ In all: 37 textures.
 **Batch 1: 20 of 37 delivered** and processed into `assets/vfx/` (cut-outs checked: `docs/mockups/vfx-kit-batch1.jpg`): prime-burst, scorch-mark, ash, burn-edge, crack, ward-hex, shield-sigil, shockwave, sparks, slash-crescent, impact-star, debris, dust-burst, ghost-veil, ghostlight-flames, petals, leaves, shadow-eyes, shadow-claws, shadow-wisps. Sheets carry their frames in `manifest.json`.
 
 **Still to make (17):** the 4 noise textures, the 5 fire pieces, the 4 arcane pieces and the 4 holy pieces (dome, motes, rays, Renown star).
+
+**Batch 2: the remaining 17 delivered. The kit is complete (37 of 37)** (checked: `docs/mockups/vfx-kit-batch2.jpg`):
+- Noise (`blend: noise`, opaque greyscale, 1024², levels stretched, edges cross-faded so they tile): noise-brush, noise-cells, noise-wisps, noise-embers.
+- Fire: fire-tongues (16 frames), fire-burst, fire-trail, fire-ring, smoke-puffs (9 frames, solid).
+- Arcane: arcane-glyphring, arcane-lance, arcane-shards (16 frames), arcane-ribbon.
+- Holy: holy-dome, holy-motes (16 frames), holy-rays, renown-star.
+
+Process noise textures with `tools/vfx_process.py <id>=<src>:noise`.
