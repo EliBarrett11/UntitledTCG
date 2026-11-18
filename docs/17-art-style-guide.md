@@ -22,6 +22,8 @@ Elliott approved the new style after three tests: Gloomfang Wolf, Oathsworn Capt
 - **Monsters progress in age and size:** young, adult, then alpha or elder (which may be ancient).
 - **Renames:** Oathsworn Veteran → **Oathsworn Lord-Commander**; Hollowfoot Fence → **Hollowfoot Guildmaster**; Cinderwick Hermit → **Cinderwick Pyromancer** (ids and abilities unchanged; the coding stage that switches the art makes the data change).
 
+- **Actions, Events and Items never show a Character from a Character card** (Elliott, 18 November 2026), so cards in hand can't be confused at a glance. Any figure on them is anonymous: hooded, masked, seen from behind, in silhouette, or just hands; or the card shows only the object or the effect.
+
 ## 1. The pillars
 1. **Personality first.** Every Character and creature has a face, an attitude and a moment you can read in one second: cocky, kind, vain, grumpy, proud, mischievous. Faces carry the style; give them expressions, not poses.
 2. **A story in the scene.** Every image shows something happening, with a small, often funny, secondary story around the subject: the goblin chasing the wolf, the recruits losing a helmet, the stubborn pony. It's hidden in the card crop and revealed in the full art.

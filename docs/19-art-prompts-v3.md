@@ -703,7 +703,7 @@ Any glyphs or runes are abstract shapes, never letters. Do not include any text,
 
 ## Batch 3: the remaining cards (15)
 
-The Stonehide Hatchling, then the Actions, Events, Items and the other two Locations, in the same style. Attach the style reference named under each heading, and the character image where one is named.
+The Stonehide Hatchling, then the Actions, Events, Items and the other two Locations, in the same style. Attach the style reference named under each heading. **No Character from a Character card appears on any Action, Event or Item** (Elliott, 18 November 2026): their figures are anonymous, seen from behind, hooded or absent.
 
 ### 1. Stonehide Hatchling · Young → `stonehide-hatchling`
 
@@ -761,108 +761,108 @@ Any glyphs or runes are abstract shapes, never letters. Do not include any text,
 
 ### 4. Night Raid · Action → `night-raid`
 
-*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg` and `assets/cards-v3/hollowfoot-knifemaster.jpg`.*
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg`.*
 
 ```
-Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Fennick: keep the same face, features and colouring.
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
 
-Subject: Fennick, masked with a dark scarf, crouches on top of an enemy camp's palisade at midnight, a grappling rope behind him, one knife drawn, surveying the sleeping tents below with sharp, calculating eyes.
+Subject: a lean human raider in dark leathers and a hood, face hidden behind a dark scarf so only sharp eyes show, crouches on top of an enemy camp's palisade at midnight, a grappling rope behind, one knife drawn, surveying the sleeping tents below.
 
 Setting: an enemy war camp at midnight under a crescent moon, campfires burning low, rows of dark tents and limp banners.
 
-Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: deep navy and indigo with silver moonlight against low campfire orange, his green hood as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: deep navy and indigo with silver moonlight against low campfire orange, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
 
-Composition: Fennick on the palisade in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark palisade logs), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+Composition: the raider on the palisade in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark palisade logs), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures; no named or recognisable characters.
 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
 
 ### 5. Mending Prayer · Action → `mending-prayer`
 
-*Attach the style reference `assets/cards-v3/deepforge-priest.jpg` and `assets/cards-v3/deepforge-priest.jpg`.*
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
 
 ```
-Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Brenna: keep the same face, features and colouring.
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
 
-Subject: Brenna kneels on a quiet battlefield after the fighting, hands clasped, eyes closed; a great dome of golden light and slow-turning abstract runes rises from her, mending a broken shield at her knees and washing the field in warm light.
+Subject: a hooded healer in pale grey robes, face mostly in shadow, kneels on a quiet battlefield after the fighting, hands clasped; a great dome of golden light and slow-turning abstract runes rises from them, mending a broken shield at their knees and washing the field in warm light.
 
 Setting: a field after a battle at golden hour: broken spears, drifting smoke, a clearing sky.
 
-Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: soft gold and warm honey light against sky blue and smoke grey, her deep red mantle as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: soft gold and warm honey light against sky blue and smoke grey, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
 
-Composition: Brenna and the rising dome of light in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shadowed grass), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+Composition: the healer and the rising dome of light in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shadowed grass), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures; no named or recognisable characters.
 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
 
 ### 6. Call to Arms · Event → `call-to-arms`
 
-*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg` and `assets/cards-v3/oathsworn-captain.jpg`.*
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg`.*
 
 ```
-Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Garrick: keep the same face, features and colouring.
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
 
-Subject: Garrick stands on a village wall blowing a great curved war horn, cloak whipping in the wind, his glowing sword-and-open-hand shield on his arm, the sound visible as a ripple through the falling leaves.
+Subject: a great curved war horn of bronze and bone being sounded from a village wall, held by an anonymous armoured figure seen from behind, cloak whipping in the wind, the sound visible as a ripple through the falling leaves.
 
 Setting: a timber village on a windy autumn morning, falling russet leaves, a church bell swinging, distant fields.
 
-Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: russet, gold and timber brown against a clear blue sky, his bold crimson as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: russet, gold and timber brown against a clear blue sky, a deep blue cloak as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
 
-Composition: Garrick blowing the horn in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shadowed wall top), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+Composition: the war horn and the figure seen from behind in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shadowed wall top), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures; no named or recognisable characters.
 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
 
 ### 7. Rumour of Treasure · Event → `rumour-of-treasure`
 
-*Attach the style reference `assets/cards-v3/deepforge-priest.jpg` and `assets/cards-v3/hollowfoot-fence.jpg`.*
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
 
 ```
-Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Fennick, the Guildmaster: keep the same face, features and colouring.
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
 
-Subject: Fennick, the Guildmaster, leans over a tavern table by lamplight, unrolling an old treasure map that glows faintly gold, one finger resting on a marked spot, glancing up at the viewer with a conspiratorial look.
+Subject: an old treasure map unrolled across a tavern table by lamplight, glowing faintly gold along its routes, a brass compass and a dagger pinning its corners; only a weathered, ringless hand rests on the marked spot.
 
 Setting: a harbour tavern at night, lanterns, sea-charts on the walls, rain on the windows, all softly blurred.
 
 Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: amber lamplight and mahogany against sea-green shadow and the map's gold glow, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
 
-Composition: Fennick and the glowing map in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark table edge), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+Composition: the glowing map in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark table edge), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures; no named or recognisable characters.
 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
 
 ### 8. Desperate Gambit · Event → `desperate-gambit`
 
-*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg` and `assets/cards-v3/ironhide-champion.jpg`.*
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg`.*
 
 ```
-Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Gorran: keep the same face, features and colouring.
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
 
-Subject: Gorran sits at a gambling table in a smoky den, having pushed his whole pile of gold and his axe into the middle; two glowing dice hang in mid-air above the table, and he watches them with fierce, all-in intensity.
+Subject: two glowing dice hanging in mid-air above a gambling table, every last coin, a sword and a signet ring pushed into the middle of the green felt; the gambler is only a shadowed silhouette at the far side of the table.
 
 Setting: an underground gambling den, green felt, hanging lamps, drifting smoke, everything beyond the table blurred.
 
 Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: felt green and smoky amber against brass gold and crimson, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
 
-Composition: Gorran and the dice in mid-air in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark table edge), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+Composition: the dice in mid-air above the stakes in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark table edge), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures; no named or recognisable characters.
 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
 
 ### 9. Healer's Salve · Item → `healers-salve`
 
-*Attach the style reference `assets/cards-v3/deepforge-priest.jpg` and `assets/cards-v3/deepforge-acolyte.jpg`.*
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
 
 ```
-Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Brenna, the Acolyte: keep the same face, features and colouring.
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
 
-Subject: a hero object: a small round jar of glowing golden salve with a cork lid and a twine-wrapped neck, held out in Brenna the Acolyte's cupped hands, warm motes of light rising from it; her face, softly lit above, is calm and kind.
+Subject: a hero object: a small round jar of glowing golden salve with a cork lid and a twine-wrapped neck, resting on a stone ledge among drying herbs, warm motes of light rising from it.
 
 Setting: a sunny dwarven herb terrace on a mountainside, drying herbs and beehives blurred behind.
 
 Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: honey gold, sage green and terracotta against clear sky blue, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
 
-Composition: the glowing jar in her hands in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shaded terrace stones), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+Composition: the glowing jar in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shaded terrace stones), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures; no named or recognisable characters.
 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
