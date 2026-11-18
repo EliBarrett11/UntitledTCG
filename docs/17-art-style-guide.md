@@ -2,7 +2,10 @@
 
 > **Revised 18 November 2026 (Elliott):** batches 1 and 2 were a step forward in personality but read as corny, cartoonish and obviously AI-generated: over-emotive faces, gag props and busy backgrounds full of people. The direction is now **cinematic, beautiful and serious, with personality shown through restrained expression.** Section 0 overrides anything below it; the format, crops and naming (sections 2, 3, 5 and 8) still stand. The staged images in `assets/cards-v2/` are kept for reference, not for use.
 
-## 0. Cinematic revision (18 November 2026)
+## 0. Cinematic revision (18 November 2026) — locked
+
+**Locked by Elliott (18 November 2026)** after the painterly-animation tests (Brenna, Garrick, the wolf; `assets/cards-v3/`), with one change: **more colour overall**. The template and workflow are in `docs/19-art-prompts-v3.md`; docs/18 is superseded.
+
 - **A frame from a painterly animated film** (Elliott, 18 November 2026: the photoreal test was too realistic; the target is stylised cinematic animation). Hand-painted textures over solid, sculpted forms, with visible brushwork on skin, cloth and backgrounds; slightly stylised proportions and bold, graphic shape design; strong colour scripting with dramatic rim light and one motivated key light; backgrounds painted like concept art. Not photoreal, not cel-shaded cartoon, not glossy 3D.
 - **Expression through restraint.** Personality lives in the eyes, posture and a small, specific gesture: a half-smile, a level stare, a weary breath. No open-mouthed laughing, wide grins, gurning or comic surprise.
 - **One subject, alone in the frame.** At most one secondary figure, and only small, distant or out of focus. No crowds, no onlookers reacting, no background faces.
