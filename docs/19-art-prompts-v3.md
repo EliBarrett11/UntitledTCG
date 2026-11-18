@@ -977,3 +977,153 @@ Any glyphs or runes are abstract shapes, never letters. Do not include any text,
 
 ## Status (18 November 2026)
 All card illustrations delivered in the final style and staged in `assets/cards-v3/` with their crop centres (`crops.json`). Next: batch 4, the table and presentation art; then the coding stage that switches the game over.
+
+---
+
+## Batch 4: the table and presentation art (8)
+
+These replace the old dark pieces in `assets/ui/`. Attach the style reference named under each heading (from `assets/cards-v3/`). For the scorched map and the blue banner, also attach the new image they must match. These are interface backgrounds: keep them calmer than card art so the game stays readable on top.
+
+### 1. Title key art → `assets/ui/title-key-art.jpg`
+
+*Attach the style reference `assets/cards-v3/gloomfang-wolf.jpg`.*
+
+```
+Create an original fantasy illustration for a card game's interface, in the painting style, brushwork and lighting of the attached style reference.
+
+Format: landscape, 3:2 (1536 × 1024).
+
+Subject: the game's opening image: a vast fantasy realm at golden dawn seen from a high cliff. In the foreground, two great war banners on tall poles, one crimson and one deep blue, stream towards each other in the wind across a gap. Below, a sweeping valley holds the places of the game: a mountain pass bound by colossal iron roots, misty marshes under a giant willow, star-struck ruins glowing ember red, a fortress on a hill. In the far sky, the silhouette of a great dragon flies across the sun.
+
+Style: a high-end, painterly animated fantasy film: hand-painted textures with visible brushstrokes, bold graphic shapes, rich vibrant colour scripting with saturated complementary accents, bold rim light from one motivated key light, atmospheric depth. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: keep the centre-left third of the sky calm and open, as the game's title will sit there. The richest detail in the lower half and the right. Wide, epic and inviting.
+
+No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
+```
+
+### 2. War table (behind everything) → `assets/ui/war-table.jpg`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a card game's interface, in the painting style, brushwork and lighting of the attached style reference.
+
+Format: landscape, 3:2 (1536 × 1024).
+
+Subject: seen from directly above, the top of a great war-council table in a commander's tent at night: dark polished wood with deep grain, its edges trimmed with worn brass; a few objects pushed to the very edges (a brass compass, a candle stub, a rolled map, carved wooden army pieces, a dagger), warm candlelight pooling at the corners and fading to shadow towards the middle.
+
+Style: a high-end, painterly animated fantasy film: hand-painted textures with visible brushstrokes, bold graphic shapes, rich vibrant colour scripting with saturated complementary accents, bold rim light from one motivated key light, atmospheric depth. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: a flat top-down view. The middle 80% must be calm, plain, slightly dark wood with low contrast, because the game board and panels cover it; all objects and light stay at the outer edges.
+
+No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
+```
+
+### 3. The campaign map (the board) → `assets/ui/campaign-map.jpg`
+
+*Attach the style reference `assets/cards-v3/gloomfang-wolf.jpg`.*
+
+```
+Create an original fantasy illustration for a card game's interface, in the painting style, brushwork and lighting of the attached style reference.
+
+Format: landscape, 3:2 (1536 × 1024), cropped wide to about 7:3 in the game.
+
+Subject: a beautiful hand-painted fantasy campaign map on aged parchment, seen from directly above: rolling hills, forests, rivers, a mountain range, marshes and a coast, painted in soft watercolour and ink like an illuminated map, with gentle colour. Small painted landmarks scattered across it, a compass rose in one corner.
+
+Style: a high-end, painterly animated fantasy film: hand-painted textures with visible brushstrokes, bold graphic shapes, rich vibrant colour scripting with saturated complementary accents, bold rim light from one motivated key light, atmospheric depth. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: flat top-down, filling the whole frame with no borders. Keep it soft, low in contrast and evenly detailed everywhere, with no single focal point, because a grid of cards sits on top of it. The middle band from top to bottom must be equally calm. Light, warm parchment tones, not dark.
+
+No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
+```
+
+### 4. The scorched map (the Last Battle) → `assets/ui/campaign-map-scorched.jpg`
+
+*Attach the style reference `assets/cards-v3/gloomfang-wolf.jpg`.*
+
+```
+Create an original fantasy illustration for a card game's interface, in the painting style, brushwork and lighting of the attached style reference.
+
+Format: landscape, 3:2 (1536 × 1024).
+
+Subject: exactly the same map as the attached map image, in the same layout and landmarks, but now during the final war: the parchment charred at the edges, ash and embers drifting across it, forests burned to dark ink, rivers glowing faintly red, scorch marks and smoke stains, the colour shifted to ember orange and deep red.
+
+Style: a high-end, painterly animated fantasy film: hand-painted textures with visible brushstrokes, bold graphic shapes, rich vibrant colour scripting with saturated complementary accents, bold rim light from one motivated key light, atmospheric depth. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: keep the same layout as the attached map, flat top-down, and keep it low in contrast and evenly detailed so cards on top stay readable. Attach the new campaign map as a second image.
+
+No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
+```
+
+### 5. Your banner (crimson) → `assets/ui/banner-crimson.jpg`
+
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg`.*
+
+```
+Create an original fantasy illustration for a card game's interface, in the painting style, brushwork and lighting of the attached style reference.
+
+Format: portrait, 2:3 (1024 × 1536).
+
+Subject: a single tall war banner of heavy crimson cloth hanging from a dark iron crossbar, painted with a bold golden emblem of a rising sword over a stylised flame, edged with gold trim and a fringed, slightly tattered hem, rippling gently in a wind, warm light catching its folds.
+
+Style: a high-end, painterly animated fantasy film: hand-painted textures with visible brushstrokes, bold graphic shapes, rich vibrant colour scripting with saturated complementary accents, bold rim light from one motivated key light, atmospheric depth. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the banner fills the frame from the crossbar at the top to the hem near the bottom, centred, against a plain, very dark smoky background that fades to near black at the edges so it can be cut out.
+
+No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
+```
+
+### 6. The enemy's banner (blue) → `assets/ui/banner-blue.jpg`
+
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg`.*
+
+```
+Create an original fantasy illustration for a card game's interface, in the painting style, brushwork and lighting of the attached style reference.
+
+Format: portrait, 2:3 (1024 × 1536).
+
+Subject: a single tall war banner of heavy deep-blue cloth hanging from a dark iron crossbar, painted with a bold silver emblem of a crowned wolf's head over crossed spears, edged with silver trim and a fringed, slightly tattered hem, rippling gently in a wind, cold light catching its folds.
+
+Style: a high-end, painterly animated fantasy film: hand-painted textures with visible brushstrokes, bold graphic shapes, rich vibrant colour scripting with saturated complementary accents, bold rim light from one motivated key light, atmospheric depth. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the same framing as the attached crimson banner, so the two match: the banner fills the frame, centred, against a plain, very dark smoky background that fades to near black. Attach the new crimson banner as a second image.
+
+No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
+```
+
+### 7. Card back → `assets/ui/card-back.jpg`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a card game's interface, in the painting style, brushwork and lighting of the attached style reference.
+
+Format: portrait, 2:3 (1024 × 1536), cropped to 5:7 in the game.
+
+Subject: the back of a fantasy playing card: deep burgundy and midnight-blue enamel with an ornate, symmetrical design in hand-chased gold: a central emblem of a radiant star inside a ring of crossed swords and laurels, surrounded by flowing filigree and a fine border pattern, the gold catching warm light, subtle painted texture.
+
+Style: a high-end, painterly animated fantasy film: hand-painted textures with visible brushstrokes, bold graphic shapes, rich vibrant colour scripting with saturated complementary accents, bold rim light from one motivated key light, atmospheric depth. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: perfectly symmetrical and centred, filling the frame edge to edge, with the central emblem in the middle and the design reading clearly when small. Keep the outer 8% simple, as the card's rounded frame covers it.
+
+No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
+```
+
+### 8. Victory and defeat backdrop → `assets/ui/victory-backdrop.jpg`
+
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg`.*
+
+```
+Create an original fantasy illustration for a card game's interface, in the painting style, brushwork and lighting of the attached style reference.
+
+Format: landscape, 3:2 (1536 × 1024).
+
+Subject: a vast battlefield at the moment after the final battle, seen from a hilltop: the smoke clearing, a golden sunrise breaking through the clouds in great beams, distant banners standing in the light, the land below glowing, a sense of hard-won triumph and quiet awe. No figures in the foreground.
+
+Style: a high-end, painterly animated fantasy film: hand-painted textures with visible brushstrokes, bold graphic shapes, rich vibrant colour scripting with saturated complementary accents, bold rim light from one motivated key light, atmospheric depth. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: keep the centre calm and luminous with the bright sky behind, as the victory title and stats panels sit in front of it; the richest detail at the bottom and the sides.
+
+No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
+```
