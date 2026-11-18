@@ -572,4 +572,13 @@ node tools/compare.mjs
   - layout scenes for a 2-, 3- and 4-lane tile and the full art, with the tiles and the dominance line in the contrast check;
   - the card contrast tool;
   - `?prefer=<card>:place` places a chosen Location for the screenshots.
+- **Results:**
+  - all 36 test files pass;
+  - neat-text passes 402 card renders and 270 chips;
+  - card contrast passes all 1,265 labels (lowest 5.00:1);
+  - the layout check passes all 173 scenes at the three sizes (map labels lowest 4.96:1);
+  - real input passes at each size, in low motion and from Player 2's seat;
+  - the presenter check passes all four runs;
+  - the effects check passes;
+  - the two-browser online check passes.
 - Readings for Elliott's approval: `docs/03-look-and-feel.md` section 16.
