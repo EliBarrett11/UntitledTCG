@@ -7,5 +7,59 @@
  },
  "gloomfang-wolf": {
   "cardX": 900
+ },
+ "ashen-spire-apprentice": {
+  "cardX": 640
+ },
+ "archmagus-of-the-ashen-spire": {
+  "cardX": 740
+ },
+ "deepforge-high-priest": {
+  "cardX": 700
+ },
+ "deepforge-acolyte": {
+  "cardX": 720
+ },
+ "duskmere-sibyl": {
+  "cardX": 760
+ },
+ "duskmere-novice": {
+  "cardX": 760
+ },
+ "duskmere-oracle": {
+  "cardX": 700
+ },
+ "thornwood-scout": {
+  "cardX": 700
+ },
+ "hollowfoot-cutpurse": {
+  "cardX": 640
+ },
+ "hollowfoot-fence": {
+  "cardX": 680
+ },
+ "cinderwick-adept": {
+  "cardX": 720
+ },
+ "ironhide-champion": {
+  "cardX": 760
+ },
+ "lady-corwens-commission": {
+  "cardX": 760
+ },
+ "thornwood-warden": {
+  "cardX": 720
+ },
+ "ironhide-brawler": {
+  "cardX": 760
+ },
+ "ironhide-warchief": {
+  "cardX": 760
+ },
+ "oathsworn-recruit": {
+  "cardX": 720
+ },
+ "hollowfoot-knifemaster": {
+  "cardX": 680
  }
 }
