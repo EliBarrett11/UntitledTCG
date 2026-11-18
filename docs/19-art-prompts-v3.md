@@ -1127,3 +1127,6 @@ Composition: keep the centre calm and luminous with the bright sky behind, as th
 
 No people unless described. Any glyphs or emblems are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, UI elements or watermarks.
 ```
+
+## Batch 4 delivered (18 November 2026)
+All 8 presentation pieces staged in `assets/ui-v3/` at full size. Previews with everything swapped in: `docs/mockups/style-test/v3-full-board.png` and `v3-full-title.png`. **All art is now complete**; next is the coding stage that switches the game over.
