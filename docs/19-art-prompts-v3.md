@@ -700,4 +700,277 @@ Composition: the ancient's face and shoulders in the centre of the frame, its he
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
 
-Batch 3 (Actions, Events, Items and the other Locations) follows.
+
+## Batch 3: the remaining cards (15)
+
+The Stonehide Hatchling, then the Actions, Events, Items and the other two Locations, in the same style. Attach the style reference named under each heading, and the character image where one is named.
+
+### 1. Stonehide Hatchling · Young → `stonehide-hatchling`
+
+*Attach the style reference `assets/cards-v3/gloomfang-wolf.jpg` and `assets/cards-v3/stonehide-basilisk.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows this species at adult size; show it young: keep the same face, features and colouring.
+
+Subject: the same species as a hatchling: a small, sturdy six-legged lizard the size of a cat, soft pebbly red-sandstone scales, an oversized crested head and big amber eyes, a piece of cracked geode eggshell still on its back. It crouches alone on a ledge, glaring at the viewer with a small, serious, unimpressed stare.
+
+Setting: a crystal cave lit by a single shaft of sunlight, purple and blue geodes, a small still underground pool.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: amethyst purple and sapphire blue against warm sandstone and amber, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the hatchling in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark cave floor), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 2. Firebolt · Action → `firebolt`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
+
+Subject: a battle-mage in a travel-worn crimson coat, braced on a rocky outcrop, hurls a roaring spear of fire from her open palm; the bolt streaks away into the distance in a spiral of sparks, lighting her determined face and whipping her hair and coat back.
+
+Setting: a mountain gorge at cold blue twilight, wind-blown snow, a stone watchtower blurred behind her.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: cold slate blue and snow white against the bolt's blazing orange, yellow and white, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the mage and the bolt leaving her hand in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the rock in shadow), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 3. Parry · Action → `parry`
+
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
+
+Subject: a split-second parry: a nimble duellist in a fitted teal coat turns aside a heavy axe blade with a slim rapier, a burst of sparks where the steels meet, perfectly balanced, eyes calm and focused. Only the axe-head and a gauntlet of the unseen attacker intrude from the frame's edge.
+
+Setting: a sunlit palace courtyard of warm sandstone, a fountain and orange trees softly blurred.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: warm sandstone and orange-tree green against her teal coat and the bright white-gold sparks, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the duellist and the sparks at the crossed blades in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shaded flagstones), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other full figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 4. Night Raid · Action → `night-raid`
+
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg` and `assets/cards-v3/hollowfoot-knifemaster.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Fennick: keep the same face, features and colouring.
+
+Subject: Fennick, masked with a dark scarf, crouches on top of an enemy camp's palisade at midnight, a grappling rope behind him, one knife drawn, surveying the sleeping tents below with sharp, calculating eyes.
+
+Setting: an enemy war camp at midnight under a crescent moon, campfires burning low, rows of dark tents and limp banners.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: deep navy and indigo with silver moonlight against low campfire orange, his green hood as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: Fennick on the palisade in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark palisade logs), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 5. Mending Prayer · Action → `mending-prayer`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg` and `assets/cards-v3/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Brenna: keep the same face, features and colouring.
+
+Subject: Brenna kneels on a quiet battlefield after the fighting, hands clasped, eyes closed; a great dome of golden light and slow-turning abstract runes rises from her, mending a broken shield at her knees and washing the field in warm light.
+
+Setting: a field after a battle at golden hour: broken spears, drifting smoke, a clearing sky.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: soft gold and warm honey light against sky blue and smoke grey, her deep red mantle as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: Brenna and the rising dome of light in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shadowed grass), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 6. Call to Arms · Event → `call-to-arms`
+
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg` and `assets/cards-v3/oathsworn-captain.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Garrick: keep the same face, features and colouring.
+
+Subject: Garrick stands on a village wall blowing a great curved war horn, cloak whipping in the wind, his glowing sword-and-open-hand shield on his arm, the sound visible as a ripple through the falling leaves.
+
+Setting: a timber village on a windy autumn morning, falling russet leaves, a church bell swinging, distant fields.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: russet, gold and timber brown against a clear blue sky, his bold crimson as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: Garrick blowing the horn in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shadowed wall top), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 7. Rumour of Treasure · Event → `rumour-of-treasure`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg` and `assets/cards-v3/hollowfoot-fence.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Fennick, the Guildmaster: keep the same face, features and colouring.
+
+Subject: Fennick, the Guildmaster, leans over a tavern table by lamplight, unrolling an old treasure map that glows faintly gold, one finger resting on a marked spot, glancing up at the viewer with a conspiratorial look.
+
+Setting: a harbour tavern at night, lanterns, sea-charts on the walls, rain on the windows, all softly blurred.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: amber lamplight and mahogany against sea-green shadow and the map's gold glow, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: Fennick and the glowing map in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark table edge), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 8. Desperate Gambit · Event → `desperate-gambit`
+
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg` and `assets/cards-v3/ironhide-champion.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Gorran: keep the same face, features and colouring.
+
+Subject: Gorran sits at a gambling table in a smoky den, having pushed his whole pile of gold and his axe into the middle; two glowing dice hang in mid-air above the table, and he watches them with fierce, all-in intensity.
+
+Setting: an underground gambling den, green felt, hanging lamps, drifting smoke, everything beyond the table blurred.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: felt green and smoky amber against brass gold and crimson, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: Gorran and the dice in mid-air in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark table edge), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 9. Healer's Salve · Item → `healers-salve`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg` and `assets/cards-v3/deepforge-acolyte.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference. The second attached image shows Brenna, the Acolyte: keep the same face, features and colouring.
+
+Subject: a hero object: a small round jar of glowing golden salve with a cork lid and a twine-wrapped neck, held out in Brenna the Acolyte's cupped hands, warm motes of light rising from it; her face, softly lit above, is calm and kind.
+
+Setting: a sunny dwarven herb terrace on a mountainside, drying herbs and beehives blurred behind.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: honey gold, sage green and terracotta against clear sky blue, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the glowing jar in her hands in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shaded terrace stones), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 10. Draught of Vigour · Item → `draught-of-vigour`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
+
+Subject: a hero object: a tall corked flask of fizzing, glowing teal-green potion with bubbles and tiny crackles of lightning inside, standing on a mossy stone by a mountain path at dawn, light pouring through it and casting teal reflections on the stone.
+
+Setting: a mountain path at dawn, a misty valley and pines, the sun rising behind the peaks.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: misty blue and pine green against the potion's electric teal and the sunrise's peach and gold, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the glowing flask in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the shadowed stone), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 11. Flask of Wildfire · Item → `flask-of-wildfire`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
+
+Subject: a hero object: a round glass flask of swirling, living orange wildfire with a burning cloth fuse, spinning through the air above a battlefield at dusk, sparks trailing behind it, the moment before impact.
+
+Setting: a dusky battlefield with a wooden palisade far below, smoke and banners blurred.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: dusk violet and smoke grey against the flask's blazing orange, red and yellow, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the spinning flask in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark ground below), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 12. Tower Shield · Item → `tower-shield`
+
+*Attach the style reference `assets/cards-v3/oathsworn-captain.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
+
+Subject: a hero object: a huge, magnificent tower shield of steel and oak painted crimson with a glowing golden sword-and-open-hand sigil, planted upright in the earth, three arrows embedded in its face, rain running down it.
+
+Setting: a fortress training yard in light rain at dusk, torchlight reflecting in puddles, walls blurred behind.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: rain-washed blue-grey against warm torch amber, the shield's crimson and gold, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the tower shield in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the wet ground at its base), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 13. Runed Blade · Item → `runed-blade`
+
+*Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
+
+Subject: a hero object: a beautiful longsword held up by tongs above an anvil, its blade etched with glowing blue abstract runes that are still cooling, wisps of steam rising, sparks drifting.
+
+Setting: a mountain forge at night, the stone forge glowing orange, tools on the wall, a starry sky through an open roof.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: molten orange and ember red against cool steel-blue rune light and deep indigo, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the glowing runed sword in the centre of the frame, in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames it perfectly. Keep the lower third directly beneath simpler and darker (the dark anvil), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No full figures; only the smith's gloved hand on the tongs.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 14. Emberfall Ruins · Location → `emberfall-ruins`
+
+*Attach the style reference `assets/cards-v3/gloomfang-wolf.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
+
+Subject: Emberfall Ruins, the toppled remains of an ancient fortress-city where a falling star once landed: broken towers and arches of pale stone half-buried in the earth, glowing ember-red crystals growing from the cracks, embers drifting upward like inverted snow, and a huge fallen statue of a warrior king lying on its side, its sword still pointing to the sky.
+
+Setting: dusk, a wide sky of deep rose and violet, the ruins glowing warmly from within.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: rose, violet and deep blue against glowing ember red and orange, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the fallen statue and its upright sword among the glowing towers is the focal landmark, in the centre of the frame, so a tall portrait crop from the centre (about half the width) frames it perfectly; it must also read as a wide panorama. Keep the richest detail around the landmark and calmer edges. Keep the lower third simpler and darker (the shadowed rubble), as text will sit there. No figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
+
+### 15. Mistveil Marshes · Location → `mistveil-marshes`
+
+*Attach the style reference `assets/cards-v3/gloomfang-wolf.jpg`.*
+
+```
+Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference.
+
+Subject: Mistveil Marshes, a vast misty wetland of still pools and reeds where healing springs glow soft turquoise through the water. At the centre stands an ancient willow so huge its branches form a canopy over the marsh, with lanterns and wind chimes among its roots and a wooden boardwalk winding through.
+
+Setting: early morning, pale gold sunrise through the mist, dragonflies in the light.
+
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: pale gold, sage green and misty blue against glowing turquoise springs, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Any acting is expressive through the eyes and posture but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+
+Composition: the great willow over the glowing pools is the focal landmark, in the centre of the frame, so a tall portrait crop from the centre (about half the width) frames it perfectly; it must also read as a wide panorama. Keep the richest detail around the landmark and calmer edges. Keep the lower third simpler and darker (the dark water and reeds), as text will sit there. No figures.
+
+Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
+```
