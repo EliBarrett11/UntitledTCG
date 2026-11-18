@@ -46,5 +46,65 @@
  },
  "ironroot-pass": {
   "cardX": 800
+ },
+ "ashen-spire-apprentice": {
+  "cardX": 760
+ },
+ "archmagus-of-the-ashen-spire": {
+  "cardX": 760
+ },
+ "deepforge-acolyte": {
+  "cardX": 640
+ },
+ "deepforge-high-priest": {
+  "cardX": 640
+ },
+ "duskmere-novice": {
+  "cardX": 760
+ },
+ "duskmere-sibyl": {
+  "cardX": 840
+ },
+ "hollowfoot-fence": {
+  "cardX": 760
+ },
+ "hollowfoot-cutpurse": {
+  "cardX": 760
+ },
+ "oathsworn-recruit": {
+  "cardX": 800
+ },
+ "ironhide-warchief": {
+  "cardX": 720
+ },
+ "ironhide-brawler": {
+  "cardX": 720
+ },
+ "thornwood-warden": {
+  "cardX": 620
+ },
+ "cinderwick-hermit": {
+  "cardX": 740
+ },
+ "cinderwick-prodigy": {
+  "cardX": 760
+ },
+ "thornwood-scout": {
+  "cardX": 740
+ },
+ "oathsworn-veteran": {
+  "cardX": 720
+ },
+ "barrow-lord": {
+  "cardX": 760
+ },
+ "elder-stonehide": {
+  "cardX": 720
+ },
+ "stonehide-hatchling": {
+  "cardX": 700
+ },
+ "mossback-sapling": {
+  "cardX": 760
  }
 }
