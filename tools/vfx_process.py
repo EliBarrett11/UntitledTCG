@@ -4,6 +4,9 @@
 Usage: python3 tools/vfx_process.py <id>=<source.png>[:solid] [...]
   :white marks a solid object on a white or fake-checkerboard background (cut out by removing the background).
   :solid marks a solid object painted on black (cut out opaque, not turned into glow).
+  :grey marks a shape painted on a plain mid-grey background (cut out by removing the grey).
+  :noise marks a greyscale noise texture: kept opaque, levels stretched to the full range,
+    and the edges cross-faded with a half-offset copy so it tiles seamlessly.
   :grid=RxC splits an atlas by an even grid of R rows and C columns, for pieces with loose droplets or sparks.
 - Images on a black background become transparent: brightness is used as alpha,
   and colour is un-premultiplied, so they work with normal and additive blending.
@@ -40,6 +43,16 @@ def to_rgba(im, mode=''):
         a = fg.astype(np.float32)
         a = ndimage.gaussian_filter(a, 0.8)
         return np.dstack([rgb, a * 255.0]), 'alpha'
+    if mode == 'grey':
+        # a shape painted on a plain mid-grey background: alpha from the distance to that grey,
+        # with the grey region connected to the border removed outright
+        from scipy import ndimage
+        rgb = np.asarray(im.convert('RGB')).astype(np.float32)
+        bgc = np.median(np.concatenate([rgb[:8].reshape(-1, 3), rgb[-8:].reshape(-1, 3), rgb[:, :8].reshape(-1, 3), rgb[:, -8:].reshape(-1, 3)]), axis=0)
+        d = np.sqrt(((rgb - bgc) ** 2).sum(axis=2))
+        a = np.clip((d - 10.0) / 45.0, 0, 1)
+        a = ndimage.gaussian_filter(a, 0.7)
+        return np.dstack([rgb, a * 255.0]), 'alpha'
     if mode == 'solid':
         # a solid object painted on black: opaque wherever it isn't near-black
         rgb = np.asarray(im.convert('RGB')).astype(np.float32)
@@ -59,6 +72,20 @@ def to_rgba(im, mode=''):
     col[a == 0] = 0
     out = np.dstack([col, a * 255.0])
     return out, 'light'
+
+def make_noise(im):
+    g = np.asarray(im.convert('L')).astype(np.float32)
+    lo, hi = np.percentile(g, 0.5), np.percentile(g, 99.5)
+    g = np.clip((g - lo) / max(1.0, hi - lo), 0, 1)
+    h, w = g.shape
+    r = np.roll(np.roll(g, h // 2, 0), w // 2, 1)
+    wy = 1 - np.abs(np.linspace(-1, 1, h))[:, None]
+    wx = 1 - np.abs(np.linspace(-1, 1, w))[None, :]
+    m = np.clip(np.minimum(wy, wx) * 4.0, 0, 1)
+    m = m * m * (3 - 2 * m)
+    out = g * m + r * (1 - m)
+    img = Image.fromarray((out * 255).round().astype(np.uint8), 'L')
+    return img.resize((1024, 1024), Image.LANCZOS)
 
 def frames(alpha, minarea=400):
     from collections import deque
@@ -104,7 +131,7 @@ def grid_frames(alpha, rows, cols):
 
 def main(pairs):
     os.makedirs(OUT, exist_ok=True)
-    man = json.load(open(MAN)) if os.path.exists(MAN) else {'about': 'VFX textures. blend: light = painted on black (additive or normal), alpha = solid object.', 'textures': {}}
+    man = json.load(open(MAN)) if os.path.exists(MAN) else {'about': 'VFX textures. blend: light = painted on black (additive or normal), alpha = solid object, noise = opaque greyscale tileable mask.', 'textures': {}}
     for p in pairs:
         tid, src = p.split('=', 1)
         mode = ''
@@ -112,8 +139,17 @@ def main(pairs):
         if ':grid=' in src:
             src, g = src.split(':grid=')
             grid = tuple(int(v) for v in g.split('x'))
+        if src.endswith(':noise'):
+            img = make_noise(Image.open(src[:-6]))
+            path = os.path.join(OUT, f'{tid}.webp')
+            img.convert('RGB').save(path, 'WEBP', quality=90, method=6)
+            man['textures'][tid] = {'file': f'assets/vfx/{tid}.webp', 'w': 1024, 'h': 1024, 'blend': 'noise', 'tile': True}
+            print(f"{tid}: 1024x1024 noise {os.path.getsize(path)//1024} KB")
+            continue
         if src.endswith(':white'):
             src, mode = src[:-6], 'white'
+        if src.endswith(':grey'):
+            src, mode = src[:-5], 'grey'
         if src.endswith(':solid'):
             src, mode = src[:-6], 'solid'
         im = Image.open(src)
@@ -130,7 +166,7 @@ def main(pairs):
         path = os.path.join(OUT, f'{tid}.webp')
         img.save(path, 'WEBP', quality=88, method=6)
         entry = {'file': f'assets/vfx/{tid}.webp', 'w': img.width, 'h': img.height, 'blend': blend}
-        if tid.endswith('-atlas'):
+        if tid.endswith('-atlas') or grid:
             a = np.asarray(img.getchannel('A'))
             entry['frames'] = grid_frames(a, *grid) if grid else frames(a)
         man['textures'][tid] = entry
