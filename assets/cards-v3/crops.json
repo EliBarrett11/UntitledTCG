@@ -61,5 +61,59 @@
  },
  "hollowfoot-knifemaster": {
   "cardX": 680
+ },
+ "oathsworn-veteran": {
+  "cardX": 760
+ },
+ "spire-magus": {
+  "cardX": 720
+ },
+ "thornwood-pathfinder": {
+  "cardX": 720
+ },
+ "aldric-the-unbroken": {
+  "cardX": 760
+ },
+ "cinderwick-prodigy": {
+  "cardX": 720
+ },
+ "cinderwick-hermit": {
+  "cardX": 700
+ },
+ "ironroot-pass": {
+  "cardX": 700
+ },
+ "elder-stonehide": {
+  "cardX": 860
+ },
+ "mossback-ancient": {
+  "cardX": 860
+ },
+ "the-ashen-wyrm": {
+  "cardX": 740
+ },
+ "gloomfang-whelp": {
+  "cardX": 820
+ },
+ "barrow-wisp": {
+  "cardX": 640
+ },
+ "gloomfang-alpha": {
+  "cardX": 760
+ },
+ "mossback-treant": {
+  "cardX": 780
+ },
+ "mossback-sapling": {
+  "cardX": 700
+ },
+ "barrow-lord": {
+  "cardX": 760
+ },
+ "stonehide-basilisk": {
+  "cardX": 800
+ },
+ "barrow-shade": {
+  "cardX": 700
  }
 }
