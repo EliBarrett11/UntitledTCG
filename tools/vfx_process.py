@@ -4,6 +4,7 @@
 Usage: python3 tools/vfx_process.py <id>=<source.png>[:solid] [...]
   :white marks a solid object on a white or fake-checkerboard background (cut out by removing the background).
   :solid marks a solid object painted on black (cut out opaque, not turned into glow).
+  :grey marks a shape painted on a plain mid-grey background (cut out by removing the grey).
   :grid=RxC splits an atlas by an even grid of R rows and C columns, for pieces with loose droplets or sparks.
 - Images on a black background become transparent: brightness is used as alpha,
   and colour is un-premultiplied, so they work with normal and additive blending.
@@ -39,6 +40,16 @@ def to_rgba(im, mode=''):
             fg = keep
         a = fg.astype(np.float32)
         a = ndimage.gaussian_filter(a, 0.8)
+        return np.dstack([rgb, a * 255.0]), 'alpha'
+    if mode == 'grey':
+        # a shape painted on a plain mid-grey background: alpha from the distance to that grey,
+        # with the grey region connected to the border removed outright
+        from scipy import ndimage
+        rgb = np.asarray(im.convert('RGB')).astype(np.float32)
+        bgc = np.median(np.concatenate([rgb[:8].reshape(-1, 3), rgb[-8:].reshape(-1, 3), rgb[:, :8].reshape(-1, 3), rgb[:, -8:].reshape(-1, 3)]), axis=0)
+        d = np.sqrt(((rgb - bgc) ** 2).sum(axis=2))
+        a = np.clip((d - 10.0) / 45.0, 0, 1)
+        a = ndimage.gaussian_filter(a, 0.7)
         return np.dstack([rgb, a * 255.0]), 'alpha'
     if mode == 'solid':
         # a solid object painted on black: opaque wherever it isn't near-black
@@ -114,6 +125,8 @@ def main(pairs):
             grid = tuple(int(v) for v in g.split('x'))
         if src.endswith(':white'):
             src, mode = src[:-6], 'white'
+        if src.endswith(':grey'):
+            src, mode = src[:-5], 'grey'
         if src.endswith(':solid'):
             src, mode = src[:-6], 'solid'
         im = Image.open(src)
@@ -130,7 +143,7 @@ def main(pairs):
         path = os.path.join(OUT, f'{tid}.webp')
         img.save(path, 'WEBP', quality=88, method=6)
         entry = {'file': f'assets/vfx/{tid}.webp', 'w': img.width, 'h': img.height, 'blend': blend}
-        if tid.endswith('-atlas'):
+        if tid.endswith('-atlas') or grid:
             a = np.asarray(img.getchannel('A'))
             entry['frames'] = grid_frames(a, *grid) if grid else frames(a)
         man['textures'][tid] = entry
