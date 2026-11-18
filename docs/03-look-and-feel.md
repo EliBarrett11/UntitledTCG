@@ -466,7 +466,7 @@ Built to `docs/mockups/hud-v2/` (approved by Elliott, 17 November 2026: `a2-you.
 12. **Right-click** now also opens the Codex on the Round, each phase, the Last Battle line, Pass, the Market's title and stock, and the Bag.
 13. **Fixed from V5:** the Energy sparks (Desperate Gambit, and the Dawn refill) were aimed at stage G's Energy panel, which V5 removed, so they had been landing on the Warlord. They now land on the Energy crystal, and recovered Exert glints on its ready runes.
 
-## 16. Readings from stage A (the new art): needing Elliott's approval
+## 16. Readings from stage A (the new art): approved by Elliott, 18 November 2026
 
 Built to `docs/17-art-style-guide.md` (sections 0, 0.1, 2, 3 and 8), `docs/19-art-prompts-v3.md` and the previews `docs/mockups/style-test/v3-full-board.png` and `v3-full-title.png`. No rule changed.
 
@@ -511,3 +511,5 @@ Built to `docs/17-art-style-guide.md` (sections 0, 0.1, 2, 3 and 8), `docs/19-ar
     - Esc closes the art first, then the Codex; a click anywhere or ✕ also closes it.
 11. **Dev aid:** `?prefer=<card>:place` places a chosen Location, and the `?scene` fast-forward now honours `?prefer` (for the tile screenshots).
 12. `assets/cards-v2/` stays as the reference the style guide names; the game never loads it.
+
+**Approved with one follow-up (18 November 2026):** the empty campaign map's cream wash (0.40, from stage V3) is too strong for the new map art. It comes down to about 0.12, and empty slots are outlined rather than filled with cream (`docs/mockups/style-test/map-wash-compare.jpg`). The Last Battle's scorched map stays as it is. Scheduled for the effects test stage.
