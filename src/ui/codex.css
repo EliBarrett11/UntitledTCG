@@ -99,3 +99,20 @@ body.low-motion #codex.cx-in { animation: none; }
 
 .cx-foot { padding: 9px 18px; font-size: 13.5px; color: rgba(232, 220, 192, .55); border-top: 1px solid rgba(226, 190, 120, .2); flex: none; }
 #codex .en-word { white-space: nowrap; }
+
+/* Stage A: "View full art": the whole scene, as large as fits, over a dark backdrop, the name beneath. */
+#codex .cx-view-art { margin-top: 12px; padding: 6px 14px; border-radius: 8px; border: 0; background: rgba(60,40,12,.55); box-shadow: inset 0 0 0 1px rgba(240,200,110,.55);
+  font: 700 11px/1.3 Cinzel, serif; letter-spacing: 2.4px; color: #f1d9a0; }
+#codex .cx-view-art:hover { box-shadow: inset 0 0 0 1px #fff1c4, 0 0 12px rgba(241,217,160,.35); color: #fff1c4; }
+.cx-art { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: zoom-out;
+  background: radial-gradient(ellipse at 50% 45%, rgba(8,5,3,.9), rgba(4,3,2,.97)); }
+.cx-art[hidden] { display: none; }
+.cx-art figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.cx-art img { display: block; width: 1440px; height: 960px; object-fit: contain; border-radius: 10px; background: #120c07;
+  box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(226,190,120,.6), 0 30px 80px rgba(0,0,0,.8); }
+.cx-art figcaption { display: flex; align-items: baseline; gap: 14px; }
+.cx-art figcaption b { font: 700 30px/1.3 Cinzel, serif; letter-spacing: 3px; color: #f4ead2; text-shadow: 0 2px 6px #000; }
+.cx-art figcaption span { font: italic 500 22px/1.3 'EB Garamond', Georgia, serif; color: rgba(244,234,210,.85); }
+.cx-art-x { position: absolute; right: 28px; top: 22px; width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer; font-size: 20px; color: #f1d9a0;
+  background: rgba(20,13,8,.9); box-shadow: inset 0 0 0 1px rgba(226,190,120,.6); }
+.cx-art-x:hover { color: #fff1c4; box-shadow: inset 0 0 0 1px #fff1c4; }

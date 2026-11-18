@@ -23,7 +23,7 @@ import { termAtOffset, tipHtml } from './tips.js';
 import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
 
 // The presentation art (V3), fetched and decoded before it's first shown.
-const ART = ['war-table', 'campaign-map', 'campaign-map-scorched', 'title-key-art', 'banner-crimson', 'banner-blue', 'card-back'].map((n) => `assets/ui/${n}.jpg`);
+const ART = [...['war-table', 'campaign-map', 'campaign-map-scorched', 'title-key-art', 'victory-backdrop', 'card-back'].map((n) => `assets/ui/${n}.jpg`), ...['banner-crimson', 'banner-blue'].map((n) => `assets/ui/${n}.png`)];
 let artReady = null;
 export function preloadArt() {
   if (!artReady) artReady = Promise.all(ART.map((src) => { const img = new Image(); img.src = src; return img.decode().catch(() => null); }));
@@ -227,7 +227,7 @@ export function startApp(params) {
       quest: () => s.phase === 'battle' && !s.reactWindow && Object.values(s.players).some((p) => (p.quests ?? []).some((qq) => !qq.complete && qq.progress >= qq.quest.need - 2)),
     }[scene];
     if (!done) return;
-    for (let i = 0; i < 4000 && !done() && s.phase !== 'gameOver'; i++) apply(chooseAction(s, actor(s), rng));
+    for (let i = 0; i < 4000 && !done() && s.phase !== 'gameOver'; i++) apply(preferred(actor(s)) ?? chooseAction(s, actor(s), rng));
     // (Stage H, a dev aid for the hand's layout scenes: ?hand=N moves cards between your Draw Pile and your hand
     // until you hold N. Only the checks use it; it is never part of play.)
     if (params.has('hand')) {
@@ -414,6 +414,8 @@ export function startApp(params) {
         if (idOf(a.uid) !== id) continue;
         if (a.type === 'action' && a.mode === how) return a;
         if (a.type === 'react' && how === 'react') return a;
+        // (Stage A: a Location placed, for the tile screenshots: ?prefer=mistveil-marshes:place.)
+        if (a.type === 'placeLocation' && how === 'place') return a;
         if ((a.type === 'buyItem' && a.then === 'use' && how === 'use') || (a.type === 'useItem' && how === 'use')) return a;
         if (a.type === 'event' && how === 'favour') {
           const card = hand.find((c) => c.uid === a.uid);

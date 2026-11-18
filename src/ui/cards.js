@@ -11,7 +11,7 @@ import { RULES, levelFor } from '../engine/rules.js';
 import { KEYWORDS, TRIGGERS } from '../engine/abilities.js';
 import { CARDS } from '../data/cards.js';
 import { chosenTargetWords } from '../engine/wording.js';
-import { esc, artOf, creatureLines, printedOf, accentOf, defText, costBadge, energyHtml, CRYSTAL_ICON } from './text.js';
+import { esc, artOf, creatureLines, printedOf, accentOf, defText, costBadge, energyHtml, CRYSTAL_ICON, nameParts } from './text.js';
 
 // --- Small icons used outside cards (the Gold counter) ---------------------------------------------------
 const P = {
@@ -60,10 +60,9 @@ const HP = { none: ['heart', '#f08a9a'], Shield: ['shield', '#c9d2dc'], Ward: ['
 const MODE_COL = { react: '#f0a050', adapt: '#7fd0c0', strat: '#b49cff' };
 const UP = '#9ff08a';
 const DOWN = '#ff8a7a';
-// Where each painting sits in its card (the mockups' framing), by art file.
-const ART_POS = { 'barrow-lord.jpg': '50% 18%', 'barrow-shade.jpg': '50% 18%', 'gloomfang-wolf.jpg': '50% 35%', 'gloomfang-alpha.jpg': '50% 35%', 'the-ashen-wyrm.jpg': '50% 30%',
-  'aldric-the-unbroken.jpg': '50% 15%', 'firebolt.jpg': '50% 30%', 'call-to-arms.jpg': '50% 15%', 'runed-blade.jpg': '50% 45%', 'emberfall-ruins.jpg': '50% 40%',
-  'lady-corwens-commission.jpg': '50% 12%' };
+// Stage A: every card image is cut to exactly the card's 5:7 shape (tools/artcrops.py), so the art fills the card as
+// it is. A chip's round crop shows the upper part, where the art guide puts every subject's head.
+const CHIP_POS = '50% 24%';
 
 // The outline of each card type, i px inside the edge (reference-geometry.py, sh()).
 function outline(kind, i) {
@@ -151,6 +150,9 @@ function typeText(c) {
 // --- Drawing helpers (design units: the card is 340 × 476) ----------------------------------------------------
 // A name's size: its preferred size, or smaller so it fits its width on one line (Cinzel runs about 0.7 em a letter).
 const nameSize = (name, max, width) => Math.max(11, Math.min(max, Math.floor(width / (0.7 * name.length + 0.6))));
+// Stage A: a Character's title line under its first name (EB Garamond italic): 15 px, smaller for a long title.
+const TITLE_H = 20;
+const titleSize = (title) => Math.max(11, Math.min(15, Math.floor(296 / (0.47 * title.length + 0.5))));
 let defsN = 0;
 const pct = (y) => `${((100 * y) / H).toFixed(1)}%`;
 const box = (x, y, w, h) => `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
@@ -303,7 +305,7 @@ function miniLine(c) {
 export function chipFor(c, px = 32) {
   const art = artOf(c);
   const lvl = isCreature(c) ? (c.legendaryCreature ? '★' : c.level) : null;
-  return `<span class="card-chip${isFoil(c) ? ' foil' : ''}" style="--accent:${accent(c)};width:${px}px;height:${px}px" title="${esc(c.name)}">${art ? `<img src="${esc(art)}" alt="" draggable="false" style="object-position:${ART_POS[art.split('/').pop()] ?? '50% 22%'}">` : '<span class="chip-pending"></span>'}${lvl !== null && lvl !== undefined ? `<span class="chip-lvl nowrap">${lvl}</span>` : ''}</span>`;
+  return `<span class="card-chip${isFoil(c) ? ' foil' : ''}" style="--accent:${accent(c)};width:${px}px;height:${px}px" title="${esc(c.name)}">${art ? `<img src="${esc(art)}" alt="" draggable="false" style="object-position:${CHIP_POS}">` : '<span class="chip-pending"></span>'}${lvl !== null && lvl !== undefined ? `<span class="chip-lvl nowrap">${lvl}</span>` : ''}</span>`;
 }
 
 // --- The one entry point ------------------------------------------------------------------------------------------
@@ -324,24 +326,28 @@ export function renderCard(c, opts = {}) {
   const goldId = `cdg${n}`;
   const br = `url(#${foil ? goldId : brId})`;
   const art = artOf(c);
-  const pos = art ? ART_POS[art.split('/').pop()] ?? '50% 22%' : '50% 22%';
+  const pos = '50% 50%';
 
   // The rules first (their height places the panel line), then the panel line.
   let rules = { html: '', h: 0 };
   if (size === 'full') rules = fullRules(c, opts);
+  // (Stage A: a Character's first name, and its title on a second line on the full card.)
+  const np = nameParts(c);
+  const titleH = np.title && size === 'full' ? TITLE_H : 0;
   let panel;
   if (token) panel = 336;
   else if (mini) panel = creature ? 286 : 300;
   else {
     const bottom = creature ? 64 : 24;
-    // (The rules start 70 px below the panel line: the name and the type line come first.)
-    const want = H - bottom - 70 - rules.h - 10;
-    panel = Math.round(Math.max(creature ? 250 : 236, Math.min(creature ? 318 : 300, want)));
+    // (The rules start 70 px below the panel line: the name and the type line come first; a title line adds TITLE_H.)
+    const want = H - bottom - 70 - titleH - rules.h - 10;
+    panel = Math.round(Math.max((creature ? 250 : 236) - titleH, Math.min(creature ? 318 : 300, want)));
   }
 
   const o = outline(kind, 0);
   const inner = outline(kind, 7);
-  const shade = `linear-gradient(180deg, rgba(10,7,5,0) ${pct(panel - 95)}, rgba(10,7,5,.78) ${pct(panel - 10)}, rgba(10,7,5,.93) ${pct(panel + 20)}, rgba(7,5,4,.97) 100%)`;
+  // (Stage A: the new art is brighter, so the darkening under the text starts higher and goes deeper.)
+  const shade = `linear-gradient(180deg, rgba(10,7,5,0) ${pct(panel - 120)}, rgba(10,7,5,.5) ${pct(panel - 55)}, rgba(10,7,5,.86) ${pct(panel - 10)}, rgba(10,7,5,.95) ${pct(panel + 20)}, rgba(7,5,4,.98) 100%)`;
   const artHtml = art
     ? `<div class="cv-art" style="clip-path:path('${o}');background-image:${shade},url('${esc(art)}');background-size:100% 100%,cover;background-position:0 0,${pos}"></div>`
     : `<div class="cv-art cv-pending" style="clip-path:path('${o}');background-image:${shade},radial-gradient(circle at 50% 32%, ${acc}cc 0%, ${acc}44 40%, #0c0805 75%)"><span class="nowrap" style="top:${Math.round(panel * 0.42)}px">ART PENDING</span></div>`;
@@ -352,10 +358,10 @@ export function renderCard(c, opts = {}) {
   }
 
   // The frame: a dark edge, a fine brass (or gold) hairline, a fainter inner line.
-  let s = `<defs><linearGradient id="${brId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2c88f"/><stop offset=".4" stop-color="#8f7140"/><stop offset=".6" stop-color="#d4b67c"/><stop offset="1" stop-color="#6e5530"/></linearGradient>`
+  let s = `<defs><linearGradient id="${brId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2d69c"/><stop offset=".4" stop-color="#a8823f"/><stop offset=".6" stop-color="#e8c47f"/><stop offset="1" stop-color="#84612f"/></linearGradient>`
     + `<linearGradient id="${goldId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1c4"/><stop offset=".35" stop-color="#c99a3a"/><stop offset=".55" stop-color="#ffe9a8"/><stop offset=".8" stop-color="#b8862f"/><stop offset="1" stop-color="#fff1c4"/></linearGradient>`
     + `<linearGradient id="cdr${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9c08c"/><stop offset=".5" stop-color="#7a6038"/><stop offset="1" stop-color="#2e2214"/></linearGradient></defs>`;
-  s += `<path d="${o}" fill="none" stroke="#050302" stroke-width="3"/><path d="${o}" fill="none" stroke="${br}" stroke-width="${foil ? 2.2 : 1.6}"/><path d="${inner}" fill="none" stroke="${foil ? 'rgba(255,226,150,.7)' : 'rgba(194,163,106,.55)'}" stroke-width="1"/>`;
+  s += `<path d="${o}" fill="none" stroke="#050302" stroke-width="3"/><path d="${o}" fill="none" stroke="${br}" stroke-width="${foil ? 2.2 : 1.6}"/><path d="${inner}" fill="none" stroke="${foil ? 'rgba(255,226,150,.7)' : 'rgba(216,178,108,.62)'}" stroke-width="1"/>`;
   if (kind === 'location') s += `<rect x="2" y="6" width="${W - 4}" height="16" rx="8" fill="url(#cdr${n})" stroke="#050302" stroke-width="1.5"/><rect x="2" y="${H - 22}" width="${W - 4}" height="16" rx="8" fill="url(#cdr${n})" stroke="#050302" stroke-width="1.5"/>`;
   // The panel line, with the Class or Kind glyph in its diamond.
   const cr = 14;
@@ -413,25 +419,27 @@ export function renderCard(c, opts = {}) {
 
   // The name, the type line and the rules.
   if (token) {
-    const npx = nameSize(c.name, 19, 312);
-    h += `<div class="cv-name nowrap" data-z="text" style="left:12px;right:12px;top:${panel + 14}px;font-size:${npx}px">${esc(c.name)}</div>`;
+    const npx = nameSize(np.first, 19, 312);
+    h += `<div class="cv-name nowrap" data-z="text" style="left:12px;right:12px;top:${panel + 14}px;font-size:${npx}px">${esc(np.first)}</div>`;
     const kw = keywordsOf(c);
     const trig = triggerLines(c)[0]?.match(/^\*\*(.+?):\*\*/)?.[1];
     const sub = kw.length ? kw.join(' · ') : trig ?? '';
     if (sub) h += `<div class="cv-tokkw nowrap" data-z="text" style="left:8px;right:8px;top:${panel + 44}px;color:${acc}">${esc(sub)}</div>`;
     if (c.held) h += `<div class="cv-held nowrap" data-z="badge" title="Holds ${esc(c.held.name)}" style="${box(24, panel - 72, W - 48, 30)}">${esc(c.held.name.toUpperCase())}</div>`;
   } else if (mini) {
-    const npx = nameSize(c.name, 30, 304);
-    h += `<div class="cv-name nowrap" data-z="text" style="left:16px;right:16px;top:${panel + 22}px;font-size:${npx}px${foil ? ';color:#ffe9b0' : ''}">${esc(c.name)}</div>`;
+    const npx = nameSize(np.first, 30, 304);
+    h += `<div class="cv-name nowrap" data-z="text" style="left:16px;right:16px;top:${panel + 22}px;font-size:${npx}px${foil ? ';color:#ffe9b0' : ''}">${esc(np.first)}</div>`;
     const line = miniLine(c);
     if (line) h += `<div class="cv-rules cv-rules-mini" style="top:${panel + 66}px;bottom:${creature ? 66 : 22}px">${line}</div>`;
   } else {
     const ny = panel + 22;
-    const npx = nameSize(c.name, 21, 296);
-    h += `<div class="cv-name nowrap" data-z="text" style="left:20px;right:20px;top:${ny}px;font-size:${npx}px${foil ? ';color:#ffe9b0' : ''}">${esc(c.name)}</div>`;
+    // (The first name keeps its own size, however long the title; the title fits its own line.)
+    const npx = nameSize(np.first, 21, 296);
+    h += `<div class="cv-name nowrap" data-z="text" style="left:20px;right:20px;top:${ny}px;font-size:${npx}px${foil ? ';color:#ffe9b0' : ''}">${esc(np.first)}</div>`;
+    if (np.title) h += `<div class="cv-title nowrap" data-z="text" style="top:${ny + 28}px;font-size:${titleSize(np.title)}px">${esc(np.title)}</div>`;
     const tt = typeText(c).toUpperCase();
-    h += `<div class="cv-type nowrap" data-z="text" style="top:${ny + 29}px;color:${acc}${tt.length > 28 ? ';letter-spacing:1.6px' : ''}">${esc(tt)}</div>`;
-    h += `<div class="cv-rules" style="top:${ny + 48}px;bottom:${creature ? 64 : 24}px">${rules.html}</div>`;
+    h += `<div class="cv-type nowrap" data-z="text" style="top:${ny + 29 + titleH}px;color:${acc}${tt.length > 28 ? ';letter-spacing:1.6px' : ''}">${esc(tt)}</div>`;
+    h += `<div class="cv-rules" style="top:${ny + 48 + titleH}px;bottom:${creature ? 64 : 24}px">${rules.html}</div>`;
   }
   if (c.retained && !token) h += `<div class="cv-retained nowrap" data-z="badge" style="top:${creature ? 64 : 70}px">RETAINED</div>`;
 

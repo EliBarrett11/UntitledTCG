@@ -67,7 +67,7 @@ test('"Prime:" On Summon: Duskmere Sibyl draws 2 only at its Prime (Round 5), no
   s.players.p1.drawPile = Array.from({ length: 5 }, (_, i) => cardAtRound('parry', 5, `p1-d${i}`));
   const before = s.players.p1.hand.length;
   s = summon(s, 'p1', 'duskmere-oracle', 0);
-  assert.equal(s.players.p1.row[0].name, 'Duskmere Sibyl');
+  assert.equal(s.players.p1.row[0].name, 'Elowen, the Duskmere Sibyl');
   assert.equal(s.players.p1.hand.length, before + 2);
   let t = blank(1, { round: 6 });
   t.players.p1.drawPile = Array.from({ length: 5 }, (_, i) => cardAtRound('parry', 6, `p1-d${i}`));
@@ -88,7 +88,7 @@ test('"Prime:" On Summon: Mossback Ancient hits each enemy in its Location only 
 });
 
 // --- On Retain, Patient and the draw ---
-test('On Retain resolves when you Retain the card (Hollowfoot Fence: gain 1 Gold)', () => {
+test('On Retain resolves when you Retain the card (Hollowfoot Guildmaster: gain 1 Gold)', () => {
   let s = blank(1, { round: 5 });
   s = act(s, { type: 'retain', who: 'p1', uid: give(s, 'p1', 'hollowfoot-cutpurse') });
   assert.equal(s.players.p1.gold, 1);

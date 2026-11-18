@@ -285,7 +285,7 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 15. **The Ashen Wyrm** (a Legendary card, always Prime) gives the +1 Renown when summoned. **Aldric the Unbroken** arriving from a Quest isn't a summon, so he gives no +1 Renown; he is still Prime.
 16. **A "Prime:" On Summon away from the Prime** asks for no target (Cinderwick Prodigy in Round 2 is summoned without choosing an enemy).
 17. **Patient is judged at Dusk,** when hands are discarded, by the card as it is that Round. A Mossback Sapling or Treant Retained in Rounds 1–4 isn't Patient (Patient comes with the Ancient, from Level 7).
-18. **On Retain resolves at once,** as part of the Retain action and before the turn ends. The card stays in hand. It uses the card's trigger at this Round's Level (only Hollowfoot Fence has one).
+18. **On Retain resolves at once,** as part of the Retain action and before the turn ends. The card stays in hand. It uses the card's trigger at this Round's Level (only Hollowfoot Guildmaster has one).
 19. **Wording:** "Prime:" joins the trigger's bold name ("**Prime: On Summon:** Draw 2 cards."). An On Retain effect starts with a capital like every effect ("**On Retain:** Gain 1 Gold.", where docs/12 writes "gain").
 20. **Counting abilities for the curve:** Armour X and Riposte X count 1 whatever X is, and a "Prime:" ability is free at every Level (as docs/12's numbers show: Cinderwick Prodigy is 2 / 2 at Level 2 with its "Prime:" line).
 21. **The Legendaries are off the curve:** The Ashen Wyrm (6 / 6 with its On Summon) and Aldric (6 / 6 with Shield and Armour 1) take docs/12's numbers as given; the curve test covers the series only.

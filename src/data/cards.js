@@ -6,6 +6,7 @@ export const CARDS = [
     "id": "oathsworn-recruit",
     "cardType": "Character",
     "series": "Mid",
+    "firstName": "Garrick",
     "speed": "Steady",
     "attackKind": "Martial",
     "guard": "Shield",
@@ -17,8 +18,10 @@ export const CARDS = [
     "forms": [
       {
         "id": "oathsworn-recruit",
-        "name": "Oathsworn Recruit",
+        "name": "Garrick, the Oathsworn Recruit",
         "art": "assets/cards/oathsworn-recruit.jpg",
+        "artFull": "assets/cards-v3/oathsworn-recruit.jpg",
+        "cardX": 720,
         "levels": {
           "2": {
             "attack": 2,
@@ -31,12 +34,16 @@ export const CARDS = [
         },
         "keywords": {},
         "trigger": null,
-        "text": []
+        "text": [],
+        "firstName": "Garrick",
+        "title": "the Oathsworn Recruit"
       },
       {
         "id": "oathsworn-captain",
-        "name": "Oathsworn Captain",
+        "name": "Garrick, the Oathsworn Captain",
         "art": "assets/cards/oathsworn-captain.jpg",
+        "artFull": "assets/cards-v3/oathsworn-captain.jpg",
+        "cardX": 800,
         "levels": {
           "4": {
             "attack": 3,
@@ -49,12 +56,16 @@ export const CARDS = [
         },
         "keywords": {},
         "trigger": null,
-        "text": []
+        "text": [],
+        "firstName": "Garrick",
+        "title": "the Oathsworn Captain"
       },
       {
         "id": "oathsworn-veteran",
-        "name": "Oathsworn Veteran",
+        "name": "Garrick, the Oathsworn Lord-Commander",
         "art": "assets/cards/oathsworn-veteran.jpg",
+        "artFull": "assets/cards-v3/oathsworn-veteran.jpg",
+        "cardX": 760,
         "levels": {
           "6": {
             "attack": 3,
@@ -71,7 +82,9 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Armour 1"
-        ]
+        ],
+        "firstName": "Garrick",
+        "title": "the Oathsworn Lord-Commander"
       }
     ]
   },
@@ -79,6 +92,7 @@ export const CARDS = [
     "id": "hollowfoot-cutpurse",
     "cardType": "Character",
     "series": "Light",
+    "firstName": "Fennick",
     "speed": "Swift",
     "attackKind": "Martial",
     "guard": null,
@@ -90,8 +104,10 @@ export const CARDS = [
     "forms": [
       {
         "id": "hollowfoot-cutpurse",
-        "name": "Hollowfoot Cutpurse",
+        "name": "Fennick, the Hollowfoot Cutpurse",
         "art": "assets/cards/hollowfoot-cutpurse.jpg",
+        "artFull": "assets/cards-v3/hollowfoot-cutpurse.jpg",
+        "cardX": 640,
         "levels": {
           "1": {
             "attack": 1,
@@ -108,12 +124,16 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Ambush"
-        ]
+        ],
+        "firstName": "Fennick",
+        "title": "the Hollowfoot Cutpurse"
       },
       {
         "id": "hollowfoot-knifemaster",
-        "name": "Hollowfoot Knifemaster",
+        "name": "Fennick, the Hollowfoot Knifemaster",
         "art": "assets/cards/hollowfoot-knifemaster.jpg",
+        "artFull": "assets/cards-v3/hollowfoot-knifemaster.jpg",
+        "cardX": 680,
         "levels": {
           "3": {
             "attack": 2,
@@ -130,12 +150,16 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Ambush"
-        ]
+        ],
+        "firstName": "Fennick",
+        "title": "the Hollowfoot Knifemaster"
       },
       {
         "id": "hollowfoot-fence",
-        "name": "Hollowfoot Fence",
+        "name": "Fennick, the Hollowfoot Guildmaster",
         "art": "assets/cards/hollowfoot-fence.jpg",
+        "artFull": "assets/cards-v3/hollowfoot-fence.jpg",
+        "cardX": 680,
         "levels": {
           "5": {
             "attack": 3,
@@ -159,7 +183,9 @@ export const CARDS = [
         },
         "text": [
           "**On Retain:** Gain 1 Gold."
-        ]
+        ],
+        "firstName": "Fennick",
+        "title": "the Hollowfoot Guildmaster"
       }
     ]
   },
@@ -167,6 +193,7 @@ export const CARDS = [
     "id": "ashen-spire-apprentice",
     "cardType": "Character",
     "series": "Heavy",
+    "firstName": "Corvin",
     "speed": "Slow",
     "attackKind": "Arcane",
     "guard": "Ward",
@@ -178,8 +205,10 @@ export const CARDS = [
     "forms": [
       {
         "id": "ashen-spire-apprentice",
-        "name": "Ashen Spire Apprentice",
+        "name": "Corvin, the Ashen Spire Apprentice",
         "art": "assets/cards/ashen-spire-apprentice.jpg",
+        "artFull": "assets/cards-v3/ashen-spire-apprentice.jpg",
+        "cardX": 640,
         "levels": {
           "3": {
             "attack": 1,
@@ -203,12 +232,16 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** 1 damage to an enemy creature."
-        ]
+        ],
+        "firstName": "Corvin",
+        "title": "the Ashen Spire Apprentice"
       },
       {
         "id": "spire-magus",
-        "name": "Spire Magus",
+        "name": "Corvin, the Spire Magus",
         "art": "assets/cards/spire-magus.jpg",
+        "artFull": "assets/cards-v3/spire-magus.jpg",
+        "cardX": 720,
         "levels": {
           "5": {
             "attack": 2,
@@ -232,12 +265,16 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** 2 damage to an enemy creature."
-        ]
+        ],
+        "firstName": "Corvin",
+        "title": "the Spire Magus"
       },
       {
         "id": "archmagus-of-the-ashen-spire",
-        "name": "Archmagus of the Ashen Spire",
+        "name": "Corvin, the Archmagus of the Ashen Spire",
         "art": "assets/cards/archmagus-of-the-ashen-spire.jpg",
+        "artFull": "assets/cards-v3/archmagus-of-the-ashen-spire.jpg",
+        "cardX": 740,
         "levels": {
           "7": {
             "attack": 3,
@@ -261,7 +298,9 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** 3 damage to an enemy creature."
-        ]
+        ],
+        "firstName": "Corvin",
+        "title": "the Archmagus of the Ashen Spire"
       }
     ]
   },
@@ -269,6 +308,7 @@ export const CARDS = [
     "id": "deepforge-acolyte",
     "cardType": "Character",
     "series": "Mid",
+    "firstName": "Brenna",
     "speed": "Steady",
     "attackKind": "Arcane",
     "guard": "Ward",
@@ -280,8 +320,10 @@ export const CARDS = [
     "forms": [
       {
         "id": "deepforge-acolyte",
-        "name": "Deepforge Acolyte",
+        "name": "Brenna, the Deepforge Acolyte",
         "art": "assets/cards/deepforge-acolyte.jpg",
+        "artFull": "assets/cards-v3/deepforge-acolyte.jpg",
+        "cardX": 720,
         "levels": {
           "2": {
             "attack": 1,
@@ -305,12 +347,16 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** Heal 2 to one of your creatures."
-        ]
+        ],
+        "firstName": "Brenna",
+        "title": "the Deepforge Acolyte"
       },
       {
         "id": "deepforge-priest",
-        "name": "Deepforge Priest",
+        "name": "Brenna, the Deepforge Priest",
         "art": "assets/cards/deepforge-priest.jpg",
+        "artFull": "assets/cards-v3/deepforge-priest.jpg",
+        "cardX": 700,
         "levels": {
           "4": {
             "attack": 2,
@@ -335,12 +381,16 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** Heal 3 to each of your creatures in its Location."
-        ]
+        ],
+        "firstName": "Brenna",
+        "title": "the Deepforge Priest"
       },
       {
         "id": "deepforge-high-priest",
-        "name": "Deepforge High Priest",
+        "name": "Brenna, the Deepforge High Priest",
         "art": "assets/cards/deepforge-high-priest.jpg",
+        "artFull": "assets/cards-v3/deepforge-high-priest.jpg",
+        "cardX": 700,
         "levels": {
           "6": {
             "attack": 4,
@@ -365,7 +415,9 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** Heal 3 to each of your creatures in its Location."
-        ]
+        ],
+        "firstName": "Brenna",
+        "title": "the Deepforge High Priest"
       }
     ]
   },
@@ -373,6 +425,7 @@ export const CARDS = [
     "id": "thornwood-scout",
     "cardType": "Character",
     "series": "Light",
+    "firstName": "Ilyra",
     "speed": "Swift",
     "attackKind": "Martial",
     "guard": null,
@@ -384,8 +437,10 @@ export const CARDS = [
     "forms": [
       {
         "id": "thornwood-scout",
-        "name": "Thornwood Scout",
+        "name": "Ilyra, the Thornwood Scout",
         "art": "assets/cards/thornwood-scout.jpg",
+        "artFull": "assets/cards-v3/thornwood-scout.jpg",
+        "cardX": 700,
         "levels": {
           "1": {
             "attack": 1,
@@ -409,12 +464,16 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** Draw 1 card."
-        ]
+        ],
+        "firstName": "Ilyra",
+        "title": "the Thornwood Scout"
       },
       {
         "id": "thornwood-pathfinder",
-        "name": "Thornwood Pathfinder",
+        "name": "Ilyra, the Thornwood Pathfinder",
         "art": "assets/cards/thornwood-pathfinder.jpg",
+        "artFull": "assets/cards-v3/thornwood-pathfinder.jpg",
+        "cardX": 720,
         "levels": {
           "3": {
             "attack": 2,
@@ -438,12 +497,16 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** Draw 1 card."
-        ]
+        ],
+        "firstName": "Ilyra",
+        "title": "the Thornwood Pathfinder"
       },
       {
         "id": "thornwood-warden",
-        "name": "Thornwood Warden",
+        "name": "Ilyra, the Thornwood Warden",
         "art": "assets/cards/thornwood-warden.jpg",
+        "artFull": "assets/cards-v3/thornwood-warden.jpg",
+        "cardX": 720,
         "levels": {
           "5": {
             "attack": 3,
@@ -467,7 +530,9 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** Draw 1 card."
-        ]
+        ],
+        "firstName": "Ilyra",
+        "title": "the Thornwood Warden"
       }
     ]
   },
@@ -475,6 +540,7 @@ export const CARDS = [
     "id": "ironhide-brawler",
     "cardType": "Character",
     "series": "Heavy",
+    "firstName": "Gorran",
     "speed": "Slow",
     "attackKind": "Martial",
     "guard": null,
@@ -486,8 +552,10 @@ export const CARDS = [
     "forms": [
       {
         "id": "ironhide-brawler",
-        "name": "Ironhide Brawler",
+        "name": "Gorran, the Ironhide Brawler",
         "art": "assets/cards/ironhide-brawler.jpg",
+        "artFull": "assets/cards-v3/ironhide-brawler.jpg",
+        "cardX": 760,
         "levels": {
           "3": {
             "attack": 1,
@@ -504,12 +572,16 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Riposte 1"
-        ]
+        ],
+        "firstName": "Gorran",
+        "title": "the Ironhide Brawler"
       },
       {
         "id": "ironhide-champion",
-        "name": "Ironhide Champion",
+        "name": "Gorran, the Ironhide Champion",
         "art": "assets/cards/ironhide-champion.jpg",
+        "artFull": "assets/cards-v3/ironhide-champion.jpg",
+        "cardX": 760,
         "levels": {
           "5": {
             "attack": 2,
@@ -526,12 +598,16 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Riposte 2"
-        ]
+        ],
+        "firstName": "Gorran",
+        "title": "the Ironhide Champion"
       },
       {
         "id": "ironhide-warchief",
-        "name": "Ironhide Warchief",
+        "name": "Gorran, the Ironhide Warchief",
         "art": "assets/cards/ironhide-warchief.jpg",
+        "artFull": "assets/cards-v3/ironhide-warchief.jpg",
+        "cardX": 760,
         "levels": {
           "7": {
             "attack": 3,
@@ -548,7 +624,9 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Riposte 2"
-        ]
+        ],
+        "firstName": "Gorran",
+        "title": "the Ironhide Warchief"
       }
     ]
   },
@@ -568,6 +646,8 @@ export const CARDS = [
         "id": "gloomfang-whelp",
         "name": "Gloomfang Whelp",
         "art": "assets/cards/gloomfang-whelp.jpg",
+        "artFull": "assets/cards-v3/gloomfang-whelp.jpg",
+        "cardX": 820,
         "levels": {
           "1": {
             "attack": 2,
@@ -586,6 +666,8 @@ export const CARDS = [
         "id": "gloomfang-wolf",
         "name": "Gloomfang Wolf",
         "art": "assets/cards/gloomfang-wolf.jpg",
+        "artFull": "assets/cards-v3/gloomfang-wolf.jpg",
+        "cardX": 900,
         "levels": {
           "3": {
             "attack": 4,
@@ -604,6 +686,8 @@ export const CARDS = [
         "id": "gloomfang-alpha",
         "name": "Gloomfang Alpha",
         "art": "assets/cards/gloomfang-alpha.jpg",
+        "artFull": "assets/cards-v3/gloomfang-alpha.jpg",
+        "cardX": 760,
         "levels": {
           "5": {
             "attack": 3,
@@ -640,6 +724,8 @@ export const CARDS = [
         "id": "barrow-wisp",
         "name": "Barrow Wisp",
         "art": "assets/cards/barrow-wisp.jpg",
+        "artFull": "assets/cards-v3/barrow-wisp.jpg",
+        "cardX": 640,
         "levels": {
           "2": {
             "attack": 1,
@@ -670,6 +756,8 @@ export const CARDS = [
         "id": "barrow-shade",
         "name": "Barrow Shade",
         "art": "assets/cards/barrow-shade.jpg",
+        "artFull": "assets/cards-v3/barrow-shade.jpg",
+        "cardX": 700,
         "levels": {
           "4": {
             "attack": 2,
@@ -700,6 +788,8 @@ export const CARDS = [
         "id": "barrow-lord",
         "name": "Barrow Lord",
         "art": "assets/cards/barrow-lord.jpg",
+        "artFull": "assets/cards-v3/barrow-lord.jpg",
+        "cardX": 760,
         "levels": {
           "6": {
             "attack": 4,
@@ -744,6 +834,8 @@ export const CARDS = [
         "id": "stonehide-hatchling",
         "name": "Stonehide Hatchling",
         "art": "assets/cards/stonehide-hatchling.jpg",
+        "artFull": "assets/cards-v3/stonehide-hatchling.jpg",
+        "cardX": 820,
         "levels": {
           "3": {
             "attack": 2,
@@ -762,6 +854,8 @@ export const CARDS = [
         "id": "stonehide-basilisk",
         "name": "Stonehide Basilisk",
         "art": "assets/cards/stonehide-basilisk.jpg",
+        "artFull": "assets/cards-v3/stonehide-basilisk.jpg",
+        "cardX": 800,
         "levels": {
           "5": {
             "attack": 2,
@@ -784,6 +878,8 @@ export const CARDS = [
         "id": "elder-stonehide",
         "name": "Elder Stonehide",
         "art": "assets/cards/elder-stonehide.jpg",
+        "artFull": "assets/cards-v3/elder-stonehide.jpg",
+        "cardX": 860,
         "levels": {
           "7": {
             "attack": 3,
@@ -808,6 +904,7 @@ export const CARDS = [
     "id": "cinderwick-prodigy",
     "cardType": "Character",
     "series": "Light",
+    "firstName": "Tilda",
     "speed": "Swift",
     "attackKind": "Arcane",
     "guard": null,
@@ -819,8 +916,10 @@ export const CARDS = [
     "forms": [
       {
         "id": "cinderwick-prodigy",
-        "name": "Cinderwick Prodigy",
+        "name": "Tilda, the Cinderwick Prodigy",
         "art": "assets/cards/cinderwick-prodigy.jpg",
+        "artFull": "assets/cards-v3/cinderwick-prodigy.jpg",
+        "cardX": 720,
         "levels": {
           "1": {
             "attack": 3,
@@ -845,12 +944,16 @@ export const CARDS = [
         },
         "text": [
           "**Prime: On Summon:** 2 damage to an enemy creature."
-        ]
+        ],
+        "firstName": "Tilda",
+        "title": "the Cinderwick Prodigy"
       },
       {
         "id": "cinderwick-adept",
-        "name": "Cinderwick Adept",
+        "name": "Tilda, the Cinderwick Adept",
         "art": "assets/cards/cinderwick-adept.jpg",
+        "artFull": "assets/cards-v3/cinderwick-adept.jpg",
+        "cardX": 720,
         "levels": {
           "3": {
             "attack": 3,
@@ -863,12 +966,16 @@ export const CARDS = [
         },
         "keywords": {},
         "trigger": null,
-        "text": []
+        "text": [],
+        "firstName": "Tilda",
+        "title": "the Cinderwick Adept"
       },
       {
         "id": "cinderwick-hermit",
-        "name": "Cinderwick Hermit",
+        "name": "Tilda, the Cinderwick Pyromancer",
         "art": "assets/cards/cinderwick-hermit.jpg",
+        "artFull": "assets/cards-v3/cinderwick-hermit.jpg",
+        "cardX": 700,
         "levels": {
           "5": {
             "attack": 3,
@@ -892,7 +999,9 @@ export const CARDS = [
         },
         "text": [
           "**On Summon:** 1 damage to an enemy creature."
-        ]
+        ],
+        "firstName": "Tilda",
+        "title": "the Cinderwick Pyromancer"
       }
     ]
   },
@@ -900,6 +1009,7 @@ export const CARDS = [
     "id": "duskmere-oracle",
     "cardType": "Character",
     "series": "Mid",
+    "firstName": "Elowen",
     "speed": "Slow",
     "attackKind": "Arcane",
     "guard": "Ward",
@@ -911,8 +1021,10 @@ export const CARDS = [
     "forms": [
       {
         "id": "duskmere-novice",
-        "name": "Duskmere Novice",
+        "name": "Elowen, the Duskmere Novice",
         "art": "assets/cards/duskmere-novice.jpg",
+        "artFull": "assets/cards-v3/duskmere-novice.jpg",
+        "cardX": 760,
         "levels": {
           "2": {
             "attack": 1,
@@ -929,12 +1041,16 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Patient"
-        ]
+        ],
+        "firstName": "Elowen",
+        "title": "the Duskmere Novice"
       },
       {
         "id": "duskmere-oracle",
-        "name": "Duskmere Oracle",
+        "name": "Elowen, the Duskmere Oracle",
         "art": "assets/cards/duskmere-oracle.jpg",
+        "artFull": "assets/cards-v3/duskmere-oracle.jpg",
+        "cardX": 700,
         "levels": {
           "4": {
             "attack": 2,
@@ -951,12 +1067,16 @@ export const CARDS = [
         "trigger": null,
         "text": [
           "Patient"
-        ]
+        ],
+        "firstName": "Elowen",
+        "title": "the Duskmere Oracle"
       },
       {
         "id": "duskmere-sibyl",
-        "name": "Duskmere Sibyl",
+        "name": "Elowen, the Duskmere Sibyl",
         "art": "assets/cards/duskmere-sibyl.jpg",
+        "artFull": "assets/cards-v3/duskmere-sibyl.jpg",
+        "cardX": 760,
         "levels": {
           "6": {
             "attack": 4,
@@ -984,7 +1104,9 @@ export const CARDS = [
         "text": [
           "Patient",
           "**Prime: On Summon:** Draw 2 cards."
-        ]
+        ],
+        "firstName": "Elowen",
+        "title": "the Duskmere Sibyl"
       }
     ]
   },
@@ -1004,6 +1126,8 @@ export const CARDS = [
         "id": "mossback-sapling",
         "name": "Mossback Sapling",
         "art": "assets/cards/mossback-sapling.jpg",
+        "artFull": "assets/cards-v3/mossback-sapling.jpg",
+        "cardX": 700,
         "levels": {
           "3": {
             "attack": 2,
@@ -1022,6 +1146,8 @@ export const CARDS = [
         "id": "mossback-treant",
         "name": "Mossback Treant",
         "art": "assets/cards/mossback-treant.jpg",
+        "artFull": "assets/cards-v3/mossback-treant.jpg",
+        "cardX": 780,
         "levels": {
           "5": {
             "attack": 3,
@@ -1040,6 +1166,8 @@ export const CARDS = [
         "id": "mossback-ancient",
         "name": "Mossback Ancient",
         "art": "assets/cards/mossback-ancient.jpg",
+        "artFull": "assets/cards-v3/mossback-ancient.jpg",
+        "cardX": 860,
         "levels": {
           "7": {
             "attack": 3,
@@ -1087,6 +1215,8 @@ export const CARDS = [
         "id": "the-ashen-wyrm",
         "name": "The Ashen Wyrm",
         "art": "assets/cards/the-ashen-wyrm.jpg",
+        "artFull": "assets/cards-v3/the-ashen-wyrm.jpg",
+        "cardX": 740,
         "levels": {
           "8": {
             "attack": 6,
@@ -1116,6 +1246,8 @@ export const CARDS = [
     "cardType": "Action",
     "name": "Firebolt",
     "art": "assets/cards/firebolt.jpg",
+    "artFull": "assets/cards-v3/firebolt.jpg",
+    "cardX": 700,
     "traits": {
       "class": "Wizard"
     },
@@ -1160,6 +1292,8 @@ export const CARDS = [
     "cardType": "Action",
     "name": "Parry",
     "art": "assets/cards/parry.jpg",
+    "artFull": "assets/cards-v3/parry.jpg",
+    "cardX": 720,
     "traits": {
       "class": "Fighter"
     },
@@ -1193,6 +1327,8 @@ export const CARDS = [
     "cardType": "Action",
     "name": "Night Raid",
     "art": "assets/cards/night-raid.jpg",
+    "artFull": "assets/cards-v3/night-raid.jpg",
+    "cardX": 700,
     "traits": {
       "class": "Rogue"
     },
@@ -1224,6 +1360,8 @@ export const CARDS = [
     "cardType": "Action",
     "name": "Mending Prayer",
     "art": "assets/cards/mending-prayer.jpg",
+    "artFull": "assets/cards-v3/mending-prayer.jpg",
+    "cardX": 720,
     "traits": {
       "class": "Cleric"
     },
@@ -1269,6 +1407,8 @@ export const CARDS = [
     "cardType": "Event",
     "name": "Call to Arms",
     "art": "assets/cards/call-to-arms.jpg",
+    "artFull": "assets/cards-v3/call-to-arms.jpg",
+    "cardX": 820,
     "release": 1,
     "target": "none",
     "ops": [
@@ -1297,6 +1437,8 @@ export const CARDS = [
     "cardType": "Event",
     "name": "Rumour of Treasure",
     "art": "assets/cards/rumour-of-treasure.jpg",
+    "artFull": "assets/cards-v3/rumour-of-treasure.jpg",
+    "cardX": 820,
     "release": 1,
     "target": "none",
     "ops": [
@@ -1333,6 +1475,8 @@ export const CARDS = [
     "cardType": "Event",
     "name": "Desperate Gambit",
     "art": "assets/cards/desperate-gambit.jpg",
+    "artFull": "assets/cards-v3/desperate-gambit.jpg",
+    "cardX": 740,
     "release": 2,
     "target": "none",
     "ops": [
@@ -1369,6 +1513,8 @@ export const CARDS = [
     "cardType": "Item",
     "name": "Healer's Salve",
     "art": "assets/cards/healers-salve.jpg",
+    "artFull": "assets/cards-v3/healers-salve.jpg",
+    "cardX": 800,
     "price": 1,
     "kind": "Consumed",
     "target": "own",
@@ -1385,6 +1531,8 @@ export const CARDS = [
     "cardType": "Item",
     "name": "Draught of Vigour",
     "art": "assets/cards/draught-of-vigour.jpg",
+    "artFull": "assets/cards-v3/draught-of-vigour.jpg",
+    "cardX": 720,
     "price": 1,
     "kind": "Consumed",
     "target": "own",
@@ -1400,6 +1548,8 @@ export const CARDS = [
     "cardType": "Item",
     "name": "Flask of Wildfire",
     "art": "assets/cards/flask-of-wildfire.jpg",
+    "artFull": "assets/cards-v3/flask-of-wildfire.jpg",
+    "cardX": 800,
     "price": 2,
     "kind": "Consumed",
     "target": "enemy",
@@ -1416,6 +1566,8 @@ export const CARDS = [
     "cardType": "Item",
     "name": "Tower Shield",
     "art": "assets/cards/tower-shield.jpg",
+    "artFull": "assets/cards-v3/tower-shield.jpg",
+    "cardX": 740,
     "price": 2,
     "kind": "Held",
     "ops": [
@@ -1435,6 +1587,8 @@ export const CARDS = [
     "cardType": "Item",
     "name": "Runed Blade",
     "art": "assets/cards/runed-blade.jpg",
+    "artFull": "assets/cards-v3/runed-blade.jpg",
+    "cardX": 900,
     "price": 3,
     "kind": "Held",
     "ops": [
@@ -1455,6 +1609,10 @@ export const CARDS = [
     "cardType": "Location",
     "name": "Ironroot Pass",
     "art": "assets/cards/ironroot-pass.jpg",
+    "artFull": "assets/cards-v3/ironroot-pass.jpg",
+    "cardX": 700,
+    "tileX": 760,
+    "tileY": 330,
     "width": 2,
     "rounds": 3,
     "passive": {
@@ -1472,6 +1630,10 @@ export const CARDS = [
     "cardType": "Location",
     "name": "Emberfall Ruins",
     "art": "assets/cards/emberfall-ruins.jpg",
+    "artFull": "assets/cards-v3/emberfall-ruins.jpg",
+    "cardX": 700,
+    "tileX": 780,
+    "tileY": 400,
     "width": 3,
     "rounds": 3,
     "passive": {
@@ -1489,6 +1651,10 @@ export const CARDS = [
     "cardType": "Location",
     "name": "Mistveil Marshes",
     "art": "assets/cards/mistveil-marshes.jpg",
+    "artFull": "assets/cards-v3/mistveil-marshes.jpg",
+    "cardX": 820,
+    "tileX": 860,
+    "tileY": 380,
     "width": 4,
     "rounds": 2,
     "passive": {
@@ -1506,6 +1672,8 @@ export const CARDS = [
     "cardType": "Campaign",
     "name": "Lady Corwen's Commission",
     "art": "assets/cards/lady-corwens-commission.jpg",
+    "artFull": "assets/cards-v3/lady-corwens-commission.jpg",
+    "cardX": 760,
     "quest": {
       "kind": "dominate",
       "need": 8,
@@ -1527,6 +1695,8 @@ export const CARDS = [
       "cardType": "Character",
       "name": "Aldric the Unbroken",
       "art": "assets/cards/aldric-the-unbroken.jpg",
+      "artFull": "assets/cards-v3/aldric-the-unbroken.jpg",
+      "cardX": 760,
       "traits": {
         "class": "Fighter",
         "race": "Human"

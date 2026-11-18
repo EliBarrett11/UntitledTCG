@@ -6,7 +6,10 @@
    same small Cinzel caption. (The geometry is GRID in src/ui/hud.js.) */
 
 .hud { position: absolute; box-sizing: border-box; border-radius: 12px; font-family: 'Alegreya Sans', 'EB Garamond', serif; color: #efe4c8;
-  background: linear-gradient(180deg, rgba(34,22,13,.94), rgba(17,11,6,.95));
+  /* (Stage A: a warmer, slightly translucent dark brown, most solid behind the text, so the war table shows faintly
+     through the edges.) */
+  background: radial-gradient(ellipse 92% 88% at 50% 48%, rgba(48,31,18,.95) 0%, rgba(45,29,16,.93) 70%, rgba(40,25,14,.78) 100%),
+    linear-gradient(180deg, rgba(70,44,24,.18), rgba(20,12,6,.12));
   box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(226,190,120,.42), inset 0 1px 0 rgba(255,225,170,.10), 0 16px 30px rgba(0,0,0,.55);
   transition: box-shadow .35s ease; }
 .hud.them { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(140,170,235,.5), inset 0 1px 0 rgba(200,220,255,.10), 0 16px 30px rgba(0,0,0,.55); }
@@ -245,5 +248,5 @@ body.low-motion .turn-plaque.sweep::after { animation: none; display: none; }
 body.low-motion .hand-card { transition: top .15s; }
 
 /* The React moment lifts a Warlord above its dimming: its copy keeps the panel's slab behind it. */
-.rx-lift.warlord > .warlord { width: max-content; background: linear-gradient(180deg, rgba(34,22,13,.97), rgba(17,11,6,.97)); box-shadow: 0 0 0 2px rgba(226,190,120,.5); }
+.rx-lift.warlord > .warlord { width: max-content; background: linear-gradient(180deg, rgba(50,32,18,.97), rgba(36,22,12,.97)); box-shadow: 0 0 0 2px rgba(226,190,120,.5); }
 .rx-lift.warlord > .hc-warlord { height: 100px; border-radius: 12px; }

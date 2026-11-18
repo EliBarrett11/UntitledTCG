@@ -135,7 +135,7 @@ test('On Summon: the effect resolves just after the creature is placed', () => {
   let s = blank(1, { round: 1 });
   put(s, 'p2', 2, 'gloomfang-wolf', { level: 1, spent: true, health: 3 });
   s = summon(s, 'p1', 'ashen-spire-apprentice', 0, { who: 'p2', space: 2 });
-  assert.equal(s.players.p1.row[0].name, 'Ashen Spire Apprentice');
+  assert.equal(s.players.p1.row[0].name, 'Corvin, the Ashen Spire Apprentice');
   assert.equal(s.players.p2.row[2].currentHealth, 2);
 });
 
@@ -167,7 +167,7 @@ test('On Summon: heal 3 to each of your creatures in its Location (Deepforge Pri
   s = act(s, { type: 'placeLocation', who: 'p1', uid: give(s, 'p1', 'ironroot-pass'), start: 0 });
   s = act(s, { type: 'pass', who: 'p2' });
   s = summon(s, 'p1', 'deepforge-acolyte', 0);   // Round 4: Level 5, the Priest
-  assert.equal(s.players.p1.row[0].name, 'Deepforge Priest');
+  assert.equal(s.players.p1.row[0].name, 'Brenna, the Deepforge Priest');
   assert.equal(s.players.p1.row[1].currentHealth, 6, 'in its Location (1, +2 from Ironroot Pass, then healed 3)');
   assert.equal(s.players.p1.row[5].currentHealth, 1, 'not outside it');
 });

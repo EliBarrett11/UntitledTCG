@@ -54,6 +54,9 @@ export function validate(data) {
       // Stage P: every series names its Prime Level (Legendaries are always Prime).
       if (c.series !== 'Legendary' && !(c.prime >= lo && c.prime <= hi)) out.push(`${c.id}: its Prime Level (${c.prime}) should be one of ${want}`);
       if (c.cardType === 'Character' && (!c.traits?.class || !c.traits?.race)) out.push(`${c.id}: a Character needs a Class and a Race`);
+      // (Stage A, Elliott, 18 November 2026: a Character series is one person, with a first name all three forms share.)
+      if (c.cardType === 'Character' && !c.firstName) out.push(`${c.id}: a Character needs a first name`);
+      if (c.cardType === 'Monster' && c.firstName) out.push(`${c.id}: Monsters keep their descriptive names`);
       if (c.cardType === 'Monster' && !c.traits?.kind) out.push(`${c.id}: a Monster needs a Kind`);
       for (const f of c.forms) {
         for (const k of Object.keys(f.keywords ?? {})) if (!KEYWORDS[k]) out.push(`${f.id}: keyword "${k}" isn't approved`);
@@ -113,6 +116,9 @@ function withGeneratedText(c) {
   switch (c.cardType) {
     case 'Character': case 'Monster':
       x.forms.forEach((f, i) => {
+        // (Stage A: a Character's name is "Ilyra, the Thornwood Pathfinder"; the card face shows the first name, with
+        // its title on a smaller line beneath. Everything that names it in words uses the whole name.)
+        if (c.firstName) Object.assign(f, { firstName: c.firstName, title: `the ${f.name}`, name: `${c.firstName}, the ${f.name}` });
         f.text = g.forms[i].text;
         for (const [lv, lines] of Object.entries(g.forms[i].levels)) f.levels[lv].text = lines;
       });
@@ -143,17 +149,60 @@ export const FIRST_DECK = DECKS.first.cards.flatMap(({ id, copies }) => Array(co
 `;
 }
 
+// Stage A: the art data, recorded from the art itself (never hand-typed). Every card (and Legendary Creature) with
+// art gets artFull (its full-art scene in assets/cards-v3/, 1536 × 1024) and cardX (the centre of its 5:7 card crop,
+// from assets/cards-v3/crops.json; tools/artcrops.py cuts the crops). Locations also get tileX and tileY, the
+// point a placed tile is drawn around (assets/cards-v3/tiles.json).
+const ART_SRC = join(ROOT, 'assets', 'cards-v3');
+export function syncArt(data) {
+  const crops = JSON.parse(readFileSync(join(ART_SRC, 'crops.json'), 'utf8'));
+  const tiles = JSON.parse(readFileSync(join(ART_SRC, 'tiles.json'), 'utf8'));
+  const problems = [];
+  // (The new keys go straight after "art", so the file reads in order.)
+  const withArt = (o, extra) => {
+    const out = {};
+    for (const [k, v] of Object.entries(o)) {
+      if (k === 'artFull' || k === 'cardX' || k === 'tileX' || k === 'tileY') continue;
+      out[k] = v;
+      if (k === 'art') Object.assign(out, extra);
+    }
+    return out;
+  };
+  const one = (o, isLocation = false) => {
+    if (!o?.art) return o;
+    const id = o.art.split('/').pop().replace(/\.jpg$/, '');
+    if (!crops[id]) { problems.push(`${id}: no crop centre in assets/cards-v3/crops.json`); return o; }
+    const extra = { artFull: `assets/cards-v3/${id}.jpg`, cardX: crops[id].cardX };
+    if (isLocation) {
+      if (!tiles[id]) problems.push(`${id}: no tile focus in assets/cards-v3/tiles.json`);
+      else Object.assign(extra, { tileX: tiles[id].tileX, tileY: tiles[id].tileY });
+    }
+    return withArt(o, extra);
+  };
+  data.cards = data.cards.map((c) => {
+    let x = one(c, c.cardType === 'Location');
+    if (x.forms) x = { ...x, forms: x.forms.map((f) => one(f)) };
+    if (x.legendaryCreature) x = { ...x, legendaryCreature: one(x.legendaryCreature) };
+    return x;
+  });
+  if (problems.length) throw new Error(`The art data has problems:\n  ${problems.join('\n  ')}`);
+  return data;
+}
+export const cardsJsonText = (data) => `${JSON.stringify(data, null, 2)}\n`;
+
 export const loadCardsJson = () => JSON.parse(readFileSync(SRC, 'utf8'));
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
-  const data = loadCardsJson();
+  const data = syncArt(loadCardsJson());
   const js = build(data);
   const art = buildArt(data);
+  const json = cardsJsonText(data);
   if (process.argv.includes('--check')) {
-    const stale = [[OUT, js], [ART_OUT, art]].filter(([f, want]) => !existsSync(f) || readFileSync(f, 'utf8') !== want);
-    if (stale.length) { console.error('src/data is out of date: run node tools/buildcards.mjs'); process.exit(1); }
+    const stale = [[OUT, js], [ART_OUT, art], [SRC, json]].filter(([f, want]) => !existsSync(f) || readFileSync(f, 'utf8') !== want);
+    if (stale.length) { console.error('docs/cards.json\'s art data or src/data is out of date: run node tools/buildcards.mjs'); process.exit(1); }
     console.log('src/data/cards.js and src/data/art.js are up to date.');
   } else {
+    writeFileSync(SRC, json);
     writeFileSync(OUT, js);
     writeFileSync(ART_OUT, art);
     console.log(`Wrote src/data/cards.js (${data.cards.length} cards) and src/data/art.js (${artList(data).length} images).`);

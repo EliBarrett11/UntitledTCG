@@ -539,3 +539,37 @@ node tools/compare.mjs
   - the neat-text and effects checks pass (every targeted effect on top);
   - the two-browser online check passes: a whole match, a refresh on each side, rematch and leave, with the seats agreeing 113 times.
 - Readings for Elliott's approval: `docs/03-look-and-feel.md` section 15.
+
+### A: The new art (18 November 2026)
+- The whole game switches at once to Elliott's approved art (`docs/17-art-style-guide.md`, `docs/19-art-prompts-v3.md`; previews in `docs/mockups/style-test/`). No rule changed.
+- **The cards:**
+  - **Crops:** `tools/artcrops.py` cuts each of the 54 full-art scenes in `assets/cards-v3/` (1536 × 1024) to a 5:7 window the full height of the image, centred on its `cardX`, into `assets/cards/` at 1060 × 1484. The old art is replaced. Board tokens, Mini cards, chips and hover previews use the same crop.
+  - **The data:** `tools/buildcards.mjs` records each card's `artFull` and `cardX` (and each Location's tile focus) in `docs/cards.json` from the art files themselves, and `--check` catches drift.
+- **Location tiles** are drawn from the full scene, covering the tile's own shape around its landmark:
+  - Ironroot Pass (760, 330), the root arch;
+  - Emberfall Ruins (780, 400), the fallen king and his sword;
+  - Mistveil Marshes (860, 380), the willow.
+- **The Codex's "View full art"** shows the whole scene as large as fits (1440 × 960) over a dark backdrop, with the first name and title. It loads only when opened, and Esc, a click or ✕ closes it.
+- **The presentation art** (`tools/uiart.py`, from `assets/ui-v3/`):
+  - the war table, title key art and a new victory backdrop, cropped to 16:9;
+  - both campaign maps through one board-shaped crop, so the Last Battle's crossfade lines up;
+  - the card back at 5:7 with its emblem centred;
+  - the banners cut out to PNG with a soft, decontaminated edge (no dark halo), hanging whole.
+  
+  The victory backdrop is behind both end screens, dimmed and cooled for defeat.
+- **Names** (Elliott, 18 November 2026), in the card data:
+  - **First names:** Garrick (Oathsworn), Fennick (Hollowfoot), Corvin (Ashen Spire), Brenna (Deepforge), Ilyra (Thornwood), Gorran (Ironhide), Tilda (Cinderwick) and Elowen (Duskmere), shared by all three forms.
+  - **Renames:** Oathsworn Veteran → Lord-Commander, Hollowfoot Fence → Guildmaster, Cinderwick Hermit → Pyromancer.
+  - **On the cards:** a full card shows the first name in Cinzel, with "the Thornwood Pathfinder" on a smaller line beneath. Mini cards and tokens show the first name.
+  - **Everywhere else** (log, Codex, announcements, React, end screen) uses "Ilyra, the Thornwood Pathfinder".
+- **Readable on the brighter art:**
+  - a deeper darkening under each card's text, a deeper backing for token names, and deeper halos on Location labels and the dominance line;
+  - `tools/cardcontrast.mjs` measures every label on every card at every Level and size: 1,265 labels, the lowest 5.00:1;
+  - on the map the lowest is 4.96:1, the bar being 4.5:1.
+- **Warmer colours:** the panels are a warm, slightly translucent dark brown with the same hairlines, and the card frame's brass is warmer and brighter. The grid, sizes and text are unchanged.
+- **Checks:**
+  - `tests/a-art.test.js`: the art data, tile focus, names and renames;
+  - layout scenes for a 2-, 3- and 4-lane tile and the full art, with the tiles and the dominance line in the contrast check;
+  - the card contrast tool;
+  - `?prefer=<card>:place` places a chosen Location for the screenshots.
+- Readings for Elliott's approval: `docs/03-look-and-feel.md` section 16.

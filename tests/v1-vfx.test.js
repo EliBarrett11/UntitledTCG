@@ -60,7 +60,7 @@ test('every presenter beat type has an effect, and every card effect resolves', 
   assert.equal(effectFor('damage', 'The Ashen Wyrm'), 'wyrm.onsummon');
   assert.equal(effectFor('damage', 'Barrow Lord'), 'shade.drain');
   assert.equal(effectFor('activate', 'Draught of Vigour'), 'item.draught');
-  assert.ok(healFlags('Deepforge Priest').hammer && healFlags('Mending Prayer').pillar && healFlags("Healer's Salve").salve);
+  assert.ok(healFlags('Brenna, the Deepforge Priest').hammer && healFlags('Mending Prayer').pillar && healFlags("Healer's Salve").salve);
   assert.equal(heldEffectFor('Runed Blade'), 'item.held.blade');
   assert.equal(heldEffectFor('Tower Shield'), 'item.held.shield');
   // Every step is a known op, every 'use' names an effect, and no step starts after its effect ends.

@@ -54,7 +54,7 @@ function map(s, ui) {
     const total = Math.max(l.roundsLeft, l.card.rounds ?? l.roundsLeft);
     const pips = Array.from({ length: total }, (_, i) => `<i class="${i < l.roundsLeft ? 'on' : ''}"></i>`).join('');
     return `<div class="loc" style="left:${left}px;width:${width}px;--tint:${tint}" data-hover="location" data-id="${esc(l.card.id)}" data-loc="${esc(l.uid)}">
-        ${artOf(l.card) ? `<img class="loc-art" src="${esc(artOf(l.card))}" alt="" draggable="false">` : ''}
+        ${tileArt(l.card, width)}
       </div>
       <div class="loc-label-wrap" style="left:${l.start * LANE_W}px;width:${l.width * LANE_W}px">
         <div class="loc-label" data-hover="location" data-id="${esc(l.card.id)}" data-loc="${esc(l.uid)}">
@@ -75,6 +75,19 @@ function map(s, ui) {
     ${s.lastBattle ? '<div class="embers">' + Array.from({ length: 28 }, (_, i) => `<i style="left:${(i * 53) % 100}%;animation-delay:${(i * 0.37) % 6}s;animation-duration:${5 + (i % 5)}s"></i>`).join('') + '</div>' : ''}
     ${row(s, AI, ui)}${row(s, HUMAN, ui)}
   </div>`;
+}
+// Stage A: a placed Location's tile, drawn from its full scene (assets/cards-v3/, 1536 × 1024): the image covers the
+// tile's shape (tall for 2 lanes, wide for 3 and 4) and is placed so the card data's tile focus (tileX, tileY, its
+// landmark) sits as near the tile's centre as the image allows. Without a full scene, the card image, centred.
+export const TILE_H = 622;
+export function tileArt(card, w, h = TILE_H) {
+  const def = card?.artFull ? card : null;
+  if (!def) { const a = artOf(card); return a ? `<img class="loc-art" src="${esc(a)}" alt="" draggable="false">` : ''; }
+  const IW = 1536; const IH = 1024;
+  const k = Math.max(w / IW, h / IH);
+  const ox = Math.max(0, Math.min(IW * k - w, def.tileX * k - w / 2));
+  const oy = Math.max(0, Math.min(IH * k - h, def.tileY * k - h / 2));
+  return `<img class="loc-art" src="${esc(def.artFull)}" alt="" draggable="false" style="object-position:${(-ox).toFixed(1)}px ${(-oy).toFixed(1)}px">`;
 }
 // A Location's effect with its number in gold (the words are the card data's, escaped).
 const goldNumber = (text) => esc(text).replace(/([+]?\d+( (?:Attack|Health))?)/, '<b>$1</b>');

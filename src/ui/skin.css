@@ -69,12 +69,12 @@
 
 /* --- The Warlords' banners: at the table's edges, behind everything; they sway, and ripple at Renown or damage ------- */
 .banner-hang { position: absolute; pointer-events: none; transform-origin: 50% 0; animation: banner-sway 7s ease-in-out infinite alternate; }
-.banner-hang i { position: absolute; inset: 0; background: center 4% / cover no-repeat;
-  -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 34%, #000 55%, transparent 100%); mask-image: radial-gradient(ellipse 60% 70% at 50% 34%, #000 55%, transparent 100%); }
+/* (Stage A: the banners are cut out, so they hang whole, on their own shapes.) */
+.banner-hang i { position: absolute; inset: 0; background: center top / contain no-repeat; filter: drop-shadow(0 10px 18px rgba(0,0,0,.55)); }
 .banner-enemy { left: 912px; top: -14px; width: 236px; height: 420px; }
-.banner-enemy i { background-image: url('../../assets/ui/banner-blue.jpg'); }
+.banner-enemy i { background-image: url('../../assets/ui/banner-blue.png'); }
 .banner-you { left: 56px; top: 760px; width: 236px; height: 420px; animation-delay: -3.5s; }
-.banner-you i { background-image: url('../../assets/ui/banner-crimson.jpg'); }
+.banner-you i { background-image: url('../../assets/ui/banner-crimson.png'); }
 @keyframes banner-sway { from { transform: rotate(-0.7deg) skewX(0.4deg); } to { transform: rotate(0.7deg) skewX(-0.4deg); } }
 body.low-motion .banner-hang { animation: none; }
 
@@ -115,8 +115,8 @@ body.low-motion .title-art { animation: none; }
 .setup-side { position: relative; width: 560px; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 30px; }
 .setup-banner { position: absolute; inset: 0 60px 140px; background: center 5% / cover no-repeat; opacity: 0.55; border-radius: 6px;
   -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
-.setup-you .setup-banner { background-image: url('../../assets/ui/banner-crimson.jpg'); }
-.setup-enemy .setup-banner { background-image: url('../../assets/ui/banner-blue.jpg'); }
+.setup-you .setup-banner { background-image: url('../../assets/ui/banner-crimson.png'); }
+.setup-enemy .setup-banner { background-image: url('../../assets/ui/banner-blue.png'); }
 .setup-who { position: relative; font-family: Cinzel, serif; font-size: 30px; font-weight: 700; letter-spacing: 0.15em; text-shadow: 0 2px 8px #000; }
 .setup-you .setup-who { color: #f2b0a4; }
 .setup-enemy .setup-who { color: #b4c6f2; }
@@ -128,10 +128,9 @@ body.low-motion .title-art { animation: none; }
 
 /* The opening: a short banner reveal of who has initiative */
 .opening { position: absolute; inset: 0; z-index: 96; pointer-events: none; display: flex; align-items: center; justify-content: center; gap: 30px; background: radial-gradient(ellipse at 50% 50%, rgba(8,5,3,0.6), rgba(8,5,3,0.15) 70%); animation: opening 1.6s ease-in-out forwards; }
-.opening-banner { width: 220px; height: 390px; background: center 5% / cover no-repeat; border-radius: 4px; animation: opening-drop 0.6s cubic-bezier(.2,.8,.3,1) both;
-  -webkit-mask-image: radial-gradient(ellipse 62% 72% at 50% 36%, #000 60%, transparent 100%); mask-image: radial-gradient(ellipse 62% 72% at 50% 36%, #000 60%, transparent 100%); }
-.opening.you .opening-banner { background-image: url('../../assets/ui/banner-crimson.jpg'); }
-.opening.enemy .opening-banner { background-image: url('../../assets/ui/banner-blue.jpg'); }
+.opening-banner { width: 220px; height: 390px; background: center top / contain no-repeat; animation: opening-drop 0.6s cubic-bezier(.2,.8,.3,1) both; filter: drop-shadow(0 12px 22px rgba(0,0,0,.6)); }
+.opening.you .opening-banner { background-image: url('../../assets/ui/banner-crimson.png'); }
+.opening.enemy .opening-banner { background-image: url('../../assets/ui/banner-blue.png'); }
 .opening-k { font-family: Cinzel, serif; font-size: 18px; letter-spacing: 0.4em; color: #c9a46a; }
 .opening-t { font-family: Cinzel, serif; font-size: 46px; font-weight: 700; letter-spacing: 0.12em; color: #f1e4c8; text-shadow: 0 3px 14px #000; }
 @keyframes opening { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
@@ -140,14 +139,16 @@ body.low-motion .opening { animation-duration: 0.9s; }
 body.low-motion .opening-banner { animation: none; }
 
 /* Victory and defeat */
-.end-bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 22%, #2b1a0c 0%, #0b0705 55%, #050302 100%); }
-.screen-end.defeat .end-bg { background: linear-gradient(rgba(10,10,12,0.72), rgba(6,6,8,0.9)), url('../../assets/ui/campaign-map-scorched.jpg') center / cover no-repeat; filter: saturate(0.35); }
-.end-banner { position: absolute; top: 0; width: 300px; height: 640px; background: center 4% / cover no-repeat;
+/* (Stage A: the victory backdrop behind both end screens: a sunrise over the field for victory, the same field dimmed
+   and cooled for defeat. The panels' side of it is darkened so their text stays readable.) */
+.end-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 50% 30%, rgba(14,8,4,.22), rgba(10,6,3,.6) 70%, rgba(6,4,2,.86) 100%), linear-gradient(rgba(8,5,3,.15), rgba(8,5,3,.55) 60%, rgba(6,4,2,.85)), url('../../assets/ui/victory-backdrop.jpg') center / cover no-repeat; }
+.screen-end.defeat .end-bg { background: linear-gradient(rgba(10,18,34,.55), rgba(6,9,16,.88)), url('../../assets/ui/victory-backdrop.jpg') center / cover no-repeat; filter: saturate(0.4) brightness(0.8); }
+.end-banner { position: absolute; top: 0; width: 300px; height: 640px; background: center top / contain no-repeat;
   -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
 .end-banner.left { left: 70px; }
 .end-banner.right { right: 70px; }
-.victory .end-banner { background-image: url('../../assets/ui/banner-crimson.jpg'); }
-.defeat .end-banner { background-image: url('../../assets/ui/banner-blue.jpg'); filter: brightness(0.85); }
+.victory .end-banner { background-image: url('../../assets/ui/banner-crimson.png'); }
+.defeat .end-banner { background-image: url('../../assets/ui/banner-blue.png'); filter: brightness(0.85); }
 .end-burst { position: absolute; left: 50%; top: 0; width: 900px; height: 560px; transform: translateX(-50%); pointer-events: none; mix-blend-mode: screen; }
 .end-burst i { position: absolute; background: center / contain no-repeat; }
 .end-burst .rays { inset: -40px 40px 40px; opacity: 0.9; animation: burst-turn 40s linear infinite; }
@@ -188,3 +189,12 @@ body.low-motion .end-burst .rays { animation: none; }
 .hero-note { margin-top: -50px; font-size: 13px; color: #c9b07a; white-space: nowrap; }
 .end-buttons { position: absolute; left: 0; right: 0; top: 960px; display: flex; justify-content: center; gap: 20px; }
 .cell.target .empty-slot.on-tile { background: rgba(240,200,110,0.22); box-shadow: 0 0 0 3px var(--target), 0 0 18px 4px rgba(240,200,110,0.7); }
+
+/* Stage A: the new art is brighter, so the Location labels and dominance lines get deeper halos. */
+.loc-name { text-shadow: 0 1px 0 #000, 0 0 3px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.9), 0 0 22px rgba(0,0,0,.75); }
+.loc-line { text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95), 0 0 14px rgba(0,0,0,.85); }
+.loc-time { text-shadow: 0 1px 2px #000, 0 0 5px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.85); }
+.dom-n, .dom-k { text-shadow: 0 1px 2px #000, 0 0 5px rgba(0,0,0,.95), 0 0 10px rgba(0,0,0,.8); }
+.dom-n.lead { text-shadow: 0 0 8px rgba(246,207,116,.6), 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95); }
+.dom-say { text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.85); }
+.loc-label { background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(8,5,3,.86) 0%, rgba(8,5,3,.7) 60%, rgba(8,5,3,.5) 100%); box-shadow: 0 0 28px 14px rgba(8,5,3,.5); }

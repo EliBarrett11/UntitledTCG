@@ -8,7 +8,7 @@
 // Released Pile; Renown flows to the Warlord's dial as a ribbon of light.
 import { renderCard, cardBack } from './cards.js';
 import { accentOf, esc, HUMAN, AI, artOf, tintOf, foe, foes } from './text.js';
-import { handLayout, LANE_W, HAND } from './view.js';
+import { handLayout, LANE_W, HAND, tileArt } from './view.js';
 import { hasGuard, mightOf } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
 import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS } from './vfx/library.js';
@@ -1110,8 +1110,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               anchors: anchors({ dst }), els: {},
               hooks: {
                 ghost: () => {
-                  const art = artOf(l.card);
-                  const g = add(art ? `<img class="loc-art" src="${esc(art)}" alt="">` : '', x, 136, 'loc-ghost');
+                  const g = add(tileArt(l.card, w), x, 136, 'loc-ghost');
                   g.style.width = `${w}px`;
                   g.style.setProperty('--tint', tintOf(l.card.id));
                   env.els.ghost = g;

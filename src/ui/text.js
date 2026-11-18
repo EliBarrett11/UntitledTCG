@@ -30,6 +30,29 @@ export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&a
 // Card wording uses **bold** for a trigger's name.
 export const rich = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 
+// Stage A (Elliott, 18 November 2026): a Character's name in two parts, from the card data: its first name, which
+// the card face, Mini cards and board tokens show, and its title ("the Thornwood Pathfinder"), on the full card's
+// smaller second line. Everything that names it in words uses c.name, the whole "Ilyra, the Thornwood Pathfinder".
+// Monsters, Legendary Creatures and every other card have no title: { first: c.name, title: null }.
+export function nameParts(c) {
+  const def = c?.id ? safeDef(c.id) : null;
+  const form = def?.forms?.find((f) => f.id === (c.form ?? c.id)) ?? (c?.firstName ? c : null);
+  return form?.firstName ? { first: form.firstName, title: form.title } : { first: c?.name ?? '', title: null };
+}
+
+// Stage A: a card's full-art scene (assets/cards-v3/, 3:2), from the card data: its form's, its own, or its
+// Legendary Creature's. Null when it has none.
+export function fullArtOf(c) {
+  if (!c) return null;
+  if (c.artFull) return c.artFull;
+  for (const d of CARDS) {
+    const f = d.forms?.find((x) => x.id === (c.form ?? c.id));
+    if (f?.artFull) return f.artFull;
+    if (d.legendaryCreature && d.legendaryCreature.id === (c.form ?? c.id)) return d.legendaryCreature.artFull ?? null;
+  }
+  return safeDef(c.id)?.artFull ?? null;
+}
+
 // The art for a card instance, or null (Art Pending).
 export function artOf(c) {
   const path = c.art ?? (c.cardType && !isCreature(c) ? safeDef(c.id)?.art : null);

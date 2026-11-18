@@ -76,7 +76,8 @@ for (const run of RUNS) {
     const st = await page.evaluate(() => ({ ...document.body.dataset, end: !!document.querySelector('[data-region="end"]') }));
     if (st.presenting === '1') {
       if (rnd() < run.skip) {
-        const box = await page.evaluate(() => { const r = document.querySelector('[data-region="map"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+        // (On the board's centre; at the match's last moment, as the end screen takes over, on the stage's.)
+        const box = await page.evaluate(() => { const r = (document.querySelector('[data-region="map"]') ?? document.getElementById('stage')).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
         await page.mouse.click(box.x, box.y);
         skips += 1;
       }

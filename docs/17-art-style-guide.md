@@ -109,3 +109,7 @@ Characters get a first name followed by what they are: "Brenna, the Deepforge Pr
 
 ## 9. Batch 1 status
 All 13 anchors delivered and staged in `assets/cards-v2/` as full 1536 × 1024 art, with the three style tests; each card's crop centre is in `assets/cards-v2/crops.json`. Contact sheet: `docs/mockups/style-test/batch1-crops.jpg`. The game keeps using `assets/cards/` until every batch is in.
+
+## 10. In the game (stage A, 18 November 2026)
+Every image in the game is now the final art: `tools/artcrops.py` cuts the card crops into `assets/cards/` from `assets/cards-v3/`, `tools/uiart.py` builds `assets/ui/` from `assets/ui-v3/`, and `tools/buildcards.mjs` records each card's `artFull`, `cardX` and (for Locations) `tileX`/`tileY` in `docs/cards.json`. The names in section 8 (with the renames in section 0.1) are in the card data.
+

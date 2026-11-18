@@ -465,3 +465,49 @@ Built to `docs/mockups/hud-v2/` (approved by Elliott, 17 November 2026: `a2-you.
 11. **The "ENEMY ▲ · ▼ YOU" marker** (the mockup left it out) sits in the 16 px gutter under the board's left edge.
 12. **Right-click** now also opens the Codex on the Round, each phase, the Last Battle line, Pass, the Market's title and stock, and the Bag.
 13. **Fixed from V5:** the Energy sparks (Desperate Gambit, and the Dawn refill) were aimed at stage G's Energy panel, which V5 removed, so they had been landing on the Warlord. They now land on the Energy crystal, and recovered Exert glints on its ready runes.
+
+## 16. Readings from stage A (the new art): needing Elliott's approval
+
+Built to `docs/17-art-style-guide.md` (sections 0, 0.1, 2, 3 and 8), `docs/19-art-prompts-v3.md` and the previews `docs/mockups/style-test/v3-full-board.png` and `v3-full-title.png`. No rule changed.
+
+1. **Card crops** (`tools/artcrops.py`): the 5:7 window (731 × 1024) around each card's `cardX`, enlarged to the game's 1060 × 1484 (about 1.45 ×). Board tokens, Mini cards, chips and hover previews all use that one image. A chip's round crop shows the image's upper part (50% across, 24% down), where the guide puts every head. The old per-image framing table is gone; the new crops fill the card as they are.
+2. **The art data** is recorded by `tools/buildcards.mjs` from the art itself: `artFull` and `cardX` from `assets/cards-v3/crops.json`, and each Location's `tileX`/`tileY` from `assets/cards-v3/tiles.json`. `docs/cards.json` now holds them, and `--check` fails if they drift.
+3. **Location tile focus points** (pixels of the 1536 × 1024 scene):
+   - Ironroot Pass (760, 330): the great root arch.
+   - Emberfall Ruins (780, 400): between the fallen king's head and his sword.
+   - Mistveil Marshes (860, 380): the willow's trunk and canopy.
+
+   A tile covers its own shape from the full scene, with the focus at its centre unless the image's edge stops it.
+4. **Names on the card face:**
+   - The first name is in Cinzel, sized only by its own length.
+   - The title ("the Thornwood Pathfinder") is a 20 px line beneath it, in EB Garamond italic, 15 px (down to 11 px for a long title).
+   - The type line and rules move down 20 px to make room, and the text panel may start 20 px higher on a Character.
+   - Mini cards and board tokens show the first name only.
+5. **Names in words:**
+   - Everything that names a Character in words uses the whole name, because the card data's `name` is now "Ilyra, the Thornwood Pathfinder".
+   - That covers the log, the Codex, announcements, React headlines and previews, the end screen, menus and effect lookups.
+   - So some lines grow, such as "your Garrick, the Oathsworn Recruit: −3" and "Fennick, the Hollowfoot Knifemaster attacks your Ilyra, the Thornwood Scout".
+6. **Readability on the brighter art:**
+   - The darkening under each card's text starts 25 px higher and goes deeper (0.86 just above the panel line, 0.95 below it).
+   - Board tokens' names and keywords get a deeper backing.
+   - Location labels and the dominance line get deeper halos and a darker oval behind them.
+   - Every card label measures at least 5.00:1 (`tools/cardcontrast.mjs`).
+7. **The panels' colour:**
+   - A warm dark brown (48, 31, 18), 95% solid behind the content, fading to 78% at the edges, so the table shows faintly there.
+   - The enemy's banner, which hangs behind the band, shows faintly through it.
+   - The card frame's brass is warmer and brighter (#f2d69c, #a8823f, #e8c47f, #84612f) and its inner line 0.62. The grid, sizes and text are unchanged.
+8. **The presentation art** (`tools/uiart.py`, from `assets/ui-v3/`):
+   - The war table, title key art and victory backdrop are centred 16:9 crops.
+   - Both campaign maps use the same centred board-shaped crop (1536 × 646), so the Last Battle's crossfade stays lined up.
+   - The card back is a centred 5:7 crop at the cards' size; it keeps its own painted gold border inside the card outline.
+   - The banners are cut out to PNG: a soft 1.5 px edge, the backdrop's colour un-mixed from the edge pixels (no dark halo), and only the banner's own connected shape kept, so no smoke wisps.
+   - The banners now hang whole ("contain", with a drop shadow) instead of a cropped, masked rectangle.
+9. **The end screens:**
+   - Victory shows the victory backdrop, darkened towards the edges and the bottom so the panels read.
+   - Defeat shows the same backdrop dimmed and cooled: a blue-black wash, 40% saturation, 80% brightness.
+10. **"View full art"** is on every card page in the Codex that has a scene.
+    - It shows the scene at 1440 × 960 over a dark backdrop, with the first name large and the title beside it (or the card's name).
+    - The image loads only when opened.
+    - Esc closes the art first, then the Codex; a click anywhere or ✕ also closes it.
+11. **Dev aid:** `?prefer=<card>:place` places a chosen Location, and the `?scene` fast-forward now honours `?prefer` (for the tile screenshots).
+12. `assets/cards-v2/` stays as the reference the style guide names; the game never loads it.

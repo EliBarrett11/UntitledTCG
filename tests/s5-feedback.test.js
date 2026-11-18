@@ -53,8 +53,8 @@ test('React previews: what the attack does with the React and without it', () =>
   const react = legalActions(s, 'p1', 'react')[0];
   const without = summary(diff(s, outcome(s, { type: 'decline', who: 'p1' })));
   const withIt = summary(diff(s, outcome(s, react)));
-  assert.equal(without, 'your Oathsworn Recruit: defeated; the enemy +2 Renown');
-  assert.equal(withIt, 'your Oathsworn Recruit: −3');
+  assert.equal(without, 'your Garrick, the Oathsworn Recruit: defeated; the enemy +2 Renown');
+  assert.equal(withIt, 'your Garrick, the Oathsworn Recruit: −3');
 });
 
 test('settings: defaults when storage is missing or holds nonsense', async () => {

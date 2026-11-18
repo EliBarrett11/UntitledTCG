@@ -8,7 +8,7 @@
 import { explain } from '../engine/explain.js';
 import { GLOSSARY, TERM_NAMES, rulebookSections, searchRules } from '../engine/glossary.js';
 import { renderCard, cardBack } from './cards.js';
-import { energyHtml, CRYSTAL_ICON } from './text.js';
+import { energyHtml, CRYSTAL_ICON, fullArtOf, nameParts } from './text.js';
 
 const esc = (x) => String(x ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const bold = (html) => html.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
@@ -57,12 +57,35 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
       <input class="cx-search" type="search" placeholder="Search the rules…" aria-label="Search the rules" spellcheck="false">
       <button type="button" class="cx-x" data-cx="close" title="Close (Esc)" aria-label="Close">✕</button></div>
     <div class="cx-body"></div>
-    <div class="cx-foot">Right-click any card, or hover it and press C · Esc to close · the match carries on</div></aside>`;
+    <div class="cx-foot">Right-click any card, or hover it and press C · Esc to close · the match carries on</div></aside>
+    <div class="cx-art" data-region="full-art" hidden role="dialog" aria-label="The full art">
+      <figure><img alt="" draggable="false"><figcaption><b></b><span></span></figcaption></figure>
+      <button type="button" class="cx-art-x" title="Close (Esc)" aria-label="Close">✕</button></div>`;
   viewport.appendChild(layer);
   const panel = layer.querySelector('#codex');
   const body = layer.querySelector('.cx-body');
   const crumb = layer.querySelector('.cx-crumb');
   const search = layer.querySelector('.cx-search');
+  // Stage A: "View full art": the whole 3:2 scene, as large as fits, over a dark backdrop, with the card's name (and
+  // its first name, large, when it has one). The image loads only when it opens. Esc, a click or ✕ closes it.
+  const art = layer.querySelector('.cx-art');
+  const artOpen = () => !art.hidden;
+  function openArt(src, c) {
+    const img = art.querySelector('img');
+    const np = nameParts(c);
+    art.querySelector('figcaption b').textContent = np.title ? np.first : c.name;
+    art.querySelector('figcaption span').textContent = np.title ?? '';
+    img.alt = c.name;
+    img.src = src;
+    art.hidden = false;
+    document.body.dataset.fullArt = 'open';
+  }
+  function closeArt() {
+    art.hidden = true;
+    art.querySelector('img').removeAttribute('src');
+    delete document.body.dataset.fullArt;
+  }
+  art.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); closeArt(); });
   let stack = [];          // entries: { kind: 'card', ref } | { kind: 'term', key } | { kind: 'section', id } | { kind: 'search', q }
   let glOpen = null;       // the glossary entry open below a card's abilities
   let lastHtml = '';
@@ -94,6 +117,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
   function push(entry) { stack.push(entry); if (entry.kind === 'card') { glOpen = null; lastEx = null; } render(true); }
   function back() { if (stack.length > 1) { stack.pop(); glOpen = null; lastEx = null; render(true); } else close(); }
   function close() {
+    closeArt();
     panel.hidden = true;
     stack = [];
     lastHtml = '';
@@ -171,7 +195,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
     const now = [...(gone ? ['**It has moved on** (it was here a moment ago); this is how it last stood.'] : []), ...ex.now].map((x) => line(x, linked)).join('<br>');
     let h = `<div class="cx-hero"><div class="cx-cw">${renderCard(c, opts)}</div><div class="cx-id">
       <h2>${esc(ex.name)}</h2><div class="cx-tl">${esc(ex.typeLine)}</div>
-      <div class="cx-now">${now}</div>${levelsLine(ex)}</div></div>`;
+      <div class="cx-now">${now}</div>${levelsLine(ex)}${fullArtOf(c) ? '<button type="button" class="cx-view-art" data-cx="art">VIEW FULL ART ▸</button>' : ''}</div></div>`;
     if (ex.stats) h += statsTable(ex.stats);
     if (ex.abilities) h += abilitiesBlock(ex);
     if (ex.modes) h += modesBlock(ex);
@@ -286,6 +310,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
     if (!a) return;
     ev.preventDefault();
     if (a.dataset.cx === 'close') return close();
+    if (a.dataset.cx === 'art') { const c = lastEx?.card; const src = fullArtOf(c); if (src) openArt(src, c); return undefined; }
     if (a.dataset.cx === 'back') return back();
     if (a.dataset.crumb !== undefined) {
       const i = Number(a.dataset.crumb);
@@ -316,6 +341,8 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
   // (handled here, since the game's own key handlers never see them).
   window.addEventListener('keydown', (ev) => {
     if (!isOpen()) return;
+    // (Esc closes the full art first, then the Codex.)
+    if (ev.key === 'Escape' && artOpen()) { ev.preventDefault(); ev.stopImmediatePropagation(); closeArt(); return; }
     if (ev.key === 'Escape') { ev.preventDefault(); ev.stopImmediatePropagation(); close(); return; }
     if (panel.contains(ev.target)) {
       ev.stopPropagation();
@@ -328,7 +355,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
   layer.addEventListener('contextmenu', (ev) => ev.preventDefault());
 
   return {
-    open, openTerm, close, isOpen, back,
+    open, openTerm, close, isOpen, back, closeArt, artOpen,
     refresh: () => render(false),
     layer,
     get depth() { return stack.length; },
