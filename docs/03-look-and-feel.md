@@ -623,7 +623,7 @@ Built to `docs/22-stage-e-prompt.md`, `docs/20-vfx-style-guide.md` and the textu
     - **Automatic quality,** with the five moments played one after another, stays at full through the attack and the first two Firebolts, steps to "particles ¾" during the Strat Firebolt, and settles at "particles ½" after the Prime summon. On software rendering it is expected to step down; the first steps give up particles only, so bloom and resolution are kept.
     - **Reading needing approval:** a real 60 fps figure needs a measurement on Elliott's machine (`node tools/eperf.mjs` with a GPU).
 
-## 18. Readings from stage R (the rules update): needing Elliott's approval
+## 18. Readings from stage R (the rules update): approved by Elliott, 23 November 2026
 
 Built to `docs/24-stage-r-prompt.md`. Rule readings are in the rulebook's section 13 (22–28); these are the look.
 

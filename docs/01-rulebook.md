@@ -315,6 +315,8 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 
 ### Readings from stage R: needing Elliott's approval
 
+*Readings 22–28 (stage R) approved by Elliott, 23 November 2026.*
+
 22. **When a Campaign Creature's choice is offered:**
     - **During the Battle Phase** (or a React window), once the action that completed the Quest has fully resolved, triggers included. Its player chooses before anyone acts next.
     - **At Dusk,** just after step 3 (Quest progress from dominance), before Locations count down. So it's on the field, Spent, and becomes Active at the next Dawn, as before.
