@@ -457,6 +457,7 @@ export function createLibrary({ stage, codex, store, toast = () => {}, onBack = 
 
   return {
     open, close, draw, filterBy,
+    setFrom: (f) => { from = f; if (active) { const b = stage.querySelector('[data-lib="back"]'); if (b) b.textContent = `‹ ${FROM_LABEL[from] ?? 'Back'}`; } },
     isActive: () => active,
     get from() { return from; },
     get deckOpen() { return deck; },

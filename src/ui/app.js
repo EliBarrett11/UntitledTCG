@@ -22,7 +22,8 @@ import { announcement, announcementHtml, costPreview, energyDisplay } from './tu
 import { termAtOffset, tipHtml } from './tips.js';
 import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
 import { createLibrary } from './library.js';
-import { createDeckStore } from './deckstore.js';
+import { createDeckStore, chosenDecks, FIRST_ID } from './deckstore.js';
+import { cardCount, listToIds } from '../engine/decks.js';
 
 // The presentation art (V3), fetched and decoded before it's first shown.
 const ART = [...['war-table', 'campaign-map', 'campaign-map-scorched', 'title-key-art', 'victory-backdrop', 'card-back'].map((n) => `assets/ui/${n}.jpg`), ...['banner-crimson', 'banner-blue'].map((n) => `assets/ui/${n}.png`)];
@@ -134,13 +135,15 @@ export function startApp(params) {
   let hostClock = null;       // online host: the countdown of the guest's React window
   const online = createOnline({
     draw: () => { renderNet(); if (screen !== 'match' && !presenting) draw(); },
-    screen: (name) => { renderNet(); go(name); },
+    // (Stage L: while you're in the Card Library, the lobby's moves only change where its Back button goes.)
+    screen: (name) => { renderNet(); if (screen === 'library' && (name === 'setup' || name === 'lobby')) { library.setFrom(name); return; } go(name); },
     start: (game, opts) => startOnline(game, opts),
     update: (prev, next, who) => onlineUpdate(prev, next, who),
     clock: (left, total) => { if (ui?.react) { ui.react.total = total; ui.react.deadline = performance.now() + left; tickMoment(stage, ui.react); } },
     rejected: (message) => { waiting = false; toast(message); advance(); },
     toTitle: (msg) => { stopHostClock(); updates.length = 0; waiting = false; notice = msg ?? ''; renderNet(); go('title'); },
     reactSeconds: () => (params.get('timer') === 'off' ? 0 : settings.reactSeconds),
+    myDeck: () => { const d = decks.get(decks.choice().you) ?? decks.get(FIRST_ID); return { name: d.name, cards: d.cards }; },
   });
   const renderNet = () => { netLayer.innerHTML = online.active() && screen !== 'title' && screen !== 'lobby' ? netOverlay(online.state) : ''; };
   // This screen's seat: online, the host is the first seat and the guest the second; against the AI, the first
@@ -184,7 +187,9 @@ export function startApp(params) {
     // Nothing carries over from the last match: timers, effects, the presentation, the scorched map (it follows the state).
     clearTimeout(timer);
     stopReact?.();
-    s = createGame(seed, { decks: { p1: FIRST_DECK, p2: FIRST_DECK } });
+    // (Stage L: the decks chosen on match setup, for you and for the AI; "The first deck" until you choose.)
+    const chosen = chosenDecks(decks);
+    s = createGame(seed, { decks: { [HUMAN]: chosen.you, [AI]: chosen.ai } });
     rng = makeRng(seed * 7919);
     ui = freshUi();
     vfx.clear();
@@ -721,9 +726,26 @@ export function startApp(params) {
       const d = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1;
       list[(i < 0 ? 0 : i + d + list.length) % list.length].focus({ preventScroll: true });
     } else if (e.key === 'Escape') {
-      if (ui?.settingsOpen) { ui.settingsOpen = false; draw(); } else if (online.active() && (screen === 'setup' || screen === 'lobby')) online.leave(); else if (screen === 'setup') go('title');
+      if (ui?.deckMenu) { ui.deckMenu = null; draw(); } else if (ui?.settingsOpen) { ui.settingsOpen = false; draw(); } else if (online.active() && (screen === 'setup' || screen === 'lobby')) online.leave(); else if (screen === 'setup') go('title');
     }
   });
+
+  // Stage L: the decks on match setup. Against the AI: yours and the AI's, each chosen from "The first deck" and your
+  // saved legal decks. Online: yours, and your friend's name and card count only; and why Begin was refused, if it was.
+  function setupDecks() {
+    const options = decks.legalDecks().map((d) => ({ id: d.id, name: d.name, count: cardCount(d.cards), builtIn: !!d.builtIn }));
+    const c = decks.choice();
+    const deckSide = (id) => { const d = decks.get(id) ?? decks.get(FIRST_ID); return { name: d.name, count: cardCount(d.cards), cards: listToIds(d.cards), choosable: true, options, chosen: d.id }; };
+    if (!online.active()) return { [HUMAN]: deckSide(c.you), [AI]: deckSide(c.ai), refused: null };
+    const info = online.state.decks;
+    const mine = online.role === 'host' ? 'host' : 'guest';
+    const theirs = mine === 'host' ? 'guest' : 'host';
+    const r = info?.refused;
+    const refused = r ? (r.who === mine ? `Your deck “${r.name}” can't be played: ${r.problems.join('; ')}. Choose another deck.`
+      : `Your friend's deck “${r.name}” can't be played: ${r.problems.join('; ')}. They need to choose another deck.`) : null;
+    const friend = info?.[theirs];
+    return { [HUMAN]: deckSide(c.you), [AI]: { name: friend?.name ?? 'Their deck', count: friend?.count ?? 0, cards: null, choosable: false, options: [] }, refused };
+  }
 
   // --- Drawing ---------------------------------------------------------------------------------------------
   function draw() {
@@ -732,6 +754,11 @@ export function startApp(params) {
     placeSeat();
     renderNet();
     if (screen === 'library') { stage.style.translate = ''; return library.draw(); }
+    if (library.isActive()) library.close();
+    if (screen === 'setup') {
+      ui.decks = setupDecks();
+      if (online.active()) online.sendDeck();
+    }
     if (screen === 'title' || screen === 'setup' || screen === 'lobby') {
       codex.close();
       const keep = focusKey();
@@ -740,7 +767,7 @@ export function startApp(params) {
       ui.notice = notice;
       ui.online = online.active() ? { role: online.role } : null;
       stage.innerHTML = screen === 'title' ? titleScreen(ui) : screen === 'setup' ? setupScreen(ui) : lobbyScreen(online.state);
-      document.body.dataset.step = ui.settingsOpen ? 'settings' : 'idle';
+      document.body.dataset.step = ui.settingsOpen ? 'settings' : ui.deckMenu && screen === 'setup' ? `deck-menu:${ui.deckMenu}` : 'idle';
       return refocus(keep);
     }
     ui.online = online.active() ? { role: online.role, rematch: online.state.rematch } : null;
@@ -1127,6 +1154,12 @@ export function startApp(params) {
       case 'net-leave': return online.leave();
       case 'net-rematch': return online.rematch();
       case 'library': return openLibrary();
+      case 'deck-menu': ui.deckMenu = ui.deckMenu === el.dataset.side ? null : el.dataset.side; return draw();
+      case 'pick-deck': {
+        decks.setChoice(el.dataset.side === HUMAN ? { you: el.dataset.id } : { ai: el.dataset.id });
+        ui.deckMenu = null;
+        return draw();
+      }
       case 'settings': ui.settingsOpen = !ui.settingsOpen; return draw();
       case 'log': ui.logOpen = !ui.logOpen; return draw();
       // V5: the pace controls (against the AI; Replay online too).

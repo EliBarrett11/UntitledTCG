@@ -29,9 +29,25 @@
 //   rematchAsked()            the other player wants a rematch
 //   again()                   both accepted a rematch: back to match setup
 //   left()                    the other player left the match
+//   decks(info)               (stage L) the decks chosen for the next match: { host: { name, count }, guest: { name,
+//                             count }, refused: { who: 'host' | 'guest', name, problems } | null }. Names and card
+//                             counts only: neither screen is told the other's card list.
 import { createGame, applyAction } from '../engine/game.js';
 import { viewFor, restoreState } from '../engine/view.js';
-import { FIRST_DECK } from '../data/cards.js';
+import { DECKS } from '../data/cards.js';
+import { deckProblems, expandDeck } from '../engine/cards.js';
+
+// Stage L: a deck as it travels: { name, cards: [{ id, copies }] }. Anything else from the far side is read as an
+// unreadable deck (which the host then refuses, saying so), never trusted.
+export const FIRST = Object.freeze({ name: DECKS.first.name, cards: DECKS.first.cards });
+export function cleanDeck(d) {
+  const ok = d && typeof d === 'object' && typeof d.name === 'string' && Array.isArray(d.cards) && d.cards.length <= 120
+    && d.cards.every((x) => x && typeof x.id === 'string' && x.id.length <= 80 && Number.isInteger(x.copies) && x.copies >= 1 && x.copies <= 40);
+  return ok ? { name: d.name.slice(0, 40) || 'Untitled deck', cards: d.cards.map(({ id, copies }) => ({ id, copies })) } : { name: 'An unreadable deck', cards: [], unreadable: true };
+}
+const deckMeta = (d) => (d ? { name: d.name, count: d.cards.reduce((n, x) => n + x.copies, 0) } : null);
+// The rules' problems with a deck (rulebook section 4), in plain words.
+export const problemsOf = (d) => (d.unreadable ? ['its list can\'t be read'] : deckProblems(expandDeck(d.cards)));
 import { encode, decode, HOST_SEAT, GUEST_SEAT, PROTOCOL } from './protocol.js';
 
 class Session {
@@ -137,6 +153,9 @@ export class HostSession extends Session {
     this.guestTimer = null; // the guest's React-timer setting (seconds, or 0 for off)
     this.seq = 0;
     this.sentLog = 0;
+    // (Stage L: each player's deck for the next match; "The first deck" until one is chosen. A rematch keeps them.)
+    this.decks = { host: FIRST, guest: FIRST };
+    this.refused = null;
     if (link) this.attach(link);
   }
 
@@ -174,7 +193,25 @@ export class HostSession extends Session {
     if (m.timer !== undefined) this.guestTimer = m.timer;
     this.setStatus('ready');
     this.sync();
+    this.sendDecks();
     if (back) this.on.back?.();
+  }
+
+  // Stage L: the decks for the next match. The host chooses its own here; the guest's arrives in a 'deck' message.
+  // Only before a match starts; both screens are told each deck's name and card count.
+  setDeck(deck) {
+    if (this.state || this.ended) return false;
+    this.decks.host = cleanDeck(deck);
+    this.refused = null;
+    this.sendDecks();
+    return true;
+  }
+  deckInfo() {
+    return { host: deckMeta(this.decks.host), guest: deckMeta(this.decks.guest), refused: this.refused };
+  }
+  sendDecks() {
+    if (this.link && this.status === 'ready') this.send('decks', this.deckInfo());
+    this.on.decks?.(this.deckInfo());
   }
 
   // Where things stand, for a guest (re)connecting.
@@ -187,6 +224,7 @@ export class HostSession extends Session {
 
   handle(m) {
     if (m.t === 'action' && this.state) this.apply(m.action, GUEST_SEAT, m.id);
+    else if (m.t === 'deck' && !this.state) { this.decks.guest = cleanDeck(m.deck); this.refused = null; this.sendDecks(); }
     else if (m.t === 'rematch' && this.state?.phase === 'gameOver') {
       this.friendRematch = true;
       this.on.rematchAsked?.();
@@ -194,10 +232,20 @@ export class HostSession extends Session {
     }
   }
 
-  // Begin (the host, on match setup): both play the shared first deck (rulebook 4).
+  // Begin (the host, on match setup). Stage L: each player plays the deck they chose; the host checks both with the
+  // engine's deck rules first, and refuses an illegal one, telling both screens why.
   begin() {
     if (this.status !== 'ready' || this.state || this.ended) return false;
-    this.state = createGame(this.seed, { decks: { [HOST_SEAT]: FIRST_DECK, [GUEST_SEAT]: FIRST_DECK } });
+    for (const who of ['host', 'guest']) {
+      const problems = problemsOf(this.decks[who]);
+      if (problems.length) {
+        this.refused = { who, name: this.decks[who].name, problems };
+        this.sendDecks();
+        return false;
+      }
+    }
+    this.refused = null;
+    this.state = createGame(this.seed, { decks: { [HOST_SEAT]: expandDeck(this.decks.host.cards), [GUEST_SEAT]: expandDeck(this.decks.guest.cards) } });
     this.seq = 0;
     this.sentLog = 0;
     this.send('start', { seq: 0, ...this.pack() });
@@ -278,7 +326,7 @@ export class HostSession extends Session {
   save() {
     return {
       v: PROTOCOL, build: this.build, seed: this.seed, state: this.state, seq: this.seq, guestToken: this.guestToken,
-      guestTimer: this.guestTimer, wantRematch: this.wantRematch, friendRematch: this.friendRematch,
+      guestTimer: this.guestTimer, wantRematch: this.wantRematch, friendRematch: this.friendRematch, decks: this.decks,
     };
   }
 
@@ -289,6 +337,7 @@ export class HostSession extends Session {
     Object.assign(host, {
       state: saved.state ? restoreState(saved.state) : null, seq: saved.seq ?? 0, guestToken: saved.guestToken ?? null,
       guestTimer: saved.guestTimer ?? null, wantRematch: Boolean(saved.wantRematch), friendRematch: Boolean(saved.friendRematch),
+      decks: { host: cleanDeck(saved.decks?.host ?? FIRST), guest: cleanDeck(saved.decks?.guest ?? FIRST) },
     });
     return host;
   }
@@ -305,7 +354,15 @@ export class GuestSession extends Session {
     this.view = null;   // the latest view the host sent (the guest's seat); never the real state
     this.seq = 0;
     this.nextId = 0;
+    this.deck = null;   // (stage L) the deck this guest chose, sent to the host before each match
+    this.decks = null;  // what the host says of both decks: names and card counts
     if (link) this.attach(link);
+  }
+
+  // Stage L: this guest's deck for the next match (sent now if connected, and again on reconnecting).
+  setDeck(deck) {
+    this.deck = { name: deck.name, cards: deck.cards.map(({ id, copies }) => ({ id, copies })) };
+    if (this.link && this.status === 'ready' && !this.view) this.send('deck', { deck: this.deck });
   }
 
   hello() {
@@ -314,6 +371,7 @@ export class GuestSession extends Session {
 
   welcome() {
     this.setStatus('ready');
+    if (this.deck && !this.view) this.send('deck', { deck: this.deck });
   }
 
   handle(m) {
@@ -346,6 +404,10 @@ export class GuestSession extends Session {
       }
       case 'clock':
         if (m.seq === this.seq) this.on.clock?.(m.left, m.total);
+        break;
+      case 'decks':
+        this.decks = { host: m.host ?? null, guest: m.guest ?? null, refused: m.refused ?? null };
+        this.on.decks?.(this.decks);
         break;
       case 'reject':
         this.on.rejected?.(m.message, m.id);

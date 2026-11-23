@@ -2,9 +2,9 @@
 // match setup, the opening reveal, and the victory and defeat screens. They only draw; src/ui/app.js runs the flow
 // (src/ui/flow.js) and every button goes through its data-act.
 import { RULES } from '../engine/rules.js';
-import { cardDef } from '../engine/cards.js';
+import { cardDef, creatureAtLevel } from '../engine/cards.js';
 import { DECKS, FIRST_DECK } from '../data/cards.js';
-import { renderCard } from './cards.js';
+import { renderCard, cardBack } from './cards.js';
 import { esc, HUMAN, AI, ONLINE, foes } from './text.js';
 import { settingsPanel } from './view.js';
 import { matchStats, heroesOf, RENOWN_SOURCES } from './stats.js';
@@ -44,16 +44,29 @@ export function titleScreen(ui) {
   </div>`;
 }
 
-// --- Match setup: the two Warlords and their decks, as they are now -------------------------------------------------
-const deckName = () => DECKS.first?.name ?? 'The first deck';
+// --- Match setup: the two Warlords and their decks ---------------------------------------------------------------------
+// (Stage L: each side shows its deck. Against the AI you choose both decks, from "The first deck" and your saved legal
+// decks; online you choose your own, and your friend's shows only its name and card count, with a card back.)
+// ui.decks: { [HUMAN]: side, [AI]: side, refused: text | null }, a side { name, count, cards (ids, or null for a
+// friend's deck), choosable, options: [{ id, name, count }], chosen }; ui.deckMenu: the side whose list is open.
+function deckCard(d, who) {
+  if (!d?.cards) return cardBack('back-full');
+  const ids = [...new Set(d.cards)];
+  const show = ids.map((id) => cardDef(id)).find((x) => x.cardType === 'Campaign') ?? ids.map((id) => cardDef(id)).find((x) => x.series === 'Legendary') ?? cardDef(ids[0]);
+  return show ? renderCard({ ...(show.forms ? creatureAtLevel(show, show.series === 'Legendary' ? 8 : show.prime ?? 1, `setup-${who}`) : { ...show, uid: `setup-${who}` }) }, { size: 'full' }) : cardBack('back-full');
+}
 function side(who, ui) {
-  const camp = FIRST_DECK.map((id) => cardDef(id)).find((d) => d.cardType === 'Campaign');
-  const card = camp ? renderCard({ ...camp, uid: `setup-${who}` }, { size: 'full' }) : '';
+  const d = ui.decks?.[who] ?? { name: DECKS.first?.name ?? 'The first deck', count: FIRST_DECK.length, cards: FIRST_DECK, choosable: false, options: [] };
+  const open = ui.deckMenu === who;
+  const by = who === AI ? (ui.online ? ' · played by your friend' : ' · played by the AI') : '';
+  const menu = open ? `<div class="deck-menu" role="listbox" aria-label="Choose a deck">${d.options.map((o) => `<button type="button" class="deck-opt${o.id === d.chosen ? ' on' : ''}" role="option" aria-selected="${o.id === d.chosen}" data-act="pick-deck" data-side="${who}" data-id="${esc(o.id)}" data-nav><b>${esc(o.name)}</b><span>${o.count} cards${o.builtIn ? ' · built in' : ''}</span></button>`).join('')}
+      <div class="deck-opt-note">Only legal decks can be chosen. Build and fix decks in the Card Library.</div></div>` : '';
   return `<div class="setup-side setup-${who === HUMAN ? 'you' : 'enemy'}">
     <div class="setup-banner" aria-hidden="true"></div>
     <div class="setup-who">${who === HUMAN ? 'YOUR WARLORD' : ui.online ? 'YOUR FRIEND\'S WARLORD' : 'ENEMY WARLORD'}</div>
-    <div class="setup-deck">${esc(deckName())} · ${FIRST_DECK.length} cards${who === AI ? (ui.online ? ' · played by your friend' : ' · played by the AI') : ''}</div>
-    <div class="setup-card">${card}</div>
+    <div class="setup-deck" data-region="deck-${who === HUMAN ? 'you' : 'them'}"><b>${esc(d.name)}</b> · ${d.count} cards${by}</div>
+    ${d.choosable ? `<div class="deck-pick"><button type="button" class="deck-change${open ? ' on' : ''}" data-act="deck-menu" data-side="${who}" aria-expanded="${open}" data-nav>${who === HUMAN ? 'Choose your deck' : 'Choose the AI\'s deck'} ${open ? '▴' : '▾'}</button>${menu}</div>` : ''}
+    <div class="setup-card">${deckCard(d, who)}</div>
   </div>`;
 }
 export function setupScreen(ui) {
@@ -74,6 +87,7 @@ export function setupScreen(ui) {
           <div class="label">REACT TIMER</div>
           <div class="set-row">${[5, 8, 12, 20].map((v) => opt('reactSeconds', v, `${v} s`, st.reactSeconds === v)).join('')}</div>
         </div>
+        ${ui.decks?.refused ? `<div class="setup-refused" role="alert" data-region="deck-refused">${esc(ui.decks.refused)}</div>` : ''}
         ${!ui.online || ui.online.role === 'host' ? btn('begin', 'Begin', 'primary big') : '<div class="setup-wait" role="status">Waiting for your friend to begin…</div>'}
         ${btn('library', 'Card Library')}
         ${ui.online ? btn('net-leave', 'Leave match') : btn('to-title', 'Title screen')}

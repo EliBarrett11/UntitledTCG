@@ -54,8 +54,9 @@ function played(s, a) {
   return how ? { id: card.id, how } : null;
 }
 
-export function playMatch(seed, { deck = FIRST_DECK, tally = null } = {}) {
-  let s = createGame(seed, { decks: { p1: deck, p2: deck } });
+// (Stage L: decks: { p1, p2 } plays a different deck for each side.)
+export function playMatch(seed, { deck = FIRST_DECK, decks = null, tally = null } = {}) {
+  let s = createGame(seed, { decks: decks ?? { p1: deck, p2: deck } });
   const rng = makeRng(seed * 7919);
   let round = s.round;
   let actions = 0;

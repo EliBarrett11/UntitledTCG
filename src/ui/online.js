@@ -15,14 +15,18 @@
 //   - A connection light (green / amber / red), and plain words when a connection can't be made.
 //
 // app (from src/ui/app.js): { draw(), screen(name), start(game), update(prev, next, who), clock(left, total),
-//   rejected(message), toTitle(notice), reactSeconds() }.
+//   rejected(message), toTitle(notice), reactSeconds(), myDeck() }.
+//
+// Stage L: each player chooses their own deck on match setup (myDeck() is this browser's choice, sent when it
+// changes); the host checks both decks before the match and refuses an illegal one, and both screens show why.
+// Each screen knows the other deck's name and card count only (net.decks).
 import { HostSession, GuestSession, newToken } from '../net/session.js';
 import { HOST_SEAT, GUEST_SEAT, normalizeCode, inviteLink } from '../net/protocol.js';
 import { esc } from './text.js';
 
 // The game's version for playing a friend: both browsers must have the same one. Change it whenever the rules,
 // the cards or the messages change, so an old page and a new one never play each other.
-export const BUILD = 'Stage M · play a friend online';
+export const BUILD = 'Stage L · play a friend online with your own decks';
 
 // --- Saved in this browser (guarded: storage can be missing or blocked) ---------------------------------------------
 const HOST_KEY = 'utcg-online-host';
@@ -52,6 +56,7 @@ export function createOnline(app) {
     net = {
       role, seat: role === 'host' ? HOST_SEAT : GUEST_SEAT, kind: 'connecting', code: null, link: null, session: null, room: null,
       health: 'reconnecting', banner: null, toast: null, rematch: 'ask', everConnected: false, retry: null, message: null, copied: false, inMatch: false,
+      decks: null, sentDeck: null,
     };
     return net;
   }
@@ -75,6 +80,7 @@ export function createOnline(app) {
   function hostNew(seed) {
     const me = begin('host');
     me.session = new HostSession(null, { build: BUILD, seed, listener: hostListener() });
+    sendDeck();
     lobby('hosting');
     openRoom(null);
   }
@@ -155,7 +161,20 @@ export function createOnline(app) {
       rematchAsked: () => { if (!net.session.wantRematch) net.rematch = 'accept'; save(); app.draw(); },
       again: () => backToSetup(),
       left: () => friendLeft(),
+      decks: (info) => { if (net) { net.decks = info; app.draw(); } },
     };
+  }
+
+  // Stage L: this browser's deck choice, to the session (only when it changed, and only before a match).
+  function sendDeck() {
+    const me = net;
+    if (!me?.session || me.inMatch) return;
+    const d = app.myDeck?.();
+    if (!d) return;
+    const sig = JSON.stringify(d);
+    if (sig === me.sentDeck) return;
+    me.sentDeck = sig;
+    me.session.setDeck(d);
   }
 
   // --- Joining -----------------------------------------------------------------------------------------------
@@ -168,6 +187,7 @@ export function createOnline(app) {
     let token = store.get(tokenKey(code));
     if (!token) { token = newToken(); store.set(tokenKey(code), token); }
     me.session = new GuestSession(null, { build: BUILD, token, timer: app.reactSeconds(), listener: guestListener() });
+    sendDeck();
     lobby('connecting');
     connectGuest();
   }
@@ -237,6 +257,7 @@ export function createOnline(app) {
       rematchAsked: () => { if (!net.session.wantRematch) net.rematch = 'accept'; app.draw(); },
       again: () => backToSetup(),
       left: () => friendLeft(),
+      decks: (info) => { if (net) { net.decks = info; app.draw(); } },
     };
   }
 
@@ -255,7 +276,10 @@ export function createOnline(app) {
   const declineForGuest = () => net?.role === 'host' && net.session.apply({ type: 'decline' }, GUEST_SEAT);
 
   function beginMatch() {
-    if (net?.role === 'host') net.session.begin();
+    if (net?.role !== 'host') return;
+    sendDeck();
+    // (Refused: the session tells both screens why, through net.decks.)
+    net.session.begin();
   }
   function rematch() {
     if (!net?.session) return;
@@ -305,13 +329,19 @@ export function createOnline(app) {
 
   // Dev aid for the layout check and screenshots (?lobby=…): a lobby screen drawn with sample words; nothing connects.
   function preview(kind) {
-    const host = !['join', 'connecting', 'setup-guest', 'full'].includes(kind);
+    const host = !['join', 'connecting', 'setup-guest', 'setup-refused', 'full'].includes(kind);
     const me = begin(host ? 'host' : 'guest');
     me.preview = true;
     me.code = 'HMQXT';
     me.link = 'https://elibarrett11.github.io/UntitledTCG/?join=HMQXT';
     me.health = 'good';
-    if (kind.startsWith('setup')) { me.kind = 'setup'; me.everConnected = true; return 'setup'; }
+    if (kind.startsWith('setup')) {
+      me.kind = 'setup'; me.everConnected = true;
+      // (Stage L: sample decks; ?lobby=setup-refused shows a refused deck.)
+      me.decks = { host: { name: 'The first deck', count: 40 }, guest: { name: 'Thornwood Ambush', count: 40 }, refused: null };
+      if (kind === 'setup-refused') me.decks = { host: { name: 'The first deck', count: 40 }, guest: { name: 'Half a Deck', count: 38 }, refused: { who: 'guest', name: 'Half a Deck', problems: ['38 of 40 cards'] } };
+      return 'setup';
+    }
     me.kind = kind;
     if (kind === 'error') { me.message = 'Couldn\'t connect. Some networks (offices, schools, some mobile hotspots) block direct connections. Try another network, or see "If your friend can\'t connect" in the README to add a free relay server.'; me.retry = 'HMQXT'; }
     if (kind === 'join') me.message = '"HMQX" isn\'t a room code: it\'s 5 letters, like HMQXT.';
@@ -320,7 +350,7 @@ export function createOnline(app) {
 
   return {
     preview,
-    hostNew, hostResume, join, act, clock, declineForGuest, beginMatch, rematch, leave, copy,
+    hostNew, hostResume, join, act, clock, declineForGuest, beginMatch, rematch, leave, copy, sendDeck,
     active: () => Boolean(net),
     get role() { return net?.role ?? null; },
     get state() { return net; },
@@ -353,12 +383,13 @@ export function lobbyScreen(net) {
       <p class="lobby-wait">${net.gone ? 'Your friend left the room — waiting for them to come back…' : 'Waiting for your friend to join…'}</p>
       <p class="lobby-p">Send your friend the link, or tell them the code: they open the game, choose Play a friend and type it.</p>
       ${net.gone ? '' : joinForm('Got a code from a friend?')}
-      ${btn('net-leave', 'Leave')}`;
+      <div class="lobby-btns">${btn('library', 'Card Library')}${btn('net-leave', 'Leave')}</div>`;
   } else if (k === 'join') {
     body = `<div class="lobby-h">PLAY A FRIEND</div>
       ${joinForm('Type the room code your friend sent you.')}
       ${net?.message ? `<p class="lobby-err">${esc(net.message)}</p>` : ''}
       ${btn('net-host', 'Host a match')}
+      ${btn('library', 'Card Library')}
       ${btn('net-leave', 'Back')}`;
   } else if (k === 'connecting') {
     body = `<div class="lobby-h">PLAY A FRIEND</div>

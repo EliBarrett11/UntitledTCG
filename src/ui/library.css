@@ -178,3 +178,23 @@ body[data-lib-drag] .screen-library, body[data-lib-drag] .screen-library * { cur
   background: rgba(20, 13, 8, .96); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(226, 190, 120, .6), 0 10px 24px rgba(0, 0, 0, .6); font: 18px 'EB Garamond', Georgia, serif; color: #f1e4c8;
   transition: opacity .2s, transform .2s; white-space: nowrap; }
 #lib-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Match setup (stage L): each side's deck, its picker, and a refused deck. */
+.setup-deck b { font-family: Cinzel, serif; font-weight: 700; letter-spacing: 1px; color: #f1e4c8; }
+.deck-pick { position: relative; z-index: 20; }
+.deck-change { height: 38px; padding: 0 18px; border-radius: 6px; border: 1px solid #c7a15a; background: linear-gradient(#3a2618, #1f140c); font: 700 14px Cinzel, serif; letter-spacing: 1.5px; color: #f1e4c8; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), 0 4px 12px rgba(0, 0, 0, .5); }
+.deck-change:hover, .deck-change:focus-visible, .deck-change.on { outline: none; box-shadow: 0 0 0 2px #f6dc8a, 0 0 14px rgba(255, 214, 120, .5); }
+.deck-menu { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); z-index: 20; width: 420px; max-height: 560px; overflow-y: auto; padding: 8px; border-radius: 10px;
+  background: linear-gradient(180deg, rgba(36, 24, 14, .99), rgba(18, 12, 7, .99)); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(226, 190, 120, .6), 0 18px 40px rgba(0, 0, 0, .7); }
+.deck-opt { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; padding: 9px 12px; border: 0; border-radius: 6px; background: none; color: #efe4c8; font: 18px 'EB Garamond', Georgia, serif; cursor: pointer; text-align: left; }
+.deck-opt b { font-family: Cinzel, serif; font-size: 16px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.deck-opt span { flex: none; font-size: 15px; color: #b9a98a; }
+.deck-opt:hover, .deck-opt:focus-visible { outline: none; background: rgba(241, 217, 160, .12); }
+.deck-opt.on { background: rgba(199, 161, 90, .22); box-shadow: inset 0 0 0 1px rgba(241, 217, 160, .6); }
+.deck-opt-note { padding: 8px 12px 4px; font: italic 15px 'EB Garamond', serif; color: #b9a98a; }
+.setup-refused { width: 360px; padding: 10px 14px; border-radius: 8px; background: rgba(138, 31, 24, .45); box-shadow: inset 0 0 0 1px rgba(255, 138, 120, .6); color: #ffe0d8; font-size: 17px; line-height: 1.35; text-align: center; }
+.lobby-btns { display: flex; gap: 16px; }
+.lobby-btns .scr-btn { width: 264px; }
+/* A friend's deck is never shown: its side has the card back, at a Full card's size. */
+.setup-card .back-full { width: 340px; height: 476px; border-radius: 14px; box-shadow: 0 0 0 1px #050302, 0 18px 40px rgba(0, 0, 0, .7); }

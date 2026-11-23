@@ -95,3 +95,12 @@ export function createDeckStore(storage = safeStorage()) {
 
   return { list, get, save, rename, duplicate, remove, importCode, legalDecks, choice, setChoice, freeName };
 }
+
+// The decks for a match against the AI, from the remembered choices: card ids for the engine (createGame's decks)
+// and their names.
+export function chosenDecks(store) {
+  const c = store.choice();
+  const you = store.get(c.you) ?? store.get(FIRST_ID);
+  const ai = store.get(c.ai) ?? store.get(FIRST_ID);
+  return { you: listToIds(you.cards), ai: listToIds(ai.cards), youId: you.id, aiId: ai.id, youName: you.name, aiName: ai.name };
+}

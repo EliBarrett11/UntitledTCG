@@ -22,6 +22,15 @@ const PEER = process.argv[2] ?? '127.0.0.1:9000';
 const SEED = Number(process.argv[3] ?? 7);
 const SIZE = { width: 1366, height: 768 };
 
+// Stage L: the guest builds its deck in the Card Library from a code: an unusual legal deck (no Locations, no Campaign).
+const { defineCards } = await import('../src/engine/cards.js');
+const { CARDS } = await import('../src/data/cards.js');
+const { encodeDeck, idsToList } = await import('../src/engine/decks.js');
+defineCards(CARDS);
+const GUEST_DECK_NAME = 'Guest Without Maps';
+const GUEST_IDS = CARDS.filter((d) => !['Location', 'Campaign'].includes(d.cardType) && !d.legendaryOf).flatMap((d) => (d.series === 'Legendary' ? [d.id] : [d.id, d.id])).slice(0, 40);
+const GUEST_CODE = encodeDeck({ name: GUEST_DECK_NAME, cards: idsToList(GUEST_IDS) });
+
 const server = staticServer(root);
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}/`;
@@ -188,10 +197,35 @@ try {
   await waitFor(guest, () => document.querySelector('[data-region="setup"]'));
   await host.page.waitForTimeout(600);
   await bothShots('setup');
+  // Stage L: the guest opens the Card Library from match setup, imports its deck code, comes back and chooses that
+  // deck. The host sees only its name and card count; the host's real game then deals the guest exactly that deck.
+  await click(guest, '[data-act="library"]', 0, 'Card Library');
+  await waitFor(guest, () => document.querySelector('[data-region="library"]'));
+  await click(guest, '[data-lib="import"]', 0, 'Import deck code');
+  await guest.page.fill('.ld-import textarea', GUEST_CODE);
+  await click(guest, '.ld-import [type="submit"]', 0, 'Import');
+  await waitFor(guest, (n) => document.querySelector('.ld-name')?.textContent === n, GUEST_DECK_NAME);
+  await click(guest, '[data-lib="back"]', 0, 'Back to setup');
+  await waitFor(guest, () => document.querySelector('[data-region="setup"]'));
+  await click(guest, '[data-act="deck-menu"]', 0, 'Choose your deck');
+  const opt = await guest.page.evaluate((n) => [...document.querySelectorAll('[data-act="pick-deck"]')].findIndex((b) => b.textContent.includes(n)), GUEST_DECK_NAME);
+  if (opt < 0) throw new Error('the imported deck isn\'t offered on match setup');
+  await click(guest, '[data-act="pick-deck"]', opt, 'pick the deck');
+  await waitFor(host, (n) => document.querySelector('[data-region="deck-them"]')?.textContent.includes(n), GUEST_DECK_NAME);
+  const hostSees = await host.page.textContent('[data-region="deck-them"]');
+  if (!/40 cards/.test(hostSees)) throw new Error(`the host sees the friend's deck as "${hostSees}"`);
+  say(`the guest chose "${GUEST_DECK_NAME}" in the Card Library; the host sees: ${hostSees.trim()}`);
+  await host.page.waitForTimeout(300);
+  await bothShots('setup-decks');
   await click(host, '[data-act="begin"]', 0, 'Begin');
   await waitFor(host, () => document.body.dataset.screen === 'match');
   await waitFor(guest, () => document.body.dataset.screen === 'match');
   say('the match began on both screens');
+  {
+    const dealt = await host.page.evaluate(() => { const p = window.__match.state().players.p2; return [...p.hand, ...p.drawPile].map((c) => c.id).sort(); });
+    if (JSON.stringify(dealt) !== JSON.stringify([...GUEST_IDS].sort())) throw new Error('the guest was not dealt its chosen deck');
+    say('the host\'s game dealt the guest its chosen deck (40 cards, no Locations, no Campaign)');
+  }
   // From here the guest's page is reloaded from its invite link (as reopening it would).
   const guestUrl = `${link}&speed=fast&lowmotion=1`;
 

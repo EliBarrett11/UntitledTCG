@@ -16,6 +16,9 @@
 //   host   again   {}                  both accepted a rematch: back to match setup
 //   host   full    {}                  (instead of a hello) the room already has its two players
 //   both   leave   {}                  this player left the match
+//   guest  deck    { deck: { name, cards: [{ id, copies }] } }   (stage L) the deck the guest chose, before a match
+//   host   decks   { host, guest, refused }   (stage L) each deck's { name, count } (never its list) and, when Begin
+//                                      was refused, { who, name, problems } (the rulebook section 4 problems)
 // `view` is always viewFor(state, guest seat) (with its redacted events) without its log; the log is sent as the
 // lines added since the last message.
 
