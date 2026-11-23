@@ -582,3 +582,42 @@ node tools/compare.mjs
   - the effects check passes;
   - the two-browser online check passes.
 - Readings for Elliott's approval: `docs/03-look-and-feel.md` section 16.
+
+### E: The effects test (18 November 2026)
+- Built to `docs/22-stage-e-prompt.md`, following `docs/20-vfx-style-guide.md` and the painted texture kit of `docs/21` (`assets/vfx/`). Three moments are rebuilt in the new style; every other effect is exactly as it was until Elliott approves. No rule changed.
+- **The effects renderer** (`src/ui/vfx/gl.js`, still hand-written WebGL2):
+  - **Shaped sprites:** they burn away along a painted noise with a thin bright edge, never just fading. Their noise and texture scroll and flow inside them, so fire licks and smoke rolls.
+  - **Element palettes:** each element has core, mid and edge colours (Fire, Arcane, Holy, Shadow, Nature, Ghostlight, Steel, Earth).
+  - **Sprite sheets** play in order.
+  - **Light on the board:** soft pools of colour over the cards and map, or a dip that dims them.
+  - **Board marks:** a scorch, a crack or a glyph ring that lies under the cards for a beat, then erodes.
+  - **One timing and easing table** (`src/ui/vfx/shaping.js`) drives the new moments' hit-stop, shake and push-in.
+  - **Quality steps** give up particles first. Missing textures are drawn in code, including a tileable noise.
+- **The three moments**, each built in five layers (anticipation, release, impact, secondary, settle):
+  - **A Martial attack and defeat:** Garrick, the Oathsworn Captain. White-gold glints; the painted crescent eroding across the target; 3 frames of hit-stop, the impact star, a shockwave, Steel sparks and a gold light; debris. Then the card burns away from its edges inward (an SVG noise filter on the card itself) with ash, a ghostlight wisp for the Barrow, a dust burst and a crack mark. The new defeat plays for every defeat.
+  - **Firebolt** at each size:
+    - **Adapt:** a ring of fire as the light dips warm; a flame-tongue bolt with a flowing trail; the burst eroding with heat haze and an orange light; smoke burning away; a scorch mark for about 1.5 s.
+    - **React:** a quick bolt and its impact.
+    - **Strat:** adds a vortex of fire tongues.
+  - **A Prime summon:**
+    - the Location dims as motes stream in and a glyph ring draws itself under the space;
+    - the card drops as rays fan up;
+    - 4 frames of hit-stop, the Prime burst, a 3 px shake, a 2% push-in and gold light;
+    - the Renown star and ribbon;
+    - motes settle as the ring erodes.
+  - All within their existing time budgets.
+  - **Low motion** keeps only their colour, light and erosion.
+- **The map wash** (approved follow-up): the cream wash is down from 0.40 to 0.12, and empty spaces are outlined rather than filled. The Last Battle's map is unchanged.
+- **Clips** (`tools/eclips.mjs`, in `tools/clips/`):
+  - each moment old against new, side by side;
+  - a 12-frame strip of each;
+  - each in low motion;
+  - the moments as they came up in a real match against the AI.
+  
+  They're recorded in slow motion (`tools/slowmo.mjs`) because this container renders WebGL in software, and are sped back up to true timing at 60 fps.
+- **Dev aids:** `?fxdemo` stages each moment through the real engine; `?fx=old` plays the old effects.
+- **Checks:**
+  - `tests/e-effects.test.js`: palettes, erosion, sheet frames, the timing table, the light curve, and the moments' budgets and textures;
+  - the effects, layout, real-input and presenter checks;
+  - `tools/eperf.mjs` for frame times.
+- Readings for Elliott's approval: `docs/03-look-and-feel.md` section 17.

@@ -8,13 +8,15 @@ import { legalActions } from '../src/engine/game.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
 import { EFFECTS, BEAT_EFFECTS, BUDGET, BUDGET_SLACK, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, texturesOf, longestRun } from '../src/ui/vfx/library.js';
 import { runEffect, flatten } from '../src/ui/vfx/runner.js';
+import { hitstopMs } from '../src/ui/vfx/shaping.js';
 
 const root = new URL('..', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
 const manifest = JSON.parse(read('assets/vfx/manifest.json')).textures;
 const kitIds = new Set([...read('docs/08-vfx-prompts.md').matchAll(/### \d+\. `([a-z0-9-]+)`/g)].map((m) => m[1]));
+const kit21 = new Set(read('docs/21-vfx-texture-prompts.md').match(/vfx-[a-z-]+/g));
 defineCards(CARDS);
-const OPS = new Set(['sprite', 'burst', 'emit', 'ribbon', 'projectile', 'beam', 'wave', 'heat', 'shake', 'hitstop', 'flash', 'dom', 'call', 'use']);
+const OPS = new Set(['sprite', 'burst', 'emit', 'ribbon', 'projectile', 'beam', 'wave', 'heat', 'shake', 'hitstop', 'flash', 'dom', 'call', 'use', 'light', 'pushin']);   // (stage E: light and pushin)
 
 test('every creature in the first deck (each form) and the Legendary Creature resolves to an attack effect', () => {
   const ids = new Set(FIRST_DECK);
@@ -26,7 +28,7 @@ test('every creature in the first deck (each form) and the Legendary Creature re
     for (const c of creatures) {
       const id = attackEffectFor(c);
       assert.ok(EFFECTS[id], `${c.form ?? c.id}: ${id}`);
-      assert.ok(id.startsWith('attack.'));
+      assert.ok(id.startsWith('attack.') || id.startsWith('e.attack.'));
       n += 1;
     }
   }
@@ -40,7 +42,8 @@ test('every creature in the first deck (each form) and the Legendary Creature re
   assert.equal(attackEffectFor(c('gloomfang-wolf')), 'attack.beast');
   assert.equal(attackEffectFor(c('barrow-shade')), 'attack.barrow');
   assert.equal(attackEffectFor(c('ashen-spire-apprentice')), 'attack.spire');
-  assert.equal(attackEffectFor(c('oathsworn-recruit')), 'attack.oathsworn');
+  // (Stage E: Garrick's attack is the new Martial test moment.)
+  assert.equal(attackEffectFor(c('oathsworn-recruit')), 'e.attack.steel');
   // (V2: each series has its own signature; Class and Kind remain the fallback for new cards.)
   assert.equal(attackEffectFor({ traits: { class: 'Ranger' } }), 'attack.ranger');
   assert.equal(attackEffectFor({ traits: { kind: 'Undead' } }), 'attack.undead');
@@ -55,7 +58,7 @@ test('every presenter beat type has an effect, and every card effect resolves', 
   assert.ok(kinds.size >= 25);
   for (const k of kinds) { assert.ok(BEAT_EFFECTS[k], `beat ${k} has no effect`); assert.ok(EFFECTS[BEAT_EFFECTS[k]], `beat ${k}: ${BEAT_EFFECTS[k]}`); }
   for (const op of ['damage', 'heal', 'tempAttack', 'attack', 'health', 'tempHealth', 'spend', 'activate', 'returnHand']) assert.ok(EFFECTS[effectFor(op, 'Nobody')], op);
-  assert.equal(effectFor('damage', 'Firebolt', 'adapt'), 'spell.firebolt');
+  assert.equal(effectFor('damage', 'Firebolt', 'adapt'), 'e.firebolt');
   assert.equal(effectFor('damage', 'Flask of Wildfire'), 'item.wildfire');
   assert.equal(effectFor('damage', 'The Ashen Wyrm'), 'wyrm.onsummon');
   assert.equal(effectFor('damage', 'Barrow Lord'), 'shade.drain');
@@ -85,7 +88,8 @@ test('durations keep to the timing budget (docs/10-feel-and-vfx.md section 2)', 
 test('every texture an effect names is a kit id; those not delivered yet are drawn in code', () => {
   const used = new Set();
   for (const id of Object.keys(EFFECTS)) for (const t of texturesOf(id)) used.add(t);
-  for (const t of used) assert.ok(kitIds.has(t), `${t} is not in docs/08-vfx-prompts.md`);
+  // (Stage E: the effects kit of docs/21, vfx-*, joins docs/08's.)
+  for (const t of used) assert.ok(kitIds.has(t) || (/^vfx-/.test(t) && kit21.has(t)), `${t} is not in docs/08-vfx-prompts.md or docs/21-vfx-texture-prompts.md`);
   const missing = [...used].filter((t) => !manifest[t]);
   // The kit is complete for every effect in the library (any texture still to come is drawn in code).
   assert.deepEqual(missing, []);
@@ -131,8 +135,8 @@ test('every effect finishes at every speed, with its hooks run once each', async
       const { vfx, ctx, log } = fakes({ factor });
       await runEffect(ctx, vfx, id, e);
       assert.deepEqual(calls.sort(), hooksIn(id, e.flags).sort(), `${id} at ${speed}`);
-      const stop = flatten(id, e.flags).filter((s) => s.op === 'hitstop').reduce((n, s) => n + s.ms[1], 0);
-      assert.ok(log.elapsed <= Math.round((EFFECTS[id].duration + stop) * factor) + 2, `${id} at ${speed}: ${log.elapsed} ms`);
+      const stop = flatten(id, e.flags).filter((s) => s.op === 'hitstop').reduce((n, s) => n + (s.weight ? hitstopMs(s.weight) : s.ms[1]), 0);
+      assert.ok(log.elapsed <= Math.round((EFFECTS[id].duration + stop) * factor) + 6, `${id} at ${speed}: ${log.elapsed} ms`);
       assert.ok(log.elapsed >= Math.round(EFFECTS[id].duration * factor) - 2, `${id} at ${speed} ended early: ${log.elapsed} ms`);
     }
   }

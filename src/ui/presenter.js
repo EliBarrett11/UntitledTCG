@@ -12,6 +12,7 @@ import { handLayout, LANE_W, HAND, tileArt } from './view.js';
 import { hasGuard, mightOf } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
 import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS } from './vfx/library.js';
+import { OLD_OF } from './vfx/stageE.js';
 
 const STAGE_W = 1920;
 // (Stage M: looked up each time, so they follow this screen's seat.)
@@ -312,7 +313,10 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       if (top >= layer && layering.bad.length < 50) layering.bad.push({ id, layer, target: top });
     }
   }
-  const fxRun = (ctx, id, env) => {
+  // (Stage E: ?fx=old plays the effects the three test moments replace, for the side-by-side clips.)
+  const fxOld = typeof location !== 'undefined' && new URLSearchParams(location.search).get('fx') === 'old';
+  const fxRun = (ctx, id0, env) => {
+    const id = fxOld ? OLD_OF[id0] ?? id0 : id0;
     try { recordLayering(id, env); } catch { /* (a check aid only) */ }
     document.body.dataset.effect = id;
     document.body.dataset.effectFlags = Object.entries(env.flags ?? {}).filter(([, v]) => v).map(([k]) => k).join(' ');
@@ -549,7 +553,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             setText(dial, before);
             focus = where(e.who, e.space);
             const lv = lvlOf(t);
-            await fxRun(ctx, settings().lowMotion ? 'prime.summon.low' : 'prime.summon', {
+            await fxRun(ctx, settings().lowMotion ? 'e.prime.low' : 'e.prime', {
               anchors: anchors({ dst: focus, lvl: lv ? box(lv) : focus, dial: dial ? box(dial) : centre }), els: { dst: t }, tint: '#f2c46a',
               hooks: { tick: () => { landRenown(ctx, dial); } },
             });
@@ -729,7 +733,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 },
               },
             };
-            await fxRun(ctx, 'defeat', env);
+            await fxRun(ctx, 'e.defeat', env);
             burnt(env.els.ghost ?? q(`[data-ghost="${e.who}:${e.space}"]`));
           });
           break;

@@ -9,12 +9,20 @@
 //   pass (shockwave rings and heat shimmer) put it on the canvas. Light leaves the canvas's alpha at 0, so it
 //   adds over the board beneath; solid pieces cover it.
 // - Effect time can be frozen (hit-stop). The render loop runs only while something is alive.
+// - Stage E (docs/20): shaped sprites. A particle can carry a tileable noise texture and burn away along it (an
+//   erosion threshold rising over its life, with a thin bright edge in its element's core colour); its noise and
+//   texture can scroll and flow inside it; an element palette (core, mid, edge) can recolour its brightness; and it
+//   can play a sprite sheet's frames in order. Board marks are particles drawn first, under the cards (each card's
+//   box is cut out of them). Lights are short-lived soft pools of colour added over the board (or dimming it).
 //
 // Coordinates are stage pixels (1920×1080); times are ms of effect time.
 
 const STAGE_W = 1920;
 const STAGE_H = 1080;
-const FLOATS = 32;   // per particle: 8 vec4s
+const FLOATS = 48;   // per particle: 12 vec4s (stage E added 4)
+const NOISE = ['vfx-noise-brush', 'vfx-noise-cells', 'vfx-noise-embers', 'vfx-noise-wisps'];
+const MAX_LIGHTS = 8;
+const MAX_OCC = 24;
 
 const PARTICLE_VS = `#version 300 es
 layout(location=0) in vec2 corner;
@@ -26,15 +34,26 @@ layout(location=5) in vec4 a4; // uv rect
 layout(location=6) in vec4 a5; // colour at birth (rgb tint, alpha)
 layout(location=7) in vec4 a6; // colour at death
 layout(location=8) in vec4 a7; // align to velocity, tint amount, size curve, squash
+layout(location=9) in vec4 a8;   // erosion from, to, start (share of life), edge width
+layout(location=10) in vec4 a9;  // noise index (-1 none), noise scale, noise scroll u, v (per s)
+layout(location=11) in vec4 a10; // flow, texture scroll u, v (per s), palette index (-1 none)
+layout(location=12) in vec4 a11; // sheet start, count (0: fixed), fps (negative: once), palette strength
 uniform float uTime;
+uniform vec4 uFrames[32];
 out vec2 vUv;
 out vec4 vCol;
 out float vTint;
+out vec2 vLocal;
+out vec4 vFrame;
+out vec4 vE;   // threshold, edge, noise index, noise scale
+out vec4 vS;   // noise scroll offset (u, v), flow, palette
+out vec4 vT;   // texture scroll offset (u, v), palette strength, age (s)
+out vec2 vPos;
 void main() {
   float t = (uTime - a1.w) / 1000.0;
   float life = a2.x / 1000.0;
   float k = t / life;
-  if (t < 0.0 || k >= 1.0) { gl_Position = vec4(3.0, 3.0, 3.0, 1.0); vUv = vec2(0.0); vCol = vec4(0.0); vTint = 0.0; return; }
+  if (t < 0.0 || k >= 1.0) { gl_Position = vec4(3.0, 3.0, 3.0, 1.0); vUv = vec2(0.0); vCol = vec4(0.0); vTint = 0.0; vLocal = vec2(0.0); vFrame = vec4(0.0); vE = vec4(0.0); vS = vec4(0.0); vT = vec4(0.0); vPos = vec2(0.0); return; }
   vec2 v0 = a0.zw; vec2 g = a1.xy; float d = a1.z;
   vec2 pos; vec2 vel;
   if (d > 0.001) { float e = exp(-d * t); pos = a0.xy + (v0 - g / d) * (1.0 - e) / d + g * t / d; vel = (v0 - g / d) * e + g / d; }
@@ -48,31 +67,104 @@ void main() {
   c = vec2(c.x * cs - c.y * sn, c.x * sn + c.y * cs);
   vec2 p = pos + c;
   gl_Position = vec4(p.x / ${STAGE_W}.0 * 2.0 - 1.0, 1.0 - p.y / ${STAGE_H}.0 * 2.0, 0.0, 1.0);
-  vUv = a4.xy + (corner + 0.5) * a4.zw;
+  vPos = p;
+  // (Stage E: a sprite sheet played in order, else the frame it was given.)
+  vec4 fr = a4;
+  if (a11.y > 0.5) {
+    float n = floor(t * abs(a11.z));
+    float i = a11.z < 0.0 ? min(n, a11.y - 1.0) : mod(n, a11.y);
+    fr = uFrames[int(a11.x + i)];
+  }
+  vFrame = fr;
+  vLocal = corner + 0.5;
+  vUv = fr.xy + vLocal * fr.zw;
   float fi = a3.z > 0.0 ? clamp(k / a3.z, 0.0, 1.0) : 1.0;
   float fo = k > a3.w ? 1.0 - (k - a3.w) / max(0.0001, 1.0 - a3.w) : 1.0;
   vCol = mix(a5, a6, k);
   vCol.a *= fi * fo;
   vTint = a7.y;
+  // Erosion: the threshold rises from 'from' to 'to', eased in, from 'start' on (shaping.js erosionAt).
+  float ke = clamp((k - a8.z) / max(0.000001, 1.0 - a8.z), 0.0, 1.0);
+  float th = a8.x + (a8.y - a8.x) * ke * ke;
+  vE = vec4(th, a8.w, a9.x, a9.y);
+  vS = vec4(a9.z * t, a9.w * t, a10.x, a10.w);
+  vT = vec4(a10.y * t, a10.z * t, a11.w, t);
 }`;
 
 const PARTICLE_FS = `#version 300 es
 precision highp float;
 uniform sampler2D uTex;
+uniform sampler2D uN0;
+uniform sampler2D uN1;
+uniform sampler2D uN2;
+uniform sampler2D uN3;
+uniform vec3 uPal[24];
 uniform float uLight;
+uniform vec4 uOcc[${MAX_OCC}];
+uniform int uOccN;
 in vec2 vUv;
 in vec4 vCol;
 in float vTint;
+in vec2 vLocal;
+in vec4 vFrame;
+in vec4 vE;
+in vec4 vS;
+in vec4 vT;
+in vec2 vPos;
 out vec4 o;
+float noiseAt(float idx, vec2 p) {
+  if (idx < 0.5) return texture(uN0, p).r;
+  if (idx < 1.5) return texture(uN1, p).r;
+  if (idx < 2.5) return texture(uN2, p).r;
+  return texture(uN3, p).r;
+}
+vec3 palette(float idx, float l) {
+  int i = int(idx) * 3;
+  vec3 core = uPal[i]; vec3 mid = uPal[i + 1]; vec3 edge = uPal[i + 2];
+  return l < 0.5 ? mix(edge, mid, l / 0.5) : mix(mid, core, (l - 0.5) / 0.5);
+}
 void main() {
-  vec4 t = texture(uTex, vUv);   // premultiplied
+  // (Stage E: a board mark never covers a card: each card's box is cut out of it.)
+  for (int i = 0; i < ${MAX_OCC}; i++) {
+    if (i >= uOccN) break;
+    vec4 r = uOcc[i];
+    if (vPos.x > r.x && vPos.x < r.x + r.z && vPos.y > r.y && vPos.y < r.y + r.w) discard;
+  }
+  vec2 uv = vUv;
+  float hasNoise = vE.z >= 0.0 ? 1.0 : 0.0;
+  vec2 np = vLocal * vE.w + vS.xy;
+  float n = hasNoise > 0.5 ? noiseAt(vE.z, np) : 1.0;
+  // Flow: the texture is pushed about inside its frame by the noise, so fire licks and smoke rolls.
+  if (hasNoise > 0.5 && vS.z > 0.0) {
+    vec2 dn = vec2(noiseAt(vE.z, np * 0.7 + vec2(0.37, 0.11)), noiseAt(vE.z, np * 0.7 + vec2(0.71, 0.53))) - 0.5;
+    uv += dn * vS.z * vFrame.zw;
+  }
+  // Scroll: the texture slides inside its frame (wrapping), for trails and rays.
+  if (vT.x != 0.0 || vT.y != 0.0) uv = vFrame.xy + fract((uv - vFrame.xy) / max(vFrame.zw, vec2(1e-5)) + vT.xy) * vFrame.zw;
+  uv = clamp(uv, vFrame.xy, vFrame.xy + vFrame.zw);
+  vec4 t = texture(uTex, uv);   // premultiplied
+  float l = max(t.r, max(t.g, t.b));
+  vec3 base = t.rgb;
+  if (vS.w >= 0.0) {
+    vec3 pc = palette(vS.w, uLight > 0.5 ? l : l / max(t.a, 0.0001));
+    base = mix(base, pc * (uLight > 0.5 ? l : t.a), vT.z);
+  }
+  // Erosion with a thin bright edge in the palette's core colour (white-gold without a palette).
+  float keep = 1.0; float edge = 0.0;
+  if (vE.x > 0.0) {
+    keep = smoothstep(vE.x, vE.x + 0.015, n);
+    edge = keep * (1.0 - smoothstep(vE.x + vE.y, vE.x + vE.y + 0.015, n));
+  }
+  vec3 core = vS.w >= 0.0 ? uPal[int(vS.w) * 3] : vec3(1.0, 0.93, 0.75);
   if (uLight > 0.5) {
-    float l = max(t.r, max(t.g, t.b));
     vec3 hue = vCol.rgb / max(0.0001, max(vCol.r, max(vCol.g, vCol.b)));
     vec3 tinted = l * hue + pow(l, 4.0) * 0.55 * (1.0 - hue);
-    o = vec4(mix(t.rgb, tinted, vTint) * vCol.a, 0.0);
+    vec3 c = mix(base, tinted, vTint) * keep + core * edge * clamp(l * 3.0, 0.0, 1.0) * 1.3;
+    o = vec4(c * vCol.a, 0.0);
   } else {
-    o = vec4(t.rgb * mix(vec3(1.0), vCol.rgb, vTint), t.a) * vCol.a;
+    vec3 c = base * mix(vec3(1.0), vCol.rgb, vTint);
+    float a = t.a * keep;
+    o = vec4(c * keep + core * edge * t.a * 1.2, a) * vCol.a;
   }
 }`;
 
@@ -138,6 +230,8 @@ uniform vec4 uWave[4];    // x, y (stage px), radius, strength
 uniform float uWaveW[4];
 uniform vec4 uHeat;       // x, y, radius, strength
 uniform float uTime;
+uniform vec4 uLight[${MAX_LIGHTS}];   // x, y, radius, intensity (negative dims)
+uniform vec3 uLightC[${MAX_LIGHTS}];
 in vec2 vUv;
 out vec4 o;
 void main() {
@@ -159,7 +253,16 @@ void main() {
   vec2 uv = vUv - vec2(off.x / ${STAGE_W}.0, -off.y / ${STAGE_H}.0);
   vec4 s = texture(uScene, uv);
   vec3 b = texture(uBloom, vUv).rgb * uBloomK;
-  o = vec4(s.rgb + b, s.a);
+  // (Stage E: lights on the board: a soft pool of colour added over everything beneath, or a dip that dims it.)
+  vec3 lit = vec3(0.0); float dim = 0.0;
+  for (int i = 0; i < ${MAX_LIGHTS}; i++) {
+    vec4 L = uLight[i];
+    if (L.w == 0.0) continue;
+    float f = 1.0 - smoothstep(0.0, L.z, length(p - L.xy));
+    f *= f;
+    if (L.w > 0.0) lit += uLightC[i] * L.w * f; else { dim += -L.w * f; lit += uLightC[i] * -L.w * f * 0.25; }
+  }
+  o = vec4(s.rgb + b + lit, min(1.0, s.a + dim * (1.0 - s.a)));
 }`;
 
 function compile(gl, vs, fs) {
@@ -225,26 +328,30 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     const old = textures.get(id);
     const tex = old?.tex ?? gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, blend !== 'noise');
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    // (Stage E: a noise texture tiles, and is read raw.)
+    const wrap = blend === 'noise' ? gl.REPEAT : gl.CLAMP_TO_EDGE;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
     const fr = (frames ?? [{ x: 0, y: 0, w, h }]).map((f) => [f.x / w, f.y / h, f.w / w, f.h / h, f.w / f.h]);
     textures.set(id, { tex, blend, frames: fr, aspect: w / h, real: !!real });
   }
 
   // --- Particle pools (one per texture) ----------------------------------------------------------------------
   const pools = new Map();
-  function pool(id) {
-    let pl = pools.get(id);
+  // (Stage E: a pool is keyed by its texture, or 'mark:' and its texture for board marks.)
+  function pool(id, mark = false) {
+    const key = mark ? `mark:${id}` : id;
+    let pl = pools.get(key);
     if (pl) return pl;
     const cap = 256;
-    pl = { id, cap, data: new Float32Array(cap * FLOATS), head: 0, deathAt: 0, buf: gl.createBuffer(), vao: gl.createVertexArray(), dirtyFrom: Infinity, dirtyTo: -1, groups: new Map() };
+    pl = { id, key, mark, cap, data: new Float32Array(cap * FLOATS), head: 0, deathAt: 0, buf: gl.createBuffer(), vao: gl.createVertexArray(), dirtyFrom: Infinity, dirtyTo: -1, groups: new Map() };
     setupPool(pl);
-    pools.set(id, pl);
+    pools.set(key, pl);
     return pl;
   }
   function setupPool(pl) {
@@ -254,7 +361,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, pl.buf);
     gl.bufferData(gl.ARRAY_BUFFER, pl.data.byteLength, gl.DYNAMIC_DRAW);
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < FLOATS / 4; i++) {
       gl.enableVertexAttribArray(1 + i);
       gl.vertexAttribPointer(1 + i, 4, gl.FLOAT, false, FLOATS * 4, i * 16);
       gl.vertexAttribDivisor(1 + i, 1);
@@ -273,8 +380,10 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   }
   // Writes one particle. p: { x, y, vx, vy, gx, gy, drag, life, w, h, scaleEnd, rot, spin, fadeIn, fadeOut,
   // frame, col0 [r,g,b,a], col1, align, tint, curve, delay }. Returns its slot.
+  //   Stage E adds: erode { from, to, start }, edge, noise (an id from NOISE), noiseScale, scroll [u, v],
+  //   flow, texScroll [u, v], palette (an index), paletteK, seq { start, count, fps, once }, mark.
   function spawn(id, p, group) {
-    const pl = pool(id);
+    const pl = pool(id, !!p.mark);
     const t = now() + (p.delay ?? 0);
     // Reuse a dead slot at the head; grow if the head is still alive.
     let i = pl.head;
@@ -293,6 +402,14 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     d[o + 16] = fr[0]; d[o + 17] = fr[1]; d[o + 18] = fr[2]; d[o + 19] = fr[3];
     d.set(c0, o + 20); d.set(c1, o + 24);
     d[o + 28] = p.align ? 1 : 0; d[o + 29] = p.tint ?? 0; d[o + 30] = p.curve ?? 0; d[o + 31] = 0;
+    const er = p.erode;
+    d[o + 32] = er ? er.from ?? 0 : 0; d[o + 33] = er ? er.to ?? 1 : 0; d[o + 34] = er ? er.start ?? 0.35 : 0; d[o + 35] = p.edge ?? 0.06;
+    const ni = p.noise ? NOISE.indexOf(p.noise) : -1;
+    d[o + 36] = ni; d[o + 37] = p.noiseScale ?? 1; d[o + 38] = p.scroll?.[0] ?? 0; d[o + 39] = p.scroll?.[1] ?? 0;
+    d[o + 40] = ni >= 0 ? p.flow ?? 0 : 0; d[o + 41] = p.texScroll?.[0] ?? 0; d[o + 42] = p.texScroll?.[1] ?? 0; d[o + 43] = p.palette ?? -1;
+    const sq = p.seq && tx && tx.frames.length > 1 ? p.seq : null;
+    d[o + 44] = sq ? Math.min(31, sq.start ?? 0) : 0; d[o + 45] = sq ? Math.min(32 - (sq.start ?? 0), sq.count ?? tx.frames.length) : 0;
+    d[o + 46] = sq ? (sq.fps ?? 24) * (sq.once ? -1 : 1) : 0; d[o + 47] = p.paletteK ?? 1;
     pl.dirtyFrom = Math.min(pl.dirtyFrom, i); pl.dirtyTo = Math.max(pl.dirtyTo, i);
     pl.deathAt = Math.max(pl.deathAt, t + p.life);
     if (group != null) { if (!pl.groups.has(group)) pl.groups.set(group, []); pl.groups.get(group).push(i); }
@@ -355,6 +472,32 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   }
   let heat = null;
   function shimmer({ x, y, radius = 160, strength = 3, dur = 600 }) { heat = { x, y, radius, strength, t0: now(), dur }; wake(); }
+
+  // --- Lights on the board (stage E) -------------------------------------------------------------------------------
+  // { x, y, radius, col [r,g,b], peak (negative dims), attack, hold, decay, delay }, intensity over time as lightAt.
+  const lights = [];
+  function light(L) {
+    lights.push({ ...L, t0: now() + (L.delay ?? 0) });
+    if (lights.length > MAX_LIGHTS) lights.shift();
+    wake();
+  }
+  const lightCurve = (L, t) => {
+    const e = t - L.t0;
+    if (e < 0) return 0;
+    const a = L.attack ?? 60; const h = L.hold ?? 80; const dcy = L.decay ?? 400; const pk = L.peak ?? 1;
+    if (e < a) return pk * (1 - (1 - e / Math.max(1, a)) ** 3);
+    if (e < a + h) return pk;
+    const k = (e - a - h) / Math.max(1, dcy);
+    return k >= 1 ? 0 : pk * (1 - (1 - (1 - k) ** 3));
+  };
+  const lightEnd = (L) => L.t0 + (L.attack ?? 60) + (L.hold ?? 80) + (L.decay ?? 400);
+  // The cards' boxes (stage px), cut out of board marks; kept up to date by the effects layer while marks show.
+  let occluders = [];
+  function setOccluders(rects) { occluders = rects.slice(0, MAX_OCC); }
+  const marksAlive = (t) => [...pools.values()].some((pl) => pl.mark && pl.deathAt > t);
+  // The element palettes, as one uniform array (set once).
+  let palData = new Float32Array(24 * 3);
+  function setPalettes(list) { palData = new Float32Array(24 * 3); list.slice(0, 8).forEach((pal, i) => pal.forEach((c, j) => palData.set(c, (i * 3 + j) * 3))); }
 
   // --- Bloom flash -----------------------------------------------------------------------------------------------
   let flashK = 0; let flashT0 = 0; let flashDur = 1;
@@ -439,6 +582,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     if (ribbons.some((r) => r.end > t)) return true;
     if (waves.some((w) => w.t0 + w.dur > t)) return true;
     if (heat && heat.t0 + heat.dur > t) return true;
+    if (lights.some((L) => lightEnd(L) > t)) return true;
     if (onFrame?.alive?.()) return true;
     return false;
   }
@@ -499,14 +643,31 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     gl.useProgram(P.p);
     gl.uniform1f(P.u.uTime, t);
     gl.uniform1i(P.u.uTex, 0);
+    // (Stage E: the four noise textures on units 1–4, the palettes, and the cards' boxes for board marks.)
+    NOISE.forEach((nid, i) => {
+      gl.uniform1i(P.u[`uN${i}`], 1 + i);
+      gl.activeTexture(gl.TEXTURE1 + i);
+      gl.bindTexture(gl.TEXTURE_2D, textures.get(nid)?.tex ?? null);
+    });
+    gl.uniform3fv(P.u.uPal, palData);
+    const occ = new Float32Array(MAX_OCC * 4);
+    occluders.forEach((r, i) => occ.set([r.x, r.y, r.w, r.h], i * 4));
+    gl.uniform4fv(P.u.uOcc, occ);
     gl.activeTexture(gl.TEXTURE0);
-    for (const pass of ['alpha', 'light']) {
-      if (pass === 'alpha') blendAlpha(); else blendLight();
-      gl.uniform1f(P.u.uLight, pass === 'light' ? 1 : 0);
-      for (const pl of pools.values()) {
+    const ordered = [...pools.values()].sort((a, b) => (b.mark ? 1 : 0) - (a.mark ? 1 : 0));
+    for (const pass of ['mark', 'alpha', 'light']) {
+      for (const pl of ordered) {
         if (pl.deathAt <= t) continue;
         const tx = textures.get(pl.id);
-        if (!tx || tx.blend !== pass) continue;
+        if (!tx) continue;
+        const kind = tx.blend === 'noise' ? null : pl.mark ? 'mark' : tx.blend;
+        if (kind !== pass) continue;
+        if (tx.blend === 'alpha') blendAlpha(); else blendLight();
+        gl.uniform1f(P.u.uLight, tx.blend === 'light' ? 1 : 0);
+        gl.uniform1i(P.u.uOccN, pl.mark ? occluders.length : 0);
+        const fr = new Float32Array(32 * 4);
+        tx.frames.slice(0, 32).forEach((f, i) => fr.set(f.slice(0, 4), i * 4));
+        gl.uniform4fv(P.u.uFrames, fr);
         if (pl.dirtyTo >= pl.dirtyFrom) {
           gl.bindBuffer(gl.ARRAY_BUFFER, pl.buf);
           gl.bufferSubData(gl.ARRAY_BUFFER, pl.dirtyFrom * FLOATS * 4, pl.data, pl.dirtyFrom * FLOATS, (pl.dirtyTo - pl.dirtyFrom + 1) * FLOATS);
@@ -584,6 +745,11 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     gl.uniform4fv(C.u.uWave, wv);
     gl.uniform1fv(C.u.uWaveW, ww.map((x) => x || 1));
     if (heat && !lowMotion && t < heat.t0 + heat.dur) { const k = (t - heat.t0) / heat.dur; gl.uniform4f(C.u.uHeat, heat.x, heat.y, heat.radius, heat.strength * Math.sin(Math.PI * k)); } else gl.uniform4f(C.u.uHeat, 0, 0, 0, 0);
+    for (let i = lights.length - 1; i >= 0; i--) if (lightEnd(lights[i]) < t) lights.splice(i, 1);
+    const lv = new Float32Array(MAX_LIGHTS * 4); const lc = new Float32Array(MAX_LIGHTS * 3);
+    lights.forEach((L, i) => { lv.set([L.x, L.y, L.radius ?? 200, lightCurve(L, t)], i * 4); lc.set(L.col ?? [1, 0.85, 0.6], i * 3); });
+    gl.uniform4fv(C.u.uLight, lv);
+    gl.uniform3fv(C.u.uLightC, lc);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindVertexArray(null);
   }
@@ -591,7 +757,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   // Clears everything at once (a new match).
   function clear() {
     for (const pl of pools.values()) { pl.data.fill(0); pl.deathAt = 0; pl.dirtyFrom = 0; pl.dirtyTo = pl.cap - 1; pl.groups.clear(); }
-    emitters.length = 0; waves.length = 0; heat = null;
+    emitters.length = 0; waves.length = 0; heat = null; lights.length = 0;
     for (const r of ribbons) r.end = 0;
     wake();
   }
@@ -599,6 +765,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   return {
     gl, now, freeze, upload, has: (id) => textures.has(id), poolAlive: (id, t) => (pools.get(id)?.deathAt ?? 0) > t, isReal: (id) => !!textures.get(id)?.real, blendOf: (id) => textures.get(id)?.blend,
     spawn, ribbon, wave, shimmer, flash, emitter, kill, release, resize, clear, frameAspect, frameCount,
+    light, setOccluders, setPalettes, marksAlive: () => marksAlive(now()), lightCount: () => lights.length, NOISE,
     set lowMotion(v) { lowMotion = !!v; }, set bloom(v) { bloomBase = v; },
     get running() { return running; }, get frames() { return frames; }, frameTimes, wake,
     get size() { return { w: W, h: H }; },

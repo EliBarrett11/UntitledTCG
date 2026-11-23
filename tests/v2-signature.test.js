@@ -47,9 +47,10 @@ test('every Action resolves each of its modes to its own effect; every React has
       }
     }
   }
-  assert.equal(effectFor('damage', 'Firebolt', 'react'), 'firebolt.react');
-  assert.equal(effectFor('damage', 'Firebolt', 'adapt'), 'spell.firebolt');
-  assert.equal(effectFor('damage', 'Firebolt', 'strat'), 'firebolt.strat');
+  // (Stage E: Firebolt is the new Fire test moment at each size.)
+  assert.equal(effectFor('damage', 'Firebolt', 'react'), 'e.firebolt.react');
+  assert.equal(effectFor('damage', 'Firebolt', 'adapt'), 'e.firebolt');
+  assert.equal(effectFor('damage', 'Firebolt', 'strat'), 'e.firebolt.strat');
   assert.equal(effectFor('tempAttack', 'Parry', 'adapt'), 'parry.adapt');
   assert.equal(effectFor('spend', 'Night Raid', 'adapt'), 'nightraid.adapt');
   assert.equal(effectFor('spend', 'Night Raid', 'strat'), 'nightraid.strat');

@@ -29,7 +29,17 @@ const SHAPE_OF = new Map(Object.entries(SHAPE).flatMap(([k, ids]) => ids.map((id
 // Solid stand-ins are drawn with normal blending; the rest are light.
 const SOLID = new Set(['shard', 'coin', 'card']);
 
+// Stage E: the effects kit's textures (vfx-*), each stood in for by its nearest shape.
+const KIT = { 'vfx-slash-crescent': 'arc', 'vfx-impact-star': 'glow', 'vfx-shockwave': 'ring', 'vfx-fire-burst': 'glow', 'vfx-fire-ring': 'ring', 'vfx-fire-trail': 'streak',
+  'vfx-holy-rays': 'glow', 'vfx-prime-burst': 'glow', 'vfx-renown-star': 'glow', 'vfx-arcane-glyphring': 'ring', 'vfx-burn-edge': 'streak', 'vfx-ghost-veil': 'streak',
+  'vfx-dust-burst': 'smoke', 'vfx-crack': 'shard1', 'vfx-scorch-mark': 'scorch', 'vfx-shield-sigil': 'ring', 'vfx-ward-hex': 'ring', 'vfx-holy-dome': 'glow', 'vfx-arcane-lance': 'streak',
+  'vfx-arcane-ribbon': 'streak', 'vfx-shadow-claws': 'arc', 'vfx-shadow-eyes': 'glow' };
 export function shapeOf(id) {
+  if (/^vfx-noise-/.test(id)) return 'noise';
+  if (KIT[id]) return KIT[id];
+  if (/^vfx-(sparks|holy-motes|fire-tongues|arcane-shards|ghostlight-flames)$/.test(id)) return 'spark';
+  if (/^vfx-(ash|debris|leaves|petals)$/.test(id)) return 'shard';
+  if (/^vfx-(smoke-puffs|shadow-wisps)$/.test(id)) return 'smoke';
   if (SHAPE_OF.has(id)) return SHAPE_OF.get(id);
   if (/atlas$/.test(id)) return 'spark';
   if (/ring|sigil|circle/.test(id)) return 'ring';
@@ -42,8 +52,45 @@ function rnd(seed) { let t = seed >>> 0; return () => { t = (t + 0x6d2b79f5) >>>
 const hash = (s) => [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7);
 
 // Draws a soft, painterly stand-in for a texture on a 2D canvas. Returns { canvas, blend, frames }.
+// A tileable value noise (stage E's stand-in for vfx-noise-*): smooth octaves on a 128 px wrapping grid.
+export function drawNoise(seed, size = 128) {
+  const cv = document.createElement('canvas');
+  cv.width = size; cv.height = size;
+  const g = cv.getContext('2d');
+  const img = g.createImageData(size, size);
+  const r = rnd(seed);
+  const octave = (cells) => { const v = Array.from({ length: cells * cells }, () => r()); return (x, y) => {
+    const fx = (x / size) * cells; const fy = (y / size) * cells; const x0 = Math.floor(fx); const y0 = Math.floor(fy);
+    const sx = fx - x0; const sy = fy - y0; const at = (i, j) => v[((j % cells) * cells) + (i % cells)];
+    const s = (k) => k * k * (3 - 2 * k);
+    const a = at(x0, y0) + (at(x0 + 1, y0) - at(x0, y0)) * s(sx); const b = at(x0, y0 + 1) + (at(x0 + 1, y0 + 1) - at(x0, y0 + 1)) * s(sx);
+    return a + (b - a) * s(sy); }; };
+  const os = [octave(4), octave(8), octave(16), octave(32)];
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const v = os[0](x, y) * 0.5 + os[1](x, y) * 0.25 + os[2](x, y) * 0.15 + os[3](x, y) * 0.1;
+    const c = Math.round(v * 255); const i = (y * size + x) * 4;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = c; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  return cv;
+}
+
 export function drawStandIn(id) {
   const shape = shapeOf(id);
+  if (shape === 'noise') { const cv = drawNoise(hash(id)); return { canvas: cv, blend: 'noise', frames: null, w: cv.width, h: cv.height }; }
+  if (shape === 'scorch' || shape === 'shard1') {
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
+    const g = cv.getContext('2d'); const r = rnd(hash(id));
+    if (shape === 'scorch') {
+      const gr = g.createRadialGradient(128, 128, 10, 128, 128, 120);
+      gr.addColorStop(0, 'rgba(20,10,6,0.9)'); gr.addColorStop(0.6, 'rgba(40,20,10,0.55)'); gr.addColorStop(1, 'rgba(40,20,10,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(128, 128, 120, 0, Math.PI * 2); g.fill();
+      return { canvas: cv, blend: 'alpha', frames: null, w: 256, h: 256 };
+    }
+    g.strokeStyle = 'rgba(255,220,170,0.9)'; g.lineCap = 'round';
+    for (let k = 0; k < 7; k++) { let x = 128; let y = 128; const a0 = (k / 7) * Math.PI * 2; g.lineWidth = 3; g.beginPath(); g.moveTo(x, y); for (let s = 0; s < 6; s++) { const a = a0 + (r() - 0.5) * 0.8; x += Math.cos(a) * 18; y += Math.sin(a) * 18; g.lineTo(x, y); } g.stroke(); }
+    return { canvas: cv, blend: 'light', frames: null, w: 256, h: 256 };
+  }
   const atlas = /atlas$/.test(id) || shape === 'spark' || shape === 'shard';
   const W = shape === 'streak' ? 512 : 256;
   const H = shape === 'streak' ? 128 : shape === 'pillar' ? 512 : 256;

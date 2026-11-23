@@ -513,3 +513,99 @@ Built to `docs/17-art-style-guide.md` (sections 0, 0.1, 2, 3 and 8), `docs/19-ar
 12. `assets/cards-v2/` stays as the reference the style guide names; the game never loads it.
 
 **Approved with one follow-up (18 November 2026):** the empty campaign map's cream wash (0.40, from stage V3) is too strong for the new map art. It comes down to about 0.12, and empty slots are outlined rather than filled with cream (`docs/mockups/style-test/map-wash-compare.jpg`). The Last Battle's scorched map stays as it is. Scheduled for the effects test stage.
+
+## 17. Readings from stage E (the effects test): needing Elliott's approval
+
+Built to `docs/22-stage-e-prompt.md`, `docs/20-vfx-style-guide.md` and the texture kit in `assets/vfx/` (`docs/21`). Only the three test moments changed: every other effect is exactly as it was. No rule changed. The old effects are kept: `?fx=old` plays them, for the side-by-side clips.
+
+1. **The renderer** (`src/ui/vfx/gl.js`, still WebGL2 by hand, no libraries). A particle now carries 48 floats (12 vec4s, up from 8). The new ones:
+   - **Erosion:** a threshold rising from `from` to `to`, eased in (a quadratic) from `start`, a share of its life. A pixel stays while its noise is above the threshold.
+   - **The edge:** a band `edge` wide just above the threshold glows in the palette's core colour (white-gold without one), at 1.3× on light shapes and 1.2× on solid ones.
+   - **Noise:** one of the four kit noises, at a scale and a scroll speed; flow pushes the texture about inside its frame by the noise.
+   - **The rest:** a texture scroll; an element palette (core at full brightness, mid at half, edge at zero) mixed in by strength; and a sheet frame range played in order at a frame rate (looping, or held on the last frame).
+   - **Shapes erode instead of fading:** every new shape has `fadeOut: 1` (no fade) and burns away.
+2. **The element palettes** (core, mid, edge), from docs/20 section 2:
+
+   | Element | Core | Mid | Edge |
+   |---|---|---|---|
+   | Fire | #fff3c8 | #ff8a2a | #6a3a8a |
+   | Arcane | #e8fbff | #3d8cff | #7a3ad0 |
+   | Holy | #fffaea | #f2c14a | #d8892c |
+   | Shadow | #d8dce6 | #16121c | #4a2a6a |
+   | Nature | #eaffb8 | #2fa860 | #d89a3a |
+   | Ghostlight | #e8fff8 | #2fb8a8 | #3a9a6a |
+   | Steel | #ffffff | #ffd25a | #ff8a3a |
+   | Earth | #f2dfb0 | #c0663a | #8a7058 |
+
+   The painted textures keep most of their own colour: palette strength is 0.2 for Steel, 0.15 for Fire and 0.25 for Holy (more whitened the painted orange under the bloom).
+3. **Light on the board:**
+   - Up to 8 at once, added in the last pass as a soft pool of colour (falloff (1 − smoothstep)²) that brightens the cards, tokens and map beneath.
+   - A negative light dims instead: that's the "dip" before a moment.
+   - Each light rises over `attack`, holds, then decays (ease-out). Lights stay in low motion.
+4. **Board marks** are drawn first, under everything else. Every card's box (inset 4 px) is cut out of them, so a scorch, a crack or a glyph ring lies on the map around a card, never over it. Their erosion is the same as any shape's.
+5. **The card burn** (the defeat) is an SVG filter on the card itself:
+   - Noise (`vfx-noise-brush`) weighted 55/45 with the distance from the card's edge, so the edges go first; thresholded at a slope of 26.
+   - A band 0.07 wide coloured by `vfx-burn-edge`, blurred 2.5 px.
+   - It runs over 640 ms, eased in, and stays in low motion (it's erosion).
+6. **The timing table** (`src/ui/vfx/shaping.js`), used by the new moments:
+   - **Hit-stop:** 2, 3 and 4 frames (light, medium, heavy; 33, 50 and 67 ms).
+   - **Shake:** 1, 2 and 3 px, over 140, 200 and 280 ms.
+   - **Push-in:** 2% over 900 ms (40% easing in, a hold, then out).
+   - **Easings:** anticipate `cubic-bezier(.55,0,.85,.35)`, snap `cubic-bezier(.18,1.3,.4,1)`, settle `cubic-bezier(.2,.7,.25,1)`.
+   - The older effects keep their own numbers until they're rebuilt.
+7. **Quality steps** now give up particles first: full; particles ¾; particles ½; bloom ½; scale ¾; scale ½.
+8. **Fallbacks:**
+   - A missing kit texture is drawn in code by its nearest shape, and each noise by a tileable value noise.
+   - With WebGL off, the 2D animations play as before.
+9. **A. The Martial attack** (Garrick, the Oathsworn Captain; `e.attack.steel`, 1250 ms, the attack budget):
+   - **Anticipation (0–220):** the strike's wind-up; white-gold glints gather on the attacker's edge; a soft gold light.
+   - **Release (300–400):** the crescent (0.75 strength) with a fainter smear 14° behind it, eroding as it crosses.
+   - **Impact (400):**
+     - 3 frames of hit-stop and a flash of 0.3;
+     - the impact star and a shockwave ring, both eroding, with a distortion ring (radius 260, strength 9);
+     - a 2 px shake;
+     - 26 Steel sparks with gravity 1500;
+     - a gold light on the target (0.2).
+   - **Secondary:** debris and sparks fall.
+   - **Settle:** a few glints drift off.
+   - **Garrick's attack only.** Aldric still uses the old Oathsworn attack, and every other attack is unchanged.
+10. **A. The defeat** (`e.defeat`, 1000 ms, the defeat budget):
+    - the card burns (above);
+    - ash lifts and embers rise from the burning edge, or a ghostlight veil and wisps if it's Undead (the Barrow);
+    - a dust burst and a crack mark that lingers 1.5 s, then erodes.
+    - **Every defeat in the game uses it,** since the defeat is part of this moment.
+11. **B. Firebolt** at each size, at its old lengths:
+    - **Adapt (1000 ms):** the ring of fire and gathering embers, with the light dipping warm (−0.25); the bolt along a slight arc (a fire-tongue head played at 30 fps, a flowing trail, embers); then the impact.
+    - **The impact:**
+      - 2 frames of hit-stop and a 1 px shake;
+      - the fire burst eroding with flow, and a heat haze;
+      - an orange light (0.35);
+      - smoke rolling up and burning away, embers drifting;
+      - a scorch mark under the target for about 1.5 s.
+    - **React (600 ms):** the bolt and its impact only (layers 2, 3 and 5), at 75%.
+    - **Strat (1300 ms):** adds a vortex of 12 fire tongues and a turning ring of fire at the impact.
+12. **C. The Prime summon** (`e.prime`), within the existing Prime budget of 900 ms:
+    - **Anticipation (0–200):**
+      - the Location dims (−0.3, radius 460);
+      - motes stream in to the space;
+      - the glyph ring draws itself in under the space (erosion run backwards over 200 ms).
+    - **Release (200–400):** the card drops (a slam), rays fan up behind it, and the ring flashes.
+    - **Impact (400):**
+      - 4 frames of hit-stop and a 3 px shake;
+      - the Prime burst and a shockwave ring, both eroding, with a distortion ring (radius 320, strength 12);
+      - a 2% push-in over 900 ms;
+      - a gold light across the Location (0.3, radius 480).
+    - **Secondary:** the Renown star blooms; the +1 Renown ribbon flies to the Warlord and lands at 760.
+    - **Settle:** motes drift down, and the ring erodes away along `vfx-noise-cells`.
+    - **Low motion** (`e.prime.low`, 500 ms): the light, the glyph ring, the burst eroding in place, and the Level well's flare.
+13. **No budget was raised:** attack 1250, defeat 1000, Prime 900, Prime in low motion 500. Firebolt keeps 600, 1000 and 1300 ms.
+14. **Low motion, for the new moments:**
+    - **Kept:** colour, light and erosion.
+    - **Removed:** every particle stands still, nothing grows or spins, and bolts and ribbons don't fly.
+    - **Unchanged from before:** no shake, distortion, push-in or hit-stop.
+15. **The map wash** (approved follow-up):
+    - The cream wash is down from 0.40 to 0.12 (0.10 at the bottom).
+    - Empty spaces are outlined (a dashed cream line with a faint dark inner line) instead of filled.
+    - The Wilds labels and lane numbers have a fuller cream halo. The Last Battle's map is unchanged.
+16. **The clips are recorded in slow motion** (`tools/slowmo.mjs`, `tools/eclips.mjs`): the page's clock and animations run 36× slower, and the video is sped back up. This container renders WebGL in software at a few frames a second, so a real-time recording would skip most of each moment.
+17. **Dev aids:** `?fxdemo` (`window.__match.fxDemo(name)`) stages each moment through the real engine. `?fx=old` plays the old effects.

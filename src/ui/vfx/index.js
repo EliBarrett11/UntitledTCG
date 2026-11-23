@@ -12,6 +12,7 @@ import { createRenderer } from './gl.js';
 import { loadManifest, loadImage, drawStandIn } from './textures.js';
 import { EFFECTS, texturesOf } from './library.js';
 import { createAmbient } from './ambient.js';
+import { PALETTE_ORDER, paletteRgb } from './shaping.js';
 
 const STAGE_W = 1920;
 const STAGE_H = 1080;
@@ -24,6 +25,8 @@ export function createVfx(stage, { settings, params }) {
   canvas.setAttribute('aria-hidden', 'true');
   const ambient = createAmbient({ missing });
   let shakeUntil = 0; let shakePx = 0; let shakeT0 = 0;
+  // (Stage E: a slow push-in of the camera towards a point: { k (the zoom, e.g. 0.02), x, y, t0, dur }.)
+  let push = null;
   // Dev aids for performance work: ?vfxhdr=0 (an 8-bit scene buffer), ?vfxbloom=0 (no bloom).
   const options = { hdr: params?.get('vfxhdr') !== '0', bloom: params?.get('vfxbloom') !== '0' };
   const r = off ? null : createRenderer(canvas, {
@@ -31,17 +34,39 @@ export function createVfx(stage, { settings, params }) {
     onFrame: {
       tick: () => {
         const t = performance.now();
+        let sx = 0; let sy = 0;
         if (t < shakeUntil && !settings().lowMotion) {
           const k = 1 - (t - shakeT0) / (shakeUntil - shakeT0);
           const a = shakePx * k * k;
-          stage.style.translate = `${(Math.random() * 2 - 1) * a}px ${(Math.random() * 2 - 1) * a}px`;
-        } else if (stage.style.translate) stage.style.translate = '';
+          sx = (Math.random() * 2 - 1) * a; sy = (Math.random() * 2 - 1) * a;
+        }
+        // The push-in: eases in to its zoom over the first 40% of its time, holds, then eases back out.
+        let z = 0; let px = 0; let py = 0;
+        if (push && !settings().lowMotion) {
+          const e = (t - push.t0) / push.dur;
+          if (e >= 1) push = null;
+          else {
+            const ramp = e < 0.4 ? 1 - (1 - e / 0.4) ** 3 : e < 0.7 ? 1 : 1 - ((e - 0.7) / 0.3) ** 2;
+            z = push.k * ramp;
+            const sr = stage.getBoundingClientRect(); const sc = sr.width / (STAGE_W * (1 + (Number(stage.style.scale) || 1) - 1));
+            px = (STAGE_W / 2 - push.x) * z * sc; py = (STAGE_H / 2 - push.y) * z * sc;
+          }
+        } else if (push) push = null;
+        stage.style.scale = z ? String(1 + z) : '';
+        stage.style.translate = sx || sy || px || py ? `${sx + px}px ${sy + py}px` : '';
+        if (r.marksAlive()) r.setOccluders(occluders());
         adapt();
       },
-      alive: () => performance.now() < shakeUntil,
+      alive: () => performance.now() < shakeUntil || !!push,
     },
   });
   const state = { manifest: {}, loading: new Map(), ready: new Set(), pending: new Map() };
+  // (Stage E: the cards on the board, in stage px, cut out of board marks so a mark lies under them.)
+  function occluders() {
+    const sr = stage.getBoundingClientRect(); const k = sr.width / STAGE_W || 1;
+    return [...stage.querySelectorAll('.slot-card, #fx-cards .ghost-token')].map((el) => { const b = el.getBoundingClientRect(); return { x: (b.left - sr.left) / k + 4, y: (b.top - sr.top) / k + 4, w: b.width / k - 8, h: b.height / k - 8 }; });
+  }
+  if (r) r.setPalettes(PALETTE_ORDER.map(paletteRgb));
   const base = '';
 
   // --- Textures: a stand-in at once, the painted texture when it arrives -------------------------------------
@@ -57,7 +82,7 @@ export function createVfx(stage, { settings, params }) {
     const p = loadImage(entry, { base }).then((img) => {
       const k = img.k;
       const frames = entry.frames?.map((fr) => ({ x: fr.x * k, y: fr.y * k, w: fr.w * k, h: fr.h * k }));
-      state.pending.set(id, { source: img.source, blend: entry.blend === 'alpha' ? 'alpha' : 'light', frames, w: img.w, h: img.h });
+      state.pending.set(id, { source: img.source, blend: entry.blend === 'alpha' ? 'alpha' : entry.blend === 'noise' ? 'noise' : 'light', frames, w: img.w, h: img.h });
       swapReady();
     }).catch(() => { /* missing or unreadable: keep the stand-in */ });
     state.loading.set(id, p);
@@ -83,7 +108,8 @@ export function createVfx(stage, { settings, params }) {
   async function preload() {
     state.manifest = await loadManifest(base);
     if (!r) return;
-    const all = new Set();
+    // (Stage E: the noise textures first: every shaped effect reads them.)
+    const all = new Set(r.NOISE);
     for (const id of Object.keys(EFFECTS)) for (const t of texturesOf(id)) all.add(t);
     const list = [...all];
     let i = 0;
@@ -93,10 +119,12 @@ export function createVfx(stage, { settings, params }) {
 
   // --- Quality steps --------------------------------------------------------------------------------------------
   // 0 is full quality. Each step down gives up the least visible thing first.
+  // (Stage E: particle counts step down first, then bloom, then the render scale.)
   const STEPS = [
     { name: 'full', bloomDiv: 4, particles: 1, scale: 1 },
-    { name: 'bloom ½', bloomDiv: 8, particles: 1, scale: 1 },
-    { name: 'particles ½', bloomDiv: 8, particles: 0.5, scale: 1 },
+    { name: 'particles ¾', bloomDiv: 4, particles: 0.75, scale: 1 },
+    { name: 'particles ½', bloomDiv: 4, particles: 0.5, scale: 1 },
+    { name: 'bloom ½', bloomDiv: 8, particles: 0.5, scale: 1 },
     { name: 'scale ¾', bloomDiv: 8, particles: 0.5, scale: 0.75 },
     { name: 'scale ½', bloomDiv: 8, particles: 0.5, scale: 0.5 },
   ];
@@ -134,6 +162,8 @@ export function createVfx(stage, { settings, params }) {
   }
 
   if (r) {
+    // (Stage E: the noise textures' code-drawn stand-ins are there from the start, so erosion always has noise.)
+    for (const id of r.NOISE) standIn(id);
     window.addEventListener('resize', resize);
     setTimeout(() => { preload(); }, 600);
     // Swap in textures that arrived while their stand-ins were in use.
@@ -161,8 +191,13 @@ export function createVfx(stage, { settings, params }) {
     spawn: (...a) => r.spawn(...a), ribbon: (...a) => r.ribbon(...a), wave: (o) => r.wave(o), shimmer: (o) => r.shimmer(o), flash: (k, d) => r.flash(k, d),
     emitter: (e) => r.emitter(e), kill: (g) => r.kill(g), release: (g) => r.release(g), freeze: (ms) => r.freeze(ms),
     frameAspect: (id, f) => r.frameAspect(id, f), frameCount: (id) => r.frameCount(id),
+    // Stage E: a light on the board, a board mark's cut-outs, and the push-in (none of them in low motion's list of
+    // things removed: a light and a mark stay; the push-in goes).
+    light: (L) => r.light(L),
+    pushIn(k, x, y, dur) { if (settings().lowMotion || !k || !r) return; push = { k, x, y, t0: performance.now(), dur }; r.wake(); },
+    refreshOccluders() { if (r) r.setOccluders(occluders()); },
     shake(px, dur) { if (settings().lowMotion || !px) return; shakeT0 = performance.now(); shakeUntil = shakeT0 + dur; shakePx = Math.max(px, shakeUntil > shakeT0 ? shakePx : 0); r.wake(); },
-    stopShake() { shakeUntil = 0; stage.style.translate = ''; },
+    stopShake() { shakeUntil = 0; push = null; stage.style.translate = ''; stage.style.scale = ''; },
     resize,
     clear() { if (r) r.clear(); },
     // For the checks and the performance tool.

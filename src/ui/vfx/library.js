@@ -22,6 +22,8 @@
 // Ranges [a, b] pick at random; for shake, hitstop and flash, [a, b] is scaled by the damage dealt.
 import { CARDS } from '../../data/cards.js';
 import { signatureEffects } from './signature.js';
+import { stageEffects } from './stageE.js';
+import { hitstopMs } from './shaping.js';
 
 // The timing budget at normal speed (docs/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
 // V2 (section 5.10, proposed): the Ashen Wyrm's arrival 3.5 s, a Legendary Creature 3 s, the Last Battle 3 s,
@@ -444,6 +446,8 @@ export const EFFECTS = {
 };
 // V2's signature moments (signature.js), merged in.
 Object.assign(EFFECTS, signatureEffects({ START, GUARD, SETTLE, GOLD }));
+// Stage E's three test moments (stageE.js), merged in.
+Object.assign(EFFECTS, stageEffects({ GUARD, GOLD }));
 
 // Every presenter beat has an effect (docs/10-feel-and-vfx.md section 3). Some are chosen per card below.
 export const BEAT_EFFECTS = {
@@ -464,7 +468,8 @@ export const CINEMATICS = {
 // By card id (or form id): how its effects look. Presentation data only; no card text.
 export const CARD_STYLE = {
   // 5.2: each series' attack signature.
-  'oathsworn-recruit': { attack: 'attack.oathsworn' },
+  // (Stage E: Garrick's attack is the new Martial test moment.)
+  'oathsworn-recruit': { attack: 'e.attack.steel' },
   'ironhide-brawler': { attack: 'attack.ironhide' },
   'ashen-spire-apprentice': { attack: 'attack.spire', heal: null },
   'hollowfoot-cutpurse': { attack: 'attack.hollowfoot' },
@@ -476,7 +481,8 @@ export const CARD_STYLE = {
   'the-ashen-wyrm': { attack: 'attack.wyrm', trigger: 'wyrm.onsummon', cinematic: 'wyrm' },
   'aldric-the-unbroken': { attack: 'attack.oathsworn', final: true, cinematic: 'aldric' },
   // 5.3: Actions, by mode.
-  firebolt: { react: 'firebolt.react', adapt: 'spell.firebolt', strat: 'firebolt.strat' },
+  // (Stage E: Firebolt is the new Fire test moment, at each size.)
+  firebolt: { react: 'e.firebolt.react', adapt: 'e.firebolt', strat: 'e.firebolt.strat' },
   parry: { adapt: 'parry.adapt', reactFlag: 'parry' },
   'night-raid': { adapt: 'nightraid.adapt', strat: 'nightraid.strat' },
   'mending-prayer': { react: 'heal', adapt: 'heal', strat: 'mending.strat', heal: 'pillar' },
@@ -595,7 +601,7 @@ export function longestRun(id, seen = new Set()) {
   let stop = 0;
   const walk = (d, off, path) => {
     for (const s of d.steps) {
-      if (s.op === 'hitstop') stop += s.ms[1];
+      if (s.op === 'hitstop') stop += s.weight ? hitstopMs(s.weight) : s.ms[1];
       if (s.op === 'use' && !path.has(s.id)) walk(EFFECTS[s.id], off + s.at, new Set([...path, s.id]));
     }
   };

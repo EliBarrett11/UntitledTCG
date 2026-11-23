@@ -3,6 +3,8 @@
 // ribbons, distortion, shake and hit-stop, card motions, and hooks back into the presenter (numbers landing,
 // cards arriving), which always run, even when the beat is skipped.
 import { EFFECTS, GOLD } from './library.js';
+import { paletteIndex, PALETTES, hitstopMs, shakeFor, TIMING } from './shaping.js';
+import { drawNoise } from './textures.js';
 
 let groupSeq = 0;
 const rad = (d) => (d * Math.PI) / 180;
@@ -83,6 +85,21 @@ export async function runEffect(ctx, vfx, id, env) {
   const texOf = (s, t = s.tex) => (t?.startsWith('$') ? s._vars?.[t.slice(1)] ?? env.vars?.[t.slice(1)] ?? null : t);
   const col = (s) => { const c = s.tint ? hexRgb(colourOf(s.tint)) : [1, 1, 1]; return [...c, s.alpha ?? 1]; };
   const angleTo = (a, b) => Math.atan2(b.cy - a.cy, b.cx - a.cx);
+  // Stage E: a shaped step's extra fields for the renderer (erosion, noise, flow, palette, sheet frames, a mark).
+  // An effect marked stageE keeps, in low motion, only colour, light and erosion: nothing moves or flies.
+  const E = !!def.stageE;
+  const still = E && low;
+  const shaped = (s) => {
+    const o = {};
+    if (s.erode) o.erode = s.erode;
+    if (s.edge != null) o.edge = s.edge;
+    if (s.noise) { o.noise = s.noise; o.noiseScale = s.noiseScale ?? 1; o.scroll = still ? [0, 0] : s.scroll ?? [0, 0]; o.flow = still ? 0 : s.flow ?? 0; }
+    if (s.texScroll) o.texScroll = still ? [0, 0] : s.texScroll;
+    if (s.palette) { o.palette = paletteIndex(s.palette); o.paletteK = s.paletteK ?? 1; }
+    if (s.seq) o.seq = s.seq;
+    if (s.mark) o.mark = true;
+    return o;
+  };
 
   function sprite(s, at, delay = 0) {
     const tex = vfx.texture(texOf(s));
@@ -90,7 +107,8 @@ export async function runEffect(ctx, vfx, id, env) {
     const asp = vfx.frameAspect(tex, s.frame ?? 0);
     const w = s.sizeSpan ? s.sizeSpan * (at.w || 160) : (s.size ?? (s.sizeK ?? 1) * (at.w || 160));
     const h = (s.h ?? w / asp) * (s.flat ?? 1) * (s.flipY ? -1 : 1);
-    const [s0, s1] = s.scale ?? [1, 1];
+    let [s0, s1] = s.scale ?? [1, 1];
+    if (still) s0 = s1;
     const src = box('src', s); const dst = box('dst', s);
     let rot = 0;
     if (s.rot === 'toward') rot = angleTo(src, dst);
@@ -102,8 +120,8 @@ export async function runEffect(ctx, vfx, id, env) {
     const life = s.life * f * (low ? 0.7 : 1);
     vfx.spawn(tex, {
       x: at.cx + (s.dx ?? 0), y: at.cy + (s.dy ?? 0), w: w * s0, h: h * s0, scaleEnd: s1 / s0, curve: s.curve === 'out' ? 1 : 0,
-      rot, spin: rad(s.spin ?? 0) / f, life, fadeIn: s.fadeIn ?? 0, fadeOut: s.fadeOut ?? 0.6, frame: s.frame ?? 0,
-      col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, delay: delay * f,
+      rot, spin: still ? 0 : rad(s.spin ?? 0) / f, life, fadeIn: s.fadeIn ?? 0, fadeOut: s.fadeOut ?? 0.6, frame: s.frame ?? 0,
+      col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, delay: delay * f, ...shaped(s),
     }, group);
   }
   function particle(s, x, y, extra = {}) {
@@ -126,15 +144,16 @@ export async function runEffect(ctx, vfx, id, env) {
     let vx = Math.cos(ang) * sp; let vy = Math.sin(ang) * sp * (s.flat ?? 1);
     let gx = 0; let gy = (typeof s.gravity === 'number' ? s.gravity : 0) / (f * f);
     let drag = (s.drag ?? 0) / f;
-    if (extra.home) {
+    if (still) { vx = 0; vy = 0; gx = 0; gy = 0; drag = 0; }
+    if (extra.home && !still) {
       const t = life / 1000;
       vx = (extra.home.cx - x) / t + (r() - 0.5) * 80; vy = (extra.home.cy - y) / t + (r() - 0.5) * 80;
       gx = 0; gy = 0; drag = 0;
     }
     vfx.spawn(tex, {
       x, y, vx, vy, gx, gy, drag, life, w: size, h: s.h ?? size / asp, scaleEnd: s.scaleEnd ?? 1,
-      rot: s.align ? 0 : r() * Math.PI * 2, spin: rad(pick(s.spin ?? 0, r)) / f, fadeIn: s.fadeIn ?? 0.05, fadeOut: extra.home ? 0.75 : s.fadeOut ?? 0.5,
-      frame, col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, align: !!s.align, delay: (extra.delay ?? 0) * f,
+      rot: s.align ? 0 : r() * Math.PI * 2, spin: still ? 0 : rad(pick(s.spin ?? 0, r)) / f, fadeIn: s.fadeIn ?? 0.05, fadeOut: extra.home ? 0.75 : s.fadeOut ?? 0.5,
+      frame: s.seq ? s.seq.start ?? 0 : frame, col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, align: !!s.align && !still, delay: (extra.delay ?? 0) * f, ...shaped(s),
     }, group);
   }
   const areaPoint = (s, at) => {
@@ -151,6 +170,7 @@ export async function runEffect(ctx, vfx, id, env) {
     const tgts = targetsOf(s);
     switch (s.op) {
       case 'sprite':
+        if (s.mark) vfx.refreshOccluders?.();
         tgts.forEach((t, i) => sprite(s, t, (s.stagger ?? 0) * i));
         return;
       case 'burst': {
@@ -162,6 +182,7 @@ export async function runEffect(ctx, vfx, id, env) {
         const rate = (s.rate ?? 30) * (low ? 0.25 : 1) * ps / f;
         const home = s.home ? box(s.home, s) : null;
         const path = s.path ? [box(s.path[0], s), box(s.path[1], s)] : null;
+        if (still && (path || s.home)) return;
         for (const t of path ? [null] : tgts) {
           vfx.emitter({ rate, dur: s.dur * f, group, spawn: (k) => {
             if (path) { const x = path[0].cx + (path[1].cx - path[0].cx) * k + (r() - 0.5) * 30; const y = path[0].cy + (path[1].cy - path[0].cy) * k + (r() - 0.5) * 30; particle(s, x, y); return; }
@@ -182,6 +203,7 @@ export async function runEffect(ctx, vfx, id, env) {
         return;
       }
       case 'ribbon': {
+        if (still) return;
         const a = box(s.from, s); const b = box(s.to, s);
         if (!a || !b) return;
         const tex = vfx.texture(texOf(s));
@@ -194,6 +216,7 @@ export async function runEffect(ctx, vfx, id, env) {
         return;
       }
       case 'projectile': {
+        if (still) return;
         const from = box(s.from, s);
         const dests = s.to === 'each' && env.targets?.length ? env.targets.map((t) => t.box) : [box(s.to, s)];
         const n = typeof s.count === 'string' ? Math.max(1, Math.min(8, Number(s._vars?.[s.count.slice(1)] ?? env.vars?.[s.count.slice(1)] ?? 1))) : s.count ?? 1;
@@ -211,7 +234,7 @@ export async function runEffect(ctx, vfx, id, env) {
             const frame = s.spinFrames ? Math.floor(r() * frames) : 0;
             const w = s.size ?? 80; const h = s.h ?? w / vfx.frameAspect(tex, frame);
             const delay = ((s.stagger ?? 0) * i + (s.staggerEach ?? 0) * di);
-            vfx.spawn(tex, { x: x0, y: y0, vx, vy, gy: g, life: s.dur * f, w, h, rot: rad(s.rotOffset ?? 0), spin: s.align ? 0 : rad(s.spin ?? 0) / f, align: !!s.align, fadeIn: 0.1, fadeOut: 0.9, frame, col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, delay: delay * f }, group);
+            vfx.spawn(tex, { x: x0, y: y0, vx, vy, gy: g, life: s.dur * f, w, h, rot: rad(s.rotOffset ?? 0), spin: s.align ? 0 : rad(s.spin ?? 0) / f, align: !!s.align, fadeIn: 0.1, fadeOut: 0.9, frame: s.seq ? s.seq.start ?? 0 : frame, col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, delay: delay * f, ...shaped(s) }, group);
             if (s.trail && !low && i === 0) {
               const tr = s.trail;
               vfx.emitter({ rate: tr.rate * ps / f, dur: s.dur * f, delay: delay * f, group, spawn: (k) => { const t = k * T; particle({ ...tr, angle: tr.align ? Math.atan2(vy + g * t, vx) * 180 / Math.PI : tr.angle }, x0 + vx * t, y0 + vy * t + 0.5 * g * t * t); } });
@@ -244,17 +267,33 @@ export async function runEffect(ctx, vfx, id, env) {
         if (low) return;
         tgts.forEach((t) => vfx.shimmer({ x: t.cx, y: t.cy, radius: s.radius, strength: s.strength, dur: s.dur * f }));
         return;
-      case 'shake':
+      case 'shake': {
         if (low) return;
-        vfx.shake(scaled(s.px), s.dur * f);
+        // (Stage E: a weight reads the px and time from the one timing table.)
+        const sk = s.weight ? shakeFor(s.weight) : { px: scaled(s.px), dur: s.dur };
+        vfx.shake(sk.px, sk.dur * f);
         return;
+      }
+      case 'light': {
+        // A light on the board (kept in low motion: it's colour and light, not movement).
+        const pal = s.palette ? PALETTES[s.palette] : null;
+        const c = s.col ? hexRgb(colourOf(s.col)) : pal ? hexRgb(pal[s.tone === 'mid' ? 1 : s.tone === 'edge' ? 2 : 0]) : [1, 0.85, 0.6];
+        tgts.forEach((tt) => vfx.light?.({ x: tt.cx + (s.dx ?? 0), y: tt.cy + (s.dy ?? 0), radius: s.radius ?? 220, col: c, peak: s.peak ?? 0.4, attack: (s.attack ?? 60) * f, hold: (s.hold ?? 80) * f, decay: (s.decay ?? 400) * f }));
+        return;
+      }
+      case 'pushin': {
+        if (low) return;
+        const k = s.k ?? TIMING.pushIn.heavy;
+        tgts.forEach((tt) => vfx.pushIn?.(k, tt.cx, tt.cy, (s.dur ?? TIMING.pushInMs.heavy) * f));
+        return;
+      }
       case 'flash':
         if (low) return;
         vfx.flash(scaled(s.k), s.dur * f);
         return;
       case 'hitstop': {
         if (low || ctx.skipping) return;
-        const ms = scaled(s.ms);
+        const ms = s.weight ? hitstopMs(s.weight) : scaled(s.ms);
         vfx.freeze(ctx.ms(ms));
         for (const a of ctx.anims) { try { if (a.playState === 'running') a.pause(); } catch { /* ignore */ } }
         await ctx.wait(ms);
@@ -262,7 +301,8 @@ export async function runEffect(ctx, vfx, id, env) {
         return;
       }
       case 'dom':
-        return domMotion(ctx, s, env, box, low);
+        if (s.name === 'erode') return erodeCard(ctx, s, env, vfx);
+        return domMotion(ctx, s, env, box, still || low);
       case 'call': {
         const fn = env.hooks?.[s.fn];
         if (!fn) return;
@@ -287,6 +327,84 @@ export async function runEffect(ctx, vfx, id, env) {
   if (!ctx.skipping && def.duration > cursor) await ctx.wait(def.duration - cursor);
   await Promise.all(pending);
   vfx.release(group);
+}
+
+// Stage E: a card burns away along a painted noise, from its edges inward, with a thin bright edge (an SVG filter on
+// the card itself: the noise, weighted to the edges, thresholded; the band just above the threshold glows with
+// vfx-burn-edge's painted fire). Low motion keeps it: it's erosion, not movement.
+const noiseImg = new Map();
+function loadNoise(url) {
+  if (!url) return Promise.resolve(null);
+  if (!noiseImg.has(url)) noiseImg.set(url, new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = url; }));
+  return noiseImg.get(url);
+}
+let svgHost = null;
+let burnSeq = 0;
+async function erodeCard(ctx, s, env, vfx) {
+  const el = env.els?.[s.el ?? 'ghost'];
+  if (!el || typeof document === 'undefined') return;
+  const b = el.getBoundingClientRect();
+  const w = Math.max(8, Math.round(el.offsetWidth || b.width)); const h = Math.max(8, Math.round(el.offsetHeight || b.height));
+  // The burn map: noise mixed with the distance from the card's edge (edges low, so they go first).
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const g = cv.getContext('2d');
+  const img = await loadNoise(vfx.textureUrl?.(s.noise ?? 'vfx-noise-brush'));
+  g.drawImage(img ?? drawNoise(91, 128), 0, 0, w, h);
+  const px = g.getImageData(0, 0, w, h);
+  const half = Math.min(w, h) / 2;
+  const ew = s.edgeWeight ?? 0.45;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4;
+    const n = px.data[i] / 255;
+    const d = Math.min(1, Math.min(x, w - 1 - x, y, h - 1 - y) / half);
+    const v = Math.max(0, Math.min(1, n * (1 - ew) + d * ew));
+    px.data[i] = 255; px.data[i + 1] = 255; px.data[i + 2] = 255; px.data[i + 3] = Math.round(v * 255);
+  }
+  g.putImageData(px, 0, 0);
+  const map = cv.toDataURL();
+  const edgeUrl = vfx.textureUrl?.('vfx-burn-edge');
+  if (!svgHost) {
+    svgHost = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgHost.setAttribute('width', '0'); svgHost.setAttribute('height', '0');
+    svgHost.style.position = 'absolute'; svgHost.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(svgHost);
+  }
+  const id = `e-burn-${++burnSeq}`;
+  const S = 26; const band = s.edge ?? 0.07;
+  const edgeSrc = edgeUrl ? `<feImage href="${edgeUrl}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="edgeArt"/><feColorMatrix in="edgeArt" type="matrix" values="1.4 0 0 0 .25  0 1.3 0 0 .12  0 0 1 0 0  0 0 0 0 1" result="edgeCol"/>`
+    : '<feFlood flood-color="#ffd27a" result="edgeCol"/>';
+  const f = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+  f.setAttribute('id', id);
+  for (const [k, v] of [['x', '-5%'], ['y', '-5%'], ['width', '110%'], ['height', '110%'], ['color-interpolation-filters', 'sRGB']]) f.setAttribute(k, v);
+  f.innerHTML = `<feImage href="${map}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="n"/>
+    <feComponentTransfer in="n" result="keep"><feFuncA type="linear" slope="${S}" intercept="0"/></feComponentTransfer>
+    <feComponentTransfer in="n" result="outer"><feFuncA type="linear" slope="${S}" intercept="0"/></feComponentTransfer>
+    <feComposite in="SourceGraphic" in2="keep" operator="in" result="card"/>
+    ${edgeSrc}
+    <feComposite in="edgeCol" in2="outer" operator="in" result="o"/>
+    <feComposite in="o" in2="keep" operator="out" result="band"/>
+    <feGaussianBlur in="band" stdDeviation="2.5" result="glow"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="band"/><feMergeNode in="card"/></feMerge>`;
+  svgHost.appendChild(f);
+  const [fk, fo] = f.querySelectorAll('feFuncA');
+  // The threshold th: the kept part is n > th (alpha slope·(n − th)); the outer edge is n > th − band.
+  const set = (th) => { fk.setAttribute('intercept', String(-S * th)); fo.setAttribute('intercept', String(-S * (th - band))); };
+  set(-0.1);
+  el.style.filter = `url(#${id})`;
+  const dur = ctx.ms(s.dur ?? 600);
+  const t0 = performance.now();
+  await new Promise((resolve) => {
+    const step = () => {
+      const k = ctx.skipping ? 1 : Math.min(1, (performance.now() - t0) / dur);
+      // Eased in: it catches, then goes.
+      set(-0.05 + 1.15 * k * k * (0.6 + 0.4 * k));
+      if (k >= 1) { resolve(); return; }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+  el.style.opacity = '0';
+  f.remove();
 }
 
 // Card motions on the board (in stage px). Low motion keeps only fades.

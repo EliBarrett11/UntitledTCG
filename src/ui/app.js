@@ -1357,7 +1357,30 @@ export function startApp(params) {
   else Promise.race([preloadArt(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
   preloadArt();
   // Dev hooks for the checks (they read; they never change the match).
-  window.__match = { get seed() { return seed; }, get screen() { return screen; }, state: () => s, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
+  // (Stage E dev aid: stage one of the three test moments and play it through the presenter, for tools/eclips.mjs.
+  // Resolves once it has played; returns what it played, or an error.)
+  async function fxDemo(name) {
+    const { stageDemo } = await import('./fxdemo.js');
+    while (presenting) await new Promise((r) => setTimeout(r, 50));
+    clearTimeout(timer);
+    const st = stageDemo(s, name, HUMAN, AI);
+    s = st.s;
+    version += 1;
+    ui.sel = null; ui.menu = null;
+    draw();
+    await new Promise((r) => setTimeout(r, 400));
+    const played = [];
+    for (const pick of st.steps) {
+      const a = pick(s);
+      if (!a) return { error: `no legal action for step ${played.length + 1} of ${name}`, played };
+      played.push(a.type);
+      await present(apply(a));
+      clearTimeout(timer);
+      while (presenting) await new Promise((r) => setTimeout(r, 30));
+    }
+    return { played };
+  }
+  window.__match = { get seed() { return seed; }, get screen() { return screen; }, state: () => s, fxDemo, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
 }
 
 export { esc };
