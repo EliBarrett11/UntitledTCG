@@ -65,7 +65,6 @@ export const ART = new Set([
   "assets/cards/mossback-ancient.jpg",
   "assets/cards/mossback-sapling.jpg",
   "assets/cards/mossback-treant.jpg",
-  "assets/cards/night-raid-event.jpg",
   "assets/cards/night-raid.jpg",
   "assets/cards/nightglass-blade.jpg",
   "assets/cards/nightglass-cutthroat.jpg",

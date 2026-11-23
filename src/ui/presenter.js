@@ -828,13 +828,23 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         case 'venom': case 'chill': {
           const c = next.players[e.who].row[e.space] ?? prevCard(e.who, e.space);
           const word = e.type === 'venom' ? 'VENOM' : 'CHILL';
-          B('trigger', `${e.type === 'venom' ? 'Venom' : 'Chill'}: ${POSS[e.who].toLowerCase()} ${c?.name ?? 'creature'} is made Spent.`, async (ctx) => {
+          // (Stage N2: Chill freezes: Spent through the next Dawn.)
+          const state = e.type === 'venom' ? 'Spent' : 'Frozen';
+          B('trigger', e.type === 'venom' ? `Venom: ${POSS[e.who].toLowerCase()} ${c?.name ?? 'creature'} is made Spent.` : `Chill: ${POSS[e.who].toLowerCase()} ${c?.name ?? 'creature'} is Frozen: it stays Spent at the next Dawn.`, async (ctx) => {
             const at = where(e.who, e.space);
-            await Promise.all([tag(ctx, word, at), ink(ctx, 'Spent', at, 'info')]);
+            await Promise.all([tag(ctx, word, at), ink(ctx, state, at, 'info')]);
           }, async (ctx) => {
             const at = where(e.who, e.space);
             focus = at;
-            await fxRun(ctx, `kw.${e.type}`, { anchors: anchors({ dst: at }), els: { dst: token(e.who, e.space) }, hooks: { land: () => { tag(ctx, word, at); ink(ctx, 'Spent', at, 'info'); } } });
+            await fxRun(ctx, `kw.${e.type}`, { anchors: anchors({ dst: at }), els: { dst: token(e.who, e.space) }, hooks: { land: () => { tag(ctx, word, at); ink(ctx, state, at, 'info'); } } });
+          });
+          break;
+        }
+        // Stage N2: a Frozen creature thaws (at Dawn, still Spent this Round; or made Active by an effect).
+        case 'thaw': {
+          const c = next.players[e.who].row[e.space];
+          B('trigger', e.by === 'dawn' ? `${POSS[e.who]} ${c?.name ?? 'creature'} stays Spent this Round, then thaws.` : `${POSS[e.who]} ${c?.name ?? 'creature'} thaws.`, async (ctx) => {
+            await ink(ctx, 'Thawed', where(e.who, e.space), 'info');
           });
           break;
         }

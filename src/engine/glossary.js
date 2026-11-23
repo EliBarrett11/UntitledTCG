@@ -25,7 +25,7 @@ export const GLOSSARY = Object.freeze({
     'When a player must draw from an empty Draw Pile, their Discard Pile is shuffled to make a new one; if both are empty, they draw nothing.'] },
   round: { term: 'Round', section: '5', names: ['Round'], quotes: ['Each Round has three phases: Dawn, the Battle Phase and Dusk.'] },
   dawn: { term: 'Dawn', section: '5.1', names: ['Dawn'], quotes: [
-    'Spent Characters and Monsters become Active.', 'Each player gains 1 Gold.', "Cards off the battlefield take this Round's Level (section 7)."] },
+    'Spent Characters and Monsters become Active, except a Frozen one: it stays Spent this once, then thaws (Chill, 12.1).', 'Each player gains 1 Gold.', "Cards off the battlefield take this Round's Level (section 7)."] },
   battlePhase: { term: 'The Battle Phase', section: '5.2', names: ['Battle Phase'], quotes: [
     'Initiative alternates each Round.', 'Players alternate one action per turn (the actions are listed in section 8).', 'Two Passes in a row end the phase.'] },
   dusk: { term: 'Dusk', section: '5.3', names: ['Dusk'], quotes: [
@@ -152,7 +152,8 @@ export const GLOSSARY = Object.freeze({
   undying: { term: 'Undying', section: '12.1', names: ['Undying'], quotes: ["The first time it would be defeated, it's left at 1 Health instead. Once per creature."] },
   soaring: { term: 'Soaring', section: '12.1', names: ['Soaring'], quotes: ["Shields can't guard against its attacks. Wards still can, if it's Arcane."], see: ['shield', 'ward'] },
   tinker: { term: 'Tinker', section: '12.1', names: ['Tinker', 'Tinkers'], quotes: ['Whenever you buy an Item from the Market, this gets +1/+1 for good.'], see: ['item'] },
-  chill: { term: 'Chill', section: '12.1', names: ['Chill'], quotes: ['A creature that damages this one becomes Spent.'], see: ['spent'] },
+  chill: { term: 'Chill', section: '12.1', names: ['Chill'], quotes: ['A creature that damages this one becomes Frozen: Spent, and it stays Spent at the next Dawn, then thaws (section 7).'], see: ['frozen'] },
+  frozen: { term: 'Frozen', section: '7', names: ['Frozen'], quotes: ["A Frozen card (from Chill, 12.1) is Spent and stays Spent at the next Dawn: it skips one Dawn's return to Active, then thaws. An effect that makes it Active thaws it."], see: ['chill', 'spent'] },
   frenzy: { term: 'Frenzy', section: '12.1', names: ['Frenzy'], quotes: ['While damaged, it has +2 Attack.'] },
   rally: { term: 'Rally (group)', section: '12.2', names: ['Rally'], quotes: ['resolves when another creature of that group is summoned on your side.'], see: ['affiliation'] },
   onAttack: { term: 'On Attack', section: '12.2', names: ['On Attack'], quotes: ['resolves when the creature attacks, after the target is chosen and before damage.'] },

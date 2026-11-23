@@ -4,7 +4,7 @@
 import { test, run, assert } from './helpers.js';
 import { defineCards } from '../src/engine/cards.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
-import { idsToList, listToIds, encodeDeck, encodeDeckV1, decodeDeck, CODE_IDS, CODE_VERSION } from '../src/engine/decks.js';
+import { idsToList, listToIds, encodeDeck, encodeDeckV1, decodeDeck, CODE_IDS, CODE_VERSION, checksum as checksumOf } from '../src/engine/decks.js';
 import { createDeckStore, safeStorage } from '../src/ui/deckstore.js';
 import { randomDeck } from '../tools/randomdecks.mjs';
 import { makeRng } from '../src/engine/random.js';
@@ -22,7 +22,7 @@ test('the stable card list: the 60 deck cards in the order they were added (neve
   assert.deepEqual(CODE_IDS.slice(29), ['lanternhall-minstrel', 'stonewatch-bulwark', 'mirefang-stalker', 'shield-wall', 'glass-veil', 'war-drums', 'the-bounty-board', 'nightglass-blade',
     'hearthmoor-keeper', 'cairn-revenant', 'skyreach-wyvern', 'hunters-snare', 'second-wind', 'venomglass-dagger', 'gallows-hill', 'the-smugglers-run', 'the-siege-of-greywater', 'the-grove-accord',
     'the-ember-crown', 'warhorn-of-the-vanguard', 'cinderfeather-amulet', 'the-sunlit-shrine', 'stormbreak-crags', 'redmaw-shaman', 'cogwright-inventor', 'rime-elemental', 'ironclaw-bear',
-    'chain-lightning', 'market-day', 'night-raid-event', 'the-deepmaw']);
+    'chain-lightning', 'market-day', 'knives-in-the-dark', 'the-deepmaw']);
 });
 
 test('version 2 codes round-trip and are short: under 100 characters for a 40-card deck with a short name', () => {
@@ -53,6 +53,19 @@ test('version 2 codes round-trip and are short: under 100 characters for a 40-ca
     const bad = decodeDeck(code.slice(0, k) + ch + code.slice(k + 1));
     assert.ok(!bad.ok && /damaged/.test(bad.error), `letter ${k} changed: ${bad.error ?? 'accepted'}`);
   }
+});
+
+test('stage N2: the Night Raid Event\'s old id imports as Knives in the Dark, from a code or a saved deck', () => {
+  const old = [{ id: 'firebolt', copies: 2 }, { id: 'night-raid-event', copies: 2 }];
+  const want = idsToList(['firebolt', 'firebolt', 'knives-in-the-dark', 'knives-in-the-dark']);
+  // (A version 1 code names cards by id: written by hand here, as stage N's game wrote them.)
+  const v1 = encodeDeckV1({ name: 'Raiders', cards: idsToList(['firebolt', 'firebolt', 'knives-in-the-dark', 'knives-in-the-dark']) }).replace(/knives-in-the-dark/g, 'night-raid-event');
+  assert.deepEqual(decodeDeck(v1.slice(0, v1.lastIndexOf('.') + 1) + checksumOf(v1.slice(0, v1.lastIndexOf('.')))), { ok: true, deck: { name: 'Raiders', cards: want } });
+  // (A version 2 code names cards by their place in the stable list, which the rename kept.)
+  assert.equal(CODE_IDS.indexOf('knives-in-the-dark'), 58);
+  const store = new Map([['utcg.decks.v1', JSON.stringify([{ id: 'd1', name: 'Raiders', cards: old, updated: 1 }])]]);
+  const decks = createDeckStore({ get: (k) => store.get(k) ?? null, set: (k, v) => store.set(k, v) });
+  assert.deepEqual(decks.list().find((d) => d.id === 'd1').cards, want);
 });
 
 test('version 1 codes (stage L) still import; damaged, foreign and newer codes are refused, saying why', () => {

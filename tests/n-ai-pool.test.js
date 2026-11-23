@@ -5,7 +5,7 @@
 import { test, run, assert, blank, put, give } from './helpers.js';
 import { defineCards } from '../src/engine/cards.js';
 import { CARDS } from '../src/data/cards.js';
-import { chooseAction, newAbilitiesValue } from '../src/ai/ai.js';
+import { chooseAction, newAbilitiesValue, evaluate, FROZEN_COST } from '../src/ai/ai.js';
 import { runRandom } from '../tools/randomdecks.mjs';
 import { makeRng } from '../src/engine/random.js';
 
@@ -40,6 +40,23 @@ test('the new keywords are worth something to the AI', () => {
   for (const k of ['venom', 'chill', 'undying', 'soaring', 'tinker', 'frenzy']) assert.ok(v({ [k]: true }) > 0, k);
   assert.ok(v({ undying: true }) > v({ undying: true }, { undyingUsed: true }), 'an Undying already used is worth nothing');
   assert.ok(v({}, { triggers: [{ on: 'dusk' }] }) > 0);
+});
+
+test('stage N2: the AI values Frozen: its own Frozen creature is worth less, and it would rather not attack a Chill creature', () => {
+  const s = blank(1, { round: 2 });
+  put(s, 'p1', 0, 'x-steady');
+  const before = evaluate(s, 'p1');
+  s.players.p1.row[0].frozen = true;
+  assert.ok(evaluate(s, 'p1') < before - FROZEN_COST, 'Frozen costs more than its Readiness');
+  // Two Spent enemies alike but for Chill: it attacks the other one.
+  for (const seed of [1, 2, 3]) {
+    const t = blank(seed, { round: 2 });
+    put(t, 'p1', 0, 'x-steady');
+    put(t, 'p2', 0, 'rime-elemental', { spent: true });                                   // 1/3, Chill
+    put(t, 'p2', 1, 'rime-elemental', { spent: true, keywords: {}, text: [] });            // 1/3, no Chill
+    const a = chooseAction(t, 'p1', makeRng(seed));
+    assert.ok(!(a.type === 'attack' && a.target.kind === 'creature' && a.target.space === 0), `seed ${seed}: ${JSON.stringify(a)}`);
+  }
 });
 
 run('n-ai-pool');

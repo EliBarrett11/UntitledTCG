@@ -760,7 +760,8 @@ function onAttack(s, pending, a) {
   }
 }
 // 12.1 Venom and Chill (stage N): after `by` deals damage (> 0) to `to`: Venom on `by` makes `to` Spent; Chill on `to`
-// makes `by` Spent. (Combat damage, Riposte, and a creature's own trigger effects.)
+// makes `by` Frozen (stage N2, docs/35): Spent, and it stays Spent at the next Dawn, then thaws. (Combat damage,
+// Riposte, and a creature's own trigger effects.) Frozen again while Frozen, it still skips just one Dawn.
 function afterHit(s, by, to, dealt) {
   if (!(dealt > 0) || !by.card || !to.card) return;
   const live = (x) => s.players[x.who].row[x.space]?.uid === x.card.uid;
@@ -771,8 +772,9 @@ function afterHit(s, by, to, dealt) {
   }
   if (hasKeyword(to.card, 'chill') && live(by)) {
     by.card.spent = true;
+    by.card.frozen = true;
     emit(s, 'chill', { who: by.who, space: by.space, uid: by.card.uid, by: to.card.uid });
-    log(s, `${to.card.name}'s Chill makes ${by.card.name} Spent.`);
+    log(s, `${to.card.name}'s Chill freezes ${by.card.name}: it stays Spent through the next Dawn.`);
   }
 }
 
@@ -871,7 +873,11 @@ export function runEffect(s, ctx, ops) {
         }
         case 'tempHealth': c.health += n; c.currentHealth += n; c.tempHealth += n; break;
         case 'tempKeyword': c.tempKw = { ...(c.tempKw ?? {}), [o.keyword]: (typeof c.tempKw?.[o.keyword] === 'number' ? c.tempKw[o.keyword] : 0) + (o.amount ?? 0) || true }; break;
-        case 'activate': c.spent = false; break;
+        case 'activate':
+          c.spent = false;
+          // (Stage N2: making a Frozen creature Active thaws it.)
+          if (c.frozen) { delete c.frozen; emit(s, 'thaw', { who: t.who, space: t.space, uid: c.uid, by: 'effect' }); log(s, `${c.name} thaws.`); }
+          break;
         case 'spend': c.spent = true; break;
         case 'returnHand': returnToHand(s, t.who, t.space); break;
         default: throw new Error(`Unknown op ${o.op}`);
@@ -1268,7 +1274,11 @@ function dawn(s, round) {
   for (const who of PLAYERS) {
     const p = s.players[who];
     refreshEnergy(p, round);                                               // 2–3
-    for (const { card } of creaturesOf(s, who)) card.spent = false;        // 4
+    for (const { card, space } of creaturesOf(s, who)) {                   // 4
+      // (Stage N2: a Frozen creature stays Spent this once, then thaws.)
+      if (card.frozen) { delete card.frozen; card.spent = true; emit(s, 'thaw', { who, space, uid: card.uid, by: 'dawn' }); log(s, `${card.name} stays Spent this Round, then thaws.`); }
+      else card.spent = false;
+    }
     gainGold(s, who, RULES.goldPerDawn, 'Dawn');                           // 5
     for (const { card, space } of creaturesOf(s, who)) {                   // 6
       const n = passiveOps(locationAt(s, space)).filter((o) => o.op === 'dawnHeal').reduce((k, o) => k + o.amount, 0);

@@ -5,7 +5,7 @@
 // A deck: { id, name, cards: [{ id, copies }], updated, builtIn? }. "The first deck" is built in, read-only, always
 // first, and can be duplicated as a starting point. The last deck chosen for you and for the AI is remembered too.
 import { DECKS } from '../data/cards.js';
-import { idsToList, listToIds, isLegal, decodeDeck } from '../engine/decks.js';
+import { idsToList, listToIds, isLegal, decodeDeck, currentId } from '../engine/decks.js';
 import { hasCard } from '../engine/cards.js';
 
 const KEY = 'utcg.decks.v1';
@@ -33,7 +33,8 @@ export function createDeckStore(storage = safeStorage()) {
     if (!Array.isArray(raw)) return [];
     return raw.filter((d) => d && typeof d.id === 'string' && d.id !== FIRST_ID && typeof d.name === 'string' && Array.isArray(d.cards))
       .map((d) => ({ id: d.id, name: d.name, updated: Number(d.updated) || 0,
-        cards: idsToList(listToIds(d.cards.filter((x) => x && typeof x.id === 'string' && hasCard(x.id) && Number.isInteger(x.copies) && x.copies > 0 && x.copies <= 40))) }));
+        cards: idsToList(listToIds(d.cards.filter((x) => x && typeof x.id === 'string' && Number.isInteger(x.copies) && x.copies > 0 && x.copies <= 40)
+          .map((x) => ({ id: currentId(x.id), copies: x.copies })).filter((x) => hasCard(x.id)))) }));
   }
   const write = (decks) => storage.set(KEY, JSON.stringify(decks.map(({ id, name, cards, updated }) => ({ id, name, cards, updated }))));
   const cleanName = (name, fallback = 'Untitled deck') => String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, 40) || fallback;

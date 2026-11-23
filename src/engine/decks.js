@@ -12,6 +12,11 @@ import { CARDS } from '../data/cards.js';
 export const CODE_VERSION = 2;
 const PREFIX = `UTCG${CODE_VERSION}`;
 
+// Cards renamed since a deck could be saved or shared: an old id reads as the card it became (stage N2: the Night
+// Raid Event became Knives in the Dark).
+export const RENAMED_IDS = Object.freeze({ 'night-raid-event': 'knives-in-the-dark' });
+export const currentId = (id) => RENAMED_IDS[id] ?? id;
+
 // --- Lists -----------------------------------------------------------------------------------------------------
 export function idsToList(ids) {
   const counts = new Map();
@@ -222,8 +227,9 @@ function decodeV1(text) {
     if (!pm) return { ok: false, error: 'This deck code is damaged: a card entry can\'t be read.' };
     const copies = pm[2] ? Number(pm[2]) : 1;
     if (!(copies >= 1 && copies <= RULES.deckSize)) return { ok: false, error: 'This deck code is damaged: a card has an impossible number of copies.' };
-    if (!hasCard(pm[1])) unknown.push(pm[1]);
-    else cards.push({ id: pm[1], copies });
+    const id = currentId(pm[1]);
+    if (!hasCard(id)) unknown.push(pm[1]);
+    else cards.push({ id, copies });
   }
   if (unknown.length) return { ok: false, unknown, error: `This deck code names ${unknown.length === 1 ? 'a card' : `${unknown.length} cards`} this game doesn't have: ${unknown.join(', ')}.` };
   return { ok: true, deck: { name: name || 'Imported deck', cards: idsToList(listToIds(cards)) } };

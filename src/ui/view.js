@@ -120,8 +120,9 @@ function row(s, who, ui) {
     let body = `<div class="empty-slot${!s.lastBattle && locationAt(s, lane) ? ' on-tile' : ''}"></div>`;
     if (c) {
       const ready = isReady(s, c);
-      const cls = [c.spent ? 'spent' : '', ready ? 'ready' : '', cpick ? 'target' : '', ui.attacker === lane && who === HUMAN ? 'selected' : '', ui.picks?.attacker?.[lane] && who === HUMAN ? 'can-attack' : ''].filter(Boolean).join(' ');
-      const tag = c.spent ? '<div class="tag tag-spent">SPENT</div>' : ready ? '<div class="tag tag-ready">READY</div>' : '';
+      const cls = [c.spent ? 'spent' : '', c.frozen ? 'frozen' : '', ready ? 'ready' : '', cpick ? 'target' : '', ui.attacker === lane && who === HUMAN ? 'selected' : '', ui.picks?.attacker?.[lane] && who === HUMAN ? 'can-attack' : ''].filter(Boolean).join(' ');
+      // (Stage N2: a Frozen creature shows a frost crust and FROZEN until it thaws.)
+      const tag = c.frozen ? '<div class="tag tag-frozen" title="Frozen: Spent, and it stays Spent at the next Dawn, then thaws">FROZEN</div><div class="frost-crust"></div>' : c.spent ? '<div class="tag tag-spent">SPENT</div>' : ready ? '<div class="tag tag-ready">READY</div>' : '';
       // (V5: its Might, shown while the pointer is over its Location's dominance line; none in the Wilds.)
       const mloc = s.lastBattle ? 'lb' : locationAt(s, lane)?.uid;
       const hex = mloc ? `<div class="might-hex ${who === HUMAN ? 'you' : 'them'}" data-mloc="${esc(mloc)}"><span>${mightOf(c)}</span></div>` : '';

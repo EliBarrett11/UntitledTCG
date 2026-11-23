@@ -15,7 +15,7 @@ export const KEYWORDS = Object.freeze({
   undying: Object.freeze({ name: 'Undying', hasAmount: false, rule: 'The first time it would be defeated, it\'s left at 1 Health instead. Once per creature.' }),
   soaring: Object.freeze({ name: 'Soaring', hasAmount: false, rule: 'Shields can\'t guard against its attacks. Wards still can, if it\'s Arcane.' }),
   tinker: Object.freeze({ name: 'Tinker', hasAmount: false, rule: 'Whenever its owner buys an Item, this gets +1 Attack and +1 Health for good.' }),
-  chill: Object.freeze({ name: 'Chill', hasAmount: false, rule: 'A creature that damages this one becomes Spent.' }),
+  chill: Object.freeze({ name: 'Chill', hasAmount: false, rule: 'A creature that damages this one becomes Frozen: Spent, and it stays Spent at the next Dawn, then thaws.' }),
   frenzy: Object.freeze({ name: 'Frenzy', hasAmount: false, rule: 'While damaged, it has +2 Attack.' }),
 });
 

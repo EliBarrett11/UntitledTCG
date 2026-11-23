@@ -28,7 +28,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 'n';
+const STAGE = 'n2';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -130,11 +130,16 @@ const SCENES = [
   }, need: '.lf-chip.on[data-v="kind:Elemental"]' },
   { name: 'n-library-length', query: '?screen=library', steps: async (p) => { await scrollClick(p, '[data-lib="chip"][data-g="length"][data-v="Side-Quest"]'); await scrollClick(p, '[data-lib="chip"][data-g="length"][data-v="Long"]'); }, need: '.lf-chip.on[data-g="length"]' },
   { name: 'n-page', query: '?screen=library', steps: async (p) => { await p.fill('.lib-search', 'Maren'); await p.waitForTimeout(300); await hoverTop(p, '[data-lib-card="lanternhall-minstrel"]', 0); await clickTop(p, '[data-lib-card="lanternhall-minstrel"] .lib-page', 0); await p.waitForSelector('#codex:not([hidden]) .cx-elv', { timeout: 5000 }).catch(() => {}); }, need: '#codex:not([hidden]) .cx-elv' },
+  // Stage N2: Frozen on the board, its Codex line and tip; Knives in the Dark in the Library (Art Pending until its art).
+  { name: 'n2-frozen', query: '?seed=10&scene=n2-frozen&pace=100000', need: '[data-cell="p1:5"] .tag-frozen' },
+  { name: 'n2-frozen-codex', query: '?seed=10&scene=n2-frozen&pace=100000', steps: async (p) => { await rightClickTop(p, '[data-hover="board"][data-who="p1"][data-space="5"]', 0); }, need: '#codex:not([hidden]) .cx-gl[data-gl="frozen"]' },
+  { name: 'n2-tip-chill', query: '?seed=10&scene=n2-frozen&pace=100000', steps: async (p) => { await hoverText(p, 'Chill', '.slot-card'); }, need: '.kw-tip' },
+  { name: 'n2-knives', query: '?screen=library', steps: async (p) => { await p.fill('.lib-search', 'Knives'); await p.waitForTimeout(300); await hoverTop(p, '[data-lib-card="knives-in-the-dark"]', 0); }, need: '[data-lib-card="knives-in-the-dark"]' },
   { name: 'n-campaign-page', query: '?screen=library', steps: async (p) => { await p.fill('.lib-search', 'Ember Crown'); await p.waitForTimeout(300); await hoverTop(p, '[data-lib-card="the-ember-crown"]', 0); await clickTop(p, '[data-lib-card="the-ember-crown"] .lib-page', 0); await p.waitForSelector('#codex:not([hidden])', { timeout: 5000 }).catch(() => {}); }, need: '#codex:not([hidden])' },
 ];
 // The labels on the painted map, checked for contrast in these scenes.
-const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles', 'a-tiles-2-4', 'a-tiles-3', 'r-wyrm', 'n-board', 'n-deepmaw']);
-const SHOT_ALL_SIZES = new Set(['n-board', 'n-deepmaw', 'n-choose', 'n-undying', 'n-library', 'n-library-length', 'n-page', 'n-campaign-page', 'l-library', 'l-page', 'l-deck-full', 'l-deck-errors', 'l-deck-first', 'l-import-error', 'l-setup-menu', 'l-setup-refused', 'setup', 'm-lobby-waiting', 'm-lobby-join', 'm-setup-host', 'm-setup-guest', 'r-wyrm', 'r-arrival', 'r-prime-next', 'r-protect', 'a-codex-art', 'a-tiles-2-4', 'a-tiles-3', 'lastbattle', 'title', 'victory', 'defeat', 'mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
+const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles', 'a-tiles-2-4', 'a-tiles-3', 'r-wyrm', 'n-board', 'n-deepmaw', 'n2-frozen']);
+const SHOT_ALL_SIZES = new Set(['n2-frozen', 'n2-frozen-codex', 'n2-tip-chill', 'n2-knives', 'n-board', 'n-deepmaw', 'n-choose', 'n-undying', 'n-library', 'n-library-length', 'n-page', 'n-campaign-page', 'l-library', 'l-page', 'l-deck-full', 'l-deck-errors', 'l-deck-first', 'l-import-error', 'l-setup-menu', 'l-setup-refused', 'setup', 'm-lobby-waiting', 'm-lobby-join', 'm-setup-host', 'm-setup-guest', 'r-wyrm', 'r-arrival', 'r-prime-next', 'r-protect', 'a-codex-art', 'a-tiles-2-4', 'a-tiles-3', 'lastbattle', 'title', 'victory', 'defeat', 'mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
 
 async function topPoint(p, sel, i) {
   return p.evaluate(([s, k]) => {

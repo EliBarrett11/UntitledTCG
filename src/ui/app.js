@@ -317,6 +317,7 @@ export function startApp(params) {
   //   n-deepmaw  you summon The Deepmaw (a real Summon action), The Drowned Reach arriving with it;
   //   n-choose   Maren in your hand, to summon with her "choose one" (the checks click through it);
   //   n-undying  your Ready Gorran and an enemy Cairn it will defeat, so its Undying saves it (the checks attack).
+  //   n2-frozen, n2-chill (stage N2): see below.
   const N_SCENES = {
     'n-board': () => {
       s = structuredClone(s);
@@ -340,7 +341,7 @@ export function startApp(params) {
       syncBonuses(s);
       me.row[4].currentHealth = 2;
       syncBonuses(s);
-      const hand = ['shield-wall', 'glass-veil', 'chain-lightning', 'night-raid-event', 'market-day', 'warhorn-of-the-vanguard', 'the-ember-crown'];
+      const hand = ['shield-wall', 'glass-veil', 'chain-lightning', 'knives-in-the-dark', 'market-day', 'warhorn-of-the-vanguard', 'the-ember-crown'];
       me.hand = hand.map((id, i) => cardAtRound(id, s.round, `scene-hand-${i}`));
     },
     'n-deepmaw': () => {
@@ -366,6 +367,23 @@ export function startApp(params) {
       me.row[3] = { ...L('ironhide-brawler', 5, 'scene-gorran'), spent: false };
       them.row[3] = { ...L('cairn-revenant', 5, 'scene-cairn'), spent: true, currentHealth: 2 };
       them.row[5] = { ...L('rime-elemental', 4, 'scene-rime'), spent: true };
+      them.hand = them.hand.filter((c) => c.cardType !== 'Action');
+      syncBonuses(s);
+    },
+    // Stage N2: Chill's Frozen. n2-frozen: the n-board scene a Round on, your Vessa Frozen by the Rime Sprite (frost
+    // crust and FROZEN tag). n2-chill: your Ready Hilde and an enemy Rime Sprite, Spent, for a real attack to freeze her.
+    'n2-frozen': () => {
+      N_SCENES['n-board']();
+      const me = s.players[HUMAN];
+      Object.assign(me.row[5], { spent: true, frozen: true });
+    },
+    'n2-chill': () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN]; const them = s.players[AI];
+      const L = (id, level, uid) => onBoard(s, creatureAtLevel(cardDef(id), level, uid));
+      me.row = me.row.map(() => null); them.row = them.row.map(() => null); s.locations = []; s.strats = [];
+      me.row[3] = { ...L('stonewatch-bulwark', 4, 'scene-hilde'), spent: false };
+      them.row[3] = { ...L('rime-elemental', 5, 'scene-rime'), spent: true };
       them.hand = them.hand.filter((c) => c.cardType !== 'Action');
       syncBonuses(s);
     },

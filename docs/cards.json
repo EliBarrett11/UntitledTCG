@@ -3872,12 +3872,10 @@
       }
     },
     {
-      "id": "night-raid-event",
+      "id": "knives-in-the-dark",
       "cardType": "Event",
-      "name": "Night Raid",
-      "art": "assets/cards/night-raid-event.jpg",
-      "artFull": "assets/cards-v3/night-raid-event.jpg",
-      "cardX": 820,
+      "name": "Knives in the Dark",
+      "art": "assets/cards/knives-in-the-dark.jpg",
       "release": 1,
       "target": "enemy",
       "ops": [

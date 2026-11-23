@@ -46,8 +46,9 @@ test('the pool: 60 deck cards (29 + Batch 1\'s 31), both Legendaries\' Locations
     assert.deepEqual(deckProblems(fitted), [], d.id);
     const c = cardAtRound(d.id, 1, 'u');
     assert.ok(c.uid === 'u' && c.cardType === d.cardType, d.id);
+    // (Stage N2: Knives in the Dark shows Art Pending until its new art arrives.)
     if (isCreature(d)) for (const f of d.forms) assert.ok(existsSync(f.art), f.art);
-    else assert.ok(existsSync(d.art), d.art);
+    else assert.ok(existsSync(d.art) || d.id === 'knives-in-the-dark', d.art);
   }
   // "The first deck" is unchanged.
   assert.equal(DECKS.first.cards.length, 29);
@@ -268,17 +269,91 @@ test('Tinker: whenever its owner buys an Item, +1 Attack and +1 Health for good'
   assert.equal(s.players.p1.row[0].attack, 2, 'for good');
 });
 
-test('Chill: a creature that damages it becomes Spent (Tilda\'s Prime On Summon, arriving Active with Ambush)', () => {
+test('Chill: a creature that damages it becomes Frozen (Tilda\'s Prime On Summon, arriving Active with Ambush)', () => {
   let s = blank(1, { round: 1 });
   put(s, 'p2', 0, 'rime-elemental');   // Rime Sprite 1/3, Ward, Chill
   s = summon(s, 'p1', 'cinderwick-prodigy', 0, { target: { who: 'p2', space: 0 } });
   assert.equal(s.players.p2.row[0].currentHealth, 1);
-  assert.equal(s.players.p1.row[0].spent, true);
+  assert.deepEqual([s.players.p1.row[0].spent, s.players.p1.row[0].frozen], [true, true], 'her own trigger damage counts (reading 29)');
   assert.ok(types(s).includes('chill'));
   let t = blank(1, { round: 1 });
   put(t, 'p2', 0, 'x-steady');
   t = summon(t, 'p1', 'cinderwick-prodigy', 0, { target: { who: 'p2', space: 0 } });
   assert.equal(t.players.p1.row[0].spent, false, 'Ambush at her Prime');
+});
+
+// --- Chill, revised (stage N2, docs/35): Frozen -------------------------------------------------------------------
+const frozenOf = (s, who, space) => [s.players[who].row[space].spent, !!s.players[who].row[space].frozen];
+test('Frozen: attacking a Chill creature freezes the attacker; it stays Spent at the next Dawn, then thaws, and is Active the Dawn after', () => {
+  let s = blank(1, { round: 1 });
+  put(s, 'p1', 0, 'x-steady');                          // 2 Attack: the Rime Sprite (1/3) lives
+  put(s, 'p2', 0, 'rime-elemental', { spent: true });
+  s = attack(s, 'p1', 0, at(0));
+  assert.deepEqual(frozenOf(s, 'p1', 0), [true, true]);
+  assert.ok(s.log.some((l) => /freezes X Steady Martial/.test(l)));
+  s = endPhase(s);
+  assert.equal(s.round, 2);
+  assert.deepEqual(frozenOf(s, 'p1', 0), [true, false], 'skips one Dawn\'s return to Active, and thaws');
+  assert.ok(s.events.some((e) => e.type === 'thaw' && e.by === 'dawn' && e.who === 'p1' && e.space === 0));
+  assert.deepEqual(frozenOf(s, 'p2', 0), [false, false], 'the Chill creature itself is Active as usual');
+  s.players.p2.row[0].spent = true;   // (so the Round can end: it would be the only Ready creature)
+  s = endPhase(s);
+  assert.equal(s.round, 3);
+  assert.deepEqual(frozenOf(s, 'p1', 0), [false, false], 'Active at the Dawn after');
+});
+
+test('Frozen: hitting back and Riposte damage count too; damage that doesn\'t get through doesn\'t', () => {
+  // A Ready creature hits back at an attacking Chill creature: it's Frozen.
+  let s = blank(1, { round: 2 });   // (the Rime Sprite is Slow: it attacks from Round 2)
+  put(s, 'p2', 0, 'rime-elemental');
+  put(s, 'p1', 0, 'x-slow');         // (Slow too, so both are Ready)
+  s.turn = 'p2';
+  s = attack(s, 'p2', 0, at(0));
+  assert.deepEqual(frozenOf(s, 'p1', 0), [true, true], 'hit back');
+  // Riposte (Gallows Hill's Riposte 1) on a Spent creature the Chill creature attacks.
+  let g = blank(1, { round: 2 });
+  g = act(g, { type: 'placeLocation', who: 'p1', uid: give(g, 'p1', 'gallows-hill'), start: 0 });
+  put(g, 'p1', 0, 'x-steady', { spent: true });
+  put(g, 'p2', 0, 'rime-elemental');
+  g.turn = 'p2';
+  g = attack(g, 'p2', 0, at(0));
+  assert.deepEqual(frozenOf(g, 'p1', 0), [true, true], 'Riposte');
+  // An Action's damage isn't a creature's: no one is Frozen.
+  let a = blank(1, { round: 1 });
+  put(a, 'p2', 0, 'rime-elemental', { spent: true });
+  a = act(a, { type: 'action', who: 'p1', uid: give(a, 'p1', 'firebolt'), mode: 'adapt', target: { who: 'p2', space: 0 } });
+  assert.ok(!a.events.some((e) => e.type === 'chill'));
+});
+
+test('Frozen: an effect that makes it Active thaws it (Draught of Vigour)', () => {
+  let s = blank(1, { round: 1 });
+  put(s, 'p1', 0, 'x-steady');
+  put(s, 'p2', 0, 'rime-elemental', { spent: true });
+  s = attack(s, 'p1', 0, at(0));
+  s.turn = 'p1'; s.players.p1.gold = 9;
+  s = act(s, { type: 'buyItem', who: 'p1', from: 'hand', uid: give(s, 'p1', 'draught-of-vigour'), then: 'use', target: { who: 'p1', space: 0 } });
+  assert.deepEqual(frozenOf(s, 'p1', 0), [false, false]);
+  assert.ok(s.events.some((e) => e.type === 'thaw' && e.by === 'effect'));
+  // (Thawed, it's Active again at the next Dawn as usual.)
+  s.players.p1.row[0].spent = true;
+  s = endPhase(s);
+  assert.deepEqual(frozenOf(s, 'p1', 0), [false, false]);
+});
+
+test('Frozen again while still Frozen: it still skips just one Dawn', () => {
+  let s = blank(1, { round: 2 });
+  s = act(s, { type: 'placeLocation', who: 'p1', uid: give(s, 'p1', 'gallows-hill'), start: 0 });
+  put(s, 'p1', 0, 'x-steady', { spent: true, frozen: true });
+  put(s, 'p2', 0, 'rime-elemental');
+  s.turn = 'p2';
+  s = attack(s, 'p2', 0, at(0));   // its Riposte 1 hits the Rime Sprite: Frozen again
+  assert.equal(s.events.filter((e) => e.type === 'chill').length, 1);
+  assert.deepEqual(frozenOf(s, 'p1', 0), [true, true]);
+  s = endPhase(s);
+  assert.deepEqual(frozenOf(s, 'p1', 0), [true, false]);
+  s.players.p2.row[0].spent = true;
+  s = endPhase(s);
+  assert.deepEqual(frozenOf(s, 'p1', 0), [false, false]);
 });
 
 test('Frenzy: while damaged it has +2 Attack; healed, it loses it', () => {
@@ -477,12 +552,12 @@ test('Chain Lightning: React 1 to the attacker and 1 to another enemy; Adapt 2 a
   assert.deepEqual([0, 1, 5].map((i) => a.players.p2.row[i].currentHealth), [3, 4, 5]);
 });
 
-test('Night Raid (the Event): 2 damage and Spent; its Favour (a Rogue) makes each other enemy in its Location Spent too', () => {
+test('Knives in the Dark (the Event, once called Night Raid): 2 damage and Spent; its Favour (a Rogue) makes each other enemy in its Location Spent too', () => {
   let s = blank(1, { round: 2 });
   placeAt(s, 'emberfall-ruins', 0, 'p2');
   put(s, 'p2', 0, 'x-steady'); put(s, 'p2', 1, 'x-steady'); put(s, 'p2', 5, 'x-steady');
   const plain = give(s, 'p1', 'firebolt');
-  const ev = give(s, 'p1', 'night-raid-event');
+  const ev = give(s, 'p1', 'knives-in-the-dark');
   const a = act(s, { type: 'event', who: 'p1', uid: ev, release: [plain], target: { who: 'p2', space: 0 } });
   assert.deepEqual([a.players.p2.row[0].currentHealth, a.players.p2.row[0].spent, a.players.p2.row[1].spent], [3, true, false]);
   const rogue = give(s, 'p1', 'hollowfoot-cutpurse');
@@ -490,8 +565,8 @@ test('Night Raid (the Event): 2 damage and Spent; its Favour (a Rogue) makes eac
   const f = act(s, { type: 'event', who: 'p1', uid: ev, release: [rogue], target: { who: 'p2', space: 0 } });
   assert.deepEqual([f.players.p2.row[0].spent, f.players.p2.row[1].spent, f.players.p2.row[5].spent], [true, true, false]);
   assert.equal(f.players.p1.renown, 3, 'the Favour\'s +3');
-  // (The two Night Raids are separate cards with one name: the Action is in "The first deck".)
-  assert.deepEqual([cardDef('night-raid').cardType, cardDef('night-raid-event').cardType], ['Action', 'Event']);
+  // (Stage N2: the Event has its own name now; the Action Night Raid is in "The first deck".)
+  assert.deepEqual([cardDef('night-raid').cardType, cardDef('knives-in-the-dark').cardType, cardDef('knives-in-the-dark').name], ['Action', 'Event', 'Knives in the Dark']);
 });
 
 test('War Drums, Market Day and Warhorn of the Vanguard', () => {

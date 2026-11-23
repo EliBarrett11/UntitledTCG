@@ -42,10 +42,10 @@ test('every card id and art path matches the art prompts (docs/07, 13, and New C
   const read = (f) => readFileSync(new URL(`../docs/${f}`, import.meta.url), 'utf8');
   const doc = ['07-art-prompts.md', '13-prime-art-prompts.md'].map(read).join('\n');
   const listed = [...doc.matchAll(/`assets\/cards\/([a-z0-9-]+)\.jpg`/g)].map((m) => m[1]);
-  // (Stage N: the batch docs name each image "→ `id`". Night Raid the Event shares its name with the Action, so its
-  // picture is night-raid-event; the Action keeps night-raid.)
+  // (Stage N: the batch docs name each image "→ `id`". Set 4's Night Raid Event is now Knives in the
+  // Dark (docs/35, stage N2), with its own art prompt; the Action keeps night-raid.)
   const batch = ['27-art-prompts-batch1-set1.md', '29-art-prompts-batch1-set2.md', '31-art-prompts-batch1-set3.md', '33-art-prompts-batch1-set4.md'].map(read).join('\n');
-  const newIds = [...batch.matchAll(/^### \d+\. (.+?) → `([a-z0-9-]+)`/gm)].map((m) => (m[2] === 'night-raid' && /Event/.test(m[1]) ? 'night-raid-event' : m[2]));
+  const newIds = [...batch.matchAll(/^### \d+\. (.+?) → `([a-z0-9-]+)`/gm)].map((m) => (m[2] === 'night-raid' && /Event/.test(m[1]) ? 'knives-in-the-dark' : m[2]));
   const arts = data.cards.flatMap((c) => (c.forms ? c.forms.map((f) => f.art) : [c.art, c.campaignCreature?.art].filter(Boolean)));
   assert.deepEqual(arts.map((a) => a.replace(/^assets\/cards\/|\.jpg$/g, '')).sort(), [...new Set([...listed, ...newIds])].sort());
   assert.equal(arts.length, 114);   // 37, stage P's 17 new forms, and New Cards Batch 1's 60 images

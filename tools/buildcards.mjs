@@ -200,6 +200,8 @@ export function syncArt(data) {
   const one = (o, isLocation = false) => {
     if (!o?.art) return o;
     const id = o.art.split('/').pop().replace(/\.jpg$/, '');
+    // (Art still to come: no scene yet, so no art data; the game shows Art Pending.)
+    if (!existsSync(join(ART_SRC, `${id}.jpg`)) && !crops[id]) return withArt(o, {});
     if (!crops[id]) { problems.push(`${id}: no crop centre in assets/cards-v3/crops.json`); return o; }
     const extra = { artFull: `assets/cards-v3/${id}.jpg`, cardX: crops[id].cardX };
     if (isLocation) {

@@ -15,10 +15,13 @@ const withArt = CARDS.flatMap((d) => [...(d.forms ?? [d]), ...(d.campaignCreatur
 
 test('every card has its new art: the card crop, its full scene and its crop centre, recorded from the art', () => {
   // (54 at stage A; stage N's New Cards Batch 1 adds 60: every new form, card and Campaign Creature, The Ashfall's art,
-  // and The Drowned Reach. Night Raid, the Event, has its own picture; the Action keeps its own.)
+  // and The Drowned Reach. Stage N2: Knives in the Dark (once the Night Raid Event) awaits its new art, showing Art
+  // Pending: its old picture is retired.)
+  const PENDING = ['knives-in-the-dark'];
+  const pendingOf = (x) => PENDING.includes(x.art.split('/').pop().replace('.jpg', '')) && !existsSync(x.art);
   assert.equal(withArt.length, 114);
-  assert.equal(ART.size, 114);
-  for (const x of withArt) {
+  assert.equal(ART.size, 114 - withArt.filter(pendingOf).length);
+  for (const x of withArt.filter((y) => !pendingOf(y))) {
     const id = x.art.split('/').pop().replace('.jpg', '');
     assert.ok(existsSync(x.art), `${x.art} exists`);
     assert.equal(x.artFull, `assets/cards-v3/${id}.jpg`);
@@ -27,7 +30,8 @@ test('every card has its new art: the card crop, its full scene and its crop cen
   }
   // (docs/cards.json carries the same, written by tools/buildcards.mjs.)
   const jsonArt = json.cards.flatMap((d) => [...(d.forms ?? [d]), ...(d.campaignCreature ? [d.campaignCreature] : [])]).filter((x) => x.art);
-  assert.equal(jsonArt.filter((x) => x.artFull && Number.isFinite(x.cardX)).length, 114);
+  assert.equal(jsonArt.filter((x) => x.artFull && Number.isFinite(x.cardX)).length, 114 - withArt.filter(pendingOf).length);
+  for (const x of withArt.filter(pendingOf)) assert.ok(!x.artFull && !existsSync(x.art.replace('cards/', 'cards-v3/')), `${x.art}: Art Pending, no old picture`);
 });
 
 test('Location tiles: each has its focus point, and a tile of any width is drawn around it', () => {

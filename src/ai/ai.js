@@ -55,6 +55,9 @@ function evaluateNow(s, who) {
       v += Math.max(0, card.attack) * 0.9 + card.currentHealth * 0.45 + (isReady(s, card) ? 0.5 : 0) + guardsOf(card).length * 0.3;
       v += keywordAmount(card, 'armour') * 0.6 + keywordAmount(card, 'riposte') * 0.5 + (card.trigger?.on === 'defeat' ? 0.5 : 0);
       v += newAbilitiesValue(card);
+      // Stage N2: a Frozen creature misses next Round: it can't attack, and being Spent, it can't hit back. The
+      // look-ahead sees an attacker Frozen by a Chill creature, so attacking one costs that Round in the score.
+      if (card.frozen) v -= FROZEN_COST + Math.max(0, card.attack) * 0.35;
     }
     return v;
   };
@@ -73,8 +76,11 @@ function evaluateNow(s, who) {
   return side(who) - side(foe) + dom + (s.phase === 'battle' ? me.baseEnergy * 0.3 : 0) - me.exhaust.length * 0.6;
 }
 
+// Stage N2: what being Frozen costs a creature, beyond its Attack's share (about a Round of being Ready).
+export const FROZEN_COST = 0.6;
+
 // Stage N: what Batch 1's abilities are worth on a creature, beyond what the board already shows. Venom and Chill
-// make the creatures they touch Spent (the look-ahead sees that, when it happens); an unused Undying is about two more
+// make the creatures they touch Spent (Chill: Frozen, for a Round more, since stage N2) (the look-ahead sees that, when it happens); an unused Undying is about two more
 // Health; Soaring reaches past Shields; Frenzy is worth more the more it's hurt (its Attack already counts the +2);
 // Tinker grows with every Item bought; a trigger that keeps working (Rally, On Attack, On Dawn, On Dusk) is worth a
 // little each.
@@ -83,7 +89,7 @@ export function newAbilitiesValue(card) {
   let v = 0;
   const has = (k) => keywordAmount(card, k) > 0 || !!card.keywords?.[k] || !!card.locKw?.[k] || !!card.tempKw?.[k] || (card.held?.ops ?? []).some((o) => o.op === 'keyword' && o.keyword === k);
   if (has('venom')) v += 0.6;
-  if (has('chill')) v += 0.4;
+  if (has('chill')) v += 0.7;   // (stage N2: Frozen keeps attackers off it for a Round)
   if (has('undying') && !card.undyingUsed) v += 0.45 * 2.5;
   if (has('soaring')) v += 0.5;
   if (has('tinker')) v += 0.4;

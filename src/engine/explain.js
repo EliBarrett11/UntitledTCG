@@ -194,7 +194,7 @@ export function explain(s, ref, viewer = 'p1') {
     ex.now = creatureNow(s, found, viewer);
     // (Stage N: every trigger it has, and "Choose one".)
     const trigs = card.triggers ?? (card.trigger ? [card.trigger] : []);
-    ex.terms = [...new Set([card.guard?.toLowerCase(), ...Object.keys(card.keywords ?? {}), ...trigs.map((t) => TRIGGER_TERM[t.on]), trigs.some((t) => t.choose) ? 'chooseOne' : null, card.stage === 'prime' ? 'prime' : 'level'].filter(Boolean))];
+    ex.terms = [...new Set([card.frozen ? 'frozen' : null, card.guard?.toLowerCase(), ...Object.keys(card.keywords ?? {}), ...trigs.map((t) => TRIGGER_TERM[t.on]), trigs.some((t) => t.choose) ? 'chooseOne' : null, card.stage === 'prime' ? 'prime' : 'level'].filter(Boolean))];
   } else if (card.cardType === 'Action') {
     ex.modes = ['react', 'adapt', 'strat'].filter((m) => card.modes[m]).map((m) => ({ mode: m, name: Cap(m), cost: card.modes[m].cost, text: card.modes[m].text, target: chosenTargetWords(card.modes[m].target), term: m }));
     ex.now = otherNow(s, found, viewer);
@@ -258,7 +258,9 @@ function creatureNow(s, found, viewer) {
     lines.push(`On the battlefield, ${ME(viewer, who)} side, lane ${space + 1}, in ${where}.`);
     if (card.campaignCreature) lines.push(`A Campaign Creature: Level ${card.level}, always Prime.`);
     else lines.push(`Summoned in Round ${card.summonedRound} at **Level ${card.level}**, ${card.stage === 'prime' ? '**its Prime**' : STAGE_WORD[card.stage]}${card.stage === 'prime' && !card.legendary ? ' (+1 Attack, +1 Health)' : ''}.`);
-    if (card.spent) lines.push('**Spent:** it can\'t attack or hit back until the next Dawn.');
+    // (Stage N2: Frozen by Chill, it stays Spent at the next Dawn too.)
+    if (card.frozen) lines.push('**Frozen:** it\'s Spent, and it stays Spent at the next Dawn, then thaws. An effect that makes it Active thaws it.');
+    else if (card.spent) lines.push('**Spent:** it can\'t attack or hit back until the next Dawn.');
     else if (isReady(s, card)) lines.push(`**Ready:** it can attack (the fastest Active Speed is ${SPEED_ORDER[topSpeed(s)]}).`);
     else lines.push(`**Active,** not Ready: a faster creature is Active (${SPEED_ORDER[topSpeed(s)]}).`);
     if (card.held) lines.push(`Holds **${card.held.name}** (Held Item).`);

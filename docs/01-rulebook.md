@@ -58,7 +58,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
 1. If the Last Battle's trigger is met, the Last Battle begins (section 11).
 2. Exhaust recovers into Exert (section 6).
 3. Base Energy and the Exert maximum are set.
-4. Spent Characters and Monsters become Active.
+4. Spent Characters and Monsters become Active, except a **Frozen** one: it stays Spent this once, then thaws (Chill, 12.1).
 5. Each player gains 1 Gold.
 6. Dawn healing: Location passives heal first. Then On Dawn triggers resolve (12.2), in the order of section 12.3.
 7. Cards off the battlefield take this Round's Level (section 7).
@@ -122,6 +122,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
   - Active cards can act this Round.
   - A **Ready** card is one of the fastest Active cards on both sides: the highest Speed among all Active cards. Only Ready cards can attack.
   - A Spent card can't attack or hit back until the next Dawn.
+  - A **Frozen** card (from Chill, 12.1) is Spent and stays Spent at the next Dawn: it skips one Dawn's return to Active, then thaws. An effect that makes it Active thaws it. Frozen again while still Frozen, it still skips just one Dawn. (Approved by Elliott, 23 November 2026, docs/35.)
 
 ### 7.1 Prime (approved by Elliott, 16 November 2026)
 
@@ -280,7 +281,7 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 | **Undying** | The first time it would be defeated, it's left at 1 Health instead. Once per creature. (Approved by Elliott, 23 November 2026.) |
 | **Soaring** | Shields can't guard against its attacks. Wards still can, if it's Arcane. (Approved by Elliott, 23 November 2026.) |
 | **Tinker** | Whenever you buy an Item from the Market, this gets +1/+1 for good. (Approved by Elliott, 23 November 2026.) |
-| **Chill** | A creature that damages this one becomes Spent. (Approved by Elliott, 23 November 2026.) |
+| **Chill** | A creature that damages this one becomes **Frozen**: Spent, and it stays Spent at the next Dawn, then thaws (section 7). (Revised and approved by Elliott, 23 November 2026, docs/35.) |
 | **Frenzy** | While damaged, it has +2 Attack. (Approved by Elliott, 23 November 2026.) |
 
 ### 12.2 Triggers (approved by Elliott, 13 November 2026)
@@ -365,7 +366,7 @@ Where two triggers or passives happen at the same moment (for example Grusha's O
 38. **Frenzy:** "damaged" means its current Health is below its full Health. The +2 shows on its Attack and counts for Might. A hit back uses its Attack from before the hit (the two strike at once).
 39. **Tinker** counts any Item its owner buys: from the Market or from their hand, used at once or stored.
 40. **Second Wind's Strat** gives +1 Attack only to the creatures it made Active.
-41. **Night Raid (the Event)'s Favour:** "its Location" is the chosen creature's, even if the 2 damage defeated it.
+41. **Knives in the Dark's Favour** (the Event once called Night Raid): "its Location" is the chosen creature's, even if the 2 damage defeated it.
 42. **Glass Veil's React on a Campaign Creature:** it can't be returned to hand (section 12), but the attack still does nothing.
 43. **Chain Lightning's React** with no other enemy creature still deals 1 damage to the attacker.
 44. **Hunter's Snare's −2 Attack** can't take Attack below 0; at Dusk the creature gets back only what it lost (as reading 25).
@@ -373,13 +374,19 @@ Where two triggers or passives happen at the same moment (for example Grusha's O
 46. **The Deepmaw's On Summon** in the Last Battle makes every enemy creature Spent (its Location is the whole battlefield then, as reading 28).
 47. **Home groups:** the eight old Character series take the home groups their names already carry (Oathsworn, Hollowfoot, Ashen Spire, Deepforge, Thornwood, Ironhide, Cinderwick, Duskmere). Campaign Creatures and Monsters have none.
 48. **Card wording:** the new cards' text follows the game's card templates, with the same meaning as docs/26–32 ("this gets +1 Health for good" reads "+1 Health to it"; "an enemy creature takes 2 damage and becomes Spent" reads "2 damage to an enemy creature. Make it Spent."). Every line is generated from the card data, as before.
-49. **Night Raid** is two cards: the Action (in "The first deck") and the Event (set 4). Both keep the name, and each has its own picture: the Event's new one, and the Action's own again. (Decided by Elliott during stage N.)
+49. ~~Night Raid is two cards~~ **Replaced (docs/35, stage N2):** the set 4 Event is **Knives in the Dark** (`knives-in-the-dark`), with its own name and new art; Night Raid is the Action alone. A saved deck or deck code holding the Event's old id (`night-raid-event`) imports it as Knives in the Dark.
 50. **The pool** has 60 deck cards: the 29 before and 31 new ones. docs/32 counts 61 because it counts The Ashfall, which isn't new and never goes in a deck.
+
+### Readings from stage N2: needing Elliott's approval
+
+51. **Frozen and the Dawn order:** a creature Frozen during a Round stays Spent at that Round's next Dawn (step 4) and thaws there, so it's Spent all the next Round and Active again the Dawn after. A creature Frozen on its own side's turn and one Frozen at Dusk (Grusha's On Dusk hitting a Chill creature) both skip the next Dawn.
+52. **Frozen isn't a keyword:** it lasts until it thaws and can't be removed except by being made Active (Second Wind, Draught of Vigour) or by leaving the battlefield (a creature returned to hand comes back unfrozen). Venom's plain Spent doesn't cancel it or add to it.
+53. **Knives in the Dark's old id:** a saved deck or deck code naming `night-raid-event` reads it as Knives in the Dark; version 2 deck codes keep its place in the card list, so they import unchanged.
 
 ### Open questions
 
 1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Monsters carry a **Kind** (Beast, Undead, Dragon and so on) in place of a Class and a Race.
 2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.
-3. **Chill, as written, rarely changes anything in combat.** An attacker is always Spent after its attack, and a Ready target that hits back is Spent too, so the creature Chill makes Spent usually already is. It matters when a creature's own trigger damages it (Tilda arriving Active with Ambush, Grusha at Dusk, Ysolde's On Attack on another creature). Should Chill do more, for example keep the creature Spent through the next Dawn? (Built exactly as written until Elliott decides.)
+3. ~~Chill, as written, rarely changes anything in combat.~~ **Answered (docs/35, stage N2):** Chill now makes the creature that damages it Frozen (section 7, 12.1).
 
 **Pace with the new curve (stage P):** smaller stats mean less Warlord damage per hit. No Renown values changed; Elliott will monitor match length (stage P's measurements: `docs/balance/p-before.txt` and `p-after.txt`).
