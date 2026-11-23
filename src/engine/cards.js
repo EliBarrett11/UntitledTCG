@@ -79,22 +79,30 @@ export function campaignCreatureOf(campaignDef, uid) {
 }
 
 // 4: the deck rules. Returns a list of problems (empty when the deck is legal).
-export function deckProblems(ids) {
+// Rulebook section 4, in plain words (stage L): each problem with the card it's about (when it's about one), so the
+// deck builder can mark that card. deckProblems() gives the words alone.
+//   "38 of 40 cards" · "Firebolt: 3 copies, the most is 2" · "The Ashen Wyrm: 2 copies, the most is 1 (a Legendary)"
+//   "Lady Corwen's Commission: 2 copies, the most is 1 (a Campaign card)" · "4 Campaign cards, the most is 3"
+//   "The Ashfall is The Ashen Wyrm's own Location, never in a deck" · "“zz-card” isn't a card in this game"
+export function deckIssues(ids) {
   const out = [];
-  if (ids.length !== RULES.deckSize) out.push(`A deck is exactly ${RULES.deckSize} cards (this one has ${ids.length})`);
+  if (ids.length !== RULES.deckSize) out.push({ kind: 'size', text: `${ids.length} of ${RULES.deckSize} cards` });
   const counts = {};
   for (const id of ids) counts[id] = (counts[id] ?? 0) + 1;
   let campaigns = 0;
   for (const [id, n] of Object.entries(counts)) {
+    if (!LIBRARY.has(id)) { out.push({ kind: 'unknown', id, text: `“${id}” isn't a card in this game` }); continue; }
     const d = cardDef(id);
-    const max = d.series === 'Legendary' || d.cardType === 'Campaign' ? 1 : RULES.maxCopies;
-    if (n > max) out.push(`${nameOf(d)}: at most ${max} ${max === 1 ? 'copy' : 'copies'} (has ${n})`);
+    if (d.cardType === 'Location' && d.legendaryOf) { out.push({ kind: 'notInDeck', id, text: `${nameOf(d)} is ${nameOf(cardDef(d.legendaryOf))}'s own Location, never in a deck` }); continue; }
+    const why = d.series === 'Legendary' ? ' (a Legendary)' : d.cardType === 'Campaign' ? ' (a Campaign card)' : '';
+    const max = why ? 1 : RULES.maxCopies;
+    if (n > max) out.push({ kind: 'copies', id, text: `${nameOf(d)}: ${n} copies, the most is ${max}${why}` });
     if (d.cardType === 'Campaign') campaigns += 1;
-    if (d.cardType === 'Location' && d.legendaryOf) out.push(`${nameOf(d)} is ${nameOf(cardDef(d.legendaryOf))}'s own Location, never in a deck`);
   }
-  if (campaigns > RULES.maxCampaigns) out.push(`At most ${RULES.maxCampaigns} Campaign cards (has ${campaigns})`);
+  if (campaigns > RULES.maxCampaigns) out.push({ kind: 'campaigns', text: `${campaigns} Campaign cards, the most is ${RULES.maxCampaigns}` });
   return out;
 }
+export const deckProblems = (ids) => deckIssues(ids).map((x) => x.text);
 // A card's name: a series is named after its first form.
 export const nameOf = (d) => d.name ?? d.forms?.[0]?.name ?? d.id;
 // A deck list [{ id, copies }] as card ids.

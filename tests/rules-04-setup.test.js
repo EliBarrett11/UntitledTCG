@@ -16,11 +16,11 @@ test('4: a deck is exactly 40 cards', () => {
 test('4: at most 2 copies of a card; a Legendary card at most 1; Campaign cards 1 copy each', () => {
   const three = [...PLACEHOLDER_DECK.filter((id) => id !== 'tc1' && id !== 'tlo4'), 'tc1', 'tc1', 'tc1'];
   assert.equal(three.length, 40);
-  assert.ok(deckProblems(three).some((p) => /at most 2/.test(p)));
+  assert.ok(deckProblems(three).some((p) => /3 copies, the most is 2$/.test(p)));
   const twoLegendary = [...PLACEHOLDER_DECK.slice(0, 39), 'tl1'];
-  assert.ok(deckProblems(twoLegendary).some((p) => /at most 1/.test(p)));
+  assert.ok(deckProblems(twoLegendary).some((p) => /2 copies, the most is 1 \(a Legendary\)/.test(p)));
   const twoCampaign = [...PLACEHOLDER_DECK.slice(1), 'tca1'];
-  assert.ok(deckProblems(twoCampaign).some((p) => /at most 1/.test(p)));
+  assert.ok(deckProblems(twoCampaign).some((p) => /2 copies, the most is 1 \(a Campaign card\)/.test(p)));
 });
 
 test('4: 0 to 3 Campaign cards; any number of Locations', () => {
