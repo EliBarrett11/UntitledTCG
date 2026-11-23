@@ -711,7 +711,7 @@ Built to `docs/25-stage-l-prompt.md`. No rule changed. The rulebook's section 4 
     - A match starting does take you to it.
 21. **The title screen's Codex button** is now "Card Library". The old card sheet (`?sheet=full`) stays a dev aid.
 
-## 20. Readings from stage N (New Cards Batch 1): needing Elliott's approval
+## 20. Readings from stage N (New Cards Batch 1): approved by Elliott, 23 November 2026
 
 1. **Choose one:** summoning Maren asks for her space, then shows a small menu of her modes ("Choice 1 · +2 Attack until Dusk to one of your creatures", "Choice 2 · Draw 1 card"), then the target if the mode has one. At her Prime the menu is skipped: both modes happen, and you choose the one target.
 2. **Tilda's Prime target:** the enemy Warlord lights up as a target, beside the enemy creatures, as it does for an attack.

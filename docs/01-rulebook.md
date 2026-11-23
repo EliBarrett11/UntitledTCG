@@ -351,6 +351,8 @@ Where two triggers or passives happen at the same moment (for example Grusha's O
 
 ### Readings from stage N: needing Elliott's approval
 
+*Readings 29–50 (stage N) approved by Elliott, 23 November 2026, except 49, replaced by Knives in the Dark (docs/35). Open question 3 (Chill) is answered: Chill is revised (docs/35).*
+
 29. **Venom and Chill: which damage counts.** A creature "deals damage" with its attack, its hit back, its Riposte and its own triggers (Tilda's On Summon, Grusha's On Dusk, Ysolde's On Attack). An Action, Event, Item or Location passive isn't a creature, so Venom and Chill don't act on its damage. Only damage that gets through counts (Armour may stop it all).
 30. **Undying** works once per creature, whatever gives it (its own keyword, or Cinderfeather Amulet). Left at 1 Health, it isn't defeated: nobody gains Renown or Gold, no Quest moves, no On Defeat. A creature returned to hand comes back as a new card, so its Undying is unused again. The board shows UNDYING on it until it's used.
 31. **On Attack** resolves when the attack resolves, after any React window, and only if the attack doesn't fizzle. Against the enemy Warlord there's no creature to name: Ysolde's "each other enemy creature in its target's Location" does nothing then.
