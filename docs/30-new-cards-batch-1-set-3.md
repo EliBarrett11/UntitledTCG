@@ -1,4 +1,6 @@
-# New Cards Batch 1, set 3 of 4: Campaigns, Items and Locations (proposals, 23 November 2026)
+# New Cards Batch 1, set 3 of 4: Campaigns, Items and Locations (approved by Elliott, 23 November 2026)
+
+All eight cards are approved. The art prompts are in `docs/31-art-prompts-batch1-set3.md`.
 
 Campaign Creatures follow the same curve as creatures (Level + 2, less 1 per ability, +1/+1 at Prime; they always arrive at Prime). The size of the reward scales with the Quest's length: a Side-Quest gives a Level 4 creature, a mid-length Campaign Level 6, a long one Level 8. Every Quest uses a count the engine already tracks: defeats, dominations, damage to the enemy Warlord and Items bought. So this set needs **no new rules**.
 
