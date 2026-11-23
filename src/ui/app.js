@@ -856,6 +856,22 @@ export function startApp(params) {
     // and the caption go in that band at the free place nearest the centre, clear of every label and card, or just
     // under your row if the band is full.)
     for (const el of stage.querySelectorAll('.prompt, .caption')) placeInBand(el);
+    // (Stage R: the cards are taller, so the play menu slides sideways off any Ready creature of yours it would cover.)
+    const menu = stage.querySelector('.menu');
+    if (menu) {
+      const k = stage.getBoundingClientRect().width / STAGE_W;
+      const sr = stage.getBoundingClientRect();
+      const r0 = menu.getBoundingClientRect();
+      const ready = [...stage.querySelectorAll('[data-region="map"] .slot-card.ready')].map((el) => el.getBoundingClientRect());
+      const hits = (dx) => ready.some((b) => r0.left + dx * k < b.right && b.left < r0.right + dx * k && r0.top < b.bottom && b.top < r0.bottom);
+      const x0 = (r0.left - sr.left) / k;
+      const w = r0.width / k;
+      for (let d = 0; d <= STAGE_W; d += 20) {
+        const opts = [d, -d].filter((dx) => x0 + dx >= 8 && x0 + dx + w <= 1556);
+        const ok = opts.find((dx) => !hits(dx));
+        if (ok !== undefined) { menu.style.left = `${Math.round(x0 + ok)}px`; break; }
+      }
+    }
     const p = s.players[HUMAN];
     const disp = stage.querySelector('.my-energy .en-disp');
     // Energy changed: the number counts to its new value and the crystal pulses; a spent Exert point flares into it.

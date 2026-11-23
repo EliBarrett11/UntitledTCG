@@ -37,7 +37,7 @@ const SCENES = [
   { name: 'react', query: `?seed=${SEED}&scene=react-attack&pace=100000&timer=off`, need: '[data-region="react-moment"][data-kind="attack"]' },
   { name: 'react-hover', query: `?seed=${SEED}&scene=react-attack&pace=100000&timer=off`, steps: async (p) => { await hoverTop(p, '.rx-plate[data-i="0"]', 0); }, need: '.rx.previewing' },
   { name: 'react-adapt', query: '?seed=2&scene=react-adapt&pace=100000&timer=off', need: '[data-region="react-moment"][data-kind="adapt"]' },
-  { name: 'react-strat', query: '?seed=4&scene=react-strat&pace=100000&timer=off', need: '[data-region="react-moment"][data-kind="strat"]' },
+  { name: 'react-strat', query: '?seed=5&scene=react-strat&pace=100000&timer=off', need: '[data-region="react-moment"][data-kind="strat"]' },
   { name: 'lastbattle', query: `?seed=${SEED}&scene=lastbattle&pace=100000`, need: '.map.last-battle' },
   { name: 'end', query: `?seed=${SEED}&scene=end&pace=100000`, need: '[data-region="end"]' },
   // Stage V3's screens around a match.
@@ -67,9 +67,9 @@ const SCENES = [
   { name: 'v5-turn-you', query: '?seed=10&scene=mid&pace=100000', need: '[data-region="turn-plaque"][data-whose="you"]' },
   { name: 'v5-turn-enemy', query: '?seed=10&scene=enemy&pace=100000', need: '[data-region="turn-plaque"][data-whose="them"]' },
   { name: 'v5-announce', query: '?seed=10&scene=mid&autoplay=1&pace=600&speed=slow&lowmotion=1', steps: async (p) => { await p.waitForSelector('[data-region="announce"]:not(.out)', { timeout: 90000 }); await p.waitForTimeout(150); }, need: '[data-region="announce"]' },
-  { name: 'v5-dom-you', query: '?seed=11&scene=mid&pace=100000', need: '.dom-say.you' },
+  { name: 'v5-dom-you', query: '?seed=2&scene=mid&pace=100000', need: '.dom-say.you' },
   { name: 'v5-dom-enemy', query: '?seed=10&scene=mid&pace=100000', need: '.dom-say.them' },
-  { name: 'v5-dom-tie', query: '?seed=4&scene=mid&pace=100000', need: '.dom-say.tie' },
+  { name: 'v5-dom-tie', query: '?seed=5&scene=mid&pace=100000', need: '.dom-say.tie' },
   { name: 'v5-might-hover', query: '?seed=11&scene=mid&pace=100000', steps: async (p) => { await hoverTop(p, '.dom-line', 0); }, need: '.might-hex.on' },
   { name: 'v5-energy-preview', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await hoverTop(p, '.hand-card', 1); }, need: '[data-region="energy-preview"]' },
   // Stage M: playing a friend: the title with a match to resume, each lobby screen, and online match setup from both

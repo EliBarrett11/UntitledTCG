@@ -141,7 +141,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
   // A long trail tightens its spacing, then its size, so it's never cut off.
   function fitCrumb() {
     crumb.style.letterSpacing = ''; crumb.style.fontSize = '';
-    for (const [ls, fs] of [[2, 12], [1, 12], [1, 11], [0.5, 10], [0, 9]]) {
+    for (const [ls, fs] of [[2, 12], [1, 12], [1, 11], [0.5, 10], [0, 9], [0, 8]]) {
       crumb.style.letterSpacing = `${ls}px`; crumb.style.fontSize = `${fs}px`;
       if (crumb.scrollWidth <= crumb.clientWidth + 1) return;
     }
@@ -149,7 +149,8 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
   function labelOf(e, i) {
     if (e.kind === 'card') {
       const ex = i === stack.length - 1 ? lastEx : null;
-      const name = (ex?.name ?? e.name ?? '').toUpperCase();
+      // (Stage R: a Character's first name in the trail, so a long full name never crowds it out.)
+      const name = (ex?.name ?? e.name ?? '').split(',')[0].toUpperCase();
       const place = e.place ?? ex?.place ?? 'CARD';
       return i === 0 && place !== name ? [place, name] : [name];
     }

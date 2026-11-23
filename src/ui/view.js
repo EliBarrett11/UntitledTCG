@@ -135,7 +135,7 @@ function row(s, who, ui) {
     const badge = showBadge ? `<div class="preview-badge">${esc(ui.previews[pk])}</div>` : '';
     // (Stage R: choosing where a Legendary goes picks the middle of its 3 spaces; the cell shows the footprint.)
     const foot = ui.picks?.span?.[`${who}:${lane}`] ? ' span3' : '';
-    return `<div class="cell${pick ? ' target' : ''}${foot}" data-cell="${who}:${lane}" data-lane="${lane}" style="left:${lane * LANE_W}px;top:${ROW_Y[who]}px;width:${span * LANE_W}px" ${attrs}>${body}${chips}${badge}</div>`;
+    return `<div class="cell${pick ? ' target' : ''}${foot}${who === HUMAN ? '' : ' top-row'}" data-cell="${who}:${lane}" data-lane="${lane}" style="left:${lane * LANE_W}px;top:${ROW_Y[who]}px;width:${span * LANE_W}px" ${attrs}>${body}${chips}${badge}</div>`;
   }).join('');
   return cells;
 }
