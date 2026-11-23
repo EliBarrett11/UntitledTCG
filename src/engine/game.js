@@ -115,8 +115,11 @@ export const readySpaces = (s, who) => creaturesOf(s, who).filter(({ card }) => 
 const guardFor = (attackKind) => (attackKind === 'Martial' ? 'Shield' : 'Ward');
 export const guardsOf = (card) => [card?.guard, ...heldOps(card).filter((o) => o.op === 'guard').map((o) => o.guard)].filter(Boolean);
 export const hasGuard = (card, kind) => guardsOf(card).includes(kind);
-export function guardOf(s, side, space, attackKind) {
-  const kind = guardFor(attackKind);
+// 12.1 Soaring (stage N): Shields can't guard against its attacks; Wards still can, if it's Arcane.
+const guardKindVs = (attacker) => (attacker && hasKeyword(attacker, 'soaring') && guardFor(attacker.attackKind) === 'Shield' ? null : guardFor(attacker?.attackKind));
+export function guardOf(s, side, space, attackKind, attacker = null) {
+  const kind = attacker ? guardKindVs(attacker) : guardFor(attackKind);
+  if (!kind) return null;
   if (hasGuard(s.players[side].row[space], kind)) return null;
   const key = locationKey(s, space);
   return creaturesOf(s, side).find(({ card, space: i }) => i !== space && hasGuard(card, kind) && locationKey(s, i) === key) ?? null;
@@ -124,7 +127,9 @@ export function guardOf(s, side, space, attackKind) {
 export function warlordGuard(s, who, from) {
   const a = s.players[who].row[from];
   const key = locationKey(s, from);
-  return creaturesOf(s, opponentOf(who)).find(({ card, space }) => hasGuard(card, guardFor(a.attackKind)) && locationKey(s, space) === key) ?? null;
+  const kind = guardKindVs(a);
+  if (!kind) return null;
+  return creaturesOf(s, opponentOf(who)).find(({ card, space }) => hasGuard(card, kind) && locationKey(s, space) === key) ?? null;
 }
 // Stage R: what keeps each enemy out of an attack's reach, for the labels shown while targeting it: for every enemy
 // creature (and the Warlord) a guard protects from this attacker, each guard there: { who, space, name, guard, item }
@@ -133,7 +138,8 @@ export function protections(s, who, from) {
   const a = s.players[who].row[from];
   if (!a) return [];
   const foe = opponentOf(who);
-  const kind = guardFor(a.attackKind);
+  const kind = guardKindVs(a);
+  if (!kind) return [];
   const guardsIn = (key, except) => creaturesOf(s, foe).filter(({ card, space }) => space !== except && hasGuard(card, kind) && locationKey(s, space) === key)
     .map(({ card, space }) => ({ who: foe, space, name: card.name, guard: kind, item: card.guard === kind ? null : heldOps(card).some((o) => o.op === 'guard' && o.guard === kind) ? card.held.name : null }));
   const out = [];
@@ -154,7 +160,7 @@ export function attackTargets(s, who, from) {
   const a = s.players[who].row[from];
   if (!a) return [];
   const foe = opponentOf(who);
-  const out = creaturesOf(s, foe).filter(({ space }) => !guardOf(s, foe, space, a.attackKind)).map(({ space }) => ({ kind: 'creature', space }));
+  const out = creaturesOf(s, foe).filter(({ space }) => !guardOf(s, foe, space, a.attackKind, a)).map(({ space }) => ({ kind: 'creature', space }));
   if (!warlordGuard(s, who, from)) out.push({ kind: 'warlord' });
   return out;
 }
@@ -214,6 +220,18 @@ export function specTargets(s, who, spec) {
     // Wilds each lane is its own area (rulebook 12); during the Last Battle, the whole battlefield.
     case 'enemyLocation': return areaTargets(s, foe);
     case 'ownLocation': return areaTargets(s, who);
+    // Stage N.
+    case 'ownSpent': return creaturesOf(s, who).filter(({ card }) => card.spent).map(({ space }) => ({ who, space }));
+    case 'ownSpentLocation': return areaTargets(s, who, (c) => c.spent);
+    case 'enemyUpTo4': return creaturesOf(s, foe).filter(({ card }) => card.level <= 4).map(({ space }) => ({ who: foe, space }));
+    case 'enemyOrWarlord': return [...creaturesOf(s, foe).map(({ space }) => ({ who: foe, space })), { who: foe, warlord: true }];
+    case 'otherEnemy': {
+      // (A React to an attack: another enemy creature than the attacker; with none, it still deals its damage to the attacker.)
+      const p = s.reactWindow?.pending;
+      if (!(p?.type === 'attack' && s.reactWindow.reactor === who)) return [];
+      const list = creaturesOf(s, foe).filter(({ card }) => card.uid !== p.attackerUid).map(({ space }) => ({ who: foe, space }));
+      return list.length ? list : [{ none: true }];
+    }
     case 'attack': {
       const p = s.reactWindow?.pending;
       return p?.type === 'attack' && s.reactWindow.reactor === who ? [{ none: true }] : [];
@@ -229,20 +247,19 @@ export function specTargets(s, who, spec) {
     default: throw new Error(`Unknown target spec ${spec}`);
   }
 }
-function areaTargets(s, side) {
+function areaTargets(s, side, which = () => true) {
   const seen = new Set();
   const out = [];
   for (let lane = 0; lane < RULES.lanes; lane++) {
     const area = lanesHere(s, lane);
-    if (seen.has(area[0]) || !area.some((l) => s.players[side].row[l])) continue;
+    if (seen.has(area[0]) || !area.some((l) => s.players[side].row[l] && which(s.players[side].row[l]))) continue;
     seen.add(area[0]);
     out.push({ who: side, space: area[0], area: true });
   }
   return out;
 }
-const sameTarget = (a, b) => (a?.none && b?.none) || (!!a && !!b && a.who === b.who && a.space === b.space);
-// Records the chosen card's uid, so a later resolution can tell whether it's gone.
-const lockTarget = (s, t) => (t.none ? { none: true } : t.area ? { who: t.who, space: t.space, area: true } : { who: t.who, space: t.space, uid: s.players[t.who].row[t.space].uid });
+// Records the chosen card's uid, so a later resolution can tell whether it's gone. (Stage N: or the enemy Warlord.)
+const lockTarget = (s, t) => (t.none ? { none: true } : t.warlord ? { who: t.who, warlord: true } : t.area ? { who: t.who, space: t.space, area: true } : { who: t.who, space: t.space, uid: s.players[t.who].row[t.space].uid });
 
 const comboOf = (arr, k) => {
   if (k === 0) return [[]];
@@ -291,12 +308,10 @@ export function legalActions(s, who, only = null) {
   if (want('pass') && !passBlockers(s, who).length) out.push({ type: 'pass', who });
   for (const c of p.hand) {
     if (isCreature(c) && want('summon') && canPay(p, c.cost)) {
-      // 12.2: an On Summon that needs a chosen target: one Summon per legal target, or none if there's none.
-      const chosen = summonTargets(s, who, c);
-      for (const space of summonSpaces(s, who, c)) {
-        if (!chosen) out.push({ type: 'summon', who, uid: c.uid, space });
-        else for (const target of chosen) out.push({ type: 'summon', who, uid: c.uid, space, target });
-      }
+      // 12.2: an On Summon that needs a chosen target: one Summon per legal target, or none if there's none. Stage N:
+      // a choose-one On Summon: one Summon per mode (and its target), or every mode at once with "Prime: Choose both".
+      const opts = summonOptions(s, who, c);
+      for (const space of summonSpaces(s, who, c)) for (const o of opts) out.push({ type: 'summon', who, uid: c.uid, space, ...o });
     }
     if (c.cardType === 'Action' && want('action')) {
       for (const mode of ['adapt', 'strat']) if (modeUsable(s, who, c, mode)) for (const target of specTargets(s, who, c.modes[mode].target)) out.push({ type: 'action', who, uid: c.uid, mode, target });
@@ -316,14 +331,35 @@ export function legalActions(s, who, only = null) {
   if (want('attack')) for (const from of readySpaces(s, who)) for (const target of attackTargets(s, who, from)) out.push({ type: 'attack', who, from, target });
   return out;
 }
+// A card's triggers (stage N: a card may have its main trigger and a "Prime:" one).
+export const triggersOfCard = (card) => card?.triggers ?? (card?.trigger ? [card.trigger] : []);
+// Its On Summon that asks for a choice when summoned now (a "Prime:" one only at its Prime), or null.
+export function summonChoiceTrigger(card) {
+  return triggersOfCard(card).find((t) => t.on === 'summon' && !(t.prime && card.stage !== 'prime') && (t.choose || (t.target && t.target !== 'none'))) ?? null;
+}
 // The targets an On Summon offers when it needs one (null when it doesn't). The summoned creature isn't on
 // the battlefield yet, so it can't choose itself. No legal target: [{ none: true }] (it arrives; nothing happens).
-export function summonTargets(s, who, card) {
-  const t = card.trigger;
-  if (!t || t.on !== 'summon' || !t.target || t.target === 'none') return null;
-  if (t.prime && card.stage !== 'prime') return null;   // a "Prime:" On Summon does nothing unless summoned at Prime
-  const list = specTargets(s, who, t.target);
+const targetsFor = (s, who, spec) => {
+  if (!spec || spec === 'none') return [{ none: true }];
+  const list = specTargets(s, who, spec);
   return list.length ? list : [{ none: true }];
+};
+export function summonTargets(s, who, card) {
+  const t = summonChoiceTrigger(card);
+  if (!t || t.choose) return null;
+  return targetsFor(s, who, t.target);
+}
+// Stage N: what a Summon asks for: [{}] (nothing), [{ target }...], or for a choose-one On Summon [{ mode, target }...]
+// (mode: the mode's index, or 'both' for "Prime: Choose both", whose target is the one mode that needs one).
+export function summonOptions(s, who, card) {
+  const t = summonChoiceTrigger(card);
+  if (!t) return [{}];
+  if (!t.choose) return targetsFor(s, who, t.target).map((target) => ({ target }));
+  if (card.chooseBoth) {
+    const m = t.choose.find((x) => x.target && x.target !== 'none');
+    return (m ? targetsFor(s, who, m.target) : [{ none: true }]).map((target) => ({ mode: 'both', target }));
+  }
+  return t.choose.flatMap((m, i) => targetsFor(s, who, m.target).map((target) => ({ mode: i, target })));
 }
 export const itemTargets = (s, who, item) => specTargets(s, who, item.kind === 'Held' ? 'ownNoHeld' : item.target ?? 'none');
 function buyOptions(s, who, item, src) {
@@ -336,7 +372,7 @@ function buyOptions(s, who, item, src) {
 }
 
 // A stable key for an action, so a submitted action can be matched against the legal list.
-const tkey = (t) => (!t ? '-' : t.none ? 'none' : t.kind ? `${t.kind}:${t.space ?? ''}` : `${t.who}:${t.space}${t.area ? ':area' : ''}`);
+const tkey = (t) => (!t ? '-' : t.none ? 'none' : t.warlord ? `${t.who}:warlord` : t.kind ? `${t.kind}:${t.space ?? ''}` : `${t.who}:${t.space}${t.area ? ':area' : ''}`);
 export function actionKey(a) {
   const sorted = (xs) => [...(xs ?? [])].sort().join(',');
   switch (a.type) {
@@ -382,7 +418,7 @@ const ACTIONS = {
   },
 
   // 7: pay the cost and place it in an empty space on your side. It arrives Spent, a snapshot.
-  summon(s, { who, uid, space, target }) {
+  summon(s, { who, uid, space, target, mode }) {
     const p = s.players[who];
     const t = target ? lockTarget(s, target) : null;
     const card = removeFromHand(p, uid);
@@ -401,7 +437,14 @@ const ACTIONS = {
       gainRenown(s, who, RULES.perPrimeSummon, 'prime', `summoning ${card.name} at its Prime`);
       if (s.phase === 'gameOver') return;
     }
-    queueTrigger(s, who, space, p.row[space], 'summon', { target: t });
+    queueTrigger(s, who, space, p.row[space], 'summon', { target: t, ...(mode != null ? { mode } : {}) });
+    // 12.2 Rally (group) (stage N): each other creature of yours whose Rally names a group the summoned creature belongs
+    // to; after its On Summon, left to right.
+    const summoned = p.row[space];
+    for (const o of creaturesOf(s, who)) {
+      if (o.card === summoned) continue;
+      for (const tr of triggersOfCard(o.card)) if (tr.on === 'rally' && meetsCondition(summoned, tr.group ?? {})) queueTrigger(s, who, o.space, o.card, 'rally', {}, tr);
+    }
     finishTurn(s, who);
   },
 
@@ -443,7 +486,7 @@ const ACTIONS = {
     const t = lockTarget(s, target);
     emit(s, 'react', { who, uid, name: card.name, target: t });
     log(s, `${NAME[who]} Reacted with ${card.name}.`);
-    runEffect(s, { who, name: card.name, kind: 'react', target: t, pending: w.pending }, card.modes.react.ops);
+    runEffect(s, { who, name: card.name, kind: 'react', target: t, pending: w.pending, spec: card.modes.react.target }, card.modes.react.ops);
     p.discard.push(card);
     s.reactWindow = null;
     drainTriggers(s);
@@ -467,7 +510,7 @@ const ACTIONS = {
     const t = lockTarget(s, target);
     emit(s, 'event', { who, uid, name: card.name, released: released.map((c) => c.uid), favour });
     log(s, `${NAME[who]} played ${card.name}, Releasing ${released.map((c) => c.name).join(' and ') || 'nothing'}${favour ? ' (Favour)' : ''}.`);
-    runEffect(s, { who, name: card.name, kind: 'event', target: t }, favour ? card.favour.ops : card.ops);
+    runEffect(s, { who, name: card.name, kind: 'event', target: t, spec: card.target }, favour ? card.favour.ops : card.ops);
     p.released.push(card);
     if (favour) gainRenown(s, who, RULES.perFavour, 'favour', `${card.name}'s Favour`);
     finishTurn(s, who);
@@ -484,6 +527,14 @@ const ACTIONS = {
       s.market.soldOut = { by: who, armed: false };
     } else item = removeFromHand(p, uid);
     p.gold -= item.price;
+    // 12.1 Tinker (stage N): each of the buyer's creatures with Tinker gets +1 Attack and +1 Health for good.
+    for (const { card, space } of creaturesOf(s, who)) {
+      if (!hasKeyword(card, 'tinker')) continue;
+      card.attack += 1; card.health += 1; card.currentHealth += 1;
+      syncFrenzy(s, who, space);
+      emit(s, 'tinker', { who, space, uid: card.uid, name: card.name });
+      log(s, `${card.name} Tinkers: +1 Attack and +1 Health.`);
+    }
     progressQuests(s, who, 'itemsBought');
     emit(s, 'itemBought', { who, uid: item.uid, name: item.name, from, then });
     log(s, `${NAME[who]} bought ${item.name} from ${from === 'market' ? 'the Market' : 'their hand'} for ${item.price} Gold.`);
@@ -521,7 +572,7 @@ const ACTIONS = {
     emit(s, 'campaignOrder', { who, uid, name: card.name });
     log(s, `${NAME[who]} gave ${card.name}'s Campaign Order.`);
     p.discard.push(card);
-    runEffect(s, { who, name: card.name, kind: 'order', target: t }, card.order.ops);
+    runEffect(s, { who, name: card.name, kind: 'order', target: t, spec: card.order.target }, card.order.ops);
     finishTurn(s, who);
   },
 
@@ -631,11 +682,19 @@ const RESOLVE = {
     const foe = opponentOf(who);
     const a = s.players[who].row[from];
     if (!a || a.uid !== attackerUid) return fizzle(s, who, `${NAME[who]}'s attack`, 'the attacker is gone');
-    const d = target.kind === 'creature' ? s.players[foe].row[target.space] : null;
+    // (Stage N: a React that says "the attack does nothing", Glass Veil's.)
+    if (pending.cancelled) { a.spent = true; return fizzle(s, who, `${a.name}'s attack`, 'it was stopped'); }
+    let d = target.kind === 'creature' ? s.players[foe].row[target.space] : null;
     if (target.kind === 'creature' && (!d || d.uid !== targetUid)) { a.spent = true; return fizzle(s, who, `${a.name}'s attack`, 'its target is gone'); }
     if (!attackTargets(s, who, from).some((t) => t.kind === target.kind && t.space === target.space)) { a.spent = true; return fizzle(s, who, `${a.name}'s attack`, 'its target is guarded now'); }
-    // A React may make the attack deal less damage (minimum 0).
-    const dmg = Math.max(0, a.attack - (pending.reduce ?? 0));
+    // 12.2 On Attack (stage N): after the target is chosen (and any React), before damage.
+    onAttack(s, pending, a);
+    if (s.phase === 'gameOver') return;
+    if (s.players[who].row[from]?.uid !== a.uid) return fizzle(s, who, `${a.name}'s attack`, 'the attacker is gone');
+    d = target.kind === 'creature' ? s.players[foe].row[target.space] : null;
+    if (target.kind === 'creature' && d?.uid !== targetUid) { a.spent = true; return fizzle(s, who, `${a.name}'s attack`, 'its target is gone'); }
+    // A React may make the attack deal less damage (minimum 0); an On Attack may make it deal more.
+    const dmg = Math.max(0, a.attack + (pending.bonus ?? 0) - (pending.reduce ?? 0));
     if (!d) {
       a.spent = true;
       s.players[foe].warlordDamage += dmg;
@@ -643,7 +702,6 @@ const RESOLVE = {
       log(s, `${a.name} hit ${NAME[foe]}'s Warlord for ${dmg}.`);
       gainRenown(s, who, dmg * RULES.perWarlordDamage, 'warlord', `${a.name}'s attack`);
       if (dmg > 0) progressQuests(s, who, 'warlordDamage', dmg);
-      queueTrigger(s, who, from, a, 'attack', { target });
       return;
     }
     const trades = isReady(s, d);
@@ -654,10 +712,12 @@ const RESOLVE = {
     if (trades) d.spent = true;
     emit(s, 'attack', { who, from, target, amount: hit, back: took });
     log(s, `${a.name} hit ${d.name} for ${hit}${trades ? `; ${d.name} was Ready and hit back for ${took}` : ''}.`);
-    const dDown = d.currentHealth <= 0;
-    const aDown = a.currentHealth <= 0;
-    if (dDown) defeat(s, foe, target.space, who);
-    if (aDown) defeat(s, who, from, foe);
+    // 12.1 Venom and Chill (stage N): whoever took damage from the other side's creature.
+    afterHit(s, { who, space: from, card: a }, { who: foe, space: target.space, card: d }, hit);
+    if (trades) afterHit(s, { who: foe, space: target.space, card: d }, { who, space: from, card: a }, took);
+    // (Stage N: Undying may leave either at 1 Health.)
+    const dDown = d.currentHealth <= 0 && defeat(s, foe, target.space, who);
+    const aDown = a.currentHealth <= 0 && defeat(s, who, from, foe);
     if (s.phase === 'gameOver') return;
     // 12.1 Riposte X: after the attack resolves, if the target is still on the battlefield (Spent or not),
     // it deals X damage to the attacker (if that is still there). Armour applies.
@@ -666,10 +726,9 @@ const RESOLVE = {
       const dealt = damageCard(s, who, from, rip);
       emit(s, 'riposte', { who: foe, space: target.space, amount: dealt });
       log(s, `${d.name}'s Riposte deals ${dealt} to ${a.name}.`);
+      afterHit(s, { who: foe, space: target.space, card: d }, { who, space: from, card: a }, dealt);
       if (a.currentHealth <= 0) { defeat(s, who, from, foe); if (s.phase === 'gameOver') return; }
     }
-    const aGone = s.players[who].row[from]?.uid !== a.uid;
-    if (!aGone) queueTrigger(s, who, from, a, 'attack', { target });
     if (!dDown && hit > 0) queueTrigger(s, foe, target.space, d, 'defend', { attacker: { who, space: from, uid: a.uid } });
   },
 
@@ -678,11 +737,44 @@ const RESOLVE = {
     s.players[who].discard.push(card);
     if (gone(s, target)) return fizzle(s, who, card.name, 'its target is gone');
     log(s, `${card.name} (Adapt) resolves.`);
-    runEffect(s, { who, name: card.name, kind: 'adapt', target }, card.modes.adapt.ops);
+    runEffect(s, { who, name: card.name, kind: 'adapt', target, spec: card.modes.adapt.target }, card.modes.adapt.ops);
   },
 };
-// A chosen target is gone if its card has left that space (even if another card now stands there).
-const gone = (s, t) => !t.none && !t.area && s.players[t.who].row[t.space]?.uid !== t.uid;
+// A chosen target is gone if its card has left that space (even if another card now stands there). The Warlord never is.
+const gone = (s, t) => !t.none && !t.area && !t.warlord && s.players[t.who].row[t.space]?.uid !== t.uid;
+
+// 12.2 On Attack (stage N): the attacker's On Attack triggers resolve now, before damage, one level deep like any
+// trigger. Its target: the creature attacked (or the enemy Warlord).
+function onAttack(s, pending, a) {
+  const { who, from, target } = pending;
+  const foe = opponentOf(who);
+  for (const tr of triggersOfCard(a)) {
+    if (tr.on !== 'attack' || (tr.prime && !a.primeSummon)) continue;
+    if (s.players[who].row[from]?.uid !== a.uid || s.phase === 'gameOver') return;
+    const t = target.kind === 'warlord' ? { who: foe, warlord: true } : { who: foe, space: target.space, uid: pending.targetUid };
+    emit(s, 'trigger', { who, space: from, uid: a.uid, point: 'attack', depth: 0 });
+    s.triggerDepth = 1;
+    try {
+      runEffect(s, { who, name: a.name, kind: 'trigger', src: { who, space: from, uid: a.uid }, target: t, pending, point: 'attack' }, tr.ops);
+    } finally { delete s.triggerDepth; }
+  }
+}
+// 12.1 Venom and Chill (stage N): after `by` deals damage (> 0) to `to`: Venom on `by` makes `to` Spent; Chill on `to`
+// makes `by` Spent. (Combat damage, Riposte, and a creature's own trigger effects.)
+function afterHit(s, by, to, dealt) {
+  if (!(dealt > 0) || !by.card || !to.card) return;
+  const live = (x) => s.players[x.who].row[x.space]?.uid === x.card.uid;
+  if (hasKeyword(by.card, 'venom') && live(to)) {
+    to.card.spent = true;
+    emit(s, 'venom', { who: to.who, space: to.space, uid: to.card.uid, by: by.card.uid });
+    log(s, `${by.card.name}'s Venom makes ${to.card.name} Spent.`);
+  }
+  if (hasKeyword(to.card, 'chill') && live(by)) {
+    by.card.spent = true;
+    emit(s, 'chill', { who: by.who, space: by.space, uid: by.card.uid, by: to.card.uid });
+    log(s, `${to.card.name}'s Chill makes ${by.card.name} Spent.`);
+  }
+}
 
 // 8.2: pending Strats resolve in the order played: the owner's at the start of their next turn, or
 // all of them at Dusk if the Battle Phase ends first. Each may open a React window; the rest wait.
@@ -714,7 +806,7 @@ function resolveStratNow(s, x) {
   if (gone(s, x.target)) return fizzle(s, x.owner, `${NAME[x.owner]}'s Strat ${x.card.name}`, 'its target is gone');
   log(s, `${NAME[x.owner]}'s Strat resolves: ${x.card.name}.`);
   emit(s, 'stratResolved', { who: x.owner, uid: x.uid, name: x.card.name });
-  runEffect(s, { who: x.owner, name: x.card.name, kind: 'strat', target: x.target }, x.card.modes.strat.ops);
+  runEffect(s, { who: x.owner, name: x.card.name, kind: 'strat', target: x.target, spec: x.card.modes.strat.target }, x.card.modes.strat.ops);
 }
 
 // --- Effects (12) ----------------------------------------------------------------------------------------
@@ -722,6 +814,9 @@ function resolveStratNow(s, x) {
 // Runs a list of plain ops for a player. ctx: { who, name, kind, target (the chosen card or none),
 // src (the card whose trigger it is: { who, space, uid }), pending (the action a React answers), trig }.
 export function runEffect(s, ctx, ops) {
+  // (Stage N: the chosen card's creatures are found once per effect, so "Make each of your Spent creatures in a
+  // Location Active. +1 Attack until Dusk to them." gives the Attack to the ones made Active.)
+  ctx = { ...ctx, chosen: null };
   for (const o of ops) {
     if (s.phase === 'gameOver') return;
     const p = s.players[ctx.who];
@@ -731,13 +826,33 @@ export function runEffect(s, ctx, ops) {
       if (o.op === 'energy') { p.baseEnergy += n; emit(s, 'energy', { who: ctx.who, amount: n, name: ctx.name, kind: ctx.kind }); }
       if (o.op === 'reduce' && ctx.pending?.type === 'attack') ctx.pending.reduce = (ctx.pending.reduce ?? 0) + n;
       if (o.op === 'gold') gainGold(s, ctx.who, n, ctx.name);
+      // Stage N: Glass Veil's React ("the attack does nothing"); an On Attack's extra damage when its condition holds.
+      if (o.op === 'cancel' && ctx.pending?.type === 'attack') ctx.pending.cancelled = true;
+      if (o.op === 'attackBonus' && ctx.pending?.type === 'attack' && attackCondition(s, ctx.pending, o.when)) {
+        ctx.pending.bonus = (ctx.pending.bonus ?? 0) + n;
+        emit(s, 'attackBonus', { who: ctx.who, space: ctx.src?.space ?? null, amount: n, name: ctx.name });
+        log(s, `${ctx.name} deals +${n} damage with this attack.`);
+      }
+      continue;
+    }
+    // Stage N: damage to the enemy Warlord (Tilda's Prime): 1 Renown per point to the dealer, as for an attack.
+    if (o.op === 'damage' && (o.to ?? 'chosen') === 'chosen' && ctx.target?.warlord) {
+      const foe = ctx.target.who;
+      s.players[foe].warlordDamage += n;
+      emit(s, 'effect', { who: ctx.who, name: ctx.name, kind: ctx.kind, op: o.op, amount: n, targets: [{ who: foe, warlord: true, dealt: n }] });
+      log(s, `${ctx.name} deals ${n} damage to ${NAME[foe]}'s Warlord.`);
+      gainRenown(s, ctx.who, n * RULES.perWarlordDamage, 'warlord', ctx.name);
+      if (n > 0) progressQuests(s, ctx.who, 'warlordDamage', n);
       continue;
     }
     const targets = effectTargets(s, ctx, o);
+    const src = ctx.src && s.players[ctx.src.who].row[ctx.src.space]?.uid === ctx.src.uid ? { ...ctx.src, card: s.players[ctx.src.who].row[ctx.src.space] } : null;
     if (o.op === 'damage') {
       const hits = targets.map((t) => ({ ...t, dealt: damageCard(s, t.who, t.space, n) }));
       // (Reported for the presenter, before the defeats it causes.)
       if (hits.length) emit(s, 'effect', { who: ctx.who, name: ctx.name, kind: ctx.kind, op: o.op, amount: n, targets: hits });
+      // (A creature's own trigger damage counts for Venom and Chill.)
+      if (src) for (const t of hits) afterHit(s, src, { who: t.who, space: t.space, card: s.players[t.who].row[t.space] }, t.dealt);
       for (const t of hits) if (t.dealt > 0 && s.players[t.who].row[t.space]?.currentHealth <= 0) defeat(s, t.who, t.space, ctx.who);
       continue;
     }
@@ -745,27 +860,60 @@ export function runEffect(s, ctx, ops) {
       const c = s.players[t.who].row[t.space];
       switch (o.op) {
         case 'heal': c.currentHealth = Math.min(c.health, c.currentHealth + n); break;
+        case 'fullHeal': c.currentHealth = c.health; break;
         case 'attack': c.attack += n; break;
         case 'health': c.health += n; c.currentHealth += n; break;
-        case 'tempAttack': c.attack += n; c.tempAttack += n; break;
+        case 'tempAttack': {
+          // (Attack never goes below 0; Dusk gives back only what was taken.)
+          const d = Math.max(n, -c.attack);
+          c.attack += d; c.tempAttack += d;
+          break;
+        }
         case 'tempHealth': c.health += n; c.currentHealth += n; c.tempHealth += n; break;
+        case 'tempKeyword': c.tempKw = { ...(c.tempKw ?? {}), [o.keyword]: (typeof c.tempKw?.[o.keyword] === 'number' ? c.tempKw[o.keyword] : 0) + (o.amount ?? 0) || true }; break;
         case 'activate': c.spent = false; break;
         case 'spend': c.spent = true; break;
         case 'returnHand': returnToHand(s, t.who, t.space); break;
         default: throw new Error(`Unknown op ${o.op}`);
       }
+      if (s.players[t.who].row[t.space] === c) syncFrenzy(s, t.who, t.space);
     }
-    emit(s, 'effect', { who: ctx.who, name: ctx.name, kind: ctx.kind, op: o.op, amount: n, targets });
+    emit(s, 'effect', { who: ctx.who, name: ctx.name, kind: ctx.kind, op: o.op, amount: n, targets, ...(o.keyword ? { keyword: o.keyword } : {}) });
   }
+}
+// An On Attack's condition (stage N): its target is Spent; it attacks the enemy Warlord.
+function attackCondition(s, pending, when) {
+  if (when === 'targetWarlord') return pending.target.kind === 'warlord';
+  if (when === 'targetSpent') {
+    const d = pending.target.kind === 'creature' ? s.players[opponentOf(pending.who)].row[pending.target.space] : null;
+    return !!d && d.uid === pending.targetUid && d.spent;
+  }
+  throw new Error(`Unknown attack condition ${when}`);
 }
 function effectTargets(s, ctx, o) {
   const foe = opponentOf(ctx.who);
   const live = (list) => list.filter((t) => s.players[t.who].row[t.space]);
+  // (Stage N: an op may name a group: "each of your other Fighters".)
+  const grouped = (list) => (o.filter ? list.filter((t) => meetsCondition(s.players[t.who].row[t.space], o.filter)) : list);
   const each = (side) => creaturesOf(s, side).map(({ space }) => ({ who: side, space }));
   switch (o.to ?? 'chosen') {
-    case 'chosen':
-      if (ctx.target?.area) return lanesHere(s, ctx.target.space).filter((l) => s.players[ctx.target.who].row[l]).map((l) => ({ who: ctx.target.who, space: l }));
-      return ctx.target && !ctx.target.none && !gone(s, ctx.target) ? [ctx.target] : [];
+    case 'chosen': {
+      if (ctx.chosen) return ctx.chosen.filter((t) => s.players[t.who].row[t.space]?.uid === t.uid);
+      let list = [];
+      if (ctx.target?.area) {
+        const spentOnly = ctx.spec === 'ownSpentLocation';
+        list = lanesHere(s, ctx.target.space).filter((l) => s.players[ctx.target.who].row[l] && (!spentOnly || s.players[ctx.target.who].row[l].spent)).map((l) => ({ who: ctx.target.who, space: l }));
+      } else if (ctx.target && !ctx.target.none && !ctx.target.warlord && !gone(s, ctx.target)) list = [{ who: ctx.target.who, space: ctx.target.space }];
+      ctx.chosen = list.map((t) => ({ ...t, uid: s.players[t.who].row[t.space].uid }));
+      return list;
+    }
+    case 'eachOwnOther': return grouped(each(ctx.who).filter((t) => !(ctx.src && s.players[t.who].row[t.space]?.uid === ctx.src.uid)));
+    // The other enemy creatures in the chosen creature's (or the attack target's) Location, even if it has gone.
+    case 'eachOtherEnemyThere': {
+      const t = ctx.target;
+      if (!t || t.none || t.warlord || t.area) return [];
+      return lanesHere(s, t.space).filter((l) => s.players[t.who].row[l] && s.players[t.who].row[l].uid !== t.uid).map((l) => ({ who: t.who, space: l }));
+    }
     // "In its Location": the lanes of the Location it stands (or stood) in.
     case 'eachEnemyHere': return ctx.src ? lanesHere(s, ctx.src.space).filter((l) => s.players[foe].row[l]).map((l) => ({ who: foe, space: l })) : [];
     case 'eachOwnHere': return ctx.src ? lanesHere(s, ctx.src.space).filter((l) => s.players[ctx.who].row[l]).map((l) => ({ who: ctx.who, space: l })) : [];
@@ -794,14 +942,36 @@ function damageCard(s, side, space, n) {
   const dealt = Math.max(0, n - armour);
   if (armour && dealt < n) emit(s, 'armour', { who: side, space, prevented: n - dealt });
   c.currentHealth -= dealt;
+  syncFrenzy(s, side, space);
   return dealt;
+}
+// 12.1 Frenzy (stage N): while damaged (below its full Health), it has +2 Attack.
+export const FRENZY_ATTACK = 2;
+function syncFrenzy(s, side, space) {
+  const c = s.players[side].row[space];
+  if (!c) return;
+  const want = hasKeyword(c, 'frenzy') && c.currentHealth > 0 && c.currentHealth < c.health ? FRENZY_ATTACK : 0;
+  const had = c.frenzyAttack ?? 0;
+  if (want === had) return;
+  c.attack += want - had;
+  c.frenzyAttack = want;
+  emit(s, 'frenzy', { who: side, space, uid: c.uid, on: want > 0 });
 }
 
 // 8.1: a card at 0 Health is defeated: to its owner's Released Pile; its opponent gains 2 Renown and
 // 1 Gold, whatever caused it, unless its owner's own effect defeated it. A Held Item is lost.
+// Returns whether it was defeated (stage N: 12.1 Undying leaves it at 1 Health the first time, once per creature).
 function defeat(s, who, space, by) {
   const card = s.players[who].row[space];
-  if (!card) return;
+  if (!card) return false;
+  if (hasKeyword(card, 'undying') && !card.undyingUsed) {
+    card.undyingUsed = true;
+    card.currentHealth = 1;
+    syncFrenzy(s, who, space);
+    emit(s, 'undying', { who, space, uid: card.uid, name: card.name });
+    log(s, `${NAME[who]}'s ${card.name} is Undying: it stands again at 1 Health.`);
+    return false;
+  }
   s.players[who].row[space] = null;
   if (card.held) { s.market.pool.push(card.held); log(s, `${card.held.name} goes back to the Market's pool.`); }
   const { held, ...plain } = card;
@@ -810,10 +980,11 @@ function defeat(s, who, space, by) {
   log(s, `${NAME[who]}'s ${card.name} was defeated.`);
   removeOwnLocation(s, card.uid);
   queueTrigger(s, who, space, card, 'defeat', { by });
-  if (by === who) return;
+  if (by === who) return true;
   gainGold(s, by, RULES.goldPerDefeat, `defeating ${card.name}`);
   gainRenown(s, by, RULES.perDefeat, 'defeat', `defeating ${card.name}`);
   progressQuests(s, by, 'defeat');
+  return true;
 }
 
 // Return to hand: the same card goes back to its owner's hand at this Round's Level; damage and
@@ -833,11 +1004,21 @@ function returnToHand(s, who, space) {
 
 // A card's trigger waits in a queue and resolves after the action that caused it, in the order queued.
 // A trigger's own effects can queue more, one level deeper; chains stop at MAX_CHAIN levels.
-function queueTrigger(s, who, space, card, point, ctx = {}) {
-  const trig = card?.trigger;
-  if (!trig || trig.on !== point) return;
-  if (trig.prime && !card.primeSummon) return;   // stage P: "Prime:" works only if summoned at the Prime Level
-  s.triggers.push({ who, space, uid: card.uid, trig, card: point === 'defeat' ? structuredClone(card) : null, point, ctx, depth: s.triggerDepth ?? 0 });
+// (Stage N: a card may have several triggers; `only` queues just that one.)
+function queueTrigger(s, who, space, card, point, ctx = {}, only = null) {
+  for (const trig of only ? [only] : triggersOfCard(card)) {
+    if (!trig || trig.on !== point) continue;
+    if (trig.prime && !card.primeSummon) continue;   // stage P: "Prime:" works only if summoned at the Prime Level
+    s.triggers.push({ who, space, uid: card.uid, trig, card: point === 'defeat' ? structuredClone(card) : null, point, ctx, depth: s.triggerDepth ?? 0 });
+  }
+}
+// A trigger's ops (stage N: a choose-one On Summon runs the chosen mode, or every mode with "Prime: Choose both"), each
+// with its own target spec.
+function triggerParts(trig, ctx, card) {
+  if (!trig.choose) return [{ spec: trig.target, ops: trig.ops }];
+  if (ctx.mode === 'both' && card?.chooseBoth) return trig.choose.map((m) => ({ spec: m.target, ops: m.ops }));
+  const m = trig.choose[Number(ctx.mode)];
+  return m ? [{ spec: m.target, ops: m.ops }] : [];
 }
 export function drainTriggers(s) {
   if (s.draining) return;
@@ -857,8 +1038,13 @@ export function drainTriggers(s) {
       const card = t.point === 'defeat' || t.point === 'retain' ? t.card : live2?.uid === t.uid ? live2 : null;
       if (!card) continue;
       s.triggerDepth = t.depth + 1;
-      emit(s, 'trigger', { who: t.who, space: t.space, uid: t.uid, point: t.point, depth: t.depth });
-      runEffect(s, { who: t.who, name: card.name, kind: 'trigger', src: { who: t.who, space: t.space, uid: t.uid }, trig: t.ctx, target: t.ctx.target ?? null }, t.trig.ops);
+      emit(s, 'trigger', { who: t.who, space: t.space, uid: t.uid, point: t.point, depth: t.depth, ...(t.ctx.mode != null ? { mode: t.ctx.mode } : {}) });
+      for (const part of triggerParts(t.trig, t.ctx, card)) {
+        if (s.phase === 'gameOver') break;
+        // (The chosen target belongs to the mode that asks for one.)
+        const target = part.spec && part.spec !== 'none' ? t.ctx.target ?? null : null;
+        runEffect(s, { who: t.who, name: card.name, kind: 'trigger', src: { who: t.who, space: t.space, uid: t.uid }, trig: t.ctx, target, spec: part.spec, point: t.point }, part.ops);
+      }
       s.triggerDepth = 0;
     }
   } finally {
@@ -880,7 +1066,7 @@ function useItem(s, who, item, target) {
     return;
   }
   log(s, `${NAME[who]} used ${item.name}.`);
-  runEffect(s, { who, name: item.name, kind: 'item', target: t }, item.ops);
+  runEffect(s, { who, name: item.name, kind: 'item', target: t, spec: item.target }, item.ops);
   s.market.pool.push(item);
 }
 
@@ -992,13 +1178,16 @@ export function syncBonuses(s) {
     const atk = Math.max(want.attack, -Math.max(0, base));
     card.attack = base + atk;
     card.bonusAttack = atk;
-    const d = want.health - card.bonusHealth;
+    // (Stage N, Stormbreak Crags: a passive never takes Health below 1.)
+    const hb = Math.max(want.health, 1 - (card.health - card.bonusHealth));
+    const d = hb - card.bonusHealth;
     if (d) {
       card.health += d;
       card.currentHealth = d > 0 ? card.currentHealth + d : Math.max(1, Math.min(card.currentHealth, card.health));
-      card.bonusHealth = want.health;
+      card.bonusHealth = hb;
     }
   }
+  for (const { who, space } of allCreatures(s)) syncFrenzy(s, who, space);
 }
 
 // --- Renown and winning (1, 2) ------------------------------------------------------------------------------
@@ -1083,8 +1272,15 @@ function dawn(s, round) {
     gainGold(s, who, RULES.goldPerDawn, 'Dawn');                           // 5
     for (const { card, space } of creaturesOf(s, who)) {                   // 6
       const n = passiveOps(locationAt(s, space)).filter((o) => o.op === 'dawnHeal').reduce((k, o) => k + o.amount, 0);
-      if (n) card.currentHealth = Math.min(card.health, card.currentHealth + n);
+      if (n) { card.currentHealth = Math.min(card.health, card.currentHealth + n); syncFrenzy(s, who, space); }
     }
+  }
+  // 6 (stage N): On Dawn triggers resolve at the healing step, the player with initiative first, then left to right.
+  for (const who of [s.initiative, opponentOf(s.initiative)]) for (const { card, space } of creaturesOf(s, who)) queueTrigger(s, who, space, card, 'dawn');
+  drainTriggers(s);
+  if (s.phase === 'gameOver') return;
+  for (const who of PLAYERS) {
+    const p = s.players[who];
     for (const pile of ['hand', 'drawPile', 'discard']) {                  // 7
       p[pile] = p[pile].map((c) => (isCreature(c) ? cardAtRound(c.id, round, c.uid) : c));
     }
@@ -1098,9 +1294,6 @@ function dawn(s, round) {
 function dawnAfterArrivals(s) {
   const round = s.round;
   syncBonuses(s);
-  for (const who of [s.initiative, opponentOf(s.initiative)]) for (const { card, space } of creaturesOf(s, who)) queueTrigger(s, who, space, card, 'dawn');
-  drainTriggers(s);
-  if (s.phase === 'gameOver') return;
   if (round === 1) {
     s.phase = 'mulligan';
     log(s, 'Each player may mulligan once.');
@@ -1141,6 +1334,9 @@ function dusk(s) {
 }
 function duskAfterStrats(s) {
   if (s.phase === 'gameOver') return;
+  // 1b (stage N): On Dusk triggers and Location Dusk passives (The Drowned Reach), before dominance.
+  duskEffects(s);
+  if (s.phase === 'gameOver') return;
   // 2. Dominance.
   const dominated = { p1: 0, p2: 0 };
   for (const l of [...s.locations]) {
@@ -1167,6 +1363,42 @@ function duskAfterStrats(s) {
   // (Stage R: a Campaign Creature whose Quest completed arrives now, in the space its player chooses.)
   if (offerArrival(s, 'dusk')) return;
   duskAfterArrivals(s);
+}
+// Stage N: what happens at Dusk before dominance, in a fixed order: the player with initiative first, then the other;
+// each player's in lane order, left to right (a creature by the lane it stands in, a Location by its first lane). Each
+// resolves fully, with what it causes, before the next. A Location's passive is its owner's.
+export function duskOrder(s) {
+  const out = [];
+  for (const who of [s.initiative, opponentOf(s.initiative)]) {
+    const mine = [
+      ...creaturesOf(s, who).filter(({ card }) => triggersOfCard(card).some((t) => t.on === 'dusk' && !(t.prime && !card.primeSummon))).map(({ card, space }) => ({ kind: 'creature', who, lane: space, uid: card.uid })),
+      ...s.locations.filter((l) => l.owner === who && passiveOps(l).some((o) => o.op === 'duskDamage')).map((l) => ({ kind: 'location', who, lane: l.start, uid: l.uid })),
+    ].sort((a, b) => a.lane - b.lane || (a.kind === 'creature' ? -1 : 1));
+    out.push(...mine);
+  }
+  return out;
+}
+function duskEffects(s) {
+  for (const x of duskOrder(s)) {
+    if (s.phase === 'gameOver') return;
+    if (x.kind === 'creature') {
+      const card = s.players[x.who].row[x.lane];
+      if (card?.uid !== x.uid) continue;
+      queueTrigger(s, x.who, x.lane, card, 'dusk');
+      drainTriggers(s);
+      continue;
+    }
+    const l = s.locations.find((y) => y.uid === x.uid);
+    if (!l) continue;
+    // 9 (stage N): "At Dusk, each creature here takes N damage", both sides; a Legendary's own Location spares it.
+    const n = passiveOps(l).filter((o) => o.op === 'duskDamage').reduce((k, o) => k + o.amount, 0);
+    const hits = PLAYERS.flatMap((side) => lanesOf(l).map((lane) => ({ who: side, space: lane, card: s.players[side].row[lane] })))
+      .filter((t) => t.card && t.card.uid !== l.legendaryUid).map((t) => ({ who: t.who, space: t.space, dealt: damageCard(s, t.who, t.space, n) }));
+    emit(s, 'effect', { who: l.owner, name: l.name, kind: 'passive', op: 'damage', amount: n, targets: hits, location: l.uid });
+    log(s, `${l.name}: each creature there takes ${n} damage.`);
+    for (const t of hits) if (t.dealt > 0 && s.players[t.who].row[t.space]?.currentHealth <= 0) defeat(s, t.who, t.space, l.owner);
+    drainTriggers(s);
+  }
 }
 function duskAfterArrivals(s) {
   // 4. Location durations count down; expired Locations go to their owners' Discard Piles. A Legendary's own

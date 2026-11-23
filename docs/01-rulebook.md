@@ -60,7 +60,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
 3. Base Energy and the Exert maximum are set.
 4. Spent Characters and Monsters become Active.
 5. Each player gains 1 Gold.
-6. Dawn healing (from Location passives and keywords, once they exist).
+6. Dawn healing: Location passives heal first. Then On Dawn triggers resolve (12.2), in the order of section 12.3.
 7. Cards off the battlefield take this Round's Level (section 7).
 8. Each player draws 7 cards, less one per card they Retained. When a player must draw from an empty Draw Pile, their Discard Pile is shuffled to make a new one; if both are empty, they draw nothing. (The Released Pile is never used.)
 9. Waiting Campaign Creatures arrive: for each, its player chooses an empty space (section 8.4).
@@ -75,7 +75,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
 - **You can't Pass** while you have a Ready Character or Monster with **unmatched Speed** (the opponent has no Active one of the same Speed) that has a legal target. Attack with it, or take another action, first. If none of them has a legal target, you may Pass, and they become Spent.
 
 ### 5.3 Dusk, in this order
-1. Pending Strats resolve, in the order played. Each may open a React window for the other player.
+1. Pending Strats resolve, in the order played. Each may open a React window for the other player. Then On Dusk triggers (12.2) and Location passives that act at Dusk resolve, in the order of section 12.3.
 2. **Dominance:** each placed Location, or the Last Battle, is scored (section 9).
 3. Quest progress from dominance. A Campaign Creature whose Quest completes here arrives now (its player chooses its space).
 4. Location durations count down, and expired Locations are removed. A Legendary's Location has no duration (7.2).
@@ -108,8 +108,9 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
   - A series may change form (name and art) at certain Levels.
 - **Levels off the battlefield** (hand, Draw Pile and Discard Pile): the series' first Level in Round 1, +1 each Round, up to its maximum.
 - **On the battlefield,** a summoned card is a snapshot at the Level it was summoned and doesn't develop further.
-- **Cost:** `ceil(Level / 2)` Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. **Legendary** cards cost 5 and are Level 8 from the start. **Campaign Creatures** are Level 8 and arrive free.
+- **Cost:** `ceil(Level / 2)` Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. **Legendary** cards cost 5 and are Level 8 from the start. **Campaign Creatures** are at their Campaign's Level (8.4) and arrive free.
 - **Traits:** every Character has a Class and a Race. Traits carry no rules of their own until a keyword, trigger or effect refers to them.
+- **Affiliations** (New Cards Batch 1, approved by Elliott, 23 November 2026): a card's ancestry (its Race), class, Monster kind and home group. Every Character series has a home group (Oathsworn, Hollowfoot, Ashen Spire, Deepforge, Thornwood, Ironhide, Cinderwick, Duskmere, Lanternhall, Stonewatch, Nightglass, Hearthmoor, Redmaw, Cogwright). A card that names a group ("Rally (Fighter)", "your other Orcs", a Favour) means a creature with that affiliation.
 - **Stats:**
   - **Attack:** the damage it deals.
   - **Health:** the damage it can take.
@@ -147,7 +148,8 @@ This applies to **Legendary cards** only (today, The Ashen Wyrm). Campaign Creat
   - its owner can't summon into it (the Legendary fills all 3 of their spaces); the opponent can summon into their 3 spaces across from it, where the passive hits them;
   - it's scored for dominance like any Location (section 9), with the Legendary's Might counted once;
   - it's never in a deck; when removed, it leaves the match.
-- **The Ashen Wyrm's Location:** **The Ashfall**, 3 lanes. "Creatures here have −1 Attack." Attack can't go below 0. (Elliott is approving the name and passive with New Cards Batch 1.)
+- **The Ashen Wyrm's Location:** **The Ashfall**, 3 lanes. "Creatures here have −1 Attack." Attack can't go below 0. (Approved by Elliott with New Cards Batch 1.)
+- **The Deepmaw's Location:** **The Drowned Reach**, 3 lanes. "At Dusk, each creature here takes 1 damage." The Deepmaw itself isn't affected. (Approved by Elliott with New Cards Batch 1, 23 November 2026.)
 - **A Legendary is one creature.** It attacks and is attacked once. Its Shield or Ward, if any, guards its Location as normal. "In its Location" means its own Location's 3 lanes.
 - **Defeat, the Released Pile and Renown** work as for any creature.
 - **In the Last Battle,** its Location is removed like the others, and the Legendary stays 3 lanes wide. If the Last Battle starts while it's on the field, nothing moves.
@@ -211,12 +213,13 @@ Each Action card has up to three **modes**, each with its own cost and effect.
   The Quest stays ticked and makes no further progress. If the card was already Released, the Quest still completes as normal.
 - A defeated Campaign Creature goes to the Released Pile.
 - **Quests** the engine can count: defeats, Locations dominated (each Location at a Dusk is 1; the Last Battle is 1), damage to the enemy Warlord, and Items bought from the Market.
+- **Campaign lengths** (approved by Elliott, 23 November 2026): every Campaign is a **Side-Quest** (meant for the early game), **mid-length** (the mid-game) or **long** (the late game, like Lady Corwen's Commission). Its Campaign Creature's Level follows its length: **Level 4** for a Side-Quest, **Level 6** for a mid-length Campaign, **Level 8** for a long one. Campaign Creatures always arrive at their Prime.
 
 ## 9. Locations
 
 - **Placing one** is an action that costs no Energy. It covers the lane you choose and the lanes to its right (2, 3 or 4 lanes, set per card) on both sides. It can be placed over lanes where cards already stand. Either player may place one, limited only by free lanes. A Legendary's Location (7.2) arrives with its Legendary and is never placed.
 - **Duration:** a Location stays for a set number of Rounds, counting down at Dusk after scoring. When it expires, it goes to its owner's Discard Pile, its lanes become the Wilds again, and cards stay where they are.
-- **Passive:** each Location has one rule that applies to both players' cards in it, immediately and while they stay. Losing a Health bonus never defeats a card: at least 1 Health is left.
+- **Passive:** each Location has one rule that applies to both players' cards in it, immediately and while they stay. Losing a Health bonus never defeats a card: at least 1 Health is left. A passive never takes a creature's Health below 1. A passive that acts at Dawn or at Dusk ("At Dawn, heal 2 to each creature here"; "At Dusk, each creature here takes 1 damage") acts at Dawn healing (5.1) or at Dusk before dominance (5.3).
 - **Might:** a creature's Might is its current Attack plus its current Health. Damage, buffs, Prime, Items and Location passives all count, because Might uses current stats. (Decided at Elliott's request, 17 November 2026.)
 - **Dominance:** at Dusk, for each Location, the player with more total Might there gains Renown by the Location's width. Ties and empty Locations give nothing. The Wilds are never scored. (Decided by Elliott, 23 November 2026; it was 3 for any Location.)
 
@@ -273,6 +276,12 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 | **Armour X** | Each time it would take damage from any source, it takes X less (minimum 0). Armour from different sources adds up. |
 | **Riposte X** | After an attack on it resolves, if it's still on the battlefield, it deals X damage to the attacker. This works even while it's Spent, and it's separate from hitting back. |
 | **Patient** | Retaining this card doesn't reduce your next draw. (Approved by Elliott, 16 November 2026.) |
+| **Venom** | After this creature deals damage to a creature, that creature becomes Spent. (Approved by Elliott, 23 November 2026.) |
+| **Undying** | The first time it would be defeated, it's left at 1 Health instead. Once per creature. (Approved by Elliott, 23 November 2026.) |
+| **Soaring** | Shields can't guard against its attacks. Wards still can, if it's Arcane. (Approved by Elliott, 23 November 2026.) |
+| **Tinker** | Whenever you buy an Item from the Market, this gets +1/+1 for good. (Approved by Elliott, 23 November 2026.) |
+| **Chill** | A creature that damages this one becomes Spent. (Approved by Elliott, 23 November 2026.) |
+| **Frenzy** | While damaged, it has +2 Attack. (Approved by Elliott, 23 November 2026.) |
 
 ### 12.2 Triggers (approved by Elliott, 13 November 2026)
 
@@ -281,8 +290,18 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 | **On Summon** | resolves just after the creature is placed. If it needs a chosen target, the target is chosen as part of the Summon action. If there's no legal target, the creature still arrives and the effect does nothing. |
 | **On Defeat** | resolves just after the creature goes to the Released Pile. "The enemy across from it" means the enemy in the lane it stood in. |
 | **On Retain** | resolves when you Retain the card. (Approved by Elliott, 16 November 2026.) |
+| **Rally (group)** | resolves when another creature of that group is summoned on your side. (Approved by Elliott, 23 November 2026.) |
+| **On Attack** | resolves when the creature attacks, after the target is chosen and before damage. (Approved by Elliott, 23 November 2026.) |
+| **On Dawn** | resolves at each Dawn while the creature is on the battlefield, at the Dawn healing step. (Approved by Elliott, 23 November 2026.) |
+| **On Dusk** | resolves at each Dusk while the creature is on the battlefield, before dominance is scored. (Approved by Elliott, 23 November 2026.) |
 
-**"Prime:"** before a trigger means it works only if the creature was summoned at its Prime Level (7.1).
+**"Prime:"** before a trigger means it works only if the creature was summoned at its Prime Level (7.1). A "Prime:" keyword ("Prime: Ambush") is the same: the creature has it only if it was summoned at its Prime Level.
+
+**Choose one** (approved by Elliott, 23 November 2026): an On Summon with modes. The player picks the mode as part of the Summon action. **"Prime: Choose both."** At Prime, a choose-one card does every mode.
+
+### 12.3 When triggers happen at the same moment (stage N)
+
+Where two triggers or passives happen at the same moment (for example Grusha's On Dusk and The Drowned Reach), they resolve in a fixed order: the player with initiative first, then the other player; each player's in lane order, left to right. A creature counts by the lane it stands in, a Location by its first lane, and a Location's passive is its owner's. Each resolves fully, with what it causes, before the next.
 
 ## 13. Readings and open questions
 
@@ -330,9 +349,35 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 27. **Out of creatures:** a Legendary still counts as one creature left.
 28. **The Ashen Wyrm's On Summon** now hits its 3-lane Location. In the Last Battle (no Location) it hits the whole battlefield, as "its Location" there is the whole battlefield (reading 3).
 
+### Readings from stage N: needing Elliott's approval
+
+29. **Venom and Chill: which damage counts.** A creature "deals damage" with its attack, its hit back, its Riposte and its own triggers (Tilda's On Summon, Grusha's On Dusk, Ysolde's On Attack). An Action, Event, Item or Location passive isn't a creature, so Venom and Chill don't act on its damage. Only damage that gets through counts (Armour may stop it all).
+30. **Undying** works once per creature, whatever gives it (its own keyword, or Cinderfeather Amulet). Left at 1 Health, it isn't defeated: nobody gains Renown or Gold, no Quest moves, no On Defeat. A creature returned to hand comes back as a new card, so its Undying is unused again. The board shows UNDYING on it until it's used.
+31. **On Attack** resolves when the attack resolves, after any React window, and only if the attack doesn't fizzle. Against the enemy Warlord there's no creature to name: Ysolde's "each other enemy creature in its target's Location" does nothing then.
+32. **Rally** resolves after the summoned creature's own On Summon, each Rallying creature left to right. A Campaign Creature's arrival isn't a summon, so it doesn't Rally anyone. Two Hildes Rally for each other.
+33. **Choose one:** a mode with no legal target is still offered and does nothing, like an On Summon with no target. "Another creature of yours" is one of your creatures: the creature being summoned isn't on the battlefield yet (reading 7). With "Prime: Choose both", each mode resolves in the card's order, and you choose the one target.
+34. **"Prime:" lines on the new cards** show only on the Prime Level's card, as docs/26–32 write them ("as above" at the next Level means without the Prime line, as Rime Colossus says). The three revised old cards keep their "Prime:" line on the whole form, as before.
+35. **Tilda's Prime damage to the enemy Warlord** counts like an attack's: 1 Renown a point, and it counts for a Warlord-damage Quest (The Siege of Greywater). No guard stops it: it's an effect, not an attack.
+36. **The Drowned Reach** is its owner's: an enemy it defeats pays its owner (2 Renown, 1 Gold); its owner's own creature it defeats pays nobody (8.1).
+37. **Stormbreak Crags' −1 Health** never takes a creature below 1 Health (its full Health too), and leaving the Location gives the Health back.
+38. **Frenzy:** "damaged" means its current Health is below its full Health. The +2 shows on its Attack and counts for Might. A hit back uses its Attack from before the hit (the two strike at once).
+39. **Tinker** counts any Item its owner buys: from the Market or from their hand, used at once or stored.
+40. **Second Wind's Strat** gives +1 Attack only to the creatures it made Active.
+41. **Night Raid (the Event)'s Favour:** "its Location" is the chosen creature's, even if the 2 damage defeated it.
+42. **Glass Veil's React on a Campaign Creature:** it can't be returned to hand (section 12), but the attack still does nothing.
+43. **Chain Lightning's React** with no other enemy creature still deals 1 damage to the attacker.
+44. **Hunter's Snare's −2 Attack** can't take Attack below 0; at Dusk the creature gets back only what it lost (as reading 25).
+45. **Shield Wall's React** gives Armour 2 until Dusk, which adds to any other Armour.
+46. **The Deepmaw's On Summon** in the Last Battle makes every enemy creature Spent (its Location is the whole battlefield then, as reading 28).
+47. **Home groups:** the eight old Character series take the home groups their names already carry (Oathsworn, Hollowfoot, Ashen Spire, Deepforge, Thornwood, Ironhide, Cinderwick, Duskmere). Campaign Creatures and Monsters have none.
+48. **Card wording:** the new cards' text follows the game's card templates, with the same meaning as docs/26–32 ("this gets +1 Health for good" reads "+1 Health to it"; "an enemy creature takes 2 damage and becomes Spent" reads "2 damage to an enemy creature. Make it Spent."). Every line is generated from the card data, as before.
+49. **Night Raid** is two cards: the Action (in "The first deck") and the Event (set 4). Both keep the name, and each has its own picture: the Event's new one, and the Action's own again. (Decided by Elliott during stage N.)
+50. **The pool** has 60 deck cards: the 29 before and 31 new ones. docs/32 counts 61 because it counts The Ashfall, which isn't new and never goes in a deck.
+
 ### Open questions
 
 1. **Monsters:** how will they differ from Characters? For now they're identical in every rule. Monsters carry a **Kind** (Beast, Undead, Dragon and so on) in place of a Class and a Race.
 2. **The starting values** (Renown amounts, Round 10 / 70 Renown for the Last Battle, the Stock table) are untuned.
+3. **Chill, as written, rarely changes anything in combat.** An attacker is always Spent after its attack, and a Ready target that hits back is Spent too, so the creature Chill makes Spent usually already is. It matters when a creature's own trigger damages it (Tilda arriving Active with Ambush, Grusha at Dusk, Ysolde's On Attack on another creature). Should Chill do more, for example keep the creature Spent through the next Dawn? (Built exactly as written until Elliott decides.)
 
 **Pace with the new curve (stage P):** smaller stats mean less Warlord damage per hit. No Renown values changed; Elliott will monitor match length (stage P's measurements: `docs/balance/p-before.txt` and `p-after.txt`).

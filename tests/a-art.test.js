@@ -14,8 +14,10 @@ const crops = JSON.parse(readFileSync('assets/cards-v3/crops.json', 'utf8'));
 const withArt = CARDS.flatMap((d) => [...(d.forms ?? [d]), ...(d.campaignCreature ? [d.campaignCreature] : [])]).filter((x) => x.art);
 
 test('every card has its new art: the card crop, its full scene and its crop centre, recorded from the art', () => {
-  assert.equal(withArt.length, 54);
-  assert.equal(ART.size, 54);
+  // (54 at stage A; stage N's New Cards Batch 1 adds 60: every new form, card and Campaign Creature, The Ashfall's art,
+  // and The Drowned Reach. Night Raid, the Event, has its own picture; the Action keeps its own.)
+  assert.equal(withArt.length, 114);
+  assert.equal(ART.size, 114);
   for (const x of withArt) {
     const id = x.art.split('/').pop().replace('.jpg', '');
     assert.ok(existsSync(x.art), `${x.art} exists`);
@@ -25,12 +27,13 @@ test('every card has its new art: the card crop, its full scene and its crop cen
   }
   // (docs/cards.json carries the same, written by tools/buildcards.mjs.)
   const jsonArt = json.cards.flatMap((d) => [...(d.forms ?? [d]), ...(d.campaignCreature ? [d.campaignCreature] : [])]).filter((x) => x.art);
-  assert.equal(jsonArt.filter((x) => x.artFull && Number.isFinite(x.cardX)).length, 54);
+  assert.equal(jsonArt.filter((x) => x.artFull && Number.isFinite(x.cardX)).length, 114);
 });
 
 test('Location tiles: each has its focus point, and a tile of any width is drawn around it', () => {
   const tiles = JSON.parse(readFileSync('assets/cards-v3/tiles.json', 'utf8'));
-  for (const id of ['ironroot-pass', 'emberfall-ruins', 'mistveil-marshes']) {
+  // (Stage N: the new Locations and both Legendaries' Locations too.)
+  for (const id of ['ironroot-pass', 'emberfall-ruins', 'mistveil-marshes', 'gallows-hill', 'the-sunlit-shrine', 'stormbreak-crags', 'the-ashfall', 'the-drowned-reach']) {
     const c = cardAtRound(id, 1, 'x');
     assert.deepEqual([c.tileX, c.tileY], [tiles[id].tileX, tiles[id].tileY]);
     for (const lanes of [2, 3, 4]) {
@@ -49,7 +52,9 @@ test('Location tiles: each has its focus point, and a tile of any width is drawn
 });
 
 test('Characters have first names shared by all three forms, and three forms are renamed', () => {
-  const FIRST = { 'oathsworn-recruit': 'Garrick', 'hollowfoot-cutpurse': 'Fennick', 'ashen-spire-apprentice': 'Corvin', 'deepforge-acolyte': 'Brenna', 'thornwood-scout': 'Ilyra', 'ironhide-brawler': 'Gorran', 'cinderwick-prodigy': 'Tilda', 'duskmere-oracle': 'Elowen' };
+  const FIRST = { 'oathsworn-recruit': 'Garrick', 'hollowfoot-cutpurse': 'Fennick', 'ashen-spire-apprentice': 'Corvin', 'deepforge-acolyte': 'Brenna', 'thornwood-scout': 'Ilyra', 'ironhide-brawler': 'Gorran', 'cinderwick-prodigy': 'Tilda', 'duskmere-oracle': 'Elowen',
+    // Stage N (New Cards Batch 1).
+    'lanternhall-minstrel': 'Maren', 'stonewatch-bulwark': 'Hilde', 'nightglass-blade': 'Vessa', 'hearthmoor-keeper': 'Tamsin', 'redmaw-shaman': 'Grusha', 'cogwright-inventor': 'Pell' };
   for (const d of CARDS.filter((x) => x.cardType === 'Character')) {
     assert.equal(d.firstName, FIRST[d.id], d.id);
     for (const f of d.forms) {

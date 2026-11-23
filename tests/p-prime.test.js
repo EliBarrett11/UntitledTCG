@@ -26,9 +26,9 @@ test('every series names one Prime Level; off the battlefield its stage follows 
   }
 });
 
-test('the Primes across the deck: Round 1 (1 series), 2 (2), 3 (1), 4 (3), 5 (3), 6 (2)', () => {
+test('the Primes across the first deck: Round 1 (1 series), 2 (2), 3 (1), 4 (3), 5 (3), 6 (2)', () => {
   const by = {};
-  for (const def of SERIES) { const r = cardAtRound(def.id, 1, 'x').primeRound; by[r] = (by[r] ?? 0) + 1; }
+  for (const def of SERIES.filter((d) => FIRST_DECK.includes(d.id))) { const r = cardAtRound(def.id, 1, 'x').primeRound; by[r] = (by[r] ?? 0) + 1; }
   assert.deepEqual(by, { 1: 1, 2: 2, 3: 1, 4: 3, 5: 3, 6: 2 });
   assert.equal(cardAtRound('cinderwick-prodigy', 1, 'x').stage, 'prime');
   assert.equal(cardAtRound('cinderwick-prodigy', 2, 'x').stage, 'waning');
@@ -62,13 +62,16 @@ test('"Prime:" On Summon resolves only if summoned at the Prime Level (Cinderwic
   assert.equal(t.players.p2.row[2].currentHealth, 5);
 });
 
-test('"Prime:" On Summon: Duskmere Sibyl draws 2 only at its Prime (Round 5), not Waning (Round 6)', () => {
+test('"Prime:" On Summon: Duskmere Sibyl draws 3 and gains 1 Energy only at its Prime (Round 5), not Waning (Round 6)', () => {
   let s = blank(1, { round: 5 });
   s.players.p1.drawPile = Array.from({ length: 5 }, (_, i) => cardAtRound('parry', 5, `p1-d${i}`));
   const before = s.players.p1.hand.length;
+  const energy = s.players.p1.baseEnergy;
   s = summon(s, 'p1', 'duskmere-oracle', 0);
   assert.equal(s.players.p1.row[0].name, 'Elowen, the Duskmere Sibyl');
-  assert.equal(s.players.p1.hand.length, before + 2);
+  // (Stage N: the revised Prime, docs/28: draw 3 cards and gain 1 Energy.)
+  assert.equal(s.players.p1.hand.length, before + 3);
+  assert.equal(s.players.p1.baseEnergy, energy - 3 + 1);
   let t = blank(1, { round: 6 });
   t.players.p1.drawPile = Array.from({ length: 5 }, (_, i) => cardAtRound('parry', 6, `p1-d${i}`));
   const b2 = t.players.p1.hand.length;
@@ -76,15 +79,24 @@ test('"Prime:" On Summon: Duskmere Sibyl draws 2 only at its Prime (Round 5), no
   assert.equal(t.players.p1.hand.length, b2);
 });
 
-test('"Prime:" On Summon: Mossback Ancient hits each enemy in its Location only at Level 8', () => {
+test('"Prime:" On Summon: Mossback Ancient hits each enemy in its Location (2) and heals its own there (2), only at Level 8', () => {
   let s = blank(1, { round: 5 });   // Level 7: Rising
   put(s, 'p2', 0, 'x-steady', { spent: true });
   s = summon(s, 'p1', 'mossback-ancient', 0);
   assert.equal(s.players.p2.row[0].currentHealth, 5);
   let t = blank(1, { round: 6 });   // Level 8: Prime
   put(t, 'p2', 0, 'x-steady', { spent: true });
+  t.players.p1.row[1] = null;
   t = summon(t, 'p1', 'mossback-ancient', 0);
-  assert.equal(t.players.p2.row[0].currentHealth, 4);
+  assert.equal(t.players.p2.row[0].currentHealth, 3);
+  // (Its heal and its damage reach its whole Location: here Ironroot Pass over lanes 1–2.)
+  let u = blank(1, { round: 6 });
+  u.locations.push({ uid: 'loc-x', owner: 'p1', card: cardAtRound('ironroot-pass', 6, 'ip'), name: 'Ironroot Pass', start: 0, width: 2, roundsLeft: 2, passive: { ops: [] } });
+  put(u, 'p1', 1, 'x-steady', { spent: true, currentHealth: 1 });
+  put(u, 'p2', 1, 'x-steady', { spent: true });
+  u = summon(u, 'p1', 'mossback-ancient', 0);
+  assert.equal(u.players.p1.row[1].currentHealth, 3);
+  assert.equal(u.players.p2.row[1].currentHealth, 3);
 });
 
 // --- On Retain, Patient and the draw ---
@@ -149,14 +161,17 @@ test('the first deck: 40 cards, 18 creatures, the three new series once each', (
   assert.equal(FIRST_DECK.filter((id) => isCreature(cardDef(id))).length, 18);
   const copies = Object.fromEntries(DECKS.first.cards.map((x) => [x.id, x.copies]));
   for (const id of ['hollowfoot-cutpurse', 'barrow-shade', 'ironhide-brawler', 'cinderwick-prodigy', 'duskmere-oracle', 'mossback-ancient']) assert.equal(copies[id], 1, id);
-  assert.deepEqual(cardDef('cinderwick-prodigy').traits, { class: 'Wizard', race: 'Gnome' });
-  assert.deepEqual(cardDef('duskmere-oracle').traits, { class: 'Seer', race: 'Elf' });
+  // (Stage N: every Character has its home group.)
+  assert.deepEqual(cardDef('cinderwick-prodigy').traits, { class: 'Wizard', race: 'Gnome', home: 'Cinderwick' });
+  assert.deepEqual(cardDef('duskmere-oracle').traits, { class: 'Seer', race: 'Elf', home: 'Duskmere' });
   assert.deepEqual(cardDef('mossback-ancient').traits, { kind: 'Treant' });
 });
 
 // --- The curve ---
-// One point per ability (a keyword, or a trigger that isn't "Prime:"); guards (Shield, Ward) are free.
-const abilities = (c) => Object.keys(c.keywords ?? {}).length + (c.trigger && !c.trigger.prime ? 1 : 0);
+// One point per ability (a keyword, or a trigger that isn't "Prime:"); guards (Shield, Ward) are free, and so are
+// "Prime:" lines. (Stage N: a choose-one On Summon costs its strongest mode plus 1, so 2.)
+const abilities = (c) => Object.keys(c.keywords ?? {}).filter((k) => !c.primeKeywords?.includes(k)).length
+  + (c.triggers ?? []).filter((t) => !t.prime).reduce((n, t) => n + (t.choose ? 2 : 1), 0);
 test('the curve: every non-Prime Level\'s Attack + Health = Level + 2 − 1 per ability; every Prime\'s is that + 2', () => {
   for (const def of SERIES) {
     for (const level of levelsOf(def)) {

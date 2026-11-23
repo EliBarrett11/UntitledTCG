@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { KEYWORDS, TRIGGERS, EFFECT_OPS, EFFECT_TARGETS, TARGET_SPECS } from '../src/engine/abilities.js';
 import { creatureLines, effectText, heldText, passiveText, questText } from '../src/engine/wording.js';
-import { SERIES_RANGE } from '../src/engine/rules.js';
+import { SERIES_RANGE, CAMPAIGN_LENGTHS } from '../src/engine/rules.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = join(ROOT, 'docs', 'cards.json');
@@ -41,6 +41,15 @@ export function validate(data) {
     }
   };
   const spec = (where, t) => { if (t && !TARGET_SPECS[t]) out.push(`${where}: unknown target spec "${t}"`); };
+  // A trigger: approved, its target and ops known; a Rally names its group; a choose-one trigger has 2 or more modes.
+  const trig = (where, t) => {
+    if (!TRIGGERS[t.on]) out.push(`${where}: trigger "${t.on}" isn't approved`);
+    if (t.on === 'rally' && !Object.keys(t.group ?? {}).length) out.push(`${where}: a Rally trigger names its group`);
+    if (t.choose) {
+      if (t.on !== 'summon' || t.choose.length < 2) out.push(`${where}: "choose one" is an On Summon with 2 or more modes`);
+      for (const m of t.choose) { spec(where, m.target); ops(where, m.ops); }
+    } else { spec(where, t.target); ops(where, t.ops); }
+  };
   const ids = new Set();
   for (const c of data.cards) {
     if (ids.has(c.id)) out.push(`${c.id}: duplicate id`);
@@ -59,24 +68,31 @@ export function validate(data) {
       if (c.cardType === 'Monster' && c.firstName) out.push(`${c.id}: Monsters keep their descriptive names`);
       if (c.cardType === 'Monster' && !c.traits?.kind) out.push(`${c.id}: a Monster needs a Kind`);
       for (const f of c.forms) {
-        for (const k of Object.keys(f.keywords ?? {})) if (!KEYWORDS[k]) out.push(`${f.id}: keyword "${k}" isn't approved`);
-        for (const t of [f.trigger, ...Object.values(f.levels).map((e) => e.trigger)].filter(Boolean)) {
-          if (!TRIGGERS[t.on]) out.push(`${f.id}: trigger "${t.on}" isn't approved`);
-          spec(f.id, t.target);
-          ops(f.id, t.ops);
-        }
+        const primes = [f.prime, ...Object.values(f.levels).map((e) => e.prime)].filter(Boolean);
+        for (const k of [f.keywords, ...primes.map((x) => x.keywords)].flatMap((x) => Object.keys(x ?? {}))) if (!KEYWORDS[k]) out.push(`${f.id}: keyword "${k}" isn't approved`);
+        for (const t of [f.trigger, ...Object.values(f.levels).map((e) => e.trigger), ...primes.map((x) => x.trigger)].filter(Boolean)) trig(f.id, t);
+        // (Stage N: a Prime line at a Level belongs to the Prime Level only.)
+        for (const [lv, e] of Object.entries(f.levels)) if (e.prime && Number(lv) !== c.prime) out.push(`${f.id}: Level ${lv} has "Prime:" lines but the Prime Level is ${c.prime}`);
+        if (primes.some((x) => x.chooseBoth) && !f.trigger?.choose) out.push(`${f.id}: "Prime: Choose both" needs a choose-one On Summon`);
       }
     }
     if (c.cardType === 'Action') for (const [m, x] of Object.entries(c.modes)) { spec(`${c.id} ${m}`, x.target); ops(`${c.id} ${m}`, x.ops); }
     if (c.cardType === 'Event') { spec(c.id, c.target); ops(c.id, c.ops); ops(`${c.id} Favour`, c.favour?.ops); }
     if (c.cardType === 'Item' && c.kind === 'Consumed') { spec(c.id, c.target); ops(c.id, c.ops); }
-    if (c.cardType === 'Campaign') { spec(c.id, c.order.target); ops(`${c.id} Order`, c.order.ops); }
+    if (c.cardType === 'Campaign') {
+      spec(c.id, c.order.target); ops(`${c.id} Order`, c.order.ops);
+      // Stage N: every Campaign has a length; its Campaign Creature a Level (Side-Quest 4, mid-length 6, long 8).
+      if (!CAMPAIGN_LENGTHS[c.length]) out.push(`${c.id}: its length should be one of ${Object.keys(CAMPAIGN_LENGTHS).join(', ')}`);
+      else if (c.campaignCreature.level !== CAMPAIGN_LENGTHS[c.length]) out.push(`${c.id}: a ${c.length} Campaign's Creature is Level ${CAMPAIGN_LENGTHS[c.length]}`);
+      for (const k of Object.keys(c.campaignCreature.keywords ?? {})) if (!KEYWORDS[k]) out.push(`${c.id}: keyword "${k}" isn't approved`);
+      if (c.campaignCreature.trigger) trig(c.id, c.campaignCreature.trigger);
+    }
     // Stage R: a Legendary's own Location: 3 lanes, no countdown, a negative passive; its Legendary names it back.
     if (c.cardType === 'Location' && c.legendaryOf) {
       const owner = data.cards.find((x) => x.id === c.legendaryOf);
       if (owner?.series !== 'Legendary' || owner.location !== c.id) out.push(`${c.id}: its Legendary (${c.legendaryOf}) should name it as its location`);
       if (c.width !== 3 || c.rounds !== null) out.push(`${c.id}: a Legendary's Location is 3 lanes wide with no countdown`);
-      if (!c.passive.ops.every((o) => o.amount < 0)) out.push(`${c.id}: a Legendary's Location has a negative passive`);
+      if (!c.passive.ops.every((o) => o.amount < 0 || o.op === 'duskDamage')) out.push(`${c.id}: a Legendary's Location has a negative passive`);
     }
     if (c.series === 'Legendary' && c.location && !data.cards.some((x) => x.id === c.location && x.legendaryOf === c.id)) out.push(`${c.id}: its Location ${c.location} is missing`);
   }
@@ -86,6 +102,9 @@ export function validate(data) {
   return out;
 }
 
+// A Level with lines of its own: its own trigger, or (stage N) "Prime:" lines at the Prime Level.
+const hasOwnLines = (e) => !!(e.trigger || e.prime);
+
 // The generated wording for every card, in the same shape as the text in cards.json.
 export function generateText(c) {
   switch (c.cardType) {
@@ -93,8 +112,8 @@ export function generateText(c) {
       return {
         forms: c.forms.map((f) => ({
           id: f.id,
-          text: creatureLines(f.keywords, f.trigger),
-          levels: Object.fromEntries(Object.entries(f.levels).filter(([, e]) => e.trigger).map(([lv, e]) => [lv, creatureLines(f.keywords, e.trigger)])),
+          text: creatureLines(f.keywords, f.trigger, f.prime),
+          levels: Object.fromEntries(Object.entries(f.levels).filter(([, e]) => hasOwnLines(e)).map(([lv, e]) => [lv, creatureLines(f.keywords, e.trigger ?? f.trigger, e.prime ?? f.prime)])),
         })),
       };
     case 'Action': return { modes: Object.fromEntries(Object.entries(c.modes).map(([m, x]) => [m, effectText(x.ops, x.target)])) };
@@ -109,7 +128,7 @@ export function generateText(c) {
 export function approvedText(c) {
   switch (c.cardType) {
     case 'Character': case 'Monster':
-      return { forms: c.forms.map((f) => ({ id: f.id, text: f.text, levels: Object.fromEntries(Object.entries(f.levels).filter(([, e]) => e.trigger).map(([lv, e]) => [lv, e.text])) })) };
+      return { forms: c.forms.map((f) => ({ id: f.id, text: f.text, levels: Object.fromEntries(Object.entries(f.levels).filter(([, e]) => hasOwnLines(e)).map(([lv, e]) => [lv, e.text])) })) };
     case 'Action': return { modes: Object.fromEntries(Object.entries(c.modes).map(([m, x]) => [m, x.text])) };
     case 'Event': return { text: c.text, favour: c.favour.text };
     case 'Item': return { text: c.text };

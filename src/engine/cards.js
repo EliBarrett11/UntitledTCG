@@ -41,10 +41,21 @@ export function stageAt(def, level) {
 }
 export const primeRoundOf = (def) => (def.series === 'Legendary' || def.prime == null ? null : def.prime - SERIES_RANGE[def.series][0] + 1);
 
+// Stage N: a card's triggers. Its main trigger (a Level may change it) and its "Prime:" trigger, if any (on the form, or
+// on the Prime Level's entry). A "Prime:" trigger works only if it was summoned at its Prime (game.js checks that).
+export function triggersOf(trigger, prime) {
+  return [trigger, prime?.trigger ? { ...prime.trigger, prime: true } : null].filter(Boolean).map((t) => structuredClone(t));
+}
+// Its keywords: the form's, plus its "Prime:" keywords when it's at its Prime Level (so they come with it when summoned).
+const keywordsAt = (keywords, prime, stage) => ({ ...structuredClone(keywords ?? {}), ...(stage === 'prime' ? structuredClone(prime?.keywords ?? {}) : {}) });
+
 // A Character or Monster card at a Level.
 export function creatureAtLevel(def, level, uid) {
   const { form, entry } = formAt(def, level);
   const trigger = entry.trigger ?? form.trigger ?? null;
+  const prime = entry.prime ?? form.prime ?? null;
+  const stage = stageAt(def, level);
+  const triggers = triggersOf(trigger, prime);
   return {
     uid, id: def.id, form: form.id, cardType: def.cardType, name: form.name, art: form.art ?? null, series: def.series, level,
     prime: def.series === 'Legendary' ? level : def.prime ?? null, primeRound: primeRoundOf(def), stage: stageAt(def, level),
@@ -52,8 +63,11 @@ export function creatureAtLevel(def, level, uid) {
     // Stage R (7.2): a Legendary takes 3 spaces and brings its own Location; every other creature takes one space.
     width: def.series === 'Legendary' ? RULES.legendaryWidth : 1, ownLocation: def.series === 'Legendary' ? def.location ?? null : null,
     attack: entry.attack, health: entry.health, speed: def.speed, attackKind: def.attackKind, guard: def.guard ?? null,
-    traits: structuredClone(def.traits ?? {}), keywords: structuredClone(form.keywords ?? {}),
-    trigger: trigger ? structuredClone(trigger) : null,
+    traits: structuredClone(def.traits ?? {}), keywords: keywordsAt(form.keywords, prime, stage),
+    // (Stage N: the keywords that come from its "Prime:" lines, since it's at its Prime.)
+    primeKeywords: stage === 'prime' ? Object.keys(prime?.keywords ?? {}) : [],
+    // (trigger: the first, for the interface's labels; triggers: all of them. chooseBoth: "Prime: Choose both".)
+    trigger: triggers[0] ?? null, triggers, chooseBoth: stage === 'prime' && !!prime?.chooseBoth,
   };
 }
 
@@ -67,14 +81,16 @@ export function cardAtRound(id, round, uid) {
   return c;
 }
 
-// A Campaign's Campaign Creature (not a deck card): Level 8, free, a snapshot.
+// A Campaign's Campaign Creature (not a deck card): at the Level its Campaign names (stage N: 4, 6 or 8 by the
+// Campaign's length; Aldric is 8), always Prime, free, a snapshot.
 export function campaignCreatureOf(campaignDef, uid) {
   const lc = campaignDef.campaignCreature;
+  const level = lc.level ?? RULES.legendaryLevel;
   return {
     uid, id: lc.id ?? `${campaignDef.id}:lc`, form: lc.id ?? null, cardType: lc.cardType, name: lc.name, art: lc.art ?? null, series: 'Campaign Creature',
-    level: RULES.legendaryLevel, prime: RULES.legendaryLevel, primeRound: null, stage: 'prime', cost: 0, campaignCreature: true, width: 1, ownLocation: null, attack: lc.attack, health: lc.health, speed: lc.speed, attackKind: lc.attackKind,
+    level, prime: level, primeRound: null, stage: 'prime', cost: 0, campaignCreature: true, width: 1, ownLocation: null, attack: lc.attack, health: lc.health, speed: lc.speed, attackKind: lc.attackKind,
     guard: lc.guard ?? null, traits: structuredClone(lc.traits ?? {}), keywords: structuredClone(lc.keywords ?? {}),
-    trigger: lc.trigger ? structuredClone(lc.trigger) : null,
+    trigger: lc.trigger ? structuredClone(lc.trigger) : null, triggers: triggersOf(lc.trigger, null), chooseBoth: false,
   };
 }
 

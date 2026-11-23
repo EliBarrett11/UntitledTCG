@@ -3,7 +3,8 @@
 // clicked, then (one field at a time) the space, the leftmost lane, the cards to Release, the target.
 import { defineCards, cardAtRound, cardDef, campaignCreatureOf, creatureAtLevel } from '../engine/cards.js';
 import { CARDS, FIRST_DECK } from '../data/cards.js';
-import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lanesOf, passBlockers, meetsCondition, protections, primeNextRound, onBoard, syncBonuses } from '../engine/game.js';
+import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lanesOf, passBlockers, meetsCondition, protections, primeNextRound, onBoard, syncBonuses, summonChoiceTrigger } from '../engine/game.js';
+import { effectText } from '../engine/wording.js';
 import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
 import { render, fitLabels, primeNextTab, ROW_Y } from './view.js';
@@ -63,7 +64,7 @@ function saveSettings(v) {
   try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(v)); } catch { /* storage unavailable: keep them for this visit */ }
 }
 
-const tkey = (t) => (!t ? '-' : t.none ? 'none' : t.kind ? `${t.kind}:${t.space ?? ''}` : `${t.who}:${t.space}${t.area ? ':area' : ''}`);
+const tkey = (t) => (!t ? '-' : t.none ? 'none' : t.warlord ? `${t.who}:warlord` : t.kind ? `${t.kind}:${t.space ?? ''}` : `${t.who}:${t.space}${t.area ? ':area' : ''}`);
 const MODE = { adapt: 'Adapt', strat: 'Strat', react: 'React' };
 
 export function startApp(params) {
@@ -311,6 +312,66 @@ export function startApp(params) {
     },
   };
 
+  // Stage N's scenes (dev aids for the screenshots and checks, from the mid-match position; never part of play):
+  //   n-board    a mid-game board of Batch 1's cards, with Gallows Hill and Stormbreak Crags placed;
+  //   n-deepmaw  you summon The Deepmaw (a real Summon action), The Drowned Reach arriving with it;
+  //   n-choose   Maren in your hand, to summon with her "choose one" (the checks click through it);
+  //   n-undying  your Ready Gorran and an enemy Cairn it will defeat, so its Undying saves it (the checks attack).
+  const N_SCENES = {
+    'n-board': () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN]; const them = s.players[AI];
+      const L = (id, level, uid, over = {}) => ({ ...onBoard(s, creatureAtLevel(cardDef(id), level, uid)), spent: true, ...over });
+      me.row = me.row.map(() => null); them.row = them.row.map(() => null); s.locations = [];
+      const place = (id, start, owner) => { const c = cardAtRound(id, s.round, `scene-loc-${id}`); s.locations.push({ uid: `loc-scene-${id}`, owner, card: c, name: c.name, start, width: c.width, roundsLeft: c.rounds, passive: c.passive }); };
+      place('gallows-hill', 0, HUMAN);
+      place('stormbreak-crags', 4, AI);
+      me.row[0] = L('stonewatch-bulwark', 6, 'scene-hilde', { health: 7, currentHealth: 7 });
+      me.row[1] = L('lanternhall-minstrel', 4, 'scene-maren', { primeSummon: true });
+      me.row[2] = L('cairn-revenant', 5, 'scene-cairn');
+      me.row[4] = L('ironclaw-bear', 5, 'scene-bear', { spent: false });
+      me.row[5] = L('nightglass-blade', 4, 'scene-vessa', { spent: false });
+      me.row[6] = L('cogwright-inventor', 4, 'scene-pell', { primeSummon: true, attack: 4, health: 5, currentHealth: 5 });
+      them.row[0] = L('redmaw-shaman', 5, 'scene-grusha', { primeSummon: true });
+      them.row[1] = L('rime-elemental', 5, 'scene-rime');
+      them.row[3] = L('hearthmoor-keeper', 4, 'scene-tamsin');
+      them.row[4] = L('skyreach-wyvern', 4, 'scene-wyvern', { primeSummon: true });
+      them.row[5] = L('mirefang-stalker', 4, 'scene-mirefang');
+      syncBonuses(s);
+      me.row[4].currentHealth = 2;
+      syncBonuses(s);
+      const hand = ['shield-wall', 'glass-veil', 'chain-lightning', 'night-raid-event', 'market-day', 'warhorn-of-the-vanguard', 'the-ember-crown'];
+      me.hand = hand.map((id, i) => cardAtRound(id, s.round, `scene-hand-${i}`));
+    },
+    'n-deepmaw': () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN];
+      me.hand.push(cardAtRound('the-deepmaw', s.round, 'scene-deepmaw'));
+      me.baseEnergy = Math.max(me.baseEnergy, 5);
+      const list = legalActions(s, HUMAN, 'summon').filter((a) => a.uid === 'scene-deepmaw');
+      if (list.length) apply(list[Math.floor(list.length / 2)]);
+    },
+    'n-choose': () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN];
+      if (!me.row.some(Boolean) || !me.row.some((c) => !c)) return;
+      me.hand.splice(0, 0, cardAtRound('lanternhall-minstrel', s.round, 'scene-maren'));
+      me.baseEnergy = Math.max(me.baseEnergy, 6);
+    },
+    'n-undying': () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN]; const them = s.players[AI];
+      const L = (id, level, uid) => onBoard(s, creatureAtLevel(cardDef(id), level, uid));
+      me.row = me.row.map(() => null); them.row = them.row.map(() => null); s.locations = []; s.strats = [];
+      me.row[3] = { ...L('ironhide-brawler', 5, 'scene-gorran'), spent: false };
+      them.row[3] = { ...L('cairn-revenant', 5, 'scene-cairn'), spent: true, currentHealth: 2 };
+      them.row[5] = { ...L('rime-elemental', 4, 'scene-rime'), spent: true };
+      them.hand = them.hand.filter((c) => c.cardType !== 'Action');
+      syncBonuses(s);
+    },
+  };
+  Object.assign(R_SCENES, N_SCENES);
+
   function apply(a) {
     const before = s.log.length;
     const prev = s;
@@ -545,10 +606,12 @@ export function startApp(params) {
     const showGuarded = sel.cands[0].type === 'attack' && !sel.targetPicked && protections(s, HUMAN, sel.cands[0].from).length > 0;
     if (keys.size === 1 && !showGuarded) return act(sel.cands[0]);
     const differs = (f) => new Set(sel.cands.map((a) => (f === 'release' ? [...(a.release ?? [])].sort().join() : f === 'target' ? tkey(a.target) : String(a[f])))).size > 1;
-    const field = ['space', 'start', 'release', 'target'].find(differs) ?? (showGuarded ? 'target' : undefined);
+    const field = ['space', 'start', 'mode', 'release', 'target'].find(differs) ?? (showGuarded ? 'target' : undefined);
     if (!field) return act(sel.cands[0]);
     sel.field = field;
     const p = ui.picks;
+    // Stage N: a choose-one On Summon: a small menu of its modes (then its target, if the mode has one).
+    if (field === 'mode') return chooseMode(sel);
     if (field === 'space') {
       // (Stage R: a Legendary takes 3 spaces: you choose the middle one, and the cell shows all three.)
       const wide = sel.cands[0].type === 'summon' && (s.players[HUMAN].hand.find((c) => c.uid === sel.cands[0].uid)?.width ?? 1) > 1;
@@ -577,7 +640,7 @@ export function startApp(params) {
         const k = `t:${tkey(t)}`;
         // The outcome of choosing this target (damage both ways, defeats, Renown).
         if (!seen.has(k)) { seen.add(k); const txt = badgeFor(s, a, diff(s, outcome(s, a))); if (txt) ui.previews[k] = txt; }
-        if (t.kind === 'warlord') p.warlord = k;
+        if (t.kind === 'warlord' || t.warlord) p.warlord = k;
         else if (t.kind === 'creature') p.creature[`${AI}:${t.space}`] = k;
         else if (t.area) for (const lane of lanesHere(s, t.space)) p.cell[`${t.who}:${lane}`] = k;
         else if (!t.none) p.creature[`${t.who}:${t.space}`] = k;
@@ -587,6 +650,20 @@ export function startApp(params) {
     draw();
   }
   const cardWidth = (sel) => s.players[HUMAN].hand.find((c) => c.uid === sel.cands[0].uid)?.width ?? '';
+  // Stage N: "On Summon, choose one": each mode as a menu item, with what it does.
+  function chooseMode(sel) {
+    const card = s.players[HUMAN].hand.find((c) => c.uid === sel.cands[0].uid);
+    const trig = summonChoiceTrigger(card);
+    const modes = [...new Set(sel.cands.map((a) => a.mode))];
+    const i = s.players[HUMAN].hand.indexOf(card);
+    const el = stage.querySelectorAll('.hand-card')[i];
+    ui.menu = { title: `${card.name}: choose one`, x: el ? parseFloat(el.style.left) : 600, items: modes.map((m, k) => ({
+      label: m === 'both' ? 'Both' : `Choice ${k + 1}`, sub: m === 'both' ? trig.choose.map((x) => effectText(x.ops, x.target)).join(' ') : effectText(trig.choose[m].ops, trig.choose[m].target),
+      list: sel.cands.filter((a) => a.mode === m), name: sel.label,
+    })) };
+    ui.prompt = `${sel.label}: choose one · Esc to cancel`;
+    draw();
+  }
   function favourCards(sel) {
     const ev = s.players[HUMAN].hand.find((c) => c.uid === sel.cands[0].uid);
     if (!ev?.favour) return [];
@@ -1429,7 +1506,7 @@ export function startApp(params) {
     const t = a.target;
     if (a.type === 'buyItem' && a.then === 'store') return ['bag'];
     if (!t || t.none) return ['map'];
-    if (t.kind === 'warlord') return ['warlord'];
+    if (t.kind === 'warlord' || t.warlord) return ['warlord'];
     if (t.kind === 'creature') return [`cell:${AI}:${t.space}`];
     if (t.area) return lanesHere(s, t.space).map((l) => `cell:${t.who}:${l}`);
     return [`cell:${t.who}:${t.space}`];

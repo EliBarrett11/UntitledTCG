@@ -439,6 +439,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     let activeCine = null;
     const B = (kind, caption, run, gl, extra = {}) => beats.push({ kind, caption, run, gl, ...(activeCine && !extra.cine ? { cine: activeCine } : {}), ...extra });
     const where = (who, space) => { const el = cell(who, space); return el ? box(el) : centre; };
+    const whereCell = where;
     const handPos = (who, uid) => {
       if (who === AI) return foeHand();
       const i = prev.players[HUMAN].hand.findIndex((c) => c.uid === uid);
@@ -754,8 +755,12 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         }
         case 'effect': {
           const verb = { damage: '−', heal: '+', tempAttack: '+', attack: '+', health: '+', tempHealth: '+' }[e.op];
-          const label = (o) => ({ damage: `−${e.amount}`, heal: `+${e.amount}`, tempAttack: `+${e.amount} Attack`, attack: `+${e.amount} Attack`, health: `+${e.amount} Health`, tempHealth: `+${e.amount} Health`, spend: 'Spent', activate: 'Active', returnHand: 'to hand' }[o] ?? null);
+          const signed = (n) => (n < 0 ? `−${-n}` : `+${n}`);
+          // (Stage N: healed fully, a keyword until Dusk, a negative Attack; a target may be the enemy Warlord.)
+          const label = (o) => ({ damage: `−${e.amount}`, heal: `+${e.amount}`, fullHeal: 'Healed', tempAttack: `${signed(e.amount)} Attack`, attack: `${signed(e.amount)} Attack`, health: `${signed(e.amount)} Health`, tempHealth: `+${e.amount} Health`, spend: 'Spent', activate: 'Active', returnHand: 'to hand',
+            tempKeyword: e.keyword ? `${e.keyword.replace(/^./, (c) => c.toUpperCase())} ${e.amount}` : null }[o] ?? null);
           if (!e.targets?.length || !label(e.op)) break;
+          const where = (who, space) => (space == null ? (warlordEl(who) ? box(warlordEl(who)) : centre) : whereCell(who, space));
           B('effect', `${e.name}: ${describeOp(e)}.`, async (ctx) => {
             const runs = [];
             for (const t of e.targets) {
@@ -772,7 +777,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const srcInfo = cardByName(e.name);
             const onRow = [next, prev].map((st) => st.players[e.who].row.findIndex((x) => x && x.name === e.name)).find((i) => i >= 0);
             const srcCard = onRow != null ? next.players[e.who].row[onRow] ?? prev.players[e.who].row[onRow] : null;
-            const src = onRow != null ? where(e.who, onRow) : castFrom ?? (e.who === HUMAN ? { ...myHand, w: 200, h: 280 } : { ...foeHand(), w: 200, h: 280 });
+            const locEl = e.kind === 'passive' && e.location ? q(`.loc[data-loc="${e.location}"]`) : null;
+            const src = locEl ? box(locEl) : onRow != null ? where(e.who, onRow) : castFrom ?? (e.who === HUMAN ? { ...myHand, w: 200, h: 280 } : { ...foeHand(), w: 200, h: 280 });
             const targets = e.targets.map((t) => ({ box: where(t.who, t.space), el: token(t.who, t.space) }));
             focus = targets[0].box;
             const id = effectFor(e.op, e.name, e.kind);
@@ -808,12 +814,78 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         case 'trigger': {
           const inCine = !!activeCine;
           const c = e.point === 'defeat' ? prevCard(e.who, e.space) : next.players[e.who].row[e.space] ?? prevCard(e.who, e.space);
-          const name = { summon: 'On Summon', defeat: 'On Defeat', dawn: 'At Dawn', attack: 'On Attack', defend: 'On Defend' }[e.point] ?? 'Trigger';
+          const name = { summon: 'On Summon', defeat: 'On Defeat', dawn: 'On Dawn', dusk: 'On Dusk', rally: 'Rally', attack: 'On Attack', defend: 'On Defend' }[e.point] ?? 'Trigger';
+          // (Stage N: On Dusk and On Dawn pulse in their moment's colour.)
+          const fx = inCine ? 'trigger.cine' : e.point === 'dusk' ? 'trigger.dusk' : e.point === 'dawn' ? 'trigger.dawn' : 'trigger';
           B('trigger', `${POSS[e.who]} ${c?.name ?? 'creature'}: ${name}.`, async (ctx) => { await tag(ctx, name.toUpperCase(), where(e.who, e.space)); }, async (ctx) => {
             const at = where(e.who, e.space);
             focus = at;
-            await fxRun(ctx, inCine ? 'trigger.cine' : 'trigger', { anchors: anchors({ dst: at }), tint: c ? accentOf(c) : '#c7a15a', hooks: { tag: () => tag(ctx, name.toUpperCase(), at) } });
+            await fxRun(ctx, fx, { anchors: anchors({ dst: at }), tint: c ? accentOf(c) : '#c7a15a', hooks: { tag: () => tag(ctx, name.toUpperCase(), at) } });
           });
+          break;
+        }
+        // Stage N: the new keywords' moments.
+        case 'venom': case 'chill': {
+          const c = next.players[e.who].row[e.space] ?? prevCard(e.who, e.space);
+          const word = e.type === 'venom' ? 'VENOM' : 'CHILL';
+          B('trigger', `${e.type === 'venom' ? 'Venom' : 'Chill'}: ${POSS[e.who].toLowerCase()} ${c?.name ?? 'creature'} is made Spent.`, async (ctx) => {
+            const at = where(e.who, e.space);
+            await Promise.all([tag(ctx, word, at), ink(ctx, 'Spent', at, 'info')]);
+          }, async (ctx) => {
+            const at = where(e.who, e.space);
+            focus = at;
+            await fxRun(ctx, `kw.${e.type}`, { anchors: anchors({ dst: at }), els: { dst: token(e.who, e.space) }, hooks: { land: () => { tag(ctx, word, at); ink(ctx, 'Spent', at, 'info'); } } });
+          });
+          break;
+        }
+        case 'undying': {
+          B('trigger', `${POSS[e.who]} ${e.name} is Undying: it stands again at 1 Health.`, async (ctx) => {
+            const at = where(e.who, e.space);
+            const tk = token(e.who, e.space);
+            if (tk) setText(tk.querySelector('.tab-h span'), 1);
+            await Promise.all([tag(ctx, 'UNDYING', at), ink(ctx, '1 Health', at, 'heal')]);
+          }, async (ctx) => {
+            const at = where(e.who, e.space);
+            focus = at;
+            await fxRun(ctx, 'kw.undying', { anchors: anchors({ dst: at }), els: { dst: token(e.who, e.space) }, hooks: { land: () => {
+              const tk = token(e.who, e.space);
+              if (tk) setText(tk.querySelector('.tab-h span'), 1);
+              tag(ctx, 'UNDYING', at);
+              ink(ctx, '1 Health', at, 'heal');
+            } } });
+          });
+          break;
+        }
+        case 'frenzy': {
+          if (!e.on) break;
+          const c = next.players[e.who].row[e.space];
+          if (!c) break;
+          B('trigger', `Frenzy: ${POSS[e.who].toLowerCase()} ${c.name} has +2 Attack while it's damaged.`, async (ctx) => { await tag(ctx, 'FRENZY', where(e.who, e.space)); }, async (ctx) => {
+            const at = where(e.who, e.space);
+            await fxRun(ctx, 'kw.frenzy', { anchors: anchors({ dst: at }), hooks: { land: () => {
+              const tk = token(e.who, e.space);
+              if (tk) setText(tk.querySelector('.tab-a span'), c.attack);
+              tag(ctx, 'FRENZY', at);
+            } } });
+          });
+          break;
+        }
+        case 'tinker': {
+          const c = next.players[e.who].row[e.space];
+          B('trigger', `${e.name} Tinkers: +1 Attack and +1 Health.`, async (ctx) => { await Promise.all([tag(ctx, 'TINKER', where(e.who, e.space)), ink(ctx, '+1 / +1', where(e.who, e.space), 'heal')]); }, async (ctx) => {
+            const at = where(e.who, e.space);
+            await fxRun(ctx, 'kw.tinker', { anchors: anchors({ dst: at }), els: { dst: token(e.who, e.space) }, hooks: { land: () => {
+              const tk = token(e.who, e.space);
+              if (tk && c) { setText(tk.querySelector('.tab-a span'), c.attack); setText(tk.querySelector('.tab-h span'), c.currentHealth); }
+              tag(ctx, 'TINKER', at);
+              ink(ctx, '+1 / +1', at, 'heal');
+            } } });
+          });
+          break;
+        }
+        case 'attackBonus': {
+          if (e.space == null) break;
+          B('trigger', `${e.name}: +${e.amount} damage on this attack.`, async (ctx) => { await tag(ctx, `+${e.amount} DAMAGE`, where(e.who, e.space)); });
           break;
         }
         case 'renown': {

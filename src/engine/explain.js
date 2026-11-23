@@ -161,7 +161,7 @@ export function typeLine(card) {
   if (card.cardType === 'Event') return `Event · Release ${card.release}`;
   if (card.cardType === 'Item') return `Item · ${card.kind}`;
   if (card.cardType === 'Location') return `Location · ${plural(card.width, 'lane')} · ${plural(card.rounds, 'Round')}`;
-  if (card.cardType === 'Campaign') return 'Campaign · Quest';
+  if (card.cardType === 'Campaign') return ['Campaign', card.length, 'Quest'].filter(Boolean).join(' · ');
   return card.cardType;
 }
 
@@ -192,7 +192,9 @@ export function explain(s, ref, viewer = 'p1') {
       });
     }
     ex.now = creatureNow(s, found, viewer);
-    ex.terms = [card.guard?.toLowerCase(), ...Object.keys(card.keywords ?? {}), card.trigger ? TRIGGER_TERM[card.trigger.on] : null, card.stage === 'prime' ? 'prime' : 'level'].filter(Boolean);
+    // (Stage N: every trigger it has, and "Choose one".)
+    const trigs = card.triggers ?? (card.trigger ? [card.trigger] : []);
+    ex.terms = [...new Set([card.guard?.toLowerCase(), ...Object.keys(card.keywords ?? {}), ...trigs.map((t) => TRIGGER_TERM[t.on]), trigs.some((t) => t.choose) ? 'chooseOne' : null, card.stage === 'prime' ? 'prime' : 'level'].filter(Boolean))];
   } else if (card.cardType === 'Action') {
     ex.modes = ['react', 'adapt', 'strat'].filter((m) => card.modes[m]).map((m) => ({ mode: m, name: Cap(m), cost: card.modes[m].cost, text: card.modes[m].text, target: chosenTargetWords(card.modes[m].target), term: m }));
     ex.now = otherNow(s, found, viewer);
@@ -216,14 +218,16 @@ export function explain(s, ref, viewer = 'p1') {
       order: { cost: card.order.cost, text: card.order.text, target: chosenTargetWords(card.order.target) },
       quest: { text: card.quest.text, need: card.quest.need, progress: q ? Math.min(q.progress, q.quest.need) : null, complete: q?.complete ?? false, whose: q ? (found.who ?? viewer) : null },
       campaignCreature: { id: card.id, name: lc.name, card: lc },
+      // (Stage N: its length, and so its Campaign Creature's Level.)
+      length: card.length ?? null, level: lc.level,
     };
     ex.now = otherNow(s, found, viewer);
-    ex.terms = ['order', 'quest', 'campaignCreature'];
+    ex.terms = ['order', 'quest', 'campaignCreature', ...(card.length ? ['campaignLength'] : [])];
   }
   ex.cost = costOf(card, found);
   return ex;
 }
-const TRIGGER_TERM = { summon: 'onSummon', defeat: 'onDefeat', retain: 'onRetain' };
+const TRIGGER_TERM = { summon: 'onSummon', defeat: 'onDefeat', retain: 'onRetain', rally: 'rally', attack: 'onAttack', dawn: 'onDawn', dusk: 'onDusk' };
 
 function costOf(card, found) {
   if (isCreature(card)) {

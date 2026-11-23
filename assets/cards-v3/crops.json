@@ -150,7 +150,7 @@
   "cardX": 820
  },
  "night-raid": {
-  "cardX": 820
+  "cardX": 700
  },
  "parry": {
   "cardX": 720
@@ -160,9 +160,6 @@
  },
  "stonehide-hatchling": {
   "cardX": 820
- },
- "mire-spiderling": {
-  "cardX": 700
  },
  "mirefang-stalker": {
   "cardX": 760
@@ -337,5 +334,11 @@
  },
  "redmaw-shaman": {
   "cardX": 760
+ },
+ "night-raid-event": {
+  "cardX": 820
+ },
+ "mire-spiderling": {
+  "cardX": 700
  }
 }

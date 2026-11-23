@@ -29,7 +29,9 @@ const TW = 66;   // a stat tab's width and height
 const TH = 52;
 // Accents (bright, for the panel's glyph and the type line), by Class, Kind or card type.
 const ACC = { Fighter: '#d9545a', Wizard: '#6f95e8', Rogue: '#6fbf5a', Cleric: '#e2b54e', Ranger: '#e8873c', Beast: '#e07a3c',
-  Undead: '#5cc4b8', Dragon: '#f0643c', Event: '#c977b8', Item: '#d8a25a', Location: '#5cc0a8', Campaign: '#a987e6' };
+  Undead: '#5cc4b8', Dragon: '#f0643c', Event: '#c977b8', Item: '#d8a25a', Location: '#5cc0a8', Campaign: '#a987e6',
+  // Stage N: the new classes and kind.
+  Bard: '#e8b85a', Artificer: '#d8955a', Elemental: '#8fd4f0' };
 // Glyphs (24-unit, filled).
 const G = {
   swords: '<path d="M4 4l8.5 8.5M20 4l-8.5 8.5M7 15.5l-2.5 2.5M17 15.5l2.5 2.5M5.5 17.5l1 1M18.5 17.5l-1 1" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>',
@@ -123,7 +125,12 @@ const kwName = (k, v) => (KEYWORDS[k]?.hasAmount ? `${KEYWORDS[k].name} ${v}` : 
 const heldOps = (c) => c.held?.ops ?? [];
 const guards = (c) => [...new Set([c.guard, ...heldOps(c).filter((o) => o.op === 'guard').map((o) => o.guard)].filter(Boolean))];
 // The keyword line: guards, keywords and a Held Item's keywords ("SHIELD · ARMOUR 1").
-const keywordsOf = (c) => [...guards(c), ...Object.entries(c.keywords ?? {}).map(([k, v]) => kwName(k, v)), ...heldOps(c).filter((o) => o.op === 'keyword').map((o) => kwName(o.keyword, o.amount))];
+// (Stage N: on the board, a keyword from its Location, Gallows Hill's Riposte 1, or one until Dusk, Shield Wall's
+// Armour 2, shows too.)
+const keywordsOf = (c) => [...new Set([...guards(c), ...Object.entries(c.keywords ?? {}).map(([k, v]) => kwName(k, v)), ...heldOps(c).filter((o) => o.op === 'keyword').map((o) => kwName(o.keyword, o.amount)),
+  ...Object.entries(c.locKw ?? {}).map(([k, v]) => kwName(k, v)), ...Object.entries(c.tempKw ?? {}).map(([k, v]) => `${kwName(k, v)} until Dusk`)])];
+// Stage N: Undying, until it has been used (its own, or its Held Item's).
+export const undyingReady = (c) => !c?.undyingUsed && (!!c?.keywords?.undying || heldOps(c).some((o) => o.op === 'keyword' && o.keyword === 'undying'));
 // A trigger line "**On Summon:** 2 damage…" as its name in bold, a dot, then the effect.
 const triggerHtml = (l) => {
   const m = l.match(/^\*\*(.+?):\*\* (.*)$/);
@@ -144,6 +151,8 @@ function typeText(c) {
     case 'Event': return `Event · Release ${c.release}`;
     case 'Item': return `Item · ${c.kind}`;
     case 'Location': return `Location · ${c.width} lanes · ${c.rounds} Rounds`;
+    // (Stage N: a Campaign's length.)
+    case 'Campaign': return c.length ? `Campaign · ${c.length}` : 'Campaign';
     default: return c.cardType ?? '';
   }
 }
@@ -194,8 +203,9 @@ function statValues(c, live) {
   if (heldAtk) parts.push(`+ ${heldAtk} ${c.held.name}`);
   const loc = (c.bonusAttack ?? 0) - heldAtk;
   if (loc) parts.push(`${loc > 0 ? '+' : '−'} ${Math.abs(loc)} Location`);
-  if (c.tempAttack) parts.push(`+ ${c.tempAttack} until Dusk`);
-  const kept = c.attack - printed.attack - (c.bonusAttack ?? 0) - (c.tempAttack ?? 0);
+  if (c.tempAttack) parts.push(`${c.tempAttack > 0 ? '+' : '−'} ${Math.abs(c.tempAttack)} until Dusk`);
+  if (c.frenzyAttack) parts.push(`+ ${c.frenzyAttack} Frenzy`);
+  const kept = c.attack - printed.attack - (c.bonusAttack ?? 0) - (c.tempAttack ?? 0) - (c.frenzyAttack ?? 0);
   if (kept) parts.push(`${kept > 0 ? '+' : '−'} ${Math.abs(kept)} kept`);
   return {
     atk: c.attack, hp: c.currentHealth, at, ht,
@@ -214,15 +224,20 @@ function tabNum(cls, x, y, n, trend, px, title, label) {
 
 // --- The text panel -------------------------------------------------------------------------------------------
 // About how many lines a run of text takes in the rules box (Alegreya Sans 14.5 px, 288 px wide).
-const linesOf = (s, perLine = 44) => Math.max(1, Math.ceil(String(s).replace(/<[^>]+>/g, '').length / perLine));
+const linesOfAt = (s, perLine = 44) => Math.max(1, Math.ceil(String(s).replace(/<[^>]+>/g, '').length / perLine));
 const KW = (t) => `<div class="cv-kw nowrap" data-z="text">${esc(t)}</div>`;
 const RULE = (html, cls = '') => `<div class="cv-rule ${cls}" data-z="text">${energyHtml(html)}</div>`;
 
 // The rules for a Full card, and roughly how tall they are (to place the panel line).
-function fullRules(c, opts) {
+// (Stage N: dense: the longer new cards set their rules smaller, more to a line, so they fit above the art's edge.)
+// (The estimate runs a little high: Mending Prayer, at 149 against 136, fits as it is.)
+const DENSE_SLACK = 14;
+function fullRules(c, opts, dense = false) {
   const blocks = [];
   let h = 0;
-  const add = (html, lines, extra = 0) => { blocks.push(html); h += lines * 18.9 + extra + (blocks.length > 1 ? 7 : 0); };
+  const lineH = dense ? 15.9 : 18.9;
+  const linesOf = (t, per = 44) => linesOfAt(t, dense ? Math.round(per * 1.2) : per);
+  const add = (html, lines, extra = 0) => { blocks.push(html); h += lines * lineH + extra * (dense ? 0.8 : 1) + (blocks.length > 1 ? (dense ? 5 : 7) : 0); };
   if (isCreature(c)) {
     const kw = keywordsOf(c);
     if (kw.length) add(KW(kw.join(' · ')), 0, 15);
@@ -277,7 +292,8 @@ function fullRules(c, opts) {
       const dots = Array.from({ length: need }, (_, i) => `<span class="cv-dot${i < done ? ' on' : ''}"></span>`).join('');
       const art = artOf({ ...lc, cardType: lc.cardType ?? 'Character', campaignCreature: true });
       add(`<div class="cv-dots" data-z="text" aria-label="Quest ${done} of ${need}">${dots}<span class="cv-dash"></span><span class="cv-portrait" style="${art ? `background-image:url('${esc(art)}')` : ''}"></span></div>`, 0, 30);
-      add(`<div class="cv-small nowrap" data-z="text" style="color:${ACC.Campaign}">${done} OF ${need} · ${esc(lc.name.toUpperCase())}</div>`, 0, 13);
+      const small = `${done} OF ${need} · ${lc.name.toUpperCase()}`;
+      add(`<div class="cv-small nowrap" data-z="text" style="color:${ACC.Campaign}${small.length > 30 ? `;letter-spacing:${small.length > 36 ? 0.8 : 1.5}px` : ''}">${esc(small)}</div>`, 0, 13);
       break;
     }
     default:
@@ -340,10 +356,15 @@ export function renderCard(c, opts = {}) {
 
   // The rules first (their height places the panel line), then the panel line.
   let rules = { html: '', h: 0 };
-  if (size === 'full') rules = fullRules(c, opts);
   // (Stage A: a Character's first name, and its title on a second line on the full card.)
   const np = nameParts(c);
   const titleH = np.title && size === 'full' ? TITLE_H : 0;
+  if (size === 'full') {
+    rules = fullRules(c, opts);
+    // (Stage N: rules too tall for the room above the lowest panel line are set dense.)
+    const room = H - (creature ? 64 : 24) - 80 - titleH - ((creature ? 250 : 236) - titleH);
+    if (rules.h > room + DENSE_SLACK) rules = { ...fullRules(c, opts, true), dense: true };
+  }
   let panel;
   if (token) panel = 336;
   else if (mini) panel = creature ? 286 : 300;
@@ -434,17 +455,27 @@ export function renderCard(c, opts = {}) {
     const kw = keywordsOf(c);
     const trig = triggerLines(c)[0]?.match(/^\*\*(.+?):\*\*/)?.[1];
     const sub = kw.length ? kw.join(' · ') : trig ?? '';
-    if (sub) h += `<div class="cv-tokkw nowrap" data-z="text" style="left:8px;right:8px;top:${panel + 44}px;color:${acc}">${esc(sub)}</div>`;
+    // (Stage N: a long keyword line, "Shield · Undying · Riposte 1 · Armour 1", is set smaller to fit.)
+    const kpx = sub.length > 30 ? Math.max(9, Math.floor(12 * 30 / sub.length)) : 12;
+    if (sub) h += `<div class="cv-tokkw nowrap" data-z="text" style="left:8px;right:8px;top:${panel + 44}px;color:${acc}${kpx < 12 ? `;font-size:${kpx}px;letter-spacing:1px` : ''}">${esc(sub)}</div>`;
     if (c.held) h += `<div class="cv-held nowrap" data-z="badge" title="Holds ${esc(c.held.name)}" style="${box(24, panel - 72, W - 48, 30)}">${esc(c.held.name.toUpperCase())}</div>`;
+    // Stage N: a clear marker while its Undying is unused.
+    if (opts.live && undyingReady(c)) h += `<div class="cv-undying nowrap" data-z="badge" title="Undying: the first time it would be defeated, it's left at 1 Health instead" style="${box(W / 2 - 74, 62, 148, 30)}">UNDYING</div>`;
   } else if (mini) {
     const npx = nameSize(np.first, 30, 304);
     // (Stage L: a Mini card shows its affiliations too, under its name: a creature's traits, an Action's class. The
     // name sits a little higher and the rules a little smaller to make room.)
     const aff = miniAffiliations(c);
     h += `<div class="cv-name nowrap" data-z="text" style="left:16px;right:16px;top:${panel + (aff ? 10 : 22)}px;font-size:${npx}px${foil ? ';color:#ffe9b0' : ''}">${esc(np.first)}</div>`;
-    if (aff) h += `<div class="cv-type cv-type-mini nowrap" data-z="text" style="top:${panel + 52}px;color:${acc}${aff.length > 22 ? ';letter-spacing:1px' : ''}">${esc(aff.toUpperCase())}</div>`;
+    // (Stage N: with home groups the line runs longer, "HALFLING · ROGUE · HOLLOWFOOT": it shrinks to fit its width.)
+    const apx = Math.max(12, Math.min(17, Math.floor(296 / (aff.length * (aff.length > 22 ? 0.82 : 0.9)))));
+    if (aff) h += `<div class="cv-type cv-type-mini nowrap" data-z="text" style="top:${panel + 52}px;color:${acc};font-size:${apx}px${aff.length > 22 ? ';letter-spacing:1px' : ''}">${esc(aff.toUpperCase())}</div>`;
     const line = miniLine(c);
-    if (line) h += `<div class="cv-rules cv-rules-mini${aff ? ' with-aff' : ''}" style="top:${panel + (aff ? 74 : 66)}px;bottom:${creature ? (aff ? 56 : 66) : 22}px">${line}</div>`;
+    // (Stage N: a long line, a choose-one On Summon or a long "Prime:" line, is set smaller to fit its box.)
+    const len = line.replace(/<[^>]+>/g, '').length;
+    const mpx = !creature ? null : len > 100 ? 13 : len > 70 ? 15 : len > 46 ? 17 : null;
+    const kw = /cv-kw/.test(line) && len > 22 ? `;--kwpx:${Math.max(11, Math.floor(16 * 22 / len))}px` : '';
+    if (line) h += `<div class="cv-rules cv-rules-mini${aff ? ' with-aff' : ''}" style="top:${panel + (aff ? 74 : 66)}px;bottom:${creature ? (aff ? 56 : 66) : 22}px${mpx ? `;font-size:${mpx}px` : ''}${kw}">${line}</div>`;
   } else {
     const ny = panel + 22;
     // (The first name keeps its own size, however long the title; the title fits its own line.)
@@ -453,13 +484,15 @@ export function renderCard(c, opts = {}) {
     if (np.title) h += `<div class="cv-title nowrap" data-z="text" style="top:${ny + 28}px;font-size:${titleSize(np.title)}px">${esc(np.title)}</div>`;
     const tt = typeText(c).toUpperCase();
     h += `<div class="cv-type nowrap" data-z="text" style="top:${ny + 29 + titleH}px;color:${acc}${tt.length > 28 ? ';letter-spacing:1.6px' : ''}">${esc(tt)}</div>`;
-    h += `<div class="cv-rules" style="top:${ny + 48 + titleH}px;bottom:${creature ? 64 : 24}px">${rules.html}</div>`;
+    h += `<div class="cv-rules${rules.dense ? ' dense' : ''}" style="top:${ny + 48 + titleH}px;bottom:${creature ? 64 : 24}px">${rules.html}</div>`;
   }
   if (c.retained && !token) h += `<div class="cv-retained nowrap" data-z="badge" style="top:${creature ? 64 : 70}px">RETAINED</div>`;
 
   const k = token ? TOKEN_W / W : mini ? 200 / W : 1;
   const draw = `<div class="cv" style="transform:scale(${k})" data-outline="${o}" data-inner="${inner}">${artHtml}${holo}<svg class="cv-frame" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${s}</svg>${h}</div>`;
-  return `<div class="card card-${size} frame-${kind}${foil ? ' foil' : ''}${art ? '' : ' no-art'} ${opts.classes ?? ''}" style="--accent:${acc}" data-card="${esc(c.id)}" ${opts.attrs ?? ''}>${draw}</div>`;
+  // (Stage N: Frenzy glows red on the board while it's damaged.)
+  const frenzied = opts.live && c.frenzyAttack > 0 ? ' frenzied' : '';
+  return `<div class="card card-${size} frame-${kind}${foil ? ' foil' : ''}${art ? '' : ' no-art'}${frenzied} ${opts.classes ?? ''}" style="--accent:${acc}" data-card="${esc(c.id)}" ${opts.attrs ?? ''}>${draw}</div>`;
 }
 
 // Stage R: board cards are bigger with 8 lanes (164 × 230 with 9).

@@ -449,6 +449,71 @@ Object.assign(EFFECTS, signatureEffects({ START, GUARD, SETTLE, GOLD }));
 // Stage E's three test moments (stageE.js), merged in.
 Object.assign(EFFECTS, stageEffects({ GUARD, GOLD }));
 
+// Stage N: cues for New Cards Batch 1's keywords and triggers, in docs/20's palettes, within the existing budgets.
+//   Venom (Nature/poison): a green drip runs down the creature it hurt, then the Spent smoke.
+//   Chill (Arcane/frost): frost crystallises over the creature that hurt it, and it goes Spent.
+//   Undying (Ghostlight): a burst of ghostlight and the card stands up again at 1 Health.
+//   Frenzy (blood red): a red glow flares when it's hurt (and stays on the token while it's damaged: cards.css).
+//   Tinker (Steel): copper sparks and a lift as it grows.
+//   Soaring: the attacker's strike arcs high over the guard (a Shield it ignores) on wings.
+//   On Dusk and On Dawn: a pulse in the moment's colour (dusk violet, dawn gold) from the creature.
+export const VENOM = '#7fe05a';
+export const FROST = '#bfefff';
+export const GHOST = '#9fe8d8';
+export const FRENZY = '#ff4a32';
+Object.assign(EFFECTS, {
+  'kw.venom': { duration: 750, steps: [
+    { at: 0, op: 'sprite', tex: 'poison-mist', on: 'dst', sizeK: 1.4, scale: [0.6, 1.05], curve: 'out', life: 620, fadeIn: 0.15, fadeOut: 0.5, tint: VENOM, tintK: 0.85, alpha: 1.1 },
+    { at: 40, op: 'burst', tex: 'ink-splatter-atlas', on: 'dst', area: 'card', n: 7, speed: [20, 70], angle: 90, spread: 20, life: [420, 620], size: [18, 34], gravity: 520, drag: 1.2, tint: '#3fae2a', tintK: 0.95, alpha: 0.95 },
+    { at: 260, op: 'sprite', tex: 'smoke-tendrils', on: 'dst', sizeK: 1.3, scale: [0.6, 1.05], curve: 'out', life: 460, fadeIn: 0.2, fadeOut: 0.5, alpha: 0.8, tint: '#304030', tintK: 0.6 },
+    { at: 300, op: 'call', fn: 'land' },
+  ] },
+  'kw.chill': { duration: 700, steps: [
+    { at: 0, op: 'sprite', tex: 'vfx-ward-hex', on: 'dst', sizeK: 1.2, scale: [1.25, 0.95], curve: 'out', life: 600, fadeIn: 0.1, fadeOut: 0.45, tint: FROST, tintK: 0.9, alpha: 1.2 },
+    { at: 30, op: 'burst', tex: 'glass-shards-atlas', on: 'dst', area: 'card', n: 10, speed: [30, 120], spread: 360, life: [300, 520], size: [14, 30], drag: 2, tint: FROST, tintK: 0.8, alpha: 1.1 },
+    { at: 60, op: 'sprite', tex: 'halo-ring', on: 'dst', sizeK: 1.3, flat: 0.5, dy: 100, scale: [0.6, 1.1], curve: 'out', life: 500, fadeOut: 0.5, tint: FROST, tintK: 0.9, alpha: 0.9 },
+    { at: 120, op: 'dom', name: 'shudder', el: 'dst', dur: 260 },
+    { at: 250, op: 'call', fn: 'land' },
+  ] },
+  'kw.undying': { duration: 950, steps: [
+    { at: 0, op: 'hitstop', ms: [40, 70] },
+    { at: 0, op: 'sprite', tex: 'spirit-rise', on: 'dst', sizeK: 1.4, h: 320, scale: [0.5, 1.1], curve: 'out', life: 800, fadeIn: 0.1, fadeOut: 0.5, tint: GHOST, tintK: 0.8, alpha: 1.3 },
+    { at: 0, op: 'sprite', tex: 'shockwave-ring', on: 'dst', sizeK: 1.1, scale: [0.4, 1.8], curve: 'out', life: 450, fadeOut: 0.3, tint: GHOST, tintK: 0.8, alpha: 0.9 },
+    { at: 40, op: 'burst', tex: 'renown-motes-atlas', on: 'dst', area: 'card', n: 16, speed: [60, 200], angle: 'up', spread: 70, life: [400, 700], size: [10, 22], gravity: -120, tint: GHOST, tintK: 0.8 },
+    { at: 160, op: 'dom', name: 'lift', el: 'dst', dur: 520 },
+    { at: 220, op: 'call', fn: 'land' },
+  ] },
+  'kw.frenzy': { duration: 550, steps: [
+    { at: 0, op: 'sprite', tex: 'empower-aura', on: 'dst', sizeK: 1.15, h: 300, scale: [0.7, 1.05], curve: 'out', life: 500, fadeIn: 0.15, fadeOut: 0.5, tint: FRENZY, tintK: 0.9, alpha: 1.25 },
+    { at: 40, op: 'burst', tex: 'embers-atlas', on: 'dst', area: 'card', n: 10, speed: [40, 140], angle: 'up', spread: 40, life: [300, 500], size: [10, 20], gravity: -160, tint: FRENZY, tintK: 0.8 },
+    { at: 120, op: 'call', fn: 'land' },
+  ] },
+  'kw.tinker': { duration: 650, steps: [
+    { at: 0, op: 'burst', tex: 'metal-sparks-atlas', on: 'dst', area: 'card', n: 14, speed: [80, 260], angle: 'up', spread: 80, life: [220, 420], size: [10, 26], gravity: 700, align: true, tint: '#e0a060', tintK: 0.6 },
+    { at: 40, op: 'sprite', tex: 'empower-aura', on: 'dst', sizeK: 1.1, h: 280, scale: [0.7, 1.0], curve: 'out', life: 480, fadeIn: 0.2, fadeOut: 0.5, tint: '#e0a060', tintK: 0.7, alpha: 1.0 },
+    { at: 120, op: 'dom', name: 'pulse', el: 'dst', dur: 380 },
+    { at: 150, op: 'call', fn: 'land' },
+  ] },
+  'attack.soaring': { budget: 'attack', duration: 1250, steps: [
+    { at: 0, op: 'burst', tex: 'feathers-atlas', on: 'src', area: 'card', n: 8, speed: [60, 180], angle: 'up', spread: 60, life: [400, 700], size: [16, 30], gravity: -60, tint: 'accent', tintK: 0.3 },
+    { at: 60, op: 'sprite', tex: 'wing-gust', on: 'src', sizeK: 1.6, scale: [0.6, 1.1], curve: 'out', life: 380, fadeOut: 0.5, tint: 'accent', tintK: 0.4, alpha: 1.1 },
+    { at: 150, op: 'projectile', tex: 'lunge-streak', from: 'src', to: 'dst', dur: 420, size: 150, arc: 520, align: true, tint: 'accent', tintK: 0.4, alpha: 1.2,
+      trail: { tex: 'feathers-atlas', rate: 40, speed: [0, 30], life: [250, 420], size: [12, 24], alpha: 0.8, tint: 'accent', tintK: 0.3 } },
+    { at: 570, op: 'use', id: 'impact.hit' },
+    { at: 800, op: 'use', id: 'counter.melee', swap: true, if: 'back' },
+  ] },
+  'trigger.dusk': { duration: 650, steps: [
+    { at: 0, op: 'sprite', tex: 'rune-circle', on: 'dst', sizeK: 1.1, scale: [0.6, 1.05], curve: 'out', life: 600, fadeIn: 0.2, fadeOut: 0.5, spin: 40, tint: '#9a7ad8', tintK: 0.85, alpha: 1.0 },
+    { at: 0, op: 'sprite', tex: 'shockwave-ring', on: 'dst', sizeK: 1.2, scale: [0.4, 2.0], curve: 'out', life: 520, fadeOut: 0.3, tint: '#9a7ad8', tintK: 0.85, alpha: 0.8 },
+    { at: 0, op: 'call', fn: 'tag', wait: true },
+  ] },
+  'trigger.dawn': { duration: 650, steps: [
+    { at: 0, op: 'sprite', tex: 'rune-circle', on: 'dst', sizeK: 1.1, scale: [0.6, 1.05], curve: 'out', life: 600, fadeIn: 0.2, fadeOut: 0.5, spin: 40, tint: '#ffd98a', tintK: 0.85, alpha: 1.0 },
+    { at: 0, op: 'sprite', tex: 'shockwave-ring', on: 'dst', sizeK: 1.2, scale: [0.4, 2.0], curve: 'out', life: 520, fadeOut: 0.3, tint: '#ffd98a', tintK: 0.85, alpha: 0.8 },
+    { at: 0, op: 'call', fn: 'tag', wait: true },
+  ] },
+});
+
 // Every presenter beat has an effect (docs/10-feel-and-vfx.md section 3). Some are chosen per card below.
 export const BEAT_EFFECTS = {
   summon: 'summon', legendary: 'legendary', attack: 'attack.martial', riposte: 'riposte', armour: 'armour', defeat: 'defeat', returned: 'returned',
@@ -479,6 +544,8 @@ export const CARD_STYLE = {
   'barrow-shade': { attack: 'attack.barrow', damage: 'shade.drain' },
   'stonehide-basilisk': { attack: 'attack.stonehide', defeat: 'stone' },
   'the-ashen-wyrm': { attack: 'attack.wyrm', trigger: 'wyrm.onsummon', cinematic: 'wyrm' },
+  // Stage N.
+  'skyreach-wyvern': { attack: 'attack.soaring' },
   'aldric-the-unbroken': { attack: 'attack.oathsworn', final: true, cinematic: 'aldric' },
   // 5.3: Actions, by mode.
   // (Stage E: Firebolt is the new Fire test moment, at each size.)
@@ -501,11 +568,14 @@ const BY_CLASS = { Ranger: 'attack.ranger', Rogue: 'attack.rogue' };
 const BY_KIND = { Beast: 'attack.beast', Undead: 'attack.undead' };
 
 // Base card id and form id for a card name (effect events name their source).
+// (Stage N: two cards may share a name, Night Raid the Action and the Event: the first keeps it, so the Action's
+// signature effects stay its own; the Event's 'effect' events name its op, which picks a plain effect.)
 const NAMES = new Map();
+const nameIt = (name, v) => { if (!NAMES.has(name)) NAMES.set(name, v); };
 for (const d of CARDS) {
-  NAMES.set(d.name ?? d.forms?.[0]?.name, { id: d.id, form: d.id, def: d });
-  for (const f of d.forms ?? []) NAMES.set(f.name, { id: d.id, form: f.id, def: d });
-  if (d.campaignCreature) NAMES.set(d.campaignCreature.name, { id: d.campaignCreature.id, form: d.campaignCreature.id, def: d.campaignCreature });
+  nameIt(d.name ?? d.forms?.[0]?.name, { id: d.id, form: d.id, def: d });
+  for (const f of d.forms ?? []) nameIt(f.name, { id: d.id, form: f.id, def: d });
+  if (d.campaignCreature) nameIt(d.campaignCreature.name, { id: d.campaignCreature.id, form: d.campaignCreature.id, def: d.campaignCreature });
 }
 const DEFS = new Map(CARDS.map((d) => [d.id, d]));
 export const cardByName = (name) => NAMES.get(name) ?? null;
@@ -521,6 +591,8 @@ export function formTier(card) {
 export function attackEffectFor(card) {
   const st = styleOf(card);
   if (st.attack) return st.attack;
+  // (Stage N: any Soaring attacker's strike arcs over the guards.)
+  if (card?.keywords?.soaring || (card?.held?.ops ?? []).some((o) => o.keyword === 'soaring')) return 'attack.soaring';
   const kind = card?.traits?.kind;
   const cls = card?.traits?.class;
   if (BY_KIND[kind]) return BY_KIND[kind];
@@ -554,6 +626,9 @@ export function effectFor(op, sourceName, kind = null) {
     case 'spend': return 'effect.spend';
     case 'activate': return st.activate ?? 'effect.activate';
     case 'returnHand': return 'effect.return';
+    // Stage N.
+    case 'fullHeal': return 'heal';
+    case 'tempKeyword': return 'effect.fortify';
     default: return 'effect.damage';
   }
 }

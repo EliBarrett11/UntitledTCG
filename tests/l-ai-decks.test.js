@@ -7,7 +7,8 @@ import { CARDS, FIRST_DECK } from '../src/data/cards.js';
 import { playMatch } from '../tools/simulate.mjs';
 
 defineCards(CARDS);
-const ofType = (...types) => CARDS.filter((d) => types.includes(d.cardType) && !d.legendaryOf);
+// (Built from the stage L pool, the cards of "The first deck", so they stay the decks this test was written for.)
+const ofType = (...types) => CARDS.filter((d) => types.includes(d.cardType) && !d.legendaryOf && FIRST_DECK.includes(d.id));
 // No Locations and no Campaign: creatures, Actions, Events and Items only.
 function noLocations() {
   const ids = [];

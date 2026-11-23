@@ -4,7 +4,7 @@
 // An entry is one card a player can look up: every card that can go in a deck (a series is one entry), and, in a
 // separate section, the cards that only arrive in play (a Legendary's own Location, each Campaign Creature).
 import { allDefs, isCreature, nameOf, levelsOf } from './cards.js';
-import { SERIES_RANGE, RULES, levelFor, costFor, SPEED_ORDER } from './rules.js';
+import { SERIES_RANGE, RULES, levelFor, costFor, SPEED_ORDER, CAMPAIGN_LENGTHS } from './rules.js';
 import { KEYWORDS, TRIGGERS } from './abilities.js';
 import { affiliationsOf, rewardsOf, groupLabel, AFFILIATION_GROUPS } from './decks.js';
 
@@ -142,7 +142,8 @@ export function filterOptions(entries) {
   const affs = {};
   for (const e of all) for (const a of e.facts.affiliations) (affs[a.group] ??= new Set()).add(a.value);
   const groupOrder = [...AFFILIATION_GROUPS.map((g) => g.group), ...Object.keys(affs).filter((g) => !AFFILIATION_GROUPS.some((x) => x.group === g)).sort()];
-  const lengths = uniq(all.map((e) => e.facts.campaignLength).filter(Boolean));
+  // (Stage N: in the order of the game: Side-Quest, mid-length, long.)
+  const lengths = Object.keys(CAMPAIGN_LENGTHS).filter((v) => all.some((e) => e.facts.campaignLength === v));
   const out = [
     { group: 'type', label: 'Type', options: types.map((v) => ({ value: v, label: v })) },
     { group: 'cost', label: 'Cost', options: costs.map((v) => ({ value: String(v), label: String(v) })) },

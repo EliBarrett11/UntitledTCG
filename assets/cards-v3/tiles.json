@@ -2,5 +2,10 @@
  "about": "Each Location's tile focus (stage A): the point of its full scene (pixels of the 1536 x 1024 image) that a placed tile is drawn around, so its landmark shows whatever the tile's shape. tools/buildcards.mjs records these in docs/cards.json as tileX and tileY.",
  "ironroot-pass": { "tileX": 760, "tileY": 330, "landmark": "the great root arch" },
  "emberfall-ruins": { "tileX": 780, "tileY": 400, "landmark": "the fallen king and his sword" },
- "mistveil-marshes": { "tileX": 860, "tileY": 380, "landmark": "the willow" }
+ "mistveil-marshes": { "tileX": 860, "tileY": 380, "landmark": "the willow" },
+ "gallows-hill": { "tileX": 740, "tileY": 400, "landmark": "the gallows tree and its cage" },
+ "the-sunlit-shrine": { "tileX": 780, "tileY": 420, "landmark": "the shrine and its basin" },
+ "stormbreak-crags": { "tileX": 840, "tileY": 360, "landmark": "the lightning-struck spire" },
+ "the-ashfall": { "tileX": 840, "tileY": 440, "landmark": "the burning cleft" },
+ "the-drowned-reach": { "tileX": 800, "tileY": 420, "landmark": "the drowned lighthouse" }
 }

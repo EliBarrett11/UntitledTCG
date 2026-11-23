@@ -140,4 +140,17 @@ body.sheet #viewport { position: static; }
 /* Stage L: a Mini card's affiliations line, under its name. */
 .cv-type-mini { left: 14px; right: 14px; font-size: 17px; letter-spacing: 2px; }
 .cv-rules-mini.with-aff { font-size: 20px; line-height: 1.2; }
-.cv-rules-mini.with-aff .cv-kw { font-size: 16px; }
+.cv-rules-mini.with-aff .cv-kw { font-size: var(--kwpx, 16px); }
+.cv-rules-mini .cv-kw { font-size: var(--kwpx, 17px); }
+/* Stage N: rules set dense on the longer new cards. */
+.cv-rules.dense { font-size: 12.6px; line-height: 1.24; gap: 5px; }
+.cv-rules.dense .cv-mode { padding: 4px 0; }
+.cv-rules.dense .cv-kw { font-size: 10px; }
+
+/* Stage N: Undying's marker while it's unused (Ghostlight teal), and Frenzy's red glow while damaged. */
+.cv-undying { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 15px; font: 700 16px/1 'Cinzel', serif; letter-spacing: 2px;
+  color: #dffaf2; background: rgba(12, 40, 38, 0.88); border: 1.5px solid #9fe8d8; box-shadow: 0 0 10px rgba(159, 232, 216, 0.6); }
+.card.frenzied { filter: drop-shadow(0 0 6px rgba(255, 74, 50, 0.9)) drop-shadow(0 0 14px rgba(255, 74, 50, 0.55)); animation: frenzy-pulse 1.4s ease-in-out infinite; }
+@keyframes frenzy-pulse { 50% { filter: drop-shadow(0 0 9px rgba(255, 74, 50, 1)) drop-shadow(0 0 22px rgba(255, 74, 50, 0.7)); } }
+@media (prefers-reduced-motion: reduce) { .card.frenzied { animation: none; } }
+.low-motion .card.frenzied { animation: none; }

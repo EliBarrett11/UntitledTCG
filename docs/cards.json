@@ -136,7 +136,8 @@
       "prime": 5,
       "traits": {
         "class": "Fighter",
-        "race": "Human"
+        "race": "Human",
+        "home": "Oathsworn"
       },
       "forms": [
         {
@@ -216,7 +217,8 @@
       "prime": 2,
       "traits": {
         "class": "Rogue",
-        "race": "Halfling"
+        "race": "Halfling",
+        "home": "Hollowfoot"
       },
       "forms": [
         {
@@ -311,7 +313,8 @@
       "prime": 6,
       "traits": {
         "class": "Wizard",
-        "race": "Human"
+        "race": "Human",
+        "home": "Ashen Spire"
       },
       "forms": [
         {
@@ -420,7 +423,8 @@
       "prime": 6,
       "traits": {
         "class": "Cleric",
-        "race": "Dwarf"
+        "race": "Dwarf",
+        "home": "Deepforge"
       },
       "forms": [
         {
@@ -531,7 +535,8 @@
       "prime": 6,
       "traits": {
         "class": "Ranger",
-        "race": "Elf"
+        "race": "Elf",
+        "home": "Thornwood"
       },
       "forms": [
         {
@@ -640,7 +645,8 @@
       "prime": 4,
       "traits": {
         "class": "Fighter",
-        "race": "Orc"
+        "race": "Orc",
+        "home": "Ironhide"
       },
       "forms": [
         {
@@ -998,7 +1004,8 @@
       "prime": 1,
       "traits": {
         "class": "Wizard",
-        "race": "Gnome"
+        "race": "Gnome",
+        "home": "Cinderwick"
       },
       "forms": [
         {
@@ -1018,20 +1025,26 @@
             }
           },
           "keywords": {},
-          "trigger": {
-            "on": "summon",
-            "prime": true,
-            "target": "enemy",
-            "ops": [
-              {
-                "op": "damage",
-                "amount": 2
-              }
-            ]
-          },
+          "trigger": null,
           "text": [
-            "**Prime: On Summon:** 2 damage to an enemy creature."
-          ]
+            "**Prime:** Ambush",
+            "**Prime: On Summon:** 2 damage to an enemy creature or the enemy Warlord."
+          ],
+          "prime": {
+            "keywords": {
+              "ambush": true
+            },
+            "trigger": {
+              "on": "summon",
+              "target": "enemyOrWarlord",
+              "ops": [
+                {
+                  "op": "damage",
+                  "amount": 2
+                }
+              ]
+            }
+          }
         },
         {
           "id": "cinderwick-adept",
@@ -1097,7 +1110,8 @@
       "prime": 6,
       "traits": {
         "class": "Seer",
-        "race": "Elf"
+        "race": "Elf",
+        "home": "Duskmere"
       },
       "forms": [
         {
@@ -1174,13 +1188,17 @@
             "ops": [
               {
                 "op": "draw",
-                "amount": 2
+                "amount": 3
+              },
+              {
+                "op": "energy",
+                "amount": 1
               }
             ]
           },
           "text": [
             "Patient",
-            "**Prime: On Summon:** Draw 2 cards."
+            "**Prime: On Summon:** Draw 3 cards. Gain 1 Energy this Round."
           ]
         }
       ]
@@ -1263,14 +1281,19 @@
             "ops": [
               {
                 "op": "damage",
-                "amount": 1,
+                "amount": 2,
                 "to": "eachEnemyHere"
+              },
+              {
+                "op": "heal",
+                "amount": 2,
+                "to": "eachOwnHere"
               }
             ]
           },
           "text": [
             "Patient",
-            "**Prime: On Summon:** 1 damage to each enemy creature in its Location."
+            "**Prime: On Summon:** 2 damage to each enemy creature in its Location. Heal 2 to each of your creatures in its Location."
           ]
         }
       ]
@@ -1321,6 +1344,11 @@
       "id": "the-ashfall",
       "cardType": "Location",
       "name": "The Ashfall",
+      "art": "assets/cards/the-ashfall.jpg",
+      "artFull": "assets/cards-v3/the-ashfall.jpg",
+      "cardX": 760,
+      "tileX": 840,
+      "tileY": 440,
       "legendaryOf": "the-ashen-wyrm",
       "width": 3,
       "rounds": null,
@@ -1421,7 +1449,7 @@
       "name": "Night Raid",
       "art": "assets/cards/night-raid.jpg",
       "artFull": "assets/cards-v3/night-raid.jpg",
-      "cardX": 820,
+      "cardX": 700,
       "traits": {
         "class": "Rogue"
       },
@@ -1805,8 +1833,2146 @@
         "trigger": null,
         "text": [
           "Armour 1"
+        ],
+        "level": 8
+      },
+      "length": "Long"
+    },
+    {
+      "id": "lanternhall-minstrel",
+      "cardType": "Character",
+      "series": "Mid",
+      "firstName": "Maren",
+      "speed": "Steady",
+      "attackKind": "Arcane",
+      "guard": null,
+      "prime": 4,
+      "traits": {
+        "race": "Human",
+        "class": "Bard",
+        "home": "Lanternhall"
+      },
+      "forms": [
+        {
+          "id": "lanternhall-busker",
+          "name": "Lanternhall Busker",
+          "art": "assets/cards/lanternhall-busker.jpg",
+          "artFull": "assets/cards-v3/lanternhall-busker.jpg",
+          "cardX": 720,
+          "levels": {
+            "2": {
+              "attack": 1,
+              "health": 1
+            },
+            "3": {
+              "attack": 1,
+              "health": 2
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "summon",
+            "choose": [
+              {
+                "target": "own",
+                "ops": [
+                  {
+                    "op": "tempAttack",
+                    "amount": 2
+                  }
+                ]
+              },
+              {
+                "target": "none",
+                "ops": [
+                  {
+                    "op": "draw",
+                    "amount": 1
+                  }
+                ]
+              }
+            ]
+          },
+          "text": [
+            "**On Summon, choose one:** +2 Attack until Dusk to one of your creatures; or draw 1 card."
+          ]
+        },
+        {
+          "id": "lanternhall-minstrel",
+          "name": "Lanternhall Minstrel",
+          "art": "assets/cards/lanternhall-minstrel.jpg",
+          "artFull": "assets/cards-v3/lanternhall-minstrel.jpg",
+          "cardX": 680,
+          "levels": {
+            "4": {
+              "attack": 3,
+              "health": 3,
+              "prime": {
+                "chooseBoth": true
+              },
+              "text": [
+                "**On Summon, choose one:** +2 Attack until Dusk to one of your creatures; or draw 1 card.",
+                "**Prime:** Choose both"
+              ]
+            },
+            "5": {
+              "attack": 2,
+              "health": 3
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "summon",
+            "choose": [
+              {
+                "target": "own",
+                "ops": [
+                  {
+                    "op": "tempAttack",
+                    "amount": 2
+                  }
+                ]
+              },
+              {
+                "target": "none",
+                "ops": [
+                  {
+                    "op": "draw",
+                    "amount": 1
+                  }
+                ]
+              }
+            ]
+          },
+          "text": [
+            "**On Summon, choose one:** +2 Attack until Dusk to one of your creatures; or draw 1 card."
+          ]
+        },
+        {
+          "id": "lanternhall-loremaster",
+          "name": "Lanternhall Loremaster",
+          "art": "assets/cards/lanternhall-loremaster.jpg",
+          "artFull": "assets/cards-v3/lanternhall-loremaster.jpg",
+          "cardX": 760,
+          "levels": {
+            "6": {
+              "attack": 3,
+              "health": 3
+            },
+            "7": {
+              "attack": 3,
+              "health": 4
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "summon",
+            "choose": [
+              {
+                "target": "own",
+                "ops": [
+                  {
+                    "op": "tempAttack",
+                    "amount": 3
+                  }
+                ]
+              },
+              {
+                "target": "none",
+                "ops": [
+                  {
+                    "op": "draw",
+                    "amount": 2
+                  }
+                ]
+              }
+            ]
+          },
+          "text": [
+            "**On Summon, choose one:** +3 Attack until Dusk to one of your creatures; or draw 2 cards."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stonewatch-bulwark",
+      "cardType": "Character",
+      "series": "Heavy",
+      "firstName": "Hilde",
+      "speed": "Slow",
+      "attackKind": "Martial",
+      "guard": "Shield",
+      "prime": 7,
+      "traits": {
+        "race": "Dwarf",
+        "class": "Fighter",
+        "home": "Stonewatch"
+      },
+      "forms": [
+        {
+          "id": "stonewatch-warden",
+          "name": "Stonewatch Warden",
+          "art": "assets/cards/stonewatch-warden.jpg",
+          "artFull": "assets/cards-v3/stonewatch-warden.jpg",
+          "cardX": 820,
+          "levels": {
+            "3": {
+              "attack": 1,
+              "health": 3
+            },
+            "4": {
+              "attack": 1,
+              "health": 4
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "rally",
+            "target": "none",
+            "ops": [
+              {
+                "op": "health",
+                "amount": 1,
+                "to": "self"
+              }
+            ],
+            "group": {
+              "class": "Fighter"
+            }
+          },
+          "text": [
+            "**Rally (Fighter):** +1 Health to it."
+          ]
+        },
+        {
+          "id": "stonewatch-bulwark",
+          "name": "Stonewatch Bulwark",
+          "art": "assets/cards/stonewatch-bulwark.jpg",
+          "artFull": "assets/cards-v3/stonewatch-bulwark.jpg",
+          "cardX": 880,
+          "levels": {
+            "5": {
+              "attack": 2,
+              "health": 4
+            },
+            "6": {
+              "attack": 2,
+              "health": 5
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "rally",
+            "target": "none",
+            "ops": [
+              {
+                "op": "health",
+                "amount": 1,
+                "to": "self"
+              }
+            ],
+            "group": {
+              "class": "Fighter"
+            }
+          },
+          "text": [
+            "**Rally (Fighter):** +1 Health to it."
+          ]
+        },
+        {
+          "id": "stonewatch-thane",
+          "name": "Stonewatch Thane",
+          "art": "assets/cards/stonewatch-thane.jpg",
+          "artFull": "assets/cards-v3/stonewatch-thane.jpg",
+          "cardX": 790,
+          "levels": {
+            "7": {
+              "attack": 4,
+              "health": 6,
+              "prime": {
+                "trigger": {
+                  "on": "summon",
+                  "target": "none",
+                  "ops": [
+                    {
+                      "op": "health",
+                      "amount": 1,
+                      "to": "eachOwnOther",
+                      "filter": {
+                        "class": "Fighter"
+                      }
+                    }
+                  ]
+                }
+              },
+              "text": [
+                "**Rally (Fighter):** +1 Health to it.",
+                "**Prime: On Summon:** +1 Health to each of your other Fighters."
+              ]
+            },
+            "8": {
+              "attack": 3,
+              "health": 6
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "rally",
+            "target": "none",
+            "ops": [
+              {
+                "op": "health",
+                "amount": 1,
+                "to": "self"
+              }
+            ],
+            "group": {
+              "class": "Fighter"
+            }
+          },
+          "text": [
+            "**Rally (Fighter):** +1 Health to it."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mirefang-stalker",
+      "cardType": "Monster",
+      "series": "Light",
+      "speed": "Swift",
+      "attackKind": "Martial",
+      "guard": null,
+      "prime": 3,
+      "traits": {
+        "kind": "Beast"
+      },
+      "forms": [
+        {
+          "id": "mire-spiderling",
+          "name": "Mirefang Spiderling",
+          "art": "assets/cards/mire-spiderling.jpg",
+          "artFull": "assets/cards-v3/mire-spiderling.jpg",
+          "cardX": 700,
+          "levels": {
+            "1": {
+              "attack": 1,
+              "health": 1
+            },
+            "2": {
+              "attack": 2,
+              "health": 1
+            }
+          },
+          "keywords": {
+            "venom": true
+          },
+          "trigger": null,
+          "text": [
+            "Venom"
+          ]
+        },
+        {
+          "id": "mirefang-stalker",
+          "name": "Mirefang Stalker",
+          "art": "assets/cards/mirefang-stalker.jpg",
+          "artFull": "assets/cards-v3/mirefang-stalker.jpg",
+          "cardX": 760,
+          "levels": {
+            "3": {
+              "attack": 4,
+              "health": 2,
+              "prime": {
+                "keywords": {
+                  "ambush": true
+                }
+              },
+              "text": [
+                "Venom",
+                "**Prime:** Ambush"
+              ]
+            },
+            "4": {
+              "attack": 3,
+              "health": 2
+            }
+          },
+          "keywords": {
+            "venom": true
+          },
+          "trigger": null,
+          "text": [
+            "Venom"
+          ]
+        },
+        {
+          "id": "mirefang-broodmother",
+          "name": "Mirefang Broodmother",
+          "art": "assets/cards/mirefang-broodmother.jpg",
+          "artFull": "assets/cards-v3/mirefang-broodmother.jpg",
+          "cardX": 770,
+          "levels": {
+            "5": {
+              "attack": 3,
+              "health": 2
+            },
+            "6": {
+              "attack": 4,
+              "health": 2
+            }
+          },
+          "keywords": {
+            "venom": true,
+            "ambush": true
+          },
+          "trigger": null,
+          "text": [
+            "Venom",
+            "Ambush"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shield-wall",
+      "cardType": "Action",
+      "name": "Shield Wall",
+      "art": "assets/cards/shield-wall.jpg",
+      "artFull": "assets/cards-v3/shield-wall.jpg",
+      "cardX": 720,
+      "traits": {
+        "class": "Fighter"
+      },
+      "modes": {
+        "react": {
+          "cost": 1,
+          "target": "attacked",
+          "ops": [
+            {
+              "op": "tempKeyword",
+              "amount": 2,
+              "keyword": "armour"
+            }
+          ],
+          "text": "Armour 2 until Dusk to your creature being attacked."
+        },
+        "adapt": {
+          "cost": 2,
+          "target": "ownLocation",
+          "ops": [
+            {
+              "op": "tempHealth",
+              "amount": 2
+            }
+          ],
+          "text": "+2 Health until Dusk to each of your creatures in a Location."
+        },
+        "strat": {
+          "cost": 3,
+          "target": "ownLocation",
+          "ops": [
+            {
+              "op": "attack",
+              "amount": 1
+            },
+            {
+              "op": "health",
+              "amount": 2
+            }
+          ],
+          "text": "+1 Attack to each of your creatures in a Location. +2 Health to them."
+        }
+      }
+    },
+    {
+      "id": "glass-veil",
+      "cardType": "Action",
+      "name": "Glass Veil",
+      "art": "assets/cards/glass-veil.jpg",
+      "artFull": "assets/cards-v3/glass-veil.jpg",
+      "cardX": 720,
+      "traits": {
+        "class": "Seer"
+      },
+      "modes": {
+        "react": {
+          "cost": 1,
+          "target": "attacked",
+          "ops": [
+            {
+              "op": "returnHand"
+            },
+            {
+              "op": "cancel"
+            }
+          ],
+          "text": "Return your creature being attacked to your hand. The attack does nothing."
+        },
+        "adapt": {
+          "cost": 2,
+          "target": "enemyUpTo4",
+          "ops": [
+            {
+              "op": "returnHand"
+            }
+          ],
+          "text": "Return an enemy creature of Level 4 or less to its owner's hand."
+        },
+        "strat": {
+          "cost": 3,
+          "target": "enemy",
+          "ops": [
+            {
+              "op": "returnHand"
+            }
+          ],
+          "text": "Return an enemy creature to its owner's hand."
+        }
+      }
+    },
+    {
+      "id": "war-drums",
+      "cardType": "Event",
+      "name": "War Drums",
+      "art": "assets/cards/war-drums.jpg",
+      "artFull": "assets/cards-v3/war-drums.jpg",
+      "cardX": 800,
+      "release": 1,
+      "target": "none",
+      "ops": [
+        {
+          "op": "tempAttack",
+          "amount": 1,
+          "to": "eachOwn"
+        }
+      ],
+      "text": "+1 Attack until Dusk to each of your creatures.",
+      "favour": {
+        "condition": {
+          "race": "Orc"
+        },
+        "conditionText": "an Orc",
+        "ops": [
+          {
+            "op": "tempAttack",
+            "amount": 2,
+            "to": "eachOwn"
+          }
+        ],
+        "text": "+2 Attack until Dusk to each of your creatures."
+      }
+    },
+    {
+      "id": "the-bounty-board",
+      "cardType": "Campaign",
+      "name": "The Bounty Board",
+      "art": "assets/cards/the-bounty-board.jpg",
+      "artFull": "assets/cards-v3/the-bounty-board.jpg",
+      "cardX": 760,
+      "length": "Side-Quest",
+      "quest": {
+        "kind": "defeat",
+        "need": 3,
+        "text": "Defeat 3 enemy creatures."
+      },
+      "order": {
+        "cost": 1,
+        "target": "none",
+        "ops": [
+          {
+            "op": "gold",
+            "amount": 1
+          }
+        ],
+        "text": "Gain 1 Gold."
+      },
+      "campaignCreature": {
+        "id": "rook-the-bounty-hunter",
+        "cardType": "Character",
+        "name": "Rook, the Bounty Hunter",
+        "art": "assets/cards/rook-the-bounty-hunter.jpg",
+        "artFull": "assets/cards-v3/rook-the-bounty-hunter.jpg",
+        "cardX": 770,
+        "traits": {
+          "race": "Human",
+          "class": "Rogue"
+        },
+        "speed": "Swift",
+        "attackKind": "Martial",
+        "guard": null,
+        "level": 4,
+        "attack": 4,
+        "health": 3,
+        "keywords": {
+          "ambush": true
+        },
+        "trigger": null,
+        "text": [
+          "Ambush"
         ]
       }
+    },
+    {
+      "id": "nightglass-blade",
+      "cardType": "Character",
+      "series": "Light",
+      "firstName": "Vessa",
+      "speed": "Swift",
+      "attackKind": "Martial",
+      "guard": null,
+      "prime": 5,
+      "traits": {
+        "race": "Elf",
+        "class": "Rogue",
+        "home": "Nightglass"
+      },
+      "forms": [
+        {
+          "id": "nightglass-cutthroat",
+          "name": "Nightglass Cutthroat",
+          "art": "assets/cards/nightglass-cutthroat.jpg",
+          "artFull": "assets/cards-v3/nightglass-cutthroat.jpg",
+          "cardX": 740,
+          "levels": {
+            "1": {
+              "attack": 1,
+              "health": 1
+            },
+            "2": {
+              "attack": 2,
+              "health": 1
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "attack",
+            "target": "none",
+            "ops": [
+              {
+                "op": "attackBonus",
+                "amount": 2,
+                "when": "targetSpent"
+              }
+            ]
+          },
+          "text": [
+            "**On Attack:** If its target is Spent, it deals +2 damage."
+          ]
+        },
+        {
+          "id": "nightglass-blade",
+          "name": "Nightglass Blade",
+          "art": "assets/cards/nightglass-blade.jpg",
+          "artFull": "assets/cards-v3/nightglass-blade.jpg",
+          "cardX": 740,
+          "levels": {
+            "3": {
+              "attack": 3,
+              "health": 1
+            },
+            "4": {
+              "attack": 3,
+              "health": 2
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "attack",
+            "target": "none",
+            "ops": [
+              {
+                "op": "attackBonus",
+                "amount": 2,
+                "when": "targetSpent"
+              }
+            ]
+          },
+          "text": [
+            "**On Attack:** If its target is Spent, it deals +2 damage."
+          ]
+        },
+        {
+          "id": "nightglass-shadowmaster",
+          "name": "Nightglass Shadowmaster",
+          "art": "assets/cards/nightglass-shadowmaster.jpg",
+          "artFull": "assets/cards-v3/nightglass-shadowmaster.jpg",
+          "cardX": 770,
+          "levels": {
+            "5": {
+              "attack": 5,
+              "health": 3,
+              "prime": {
+                "trigger": {
+                  "on": "summon",
+                  "target": "enemy",
+                  "ops": [
+                    {
+                      "op": "spend"
+                    }
+                  ]
+                }
+              },
+              "text": [
+                "**On Attack:** If its target is Spent, it deals +2 damage.",
+                "**Prime: On Summon:** Make an enemy creature Spent."
+              ]
+            },
+            "6": {
+              "attack": 4,
+              "health": 3
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "attack",
+            "target": "none",
+            "ops": [
+              {
+                "op": "attackBonus",
+                "amount": 2,
+                "when": "targetSpent"
+              }
+            ]
+          },
+          "text": [
+            "**On Attack:** If its target is Spent, it deals +2 damage."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hearthmoor-keeper",
+      "cardType": "Character",
+      "series": "Mid",
+      "firstName": "Tamsin",
+      "speed": "Steady",
+      "attackKind": "Arcane",
+      "guard": "Ward",
+      "prime": 5,
+      "traits": {
+        "race": "Halfling",
+        "class": "Cleric",
+        "home": "Hearthmoor"
+      },
+      "forms": [
+        {
+          "id": "hearthmoor-novice",
+          "name": "Hearthmoor Novice",
+          "art": "assets/cards/hearthmoor-novice.jpg",
+          "artFull": "assets/cards-v3/hearthmoor-novice.jpg",
+          "cardX": 740,
+          "levels": {
+            "2": {
+              "attack": 1,
+              "health": 2
+            },
+            "3": {
+              "attack": 2,
+              "health": 2
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "dawn",
+            "target": "none",
+            "ops": [
+              {
+                "op": "heal",
+                "amount": 1,
+                "to": "eachOwnHere"
+              }
+            ]
+          },
+          "text": [
+            "**On Dawn:** Heal 1 to each of your creatures in its Location."
+          ]
+        },
+        {
+          "id": "hearthmoor-keeper",
+          "name": "Hearthmoor Keeper",
+          "art": "assets/cards/hearthmoor-keeper.jpg",
+          "artFull": "assets/cards-v3/hearthmoor-keeper.jpg",
+          "cardX": 740,
+          "levels": {
+            "4": {
+              "attack": 2,
+              "health": 3
+            },
+            "5": {
+              "attack": 4,
+              "health": 4,
+              "prime": {
+                "trigger": {
+                  "on": "summon",
+                  "target": "none",
+                  "ops": [
+                    {
+                      "op": "fullHeal",
+                      "to": "eachOwnOther"
+                    }
+                  ]
+                }
+              },
+              "text": [
+                "**On Dawn:** Heal 1 to each of your creatures in its Location.",
+                "**Prime: On Summon:** Fully heal each of your other creatures."
+              ]
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "dawn",
+            "target": "none",
+            "ops": [
+              {
+                "op": "heal",
+                "amount": 1,
+                "to": "eachOwnHere"
+              }
+            ]
+          },
+          "text": [
+            "**On Dawn:** Heal 1 to each of your creatures in its Location."
+          ]
+        },
+        {
+          "id": "hearthmoor-matriarch",
+          "name": "Hearthmoor Matriarch",
+          "art": "assets/cards/hearthmoor-matriarch.jpg",
+          "artFull": "assets/cards-v3/hearthmoor-matriarch.jpg",
+          "cardX": 800,
+          "levels": {
+            "6": {
+              "attack": 3,
+              "health": 4
+            },
+            "7": {
+              "attack": 4,
+              "health": 4
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "dawn",
+            "target": "none",
+            "ops": [
+              {
+                "op": "heal",
+                "amount": 2,
+                "to": "eachOwnHere"
+              }
+            ]
+          },
+          "text": [
+            "**On Dawn:** Heal 2 to each of your creatures in its Location."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cairn-revenant",
+      "cardType": "Monster",
+      "series": "Heavy",
+      "speed": "Slow",
+      "attackKind": "Martial",
+      "guard": "Shield",
+      "prime": 6,
+      "traits": {
+        "kind": "Undead"
+      },
+      "forms": [
+        {
+          "id": "cairn-risen",
+          "name": "Cairn Risen",
+          "art": "assets/cards/cairn-risen.jpg",
+          "artFull": "assets/cards-v3/cairn-risen.jpg",
+          "cardX": 780,
+          "levels": {
+            "3": {
+              "attack": 1,
+              "health": 3
+            },
+            "4": {
+              "attack": 2,
+              "health": 3
+            }
+          },
+          "keywords": {
+            "undying": true
+          },
+          "trigger": null,
+          "text": [
+            "Undying"
+          ]
+        },
+        {
+          "id": "cairn-revenant",
+          "name": "Cairn Revenant",
+          "art": "assets/cards/cairn-revenant.jpg",
+          "artFull": "assets/cards-v3/cairn-revenant.jpg",
+          "cardX": 760,
+          "levels": {
+            "5": {
+              "attack": 2,
+              "health": 4
+            },
+            "6": {
+              "attack": 4,
+              "health": 5,
+              "prime": {
+                "keywords": {
+                  "armour": 1
+                }
+              },
+              "text": [
+                "Undying",
+                "**Prime:** Armour 1"
+              ]
+            }
+          },
+          "keywords": {
+            "undying": true
+          },
+          "trigger": null,
+          "text": [
+            "Undying"
+          ]
+        },
+        {
+          "id": "cairn-dread-lord",
+          "name": "Cairn Dread Lord",
+          "art": "assets/cards/cairn-dread-lord.jpg",
+          "artFull": "assets/cards-v3/cairn-dread-lord.jpg",
+          "cardX": 760,
+          "levels": {
+            "7": {
+              "attack": 3,
+              "health": 4
+            },
+            "8": {
+              "attack": 3,
+              "health": 5
+            }
+          },
+          "keywords": {
+            "undying": true,
+            "riposte": 1
+          },
+          "trigger": null,
+          "text": [
+            "Undying",
+            "Riposte 1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skyreach-wyvern",
+      "cardType": "Monster",
+      "series": "Mid",
+      "speed": "Swift",
+      "attackKind": "Martial",
+      "guard": null,
+      "prime": 4,
+      "traits": {
+        "kind": "Dragon"
+      },
+      "forms": [
+        {
+          "id": "skyreach-wyvernling",
+          "name": "Skyreach Wyvernling",
+          "art": "assets/cards/skyreach-wyvernling.jpg",
+          "artFull": "assets/cards-v3/skyreach-wyvernling.jpg",
+          "cardX": 760,
+          "levels": {
+            "2": {
+              "attack": 2,
+              "health": 1
+            },
+            "3": {
+              "attack": 3,
+              "health": 1
+            }
+          },
+          "keywords": {
+            "soaring": true
+          },
+          "trigger": null,
+          "text": [
+            "Soaring"
+          ]
+        },
+        {
+          "id": "skyreach-wyvern",
+          "name": "Skyreach Wyvern",
+          "art": "assets/cards/skyreach-wyvern.jpg",
+          "artFull": "assets/cards-v3/skyreach-wyvern.jpg",
+          "cardX": 820,
+          "levels": {
+            "4": {
+              "attack": 4,
+              "health": 3,
+              "prime": {
+                "trigger": {
+                  "on": "summon",
+                  "target": "enemy",
+                  "ops": [
+                    {
+                      "op": "damage",
+                      "amount": 1
+                    }
+                  ]
+                }
+              },
+              "text": [
+                "Soaring",
+                "**Prime: On Summon:** 1 damage to an enemy creature."
+              ]
+            },
+            "5": {
+              "attack": 4,
+              "health": 2
+            }
+          },
+          "keywords": {
+            "soaring": true
+          },
+          "trigger": null,
+          "text": [
+            "Soaring"
+          ]
+        },
+        {
+          "id": "skyreach-stormwing",
+          "name": "Skyreach Stormwing",
+          "art": "assets/cards/skyreach-stormwing.jpg",
+          "artFull": "assets/cards-v3/skyreach-stormwing.jpg",
+          "cardX": 820,
+          "levels": {
+            "6": {
+              "attack": 4,
+              "health": 2
+            },
+            "7": {
+              "attack": 4,
+              "health": 3
+            }
+          },
+          "keywords": {
+            "soaring": true
+          },
+          "trigger": {
+            "on": "summon",
+            "target": "enemy",
+            "ops": [
+              {
+                "op": "damage",
+                "amount": 2
+              }
+            ]
+          },
+          "text": [
+            "Soaring",
+            "**On Summon:** 2 damage to an enemy creature."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hunters-snare",
+      "cardType": "Action",
+      "name": "Hunter's Snare",
+      "art": "assets/cards/hunters-snare.jpg",
+      "artFull": "assets/cards-v3/hunters-snare.jpg",
+      "cardX": 880,
+      "traits": {
+        "class": "Ranger"
+      },
+      "modes": {
+        "react": {
+          "cost": 1,
+          "target": "attacker",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 2
+            }
+          ],
+          "text": "2 damage to the attacker."
+        },
+        "adapt": {
+          "cost": 2,
+          "target": "enemy",
+          "ops": [
+            {
+              "op": "spend"
+            },
+            {
+              "op": "tempAttack",
+              "amount": -2
+            }
+          ],
+          "text": "Make an enemy creature Spent. −2 Attack until Dusk to it."
+        },
+        "strat": {
+          "cost": 3,
+          "target": "enemyLocation",
+          "ops": [
+            {
+              "op": "spend"
+            }
+          ],
+          "text": "Make each enemy creature in a Location Spent."
+        }
+      }
+    },
+    {
+      "id": "second-wind",
+      "cardType": "Action",
+      "name": "Second Wind",
+      "art": "assets/cards/second-wind.jpg",
+      "artFull": "assets/cards-v3/second-wind.jpg",
+      "cardX": 820,
+      "traits": {
+        "class": "Fighter"
+      },
+      "modes": {
+        "react": {
+          "cost": 1,
+          "target": "attacked",
+          "ops": [
+            {
+              "op": "heal",
+              "amount": 3
+            }
+          ],
+          "text": "Heal 3 to your creature being attacked."
+        },
+        "adapt": {
+          "cost": 2,
+          "target": "ownSpent",
+          "ops": [
+            {
+              "op": "activate"
+            }
+          ],
+          "text": "Make one of your Spent creatures Active."
+        },
+        "strat": {
+          "cost": 3,
+          "target": "ownSpentLocation",
+          "ops": [
+            {
+              "op": "activate"
+            },
+            {
+              "op": "tempAttack",
+              "amount": 1
+            }
+          ],
+          "text": "Make each of your Spent creatures in a Location Active. +1 Attack until Dusk to them."
+        }
+      }
+    },
+    {
+      "id": "venomglass-dagger",
+      "cardType": "Item",
+      "name": "Venomglass Dagger",
+      "art": "assets/cards/venomglass-dagger.jpg",
+      "artFull": "assets/cards-v3/venomglass-dagger.jpg",
+      "cardX": 960,
+      "price": 2,
+      "kind": "Held",
+      "ops": [
+        {
+          "op": "attack",
+          "amount": 1
+        },
+        {
+          "op": "keyword",
+          "keyword": "venom"
+        }
+      ],
+      "text": "+1 Attack. Venom."
+    },
+    {
+      "id": "gallows-hill",
+      "cardType": "Location",
+      "name": "Gallows Hill",
+      "art": "assets/cards/gallows-hill.jpg",
+      "artFull": "assets/cards-v3/gallows-hill.jpg",
+      "cardX": 760,
+      "tileX": 740,
+      "tileY": 400,
+      "width": 2,
+      "rounds": 3,
+      "passive": {
+        "ops": [
+          {
+            "op": "keyword",
+            "amount": 1,
+            "keyword": "riposte"
+          }
+        ]
+      },
+      "text": "Creatures here have Riposte 1."
+    },
+    {
+      "id": "the-smugglers-run",
+      "cardType": "Campaign",
+      "name": "The Smuggler's Run",
+      "art": "assets/cards/the-smugglers-run.jpg",
+      "artFull": "assets/cards-v3/the-smugglers-run.jpg",
+      "cardX": 690,
+      "length": "Side-Quest",
+      "quest": {
+        "kind": "itemsBought",
+        "need": 2,
+        "text": "Buy 2 Items from the Market."
+      },
+      "order": {
+        "cost": 1,
+        "target": "none",
+        "ops": [
+          {
+            "op": "gold",
+            "amount": 1
+          }
+        ],
+        "text": "Gain 1 Gold."
+      },
+      "campaignCreature": {
+        "id": "wren-the-smuggler",
+        "cardType": "Character",
+        "name": "Wren, the Smuggler",
+        "art": "assets/cards/wren-the-smuggler.jpg",
+        "artFull": "assets/cards-v3/wren-the-smuggler.jpg",
+        "cardX": 680,
+        "traits": {
+          "race": "Halfling",
+          "class": "Rogue"
+        },
+        "speed": "Swift",
+        "attackKind": "Martial",
+        "guard": null,
+        "level": 4,
+        "attack": 4,
+        "health": 3,
+        "keywords": {},
+        "trigger": {
+          "on": "attack",
+          "target": "none",
+          "ops": [
+            {
+              "op": "gold",
+              "amount": 1
+            }
+          ]
+        },
+        "text": [
+          "**On Attack:** Gain 1 Gold."
+        ]
+      }
+    },
+    {
+      "id": "the-siege-of-greywater",
+      "cardType": "Campaign",
+      "name": "The Siege of Greywater",
+      "art": "assets/cards/the-siege-of-greywater.jpg",
+      "artFull": "assets/cards-v3/the-siege-of-greywater.jpg",
+      "cardX": 740,
+      "length": "Mid-length",
+      "quest": {
+        "kind": "warlordDamage",
+        "need": 6,
+        "text": "Deal 6 damage to the enemy Warlord."
+      },
+      "order": {
+        "cost": 2,
+        "target": "none",
+        "ops": [
+          {
+            "op": "tempAttack",
+            "amount": 1,
+            "to": "eachOwn"
+          }
+        ],
+        "text": "+1 Attack until Dusk to each of your creatures."
+      },
+      "campaignCreature": {
+        "id": "brannoc-the-siegebreaker",
+        "cardType": "Character",
+        "name": "Brannoc, the Siegebreaker",
+        "art": "assets/cards/brannoc-the-siegebreaker.jpg",
+        "artFull": "assets/cards-v3/brannoc-the-siegebreaker.jpg",
+        "cardX": 720,
+        "traits": {
+          "race": "Orc",
+          "class": "Fighter"
+        },
+        "speed": "Steady",
+        "attackKind": "Martial",
+        "guard": null,
+        "level": 6,
+        "attack": 5,
+        "health": 4,
+        "keywords": {},
+        "trigger": {
+          "on": "attack",
+          "target": "none",
+          "ops": [
+            {
+              "op": "attackBonus",
+              "amount": 2,
+              "when": "targetWarlord"
+            }
+          ]
+        },
+        "text": [
+          "**On Attack:** If it attacks the enemy Warlord, it deals +2 damage."
+        ]
+      }
+    },
+    {
+      "id": "the-grove-accord",
+      "cardType": "Campaign",
+      "name": "The Grove Accord",
+      "art": "assets/cards/the-grove-accord.jpg",
+      "artFull": "assets/cards-v3/the-grove-accord.jpg",
+      "cardX": 760,
+      "length": "Mid-length",
+      "quest": {
+        "kind": "dominate",
+        "need": 3,
+        "text": "Dominate at Dusk 3 times."
+      },
+      "order": {
+        "cost": 2,
+        "target": "ownLocation",
+        "ops": [
+          {
+            "op": "heal",
+            "amount": 3
+          }
+        ],
+        "text": "Heal 3 to each of your creatures in a Location."
+      },
+      "campaignCreature": {
+        "id": "oakheart-the-grove-guardian",
+        "cardType": "Monster",
+        "name": "Oakheart, the Grove Guardian",
+        "art": "assets/cards/oakheart-the-grove-guardian.jpg",
+        "artFull": "assets/cards-v3/oakheart-the-grove-guardian.jpg",
+        "cardX": 760,
+        "traits": {
+          "kind": "Treant"
+        },
+        "speed": "Slow",
+        "attackKind": "Martial",
+        "guard": "Shield",
+        "level": 6,
+        "attack": 3,
+        "health": 6,
+        "keywords": {},
+        "trigger": {
+          "on": "dawn",
+          "target": "none",
+          "ops": [
+            {
+              "op": "heal",
+              "amount": 2,
+              "to": "eachOwnHere"
+            }
+          ]
+        },
+        "text": [
+          "**On Dawn:** Heal 2 to each of your creatures in its Location."
+        ]
+      }
+    },
+    {
+      "id": "the-ember-crown",
+      "cardType": "Campaign",
+      "name": "The Ember Crown",
+      "art": "assets/cards/the-ember-crown.jpg",
+      "artFull": "assets/cards-v3/the-ember-crown.jpg",
+      "cardX": 770,
+      "length": "Long",
+      "quest": {
+        "kind": "defeat",
+        "need": 8,
+        "text": "Defeat 8 enemy creatures."
+      },
+      "order": {
+        "cost": 2,
+        "target": "enemy",
+        "ops": [
+          {
+            "op": "damage",
+            "amount": 2
+          }
+        ],
+        "text": "2 damage to an enemy creature."
+      },
+      "campaignCreature": {
+        "id": "ysolde-the-ember-queen",
+        "cardType": "Character",
+        "name": "Ysolde, the Ember Queen",
+        "art": "assets/cards/ysolde-the-ember-queen.jpg",
+        "artFull": "assets/cards-v3/ysolde-the-ember-queen.jpg",
+        "cardX": 760,
+        "traits": {
+          "race": "Human",
+          "class": "Wizard"
+        },
+        "speed": "Swift",
+        "attackKind": "Arcane",
+        "guard": "Ward",
+        "level": 8,
+        "attack": 6,
+        "health": 4,
+        "keywords": {
+          "armour": 1
+        },
+        "trigger": {
+          "on": "attack",
+          "target": "none",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 2,
+              "to": "eachOtherEnemyThere"
+            }
+          ]
+        },
+        "text": [
+          "Armour 1",
+          "**On Attack:** 2 damage to each other enemy creature in its target's Location."
+        ]
+      }
+    },
+    {
+      "id": "warhorn-of-the-vanguard",
+      "cardType": "Item",
+      "name": "Warhorn of the Vanguard",
+      "art": "assets/cards/warhorn-of-the-vanguard.jpg",
+      "artFull": "assets/cards-v3/warhorn-of-the-vanguard.jpg",
+      "cardX": 880,
+      "price": 2,
+      "kind": "Consumed",
+      "target": "ownLocation",
+      "ops": [
+        {
+          "op": "tempAttack",
+          "amount": 2
+        }
+      ],
+      "text": "+2 Attack until Dusk to each of your creatures in a Location."
+    },
+    {
+      "id": "cinderfeather-amulet",
+      "cardType": "Item",
+      "name": "Cinderfeather Amulet",
+      "art": "assets/cards/cinderfeather-amulet.jpg",
+      "artFull": "assets/cards-v3/cinderfeather-amulet.jpg",
+      "cardX": 740,
+      "price": 3,
+      "kind": "Held",
+      "ops": [
+        {
+          "op": "health",
+          "amount": 1
+        },
+        {
+          "op": "keyword",
+          "keyword": "undying"
+        }
+      ],
+      "text": "+1 Health. Undying."
+    },
+    {
+      "id": "the-sunlit-shrine",
+      "cardType": "Location",
+      "name": "The Sunlit Shrine",
+      "art": "assets/cards/the-sunlit-shrine.jpg",
+      "artFull": "assets/cards-v3/the-sunlit-shrine.jpg",
+      "cardX": 780,
+      "tileX": 780,
+      "tileY": 420,
+      "width": 3,
+      "rounds": 3,
+      "passive": {
+        "ops": [
+          {
+            "op": "dawnHeal",
+            "amount": 2
+          }
+        ]
+      },
+      "text": "At Dawn, heal 2 to each creature here."
+    },
+    {
+      "id": "stormbreak-crags",
+      "cardType": "Location",
+      "name": "Stormbreak Crags",
+      "art": "assets/cards/stormbreak-crags.jpg",
+      "artFull": "assets/cards-v3/stormbreak-crags.jpg",
+      "cardX": 840,
+      "tileX": 840,
+      "tileY": 360,
+      "width": 4,
+      "rounds": 2,
+      "passive": {
+        "ops": [
+          {
+            "op": "attack",
+            "amount": 1
+          },
+          {
+            "op": "health",
+            "amount": -1
+          }
+        ]
+      },
+      "text": "Creatures here have +1 Attack and −1 Health (never below 1 Health)."
+    },
+    {
+      "id": "redmaw-shaman",
+      "cardType": "Character",
+      "series": "Mid",
+      "firstName": "Grusha",
+      "speed": "Steady",
+      "attackKind": "Arcane",
+      "guard": null,
+      "prime": 5,
+      "traits": {
+        "race": "Orc",
+        "class": "Seer",
+        "home": "Redmaw"
+      },
+      "forms": [
+        {
+          "id": "redmaw-bonecaster",
+          "name": "Redmaw Bonecaster",
+          "art": "assets/cards/redmaw-bonecaster.jpg",
+          "artFull": "assets/cards-v3/redmaw-bonecaster.jpg",
+          "cardX": 780,
+          "levels": {
+            "2": {
+              "attack": 1,
+              "health": 2
+            },
+            "3": {
+              "attack": 2,
+              "health": 2
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "dusk",
+            "target": "none",
+            "ops": [
+              {
+                "op": "damage",
+                "amount": 1,
+                "to": "eachEnemyHere"
+              }
+            ]
+          },
+          "text": [
+            "**On Dusk:** 1 damage to each enemy creature in its Location."
+          ]
+        },
+        {
+          "id": "redmaw-shaman",
+          "name": "Redmaw Shaman",
+          "art": "assets/cards/redmaw-shaman.jpg",
+          "artFull": "assets/cards-v3/redmaw-shaman.jpg",
+          "cardX": 760,
+          "levels": {
+            "4": {
+              "attack": 2,
+              "health": 3
+            },
+            "5": {
+              "attack": 4,
+              "health": 4,
+              "prime": {
+                "trigger": {
+                  "on": "summon",
+                  "target": "none",
+                  "ops": [
+                    {
+                      "op": "attack",
+                      "amount": 1,
+                      "to": "eachOwnOther",
+                      "filter": {
+                        "race": "Orc"
+                      }
+                    }
+                  ]
+                }
+              },
+              "text": [
+                "**On Dusk:** 1 damage to each enemy creature in its Location.",
+                "**Prime: On Summon:** +1 Attack to each of your other Orcs."
+              ]
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "dusk",
+            "target": "none",
+            "ops": [
+              {
+                "op": "damage",
+                "amount": 1,
+                "to": "eachEnemyHere"
+              }
+            ]
+          },
+          "text": [
+            "**On Dusk:** 1 damage to each enemy creature in its Location."
+          ]
+        },
+        {
+          "id": "redmaw-stormcaller",
+          "name": "Redmaw Stormcaller",
+          "art": "assets/cards/redmaw-stormcaller.jpg",
+          "artFull": "assets/cards-v3/redmaw-stormcaller.jpg",
+          "cardX": 760,
+          "levels": {
+            "6": {
+              "attack": 3,
+              "health": 4
+            },
+            "7": {
+              "attack": 4,
+              "health": 4
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "dusk",
+            "target": "none",
+            "ops": [
+              {
+                "op": "damage",
+                "amount": 2,
+                "to": "eachEnemyHere"
+              }
+            ]
+          },
+          "text": [
+            "**On Dusk:** 2 damage to each enemy creature in its Location."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cogwright-inventor",
+      "cardType": "Character",
+      "series": "Light",
+      "firstName": "Pell",
+      "speed": "Steady",
+      "attackKind": "Martial",
+      "guard": null,
+      "prime": 4,
+      "traits": {
+        "race": "Gnome",
+        "class": "Artificer",
+        "home": "Cogwright"
+      },
+      "forms": [
+        {
+          "id": "cogwright-apprentice",
+          "name": "Cogwright Apprentice",
+          "art": "assets/cards/cogwright-apprentice.jpg",
+          "artFull": "assets/cards-v3/cogwright-apprentice.jpg",
+          "cardX": 760,
+          "levels": {
+            "1": {
+              "attack": 1,
+              "health": 1
+            },
+            "2": {
+              "attack": 1,
+              "health": 2
+            }
+          },
+          "keywords": {
+            "tinker": true
+          },
+          "trigger": null,
+          "text": [
+            "Tinker"
+          ]
+        },
+        {
+          "id": "cogwright-inventor",
+          "name": "Cogwright Inventor",
+          "art": "assets/cards/cogwright-inventor.jpg",
+          "artFull": "assets/cards-v3/cogwright-inventor.jpg",
+          "cardX": 760,
+          "levels": {
+            "3": {
+              "attack": 2,
+              "health": 2
+            },
+            "4": {
+              "attack": 3,
+              "health": 4,
+              "prime": {
+                "trigger": {
+                  "on": "summon",
+                  "target": "none",
+                  "ops": [
+                    {
+                      "op": "gold",
+                      "amount": 2
+                    }
+                  ]
+                }
+              },
+              "text": [
+                "Tinker",
+                "**Prime: On Summon:** Gain 2 Gold."
+              ]
+            }
+          },
+          "keywords": {
+            "tinker": true
+          },
+          "trigger": null,
+          "text": [
+            "Tinker"
+          ]
+        },
+        {
+          "id": "cogwright-master-engineer",
+          "name": "Cogwright Master-Engineer",
+          "art": "assets/cards/cogwright-master-engineer.jpg",
+          "artFull": "assets/cards-v3/cogwright-master-engineer.jpg",
+          "cardX": 700,
+          "levels": {
+            "5": {
+              "attack": 2,
+              "health": 3
+            },
+            "6": {
+              "attack": 3,
+              "health": 3
+            }
+          },
+          "keywords": {
+            "tinker": true
+          },
+          "trigger": {
+            "on": "summon",
+            "target": "none",
+            "ops": [
+              {
+                "op": "gold",
+                "amount": 2
+              }
+            ]
+          },
+          "text": [
+            "Tinker",
+            "**On Summon:** Gain 2 Gold."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rime-elemental",
+      "cardType": "Monster",
+      "series": "Heavy",
+      "speed": "Slow",
+      "attackKind": "Arcane",
+      "guard": "Ward",
+      "prime": 7,
+      "traits": {
+        "kind": "Elemental"
+      },
+      "forms": [
+        {
+          "id": "rime-sprite",
+          "name": "Rime Sprite",
+          "art": "assets/cards/rime-sprite.jpg",
+          "artFull": "assets/cards-v3/rime-sprite.jpg",
+          "cardX": 780,
+          "levels": {
+            "3": {
+              "attack": 1,
+              "health": 3
+            },
+            "4": {
+              "attack": 1,
+              "health": 4
+            }
+          },
+          "keywords": {
+            "chill": true
+          },
+          "trigger": null,
+          "text": [
+            "Chill"
+          ]
+        },
+        {
+          "id": "rime-elemental",
+          "name": "Rime Elemental",
+          "art": "assets/cards/rime-elemental.jpg",
+          "artFull": "assets/cards-v3/rime-elemental.jpg",
+          "cardX": 760,
+          "levels": {
+            "5": {
+              "attack": 2,
+              "health": 4
+            },
+            "6": {
+              "attack": 2,
+              "health": 5
+            }
+          },
+          "keywords": {
+            "chill": true
+          },
+          "trigger": null,
+          "text": [
+            "Chill"
+          ]
+        },
+        {
+          "id": "rime-colossus",
+          "name": "Rime Colossus",
+          "art": "assets/cards/rime-colossus.jpg",
+          "artFull": "assets/cards-v3/rime-colossus.jpg",
+          "cardX": 760,
+          "levels": {
+            "7": {
+              "attack": 3,
+              "health": 6,
+              "prime": {
+                "keywords": {
+                  "armour": 1
+                }
+              },
+              "text": [
+                "Chill",
+                "**On Summon:** Make each enemy creature in its Location Spent.",
+                "**Prime:** Armour 1"
+              ]
+            },
+            "8": {
+              "attack": 3,
+              "health": 5
+            }
+          },
+          "keywords": {
+            "chill": true
+          },
+          "trigger": {
+            "on": "summon",
+            "target": "none",
+            "ops": [
+              {
+                "op": "spend",
+                "to": "eachEnemyHere"
+              }
+            ]
+          },
+          "text": [
+            "Chill",
+            "**On Summon:** Make each enemy creature in its Location Spent."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ironclaw-bear",
+      "cardType": "Monster",
+      "series": "Mid",
+      "speed": "Steady",
+      "attackKind": "Martial",
+      "guard": null,
+      "prime": 6,
+      "traits": {
+        "kind": "Beast"
+      },
+      "forms": [
+        {
+          "id": "ironclaw-cub",
+          "name": "Ironclaw Cub",
+          "art": "assets/cards/ironclaw-cub.jpg",
+          "artFull": "assets/cards-v3/ironclaw-cub.jpg",
+          "cardX": 820,
+          "levels": {
+            "2": {
+              "attack": 1,
+              "health": 2
+            },
+            "3": {
+              "attack": 2,
+              "health": 2
+            }
+          },
+          "keywords": {
+            "frenzy": true
+          },
+          "trigger": null,
+          "text": [
+            "Frenzy"
+          ]
+        },
+        {
+          "id": "ironclaw-bear",
+          "name": "Ironclaw Bear",
+          "art": "assets/cards/ironclaw-bear.jpg",
+          "artFull": "assets/cards-v3/ironclaw-bear.jpg",
+          "cardX": 820,
+          "levels": {
+            "4": {
+              "attack": 2,
+              "health": 3
+            },
+            "5": {
+              "attack": 2,
+              "health": 4
+            }
+          },
+          "keywords": {
+            "frenzy": true
+          },
+          "trigger": null,
+          "text": [
+            "Frenzy"
+          ]
+        },
+        {
+          "id": "ironclaw-warbear",
+          "name": "Ironclaw Warbear",
+          "art": "assets/cards/ironclaw-warbear.jpg",
+          "artFull": "assets/cards-v3/ironclaw-warbear.jpg",
+          "cardX": 820,
+          "levels": {
+            "6": {
+              "attack": 4,
+              "health": 5,
+              "prime": {
+                "keywords": {
+                  "riposte": 2
+                }
+              },
+              "text": [
+                "Frenzy",
+                "**Prime:** Riposte 2"
+              ]
+            },
+            "7": {
+              "attack": 3,
+              "health": 5
+            }
+          },
+          "keywords": {
+            "frenzy": true
+          },
+          "trigger": null,
+          "text": [
+            "Frenzy"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chain-lightning",
+      "cardType": "Action",
+      "name": "Chain Lightning",
+      "art": "assets/cards/chain-lightning.jpg",
+      "artFull": "assets/cards-v3/chain-lightning.jpg",
+      "cardX": 560,
+      "traits": {
+        "class": "Wizard"
+      },
+      "modes": {
+        "react": {
+          "cost": 1,
+          "target": "otherEnemy",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 1,
+              "to": "attacker"
+            },
+            {
+              "op": "damage",
+              "amount": 1
+            }
+          ],
+          "text": "1 damage to the attacker. 1 damage to another enemy creature."
+        },
+        "adapt": {
+          "cost": 2,
+          "target": "enemy",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 2
+            },
+            {
+              "op": "damage",
+              "amount": 1,
+              "to": "eachOtherEnemyThere"
+            }
+          ],
+          "text": "2 damage to an enemy creature. 1 damage to each other enemy creature in its Location."
+        },
+        "strat": {
+          "cost": 3,
+          "target": "enemyLocation",
+          "ops": [
+            {
+              "op": "damage",
+              "amount": 2
+            }
+          ],
+          "text": "2 damage to each enemy creature in a Location."
+        }
+      }
+    },
+    {
+      "id": "market-day",
+      "cardType": "Event",
+      "name": "Market Day",
+      "art": "assets/cards/market-day.jpg",
+      "artFull": "assets/cards-v3/market-day.jpg",
+      "cardX": 760,
+      "release": 1,
+      "target": "none",
+      "ops": [
+        {
+          "op": "gold",
+          "amount": 3
+        }
+      ],
+      "text": "Gain 3 Gold.",
+      "favour": {
+        "condition": {
+          "race": "Gnome"
+        },
+        "conditionText": "a Gnome",
+        "ops": [
+          {
+            "op": "gold",
+            "amount": 5
+          }
+        ],
+        "text": "Gain 5 Gold."
+      }
+    },
+    {
+      "id": "night-raid-event",
+      "cardType": "Event",
+      "name": "Night Raid",
+      "art": "assets/cards/night-raid-event.jpg",
+      "artFull": "assets/cards-v3/night-raid-event.jpg",
+      "cardX": 820,
+      "release": 1,
+      "target": "enemy",
+      "ops": [
+        {
+          "op": "damage",
+          "amount": 2
+        },
+        {
+          "op": "spend"
+        }
+      ],
+      "text": "2 damage to an enemy creature. Make it Spent.",
+      "favour": {
+        "condition": {
+          "class": "Rogue"
+        },
+        "conditionText": "a Rogue",
+        "ops": [
+          {
+            "op": "damage",
+            "amount": 2
+          },
+          {
+            "op": "spend"
+          },
+          {
+            "op": "spend",
+            "to": "eachOtherEnemyThere"
+          }
+        ],
+        "text": "2 damage to an enemy creature. Make it Spent. Make each other enemy creature in its Location Spent."
+      }
+    },
+    {
+      "id": "the-deepmaw",
+      "cardType": "Monster",
+      "series": "Legendary",
+      "speed": "Slow",
+      "attackKind": "Martial",
+      "guard": null,
+      "location": "the-drowned-reach",
+      "traits": {
+        "kind": "Beast"
+      },
+      "forms": [
+        {
+          "id": "the-deepmaw",
+          "name": "The Deepmaw",
+          "art": "assets/cards/the-deepmaw.jpg",
+          "artFull": "assets/cards-v3/the-deepmaw.jpg",
+          "cardX": 820,
+          "levels": {
+            "8": {
+              "attack": 4,
+              "health": 8
+            }
+          },
+          "keywords": {},
+          "trigger": {
+            "on": "summon",
+            "target": "none",
+            "ops": [
+              {
+                "op": "spend",
+                "to": "eachEnemyHere"
+              }
+            ]
+          },
+          "text": [
+            "**On Summon:** Make each enemy creature in its Location Spent."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-drowned-reach",
+      "cardType": "Location",
+      "name": "The Drowned Reach",
+      "art": "assets/cards/the-drowned-reach.jpg",
+      "artFull": "assets/cards-v3/the-drowned-reach.jpg",
+      "cardX": 780,
+      "tileX": 800,
+      "tileY": 420,
+      "legendaryOf": "the-deepmaw",
+      "width": 3,
+      "rounds": null,
+      "passive": {
+        "ops": [
+          {
+            "op": "duskDamage",
+            "amount": 1
+          }
+        ]
+      },
+      "text": "At Dusk, each creature here takes 1 damage."
     }
   ]
 }

@@ -2,7 +2,7 @@
 import { test, run, assert } from './helpers.js';
 import { defineCards, deckProblems, deckIssues } from '../src/engine/cards.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
-import { idsToList, listToIds, addCopy, removeCopy, copiesOf, cardCount, isLegal, maxCopiesOf, encodeDeck, decodeDeck, checksum, deckSummary, affiliationsOf, rewardsOf } from '../src/engine/decks.js';
+import { idsToList, listToIds, addCopy, removeCopy, copiesOf, cardCount, isLegal, maxCopiesOf, encodeDeck, encodeDeckV1, decodeDeck, checksum, deckSummary, affiliationsOf, rewardsOf } from '../src/engine/decks.js';
 import { createDeckStore, safeStorage, FIRST_ID } from '../src/ui/deckstore.js';
 import { cardDef } from '../src/engine/cards.js';
 
@@ -43,9 +43,11 @@ test('deck lists: add and remove a copy, counts, the most copies, legal or not',
   assert.equal(maxCopiesOf('the-ashfall'), 0);
 });
 
-test('deck codes round-trip: name, cards and copies; versioned, with a checksum', () => {
+// (Stage N: new codes are version 2, compact; these stage L checks now run on version 1 codes, which still import.
+// tests/n-decks.test.js checks version 2.)
+test('version 1 deck codes still round-trip: name, cards and copies; versioned, with a checksum', () => {
   const deck = { name: 'Wyrm & Wildfire — ✦ test', cards: FIRST };
-  const code = encodeDeck(deck);
+  const code = encodeDeckV1(deck);
   assert.match(code, /^UTCG1\.[A-Za-z0-9_-]+\.[a-z0-9*~-]+\.[0-9a-z]{6}$/);
   const back = decodeDeck(code);
   assert.ok(back.ok);
@@ -54,19 +56,20 @@ test('deck codes round-trip: name, cards and copies; versioned, with a checksum'
   // (Spaces and line breaks picked up when copying are ignored; an unfinished deck still round-trips.)
   assert.ok(decodeDeck(` ${code.slice(0, 40)}\n${code.slice(40)} `).ok);
   const part = { name: 'Half', cards: FIRST.slice(0, 5) };
-  assert.deepEqual(decodeDeck(encodeDeck(part)).deck.cards, part.cards);
+  assert.deepEqual(decodeDeck(encodeDeckV1(part)).deck.cards, part.cards);
   assert.ok(code.length < 700, `about one line (${code.length} characters)`);
 });
 
-test('a damaged, foreign or newer code is refused, saying why; a code naming unknown cards names them', () => {
-  const code = encodeDeck({ name: 'Mine', cards: FIRST });
+test('a damaged, foreign or newer code is refused, saying why; a version 1 code naming unknown cards names them', () => {
+  const code = encodeDeckV1({ name: 'Mine', cards: FIRST });
   const flip = code.replace('firebolt*2', 'firebolt*1');
   assert.notEqual(flip, code);
   assert.match(decodeDeck(flip).error, /damaged: its checksum doesn't match/);
   assert.match(decodeDeck(code.slice(0, -3)).error, /isn't a deck code/);
+  assert.match(decodeDeck(code.slice(0, -3)).error, /parts can't be read/);
   assert.match(decodeDeck('hello there').error, /isn't a deck code/);
   assert.match(decodeDeck('').error, /no deck code/);
-  const newer = 'UTCG2.TWluZQ.firebolt.' + checksum('UTCG2.TWluZQ.firebolt');
+  const newer = 'UTCG3.TWluZQ.firebolt.' + checksum('UTCG3.TWluZQ.firebolt');
   assert.match(decodeDeck(newer).error, /newer version/);
   const body = 'UTCG1.TWluZQ.firebolt*2~zz-dragon~qq-thing';
   const unknown = decodeDeck(`${body}.${checksum(body)}`);
@@ -139,7 +142,8 @@ test('the summary: types, creature curve by starting Level, Actions by cost, aff
   assert.equal(s.creatureCurve[8], 1, 'the Wyrm starts at Level 8');
   assert.deepEqual(s.campaigns, ["Lady Corwen's Commission"]);
   assert.ok(s.affiliations.some((a) => a.group === 'class' && a.value === 'Fighter'));
-  assert.deepEqual(affiliationsOf(cardDef('ironhide-brawler')), [{ group: 'class', value: 'Fighter' }, { group: 'ancestry', value: 'Orc' }]);
+  // (Stage N: every Character has a home group too.)
+  assert.deepEqual(affiliationsOf(cardDef('ironhide-brawler')), [{ group: 'class', value: 'Fighter' }, { group: 'ancestry', value: 'Orc' }, { group: 'home', value: 'Ironhide' }]);
   assert.deepEqual(affiliationsOf(cardDef('gloomfang-wolf')), [{ group: 'kind', value: 'Beast' }]);
   assert.deepEqual(rewardsOf(cardDef('call-to-arms')), [{ group: 'class', value: 'Fighter' }]);
   assert.deepEqual(rewardsOf(cardDef('firebolt')), []);

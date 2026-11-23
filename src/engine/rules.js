@@ -28,6 +28,9 @@ export const RULES = Object.freeze({
 // 7: the three series, by Level range. Legendary cards are Level 8 from the start.
 export const SERIES_RANGE = Object.freeze({ Light: [1, 6], Mid: [2, 7], Heavy: [3, 8], Legendary: [8, 8] });
 
+// 8.4 (stage N): a Campaign's length, and the Level of its Campaign Creature (it arrives at its Prime).
+export const CAMPAIGN_LENGTHS = Object.freeze({ 'Side-Quest': 4, 'Mid-length': 6, Long: 8 });
+
 // Speeds, slowest first (a higher index is faster).
 // 2, 9 (stage R, decided by Elliott, 23 November 2026): dominating a Location at Dusk gives Renown by its width.
 export const DOMINANCE_BY_WIDTH = Object.freeze({ 2: 4, 3: 5, 4: 6 });

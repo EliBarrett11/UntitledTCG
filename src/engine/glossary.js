@@ -50,7 +50,7 @@ export const GLOSSARY = Object.freeze({
   form: { term: 'Forms', section: '7.1', names: ['forms', 'form'], quotes: [
     "Three forms per series, two Levels each: young (the series' first two Levels), grown (the next two) and elder (the last two). The Prime can fall in any form."] },
   cost: { term: 'Cost', section: '7', names: ['cost'], quotes: [
-    'Cost: ceil(Level / 2) Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. Legendary cards cost 5 and are Level 8 from the start. Campaign Creatures are Level 8 and arrive free.'] },
+    "Cost: ceil(Level / 2) Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. Legendary cards cost 5 and are Level 8 from the start. Campaign Creatures are at their Campaign's Level (8.4) and arrive free."] },
   prime: { term: 'Prime', section: '7.1', names: ['Prime', 'Rising', 'Waning'], quotes: [
     'Prime: each Character and Monster series names one Prime Level. A card is Rising below it, Prime at it and Waning above it.',
     'At the Prime Level a card has +1 Attack and +1 Health on top of the curve.',
@@ -147,6 +147,27 @@ export const GLOSSARY = Object.freeze({
   onDefeat: { term: 'On Defeat', section: '12.2', names: ['On Defeat'], quotes: [
     'resolves just after the creature goes to the Released Pile. "The enemy across from it" means the enemy in the lane it stood in.'] },
   onRetain: { term: 'On Retain', section: '12.2', names: ['On Retain'], quotes: ['resolves when you Retain the card.'] },
+  // Stage N (New Cards Batch 1).
+  venom: { term: 'Venom', section: '12.1', names: ['Venom'], quotes: ['After this creature deals damage to a creature, that creature becomes Spent.'], see: ['spent'] },
+  undying: { term: 'Undying', section: '12.1', names: ['Undying'], quotes: ["The first time it would be defeated, it's left at 1 Health instead. Once per creature."] },
+  soaring: { term: 'Soaring', section: '12.1', names: ['Soaring'], quotes: ["Shields can't guard against its attacks. Wards still can, if it's Arcane."], see: ['shield', 'ward'] },
+  tinker: { term: 'Tinker', section: '12.1', names: ['Tinker', 'Tinkers'], quotes: ['Whenever you buy an Item from the Market, this gets +1/+1 for good.'], see: ['item'] },
+  chill: { term: 'Chill', section: '12.1', names: ['Chill'], quotes: ['A creature that damages this one becomes Spent.'], see: ['spent'] },
+  frenzy: { term: 'Frenzy', section: '12.1', names: ['Frenzy'], quotes: ['While damaged, it has +2 Attack.'] },
+  rally: { term: 'Rally (group)', section: '12.2', names: ['Rally'], quotes: ['resolves when another creature of that group is summoned on your side.'], see: ['affiliation'] },
+  onAttack: { term: 'On Attack', section: '12.2', names: ['On Attack'], quotes: ['resolves when the creature attacks, after the target is chosen and before damage.'] },
+  onDawn: { term: 'On Dawn', section: '12.2', names: ['On Dawn'], quotes: ['resolves at each Dawn while the creature is on the battlefield, at the Dawn healing step.'], see: ['dawn'] },
+  onDusk: { term: 'On Dusk', section: '12.2', names: ['On Dusk'], quotes: ['resolves at each Dusk while the creature is on the battlefield, before dominance is scored.'], see: ['dusk'] },
+  chooseOne: { term: 'Choose one', section: '12.2', names: ['choose one', 'Choose both'], quotes: [
+    'Choose one (approved by Elliott, 23 November 2026): an On Summon with modes. The player picks the mode as part of the Summon action.',
+    '"Prime: Choose both." At Prime, a choose-one card does every mode.'] },
+  sameMoment: { term: 'Triggers at the same moment', section: '12.3', names: ['at the same moment'], quotes: [
+    "they resolve in a fixed order: the player with initiative first, then the other player; each player's in lane order, left to right."] },
+  affiliation: { term: 'Affiliations', section: '7', names: ['affiliations', 'affiliation', 'home group'], quotes: [
+    "Affiliations (New Cards Batch 1, approved by Elliott, 23 November 2026): a card's ancestry (its Race), class, Monster kind and home group.",
+    'A card that names a group ("Rally (Fighter)", "your other Orcs", a Favour) means a creature with that affiliation.'] },
+  campaignLength: { term: 'Campaign length', section: '8.4', names: ['Side-Quest', 'mid-length'], quotes: [
+    "Its Campaign Creature's Level follows its length: Level 4 for a Side-Quest, Level 6 for a mid-length Campaign, Level 8 for a long one. Campaign Creatures always arrive at their Prime."], see: ['campaignCreature'] },
   returnToHand: { term: 'Return to hand', section: '12', names: ["owner's hand"], quotes: [
     "Return to hand: the card goes back to its owner's hand at this Round's Level; damage and anything it gained are lost; its Held Item goes to the Market's pool."] },
   gainEnergy: { term: 'Gain Energy this Round', section: '13 (reading 10)', names: ['Energy this Round'], quotes: ['"Gain N Energy this Round" adds Base Energy, which is lost at the end of the Round.'] },

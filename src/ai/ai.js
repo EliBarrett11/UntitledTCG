@@ -54,6 +54,7 @@ function evaluateNow(s, who) {
     for (const { card } of creaturesOf(s, w)) {
       v += Math.max(0, card.attack) * 0.9 + card.currentHealth * 0.45 + (isReady(s, card) ? 0.5 : 0) + guardsOf(card).length * 0.3;
       v += keywordAmount(card, 'armour') * 0.6 + keywordAmount(card, 'riposte') * 0.5 + (card.trigger?.on === 'defeat' ? 0.5 : 0);
+      v += newAbilitiesValue(card);
     }
     return v;
   };
@@ -70,6 +71,25 @@ function evaluateNow(s, who) {
   const me = s.players[who];
   // Energy left this Round is worth something on either player's turn (a React or a Strat spends it too).
   return side(who) - side(foe) + dom + (s.phase === 'battle' ? me.baseEnergy * 0.3 : 0) - me.exhaust.length * 0.6;
+}
+
+// Stage N: what Batch 1's abilities are worth on a creature, beyond what the board already shows. Venom and Chill
+// make the creatures they touch Spent (the look-ahead sees that, when it happens); an unused Undying is about two more
+// Health; Soaring reaches past Shields; Frenzy is worth more the more it's hurt (its Attack already counts the +2);
+// Tinker grows with every Item bought; a trigger that keeps working (Rally, On Attack, On Dawn, On Dusk) is worth a
+// little each.
+const ONGOING = new Set(['rally', 'attack', 'dawn', 'dusk']);
+export function newAbilitiesValue(card) {
+  let v = 0;
+  const has = (k) => keywordAmount(card, k) > 0 || !!card.keywords?.[k] || !!card.locKw?.[k] || !!card.tempKw?.[k] || (card.held?.ops ?? []).some((o) => o.op === 'keyword' && o.keyword === k);
+  if (has('venom')) v += 0.6;
+  if (has('chill')) v += 0.4;
+  if (has('undying') && !card.undyingUsed) v += 0.45 * 2.5;
+  if (has('soaring')) v += 0.5;
+  if (has('tinker')) v += 0.4;
+  if (has('frenzy') && card.currentHealth >= card.health) v += 0.3;
+  v += (card.triggers ?? []).filter((t) => ONGOING.has(t.on) && !(t.prime && !card.primeSummon)).length * 0.5;
+  return v;
 }
 
 // Stage P: a creature whose Prime is next Round (the Round it would be summoned at its Prime if kept), and what
