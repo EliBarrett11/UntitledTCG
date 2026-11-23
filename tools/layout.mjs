@@ -107,7 +107,7 @@ const SCENES = [
   // match setup with a deck list open; and online setup with a refused deck. (The lobby scenes above now carry the
   // Card Library button, for host and guest.)
   { name: 'l-library', query: '?screen=library', steps: async (p) => { await clickTop(p, '[data-lib="chip"][data-g="type"][data-v="Character"]', 0); await clickTop(p, '[data-lib="chip"][data-g="trigger"][data-v="summon"]', 0); await clickTop(p, '[data-lib="cost-mode"][data-v="level"]', 0); }, need: '.lf-chip.on[data-g="trigger"]' },
-  { name: 'l-page', query: '?screen=library', steps: async (p) => { await hoverTop(p, '[data-lib-card="oathsworn-recruit"]', 0); await clickTop(p, '[data-lib-card="oathsworn-recruit"] .lib-page', 0); await p.waitForSelector('#codex:not([hidden]) .cx-elv'); await p.evaluate(() => document.querySelector('.cx-elv')?.scrollIntoView({ block: 'start' })); }, need: '#codex:not([hidden]) .cx-elv' },
+  { name: 'l-page', query: '?screen=library', steps: async (p) => { await p.fill('.lib-search', 'Garrick'); await p.waitForTimeout(300); await hoverTop(p, '[data-lib-card="oathsworn-recruit"]', 0); await clickTop(p, '[data-lib-card="oathsworn-recruit"] .lib-page', 0); await p.waitForSelector('#codex:not([hidden]) .cx-elv'); await p.evaluate(() => document.querySelector('.cx-elv')?.scrollIntoView({ block: 'start' })); }, need: '#codex:not([hidden]) .cx-elv' },
   { name: 'l-deck-full', query: `?screen=library&libcode=${encodeURIComponent(FULL_CODE)}`, need: '.ld-legal' },
   { name: 'l-deck-errors', query: `?screen=library&libcode=${encodeURIComponent(ERROR_CODE)}`, need: '.ld-issues' },
   { name: 'l-deck-first', query: '?screen=library&libdeck=first', need: '.ld-readonly' },
