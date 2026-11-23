@@ -20,7 +20,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 'r';
+const STAGE = 'l';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -224,6 +224,10 @@ function inspect() {
     ['.dom-say', '[data-region="map"] .slot-card'], ['.caption', '.dom-line'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);
+  // (Stage L fix: every space you can choose is lit, in the Wilds as well as under a Location tile.)
+  for (const c of stage.querySelectorAll('.cell[data-pick] .empty-slot')) {
+    if (!/rgb\(240, 200, 110|rgba\(240, 200, 110/.test(getComputedStyle(c).boxShadow)) out.push(`a space you can choose isn't lit (${c.closest('.cell').dataset.cell})`);
+  }
   // Stage H: one grid. Every panel on the same edges, 16 px apart: the band spans the board, the column's three
   // panels share its width from the band's top to the bottom panels' bottom, the bottom panels reach the board's edges.
   const at = (sel) => { const el = stage.querySelector(sel); return el && visible(el) ? box(el) : null; };
