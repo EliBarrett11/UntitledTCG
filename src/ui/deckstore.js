@@ -22,7 +22,8 @@ export function safeStorage(backing = (() => { try { return globalThis.localStor
 }
 
 export function createDeckStore(storage = safeStorage()) {
-  const builtIn = Object.freeze({ id: FIRST_ID, name: DECKS.first.name, cards: idsToList(listToIds(DECKS.first.cards)), builtIn: true, updated: 0 });
+  // (In its own order, not sorted: the engine shuffles the deck as given, so every seed plays as before.)
+  const builtIn = Object.freeze({ id: FIRST_ID, name: DECKS.first.name, cards: DECKS.first.cards.map(({ id, copies }) => ({ id, copies })), builtIn: true, updated: 0 });
   let n = 0;
   const newId = () => `d${Date.now().toString(36)}${(n++).toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
   // (A damaged entry is skipped, never thrown: a deck needs a name and a list of known cards.)
