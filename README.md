@@ -710,3 +710,16 @@ node tools/compare.mjs
   - results: all 46 test files pass; neat text (804 renders) and contrast (lowest 4.87:1 on cards) pass; layout passes at 1920×1080, 1366×768 and 1280×720 (236 scenes); realinput, libinput, presenter, online2 and vfxcheck pass; 60 first-deck AI matches and 300 random-deck matches finish with no crash, illegal state or stall (59 of the 60 deck cards played; Smuggler's Run was never played as an Order);
   - fixed on the way by the checks: a changed last letter of a deck code could hide in its unused bits and still import (codes must now read back exactly); event records with empty fields; the Library input checks pinned to the old card count;
 - **Readings for Elliott's approval:** rules in `docs/01-rulebook.md` section 13 (29–50) and open question 3 (Chill); the look in `docs/03-look-and-feel.md` section 20.
+
+### N2: Fixes after stage N (23 November 2026)
+Built from `docs/36-stage-n2-prompt.md`, with everything in `docs/35-fixes-after-stage-n.md` (approved by Elliott).
+- **Knives in the Dark:** the set 4 Event once called Night Raid has its own name, id `knives-in-the-dark` and new art. A saved deck or deck code naming the old id `night-raid-event` imports it as Knives in the Dark (version 2 codes keep its place in the card list, so they import unchanged). Night Raid is the Action alone again. Rulebook reading 49 is replaced.
+- **Chill, revised:** a creature that damages a Chill creature becomes **Frozen**: Spent, and it stays Spent at the next Dawn (it skips one return to Active), then thaws. An effect that makes it Active thaws it; Frozen again while Frozen, it still skips just one Dawn. Attack, hit back, Riposte and a creature's own trigger damage all count (reading 29); an Action's damage doesn't.
+  - Engine (`src/engine/game.js`), tests (`tests/n-rules.test.js`: attack, hit back, Riposte, trigger damage, one Dawn exactly, thawing by Draught of Vigour, frozen again).
+  - The AI values Frozen (a Frozen creature is worth about a Round of being Ready less, more with its Attack), so it would rather not attack a Chill creature when it has another target (`tests/n-ai-pool.test.js`, which fails without it).
+  - On the board: a FROZEN tag and the painted frost crust until it thaws; its tip, its Codex line and glossary entry; the rulebook's Dawn step 4, section 7 and the Chill row.
+- **Keyword tips** for stage N's keywords and triggers (missed in stage N) and Frozen (`tests/n2-fixes.test.js`).
+- **The six new effects textures** (`assets/vfx/`): frost crust and ice shards for Chill and Frozen; venom drips for Venom; water surge for the Deepmaw's arrival and its On Summon, and The Drowned Reach at Dusk; forked lightning for Chain Lightning, the Skyreach Stormwing, Grusha the Stormcaller (red) and Stormbreak Crags; the rage aura for Frenzy. Each within the timing budgets (`tests/n-effects.test.js`). `?fxdemo` stages each moment, and `tools/n2fx.mjs` takes a frame of each.
+- **Checks:** `tools/n2shots.mjs` freezes a creature with real clicks (FROZEN tag, frost crust, its Codex line); new layout scenes `n2-frozen`, `n2-frozen-codex`, `n2-tip-chill` and `n2-knives` at all three sizes.
+- **Readings for Elliott's approval:** rules in `docs/01-rulebook.md` (51–53); the look in `docs/03-look-and-feel.md` section 21.
+

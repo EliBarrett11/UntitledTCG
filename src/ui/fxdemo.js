@@ -72,5 +72,70 @@ export function stageDemo(s0, name, ME, THEM) {
       ] };
     }
   }
+  // Stage N2: the moments that use docs/35's six new textures (tools/n2fx.mjs takes a frame of each).
+  if (name.startsWith('n2-')) return stageN2(s, name, ME, THEM, { me, them, lane, foeAt });
+  return { s, steps: [] };
+}
+
+const at = (s, id, level, k) => ready(s, creatureAtLevel(cardDef(id), level, uid(k)));
+const placeLoc = (s, id, start, owner) => {
+  const c = cardAtRound(id, s.round, uid(`loc-${id}`));
+  s.locations.push({ uid: uid(`locp-${id}`), owner, card: c, name: c.name, start, width: c.width, roundsLeft: c.rounds, passive: c.passive });
+};
+const attackOn = (ME, THEM, from, foe) => (st) => legalActions(st, ME, 'attack').find((a) => a.from === from && a.target.kind === 'creature' && st.players[THEM].row[a.target.space]?.uid === foe.uid);
+const passBoth = (ME, THEM) => [(st) => (actor(st) === ME ? legalActions(st, ME, 'pass')[0] : null), (st) => (actor(st) === THEM ? legalActions(st, THEM, 'pass')[0] : null)];
+function stageN2(s, name, ME, THEM, { me, them, lane, foeAt }) {
+  const spentFoe = (k, id = 'stonehide-basilisk', hp = 9) => { const c = foeAt(k, id, hp); c.spent = true; return c; };
+  s.locations = [];
+  if (name === 'n2-chill') {            // Hilde attacks a Rime Elemental: Chill freezes her (frost crust, ice shards).
+    me.row[lane] = at(s, 'stonewatch-bulwark', 4, 'hilde');
+    const foe = { ...at(s, 'rime-elemental', 5, 'rime'), spent: true };
+    them.row[lane] = foe;
+    return { s, steps: [attackOn(ME, THEM, lane, foe)] };
+  }
+  if (name === 'n2-venom') {            // A Mirefang Stalker's bite: venom drips.
+    me.row[lane] = at(s, 'mirefang-stalker', 3, 'mirefang');
+    const foe = spentFoe(lane);
+    return { s, steps: [attackOn(ME, THEM, lane, foe)] };
+  }
+  if (name === 'n2-frenzy') {           // An Ironclaw Warbear hurt: its rage aura flares.
+    me.row[lane] = at(s, 'mirefang-stalker', 3, 'mirefang');
+    const foe = { ...at(s, 'ironclaw-bear', 7, 'bear'), spent: true };
+    them.row[lane] = foe;
+    return { s, steps: [attackOn(ME, THEM, lane, foe)] };
+  }
+  if (name === 'n2-deepmaw') {          // The Deepmaw rises on its water surge; its On Summon's wave makes enemies Spent.
+    const c = cardAtRound('the-deepmaw', s.round, uid('deepmaw'));
+    me.hand.push(c);
+    foeAt(3); foeAt(4);
+    return { s, steps: [(st) => { const all = legalActions(st, ME, 'summon').filter((a) => a.uid === c.uid); return all.find((a) => a.space === 2) ?? all[0]; }] };
+  }
+  if (name === 'n2-chain') {            // Chain Lightning (Adapt) forks across a Location.
+    const c = cardAtRound('chain-lightning', s.round, uid('chain'));
+    me.hand.push(c);
+    placeLoc(s, 'ironroot-pass', 2, ME);
+    const foe = spentFoe(2); spentFoe(3);
+    return { s, steps: [(st) => legalActions(st, ME, 'action').find((a) => a.uid === c.uid && a.mode === 'adapt' && a.target?.who === THEM && a.target.space === 2 && st.players[THEM].row[2]?.uid === foe.uid)] };
+  }
+  if (name === 'n2-stormbreak') {       // Stormbreak Crags placed: lightning across its lanes.
+    const c = cardAtRound('stormbreak-crags', s.round, uid('crags'));
+    me.hand.push(c);
+    return { s, steps: [(st) => { const all = legalActions(st, ME, 'placeLocation').filter((a) => a.uid === c.uid); return all.find((a) => a.start === 2) ?? all[0]; }] };
+  }
+  if (name === 'n2-stormwing') {        // The Skyreach Stormwing's Soaring strike, with forked lightning.
+    me.row[lane] = at(s, 'skyreach-wyvern', 6, 'stormwing');
+    const foe = spentFoe(lane);
+    return { s, steps: [attackOn(ME, THEM, lane, foe)] };
+  }
+  if (name === 'n2-grusha') {           // Grusha the Stormcaller's On Dusk: red forked lightning.
+    me.row[lane] = { ...at(s, 'redmaw-shaman', 6, 'grusha'), spent: true };
+    spentFoe(lane);
+    return { s, steps: passBoth(ME, THEM) };
+  }
+  if (name === 'n2-drowned') {          // The Drowned Reach at Dusk: the water surges over each creature in it.
+    placeLoc(s, 'the-drowned-reach', 1, ME);
+    spentFoe(lane);
+    return { s, steps: passBoth(ME, THEM) };
+  }
   return { s, steps: [] };
 }

@@ -99,16 +99,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0806; }
 .tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: 10px; letter-spacing: 2px; padding: 2px 8px; border-radius: 3px; font-weight: 700; z-index: 5; white-space: nowrap; }
 .tag-ready { background: var(--brass); color: var(--ink); }
 .tag-spent { background: #3a2a1a; color: var(--parch); }
-/* Stage N2: Frozen (Chill): an icy FROZEN tag and a frost crust over the token until it thaws. */
+/* Stage N2: Frozen (Chill): an icy FROZEN tag and the painted frost crust (vfx-frost-crust, its black screened away) over the token until it thaws. */
 .tag-frozen { background: #d8f6ff; color: #0b2a3a; box-shadow: 0 0 8px rgba(160, 230, 255, 0.9); }
 .slot-card.frozen .card { filter: saturate(0.35) brightness(0.8) hue-rotate(160deg) sepia(0.1) drop-shadow(0 0 6px rgba(150, 220, 255, 0.75)); }
-.frost-crust { position: absolute; inset: 0; border-radius: 10px; pointer-events: none; z-index: 4;
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 50%, transparent 55%, rgba(200, 240, 255, 0.35) 75%, rgba(235, 250, 255, 0.75) 100%),
-    repeating-linear-gradient(60deg, transparent 0 9px, rgba(220, 248, 255, 0.16) 9px 11px),
-    repeating-linear-gradient(-60deg, transparent 0 13px, rgba(220, 248, 255, 0.12) 13px 15px);
-  box-shadow: inset 0 0 14px 3px rgba(225, 248, 255, 0.85), inset 0 0 0 2px rgba(190, 236, 255, 0.9);
-  -webkit-mask: radial-gradient(ellipse 62% 55% at 50% 48%, transparent 40%, #000 72%); mask: radial-gradient(ellipse 62% 55% at 50% 48%, transparent 40%, #000 72%); }
+.frost-crust { position: absolute; inset: -6px; border-radius: 12px; pointer-events: none; z-index: 4;
+  background: url('../../assets/vfx/vfx-frost-crust.webp') center / 100% 100% no-repeat; mix-blend-mode: screen; opacity: 0.95;
+  box-shadow: inset 0 0 12px 2px rgba(225, 248, 255, 0.55); }
 .strat-chip { position: absolute; top: -18px; right: -6px; display: flex; flex-direction: column; align-items: center; z-index: 6; font-size: 8px; letter-spacing: 1px; font-weight: 700; }
 .strat-chip .back-chip { width: 26px; height: 36px; box-shadow: 0 0 0 2px #e05a4a, 0 3px 6px rgba(0,0,0,0.6); }
 .strat-chip.mine .back-chip { box-shadow: 0 0 0 2px var(--brass), 0 3px 6px rgba(0,0,0,0.6); }

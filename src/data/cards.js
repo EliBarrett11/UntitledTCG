@@ -3837,6 +3837,8 @@ export const CARDS = [
     "cardType": "Event",
     "name": "Knives in the Dark",
     "art": "assets/cards/knives-in-the-dark.jpg",
+    "artFull": "assets/cards-v3/knives-in-the-dark.jpg",
+    "cardX": 800,
     "release": 1,
     "target": "enemy",
     "ops": [

@@ -33,7 +33,9 @@ const SOLID = new Set(['shard', 'coin', 'card']);
 const KIT = { 'vfx-slash-crescent': 'arc', 'vfx-impact-star': 'glow', 'vfx-shockwave': 'ring', 'vfx-fire-burst': 'glow', 'vfx-fire-ring': 'ring', 'vfx-fire-trail': 'streak',
   'vfx-holy-rays': 'glow', 'vfx-prime-burst': 'glow', 'vfx-renown-star': 'glow', 'vfx-arcane-glyphring': 'ring', 'vfx-burn-edge': 'streak', 'vfx-ghost-veil': 'streak',
   'vfx-dust-burst': 'smoke', 'vfx-crack': 'shard1', 'vfx-scorch-mark': 'scorch', 'vfx-shield-sigil': 'ring', 'vfx-ward-hex': 'ring', 'vfx-holy-dome': 'glow', 'vfx-arcane-lance': 'streak',
-  'vfx-arcane-ribbon': 'streak', 'vfx-shadow-claws': 'arc', 'vfx-shadow-eyes': 'glow' };
+  'vfx-arcane-ribbon': 'streak', 'vfx-shadow-claws': 'arc', 'vfx-shadow-eyes': 'glow',
+  // (Stage N2.)
+  'vfx-frost-crust': 'ring', 'vfx-ice-shards': 'spark', 'vfx-venom-drips': 'spark', 'vfx-water-surge': 'smoke', 'vfx-lightning-fork': 'streak', 'vfx-rage-aura': 'pillar' };
 export function shapeOf(id) {
   if (/^vfx-noise-/.test(id)) return 'noise';
   if (KIT[id]) return KIT[id];

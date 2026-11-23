@@ -52,6 +52,7 @@ export const ART = new Set([
   "assets/cards/ironhide-champion.jpg",
   "assets/cards/ironhide-warchief.jpg",
   "assets/cards/ironroot-pass.jpg",
+  "assets/cards/knives-in-the-dark.jpg",
   "assets/cards/lady-corwens-commission.jpg",
   "assets/cards/lanternhall-busker.jpg",
   "assets/cards/lanternhall-loremaster.jpg",

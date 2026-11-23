@@ -734,3 +734,15 @@ Built to `docs/25-stage-l-prompt.md`. No rule changed. The rulebook's section 4 
 11. **Deck codes** are now about 60–75 characters ("UTCG2." and then the code). Old codes still import.
 12. **Tile focus points** for the new Locations: the gallows tree and its cage (Gallows Hill), the shrine and its basin (The Sunlit Shrine), the lightning-struck spire (Stormbreak Crags), the burning cleft (The Ashfall, which now shows its art), the drowned lighthouse (The Drowned Reach).
 13. **Night Raid** the Action has its own picture again (the one it had before set 4's art arrived); Night Raid the Event has the new one (the hooded raider dropping onto the palisade).
+
+## 21. Readings from stage N2 (fixes after stage N): needing Elliott's approval
+
+1. **Frozen on the board:** a Frozen creature's tag reads **FROZEN** (ice-white, dark text) in place of SPENT, its token is greyed towards ice blue, and the painted frost crust (`vfx-frost-crust`, its black screened away) sits over the token until it thaws. When it thaws, "Thawed" inks over it; there's no separate effect.
+2. **Keyword tips for stage N's words:** Venom, Undying, Soaring, Tinker, Chill, Frenzy, Rally, On Attack, On Dawn, On Dusk and "choose one" now show their tips on hover (stage N gave them glossary entries but no tips), and so does Frozen. A Frozen creature's Codex page leads with "**Frozen:** it's Spent, and it stays Spent at the next Dawn, then thaws."
+3. **Chill:** the frost crust closes in over the creature that hit it and ice shards fly (`vfx-frost-crust`, `vfx-ice-shards`), in their own painted colours.
+4. **Venom:** the painted venom drips run down the creature it hurt (`vfx-venom-drips`), then the Spent smoke as before.
+5. **Frenzy:** the painted rage aura (`vfx-rage-aura`) flares as it's hurt; the token's red glow while damaged stays as it was.
+6. **The Deepmaw:** its summon is followed by a water surge rising over it (`vfx-water-surge`), and its On Summon makes each enemy in its Location Spent with a smaller surge on each.
+7. **The Drowned Reach at Dusk:** a surge over each creature it damages, then the hit.
+8. **Forked lightning** (`vfx-lightning-fork`): Chain Lightning forks from your hand to each creature it hits (all three modes); the Skyreach Stormwing's Soaring strike carries a fork as it lands, and its On Summon damage forks too; only Grusha's last form, the Stormcaller, throws red lightning at Dusk (the Bonecaster and the Shaman keep the plain pulse); Stormbreak Crags strikes two forks across its lanes as it's placed (its passive doesn't replay it).
+9. **Knives in the Dark** uses its new art, cut at the delivered centre (cardX 800); the Night Raid Event's old picture is retired.

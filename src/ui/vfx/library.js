@@ -461,16 +461,21 @@ export const VENOM = '#7fe05a';
 export const FROST = '#bfefff';
 export const GHOST = '#9fe8d8';
 export const FRENZY = '#ff4a32';
+export const WATER = '#6fe0e8';
+export const STORM = '#bfe4ff';
+export const STORM_RED = '#ff5a3a';
 Object.assign(EFFECTS, {
   'kw.venom': { duration: 750, steps: [
     { at: 0, op: 'sprite', tex: 'poison-mist', on: 'dst', sizeK: 1.4, scale: [0.6, 1.05], curve: 'out', life: 620, fadeIn: 0.15, fadeOut: 0.5, tint: VENOM, tintK: 0.85, alpha: 1.1 },
-    { at: 40, op: 'burst', tex: 'ink-splatter-atlas', on: 'dst', area: 'card', n: 7, speed: [20, 70], angle: 90, spread: 20, life: [420, 620], size: [18, 34], gravity: 520, drag: 1.2, tint: '#3fae2a', tintK: 0.95, alpha: 0.95 },
+    // (Stage N2: the painted venom drips run down it.)
+    { at: 40, op: 'burst', tex: 'vfx-venom-drips', on: 'dst', area: 'card', n: 8, speed: [20, 70], angle: 90, spread: 20, life: [440, 660], size: [22, 40], gravity: 520, drag: 1.2, alpha: 1.15 },
     { at: 260, op: 'sprite', tex: 'smoke-tendrils', on: 'dst', sizeK: 1.3, scale: [0.6, 1.05], curve: 'out', life: 460, fadeIn: 0.2, fadeOut: 0.5, alpha: 0.8, tint: '#304030', tintK: 0.6 },
     { at: 300, op: 'call', fn: 'land' },
   ] },
   'kw.chill': { duration: 700, steps: [
-    { at: 0, op: 'sprite', tex: 'vfx-ward-hex', on: 'dst', sizeK: 1.2, scale: [1.25, 0.95], curve: 'out', life: 600, fadeIn: 0.1, fadeOut: 0.45, tint: FROST, tintK: 0.9, alpha: 1.2 },
-    { at: 30, op: 'burst', tex: 'glass-shards-atlas', on: 'dst', area: 'card', n: 10, speed: [30, 120], spread: 360, life: [300, 520], size: [14, 30], drag: 2, tint: FROST, tintK: 0.8, alpha: 1.1 },
+    // (Stage N2: the painted frost crust closes in over it, and ice shards fly.)
+    { at: 0, op: 'sprite', tex: 'vfx-frost-crust', on: 'dst', sizeK: 1.2, scale: [1.3, 1.0], curve: 'out', life: 640, fadeIn: 0.1, fadeOut: 0.45, alpha: 0.8 },
+    { at: 30, op: 'burst', tex: 'vfx-ice-shards', on: 'dst', area: 'card', n: 10, speed: [30, 130], spread: 360, life: [320, 540], size: [18, 36], drag: 2, alpha: 1.15 },
     { at: 60, op: 'sprite', tex: 'halo-ring', on: 'dst', sizeK: 1.3, flat: 0.5, dy: 100, scale: [0.6, 1.1], curve: 'out', life: 500, fadeOut: 0.5, tint: FROST, tintK: 0.9, alpha: 0.9 },
     { at: 120, op: 'dom', name: 'shudder', el: 'dst', dur: 260 },
     { at: 250, op: 'call', fn: 'land' },
@@ -485,7 +490,8 @@ Object.assign(EFFECTS, {
     { at: 220, op: 'call', fn: 'land' },
   ] },
   'kw.frenzy': { duration: 550, steps: [
-    { at: 0, op: 'sprite', tex: 'empower-aura', on: 'dst', sizeK: 1.15, h: 300, scale: [0.7, 1.05], curve: 'out', life: 500, fadeIn: 0.15, fadeOut: 0.5, tint: FRENZY, tintK: 0.9, alpha: 1.25 },
+    // (Stage N2: the painted rage aura flares around it.)
+    { at: 0, op: 'sprite', tex: 'vfx-rage-aura', on: 'dst', sizeK: 1.45, scale: [0.75, 1.08], curve: 'out', life: 540, fadeIn: 0.15, fadeOut: 0.5, alpha: 1.3 },
     { at: 40, op: 'burst', tex: 'embers-atlas', on: 'dst', area: 'card', n: 10, speed: [40, 140], angle: 'up', spread: 40, life: [300, 500], size: [10, 20], gravity: -160, tint: FRENZY, tintK: 0.8 },
     { at: 120, op: 'call', fn: 'land' },
   ] },
@@ -500,6 +506,9 @@ Object.assign(EFFECTS, {
     { at: 60, op: 'sprite', tex: 'wing-gust', on: 'src', sizeK: 1.6, scale: [0.6, 1.1], curve: 'out', life: 380, fadeOut: 0.5, tint: 'accent', tintK: 0.4, alpha: 1.1 },
     { at: 150, op: 'projectile', tex: 'lunge-streak', from: 'src', to: 'dst', dur: 420, size: 150, arc: 520, align: true, tint: 'accent', tintK: 0.4, alpha: 1.2,
       trail: { tex: 'feathers-atlas', rate: 40, speed: [0, 30], life: [250, 420], size: [12, 24], alpha: 0.8, tint: 'accent', tintK: 0.3 } },
+    // (Stage N2: the Skyreach Stormwing strikes with forked lightning as it lands.)
+    { at: 520, op: 'beam', tex: 'vfx-lightning-fork', from: 'src', to: 'dst', life: 300, h: 140, alpha: 1.5, flicker: true, if: 'storm' },
+    { at: 530, op: 'flash', k: [0.4, 0.4], dur: 150, if: 'storm' },
     { at: 570, op: 'use', id: 'impact.hit' },
     { at: 800, op: 'use', id: 'counter.melee', swap: true, if: 'back' },
   ] },
@@ -512,6 +521,43 @@ Object.assign(EFFECTS, {
     { at: 0, op: 'sprite', tex: 'rune-circle', on: 'dst', sizeK: 1.1, scale: [0.6, 1.05], curve: 'out', life: 600, fadeIn: 0.2, fadeOut: 0.5, spin: 40, tint: '#ffd98a', tintK: 0.85, alpha: 1.0 },
     { at: 0, op: 'sprite', tex: 'shockwave-ring', on: 'dst', sizeK: 1.2, scale: [0.4, 2.0], curve: 'out', life: 520, fadeOut: 0.3, tint: '#ffd98a', tintK: 0.85, alpha: 0.8 },
     { at: 0, op: 'call', fn: 'tag', wait: true },
+  ] },
+  // Stage N2 (docs/35): the six painted textures' own cues.
+  //   Water surge: the Deepmaw rising (its arrival, and its On Summon's Spent wave), The Drowned Reach's Dusk damage.
+  //   Forked lightning: Chain Lightning, the Skyreach Stormwing (its Soaring attack, flag storm, and On Summon), Grusha the Stormcaller's
+  //   On Dusk (tinted red), and Stormbreak Crags as it's placed.
+  'water.surge': { duration: 760, steps: [
+    { at: 0, op: 'sprite', tex: 'vfx-water-surge', on: 'dst', sizeK: 1.05, dy: -10, scale: [0.45, 1.15], curve: 'out', life: 740, fadeIn: 0.1, fadeOut: 0.5, alpha: 1.35 },
+    { at: 80, op: 'burst', tex: 'dust-motes-atlas', on: 'dst', area: 'card', n: 14, speed: [80, 240], angle: 'up', spread: 70, life: [380, 620], size: [10, 22], gravity: 420, tint: WATER, tintK: 0.85, alpha: 1.0 },
+    { at: 120, op: 'wave', on: 'dst', radius: 300, strength: 6, dur: 480 },
+  ] },
+  'water.spend': { duration: 850, steps: [
+    { at: 0, op: 'sprite', tex: 'vfx-water-surge', each: true, sizeK: 1.3, dy: 30, scale: [0.4, 1.1], curve: 'out', life: 700, fadeIn: 0.1, fadeOut: 0.5, alpha: 1.25, stagger: 70 },
+    { at: 80, op: 'burst', tex: 'smoke-atlas', each: true, area: 'card', n: 5, speed: [20, 60], spread: 360, life: [500, 700], size: [70, 120], alpha: 0.5, tint: '#20404a', tintK: 0.6 },
+    { at: 260, op: 'call', fn: 'land' },
+  ] },
+  'water.dusk': { duration: 900, steps: [
+    { at: 0, op: 'sprite', tex: 'vfx-water-surge', each: true, sizeK: 1.3, dy: 30, scale: [0.4, 1.1], curve: 'out', life: 700, fadeIn: 0.1, fadeOut: 0.5, alpha: 1.25, stagger: 70 },
+    { at: 60, op: 'burst', tex: 'dust-motes-atlas', each: true, area: 'card', n: 10, speed: [60, 200], angle: 'up', spread: 70, life: [350, 560], size: [10, 20], gravity: 420, tint: WATER, tintK: 0.85 },
+    { at: 300, op: 'use', id: 'impact.magic', each: true, vars: { burst: 'vfx-water-surge' } },
+  ] },
+  'lightning.chain': { duration: 850, steps: [
+    { at: 0, op: 'sprite', tex: 'arcane-orb', on: 'src', size: 100, scale: [0.2, 1], curve: 'out', life: 260, fadeIn: 0.2, fadeOut: 0.8, tint: STORM, tintK: 0.6 },
+    { at: 200, op: 'beam', tex: 'vfx-lightning-fork', from: 'src', to: 'each', life: 340, h: 150, alpha: 1.6, flicker: true, stagger: 80 },
+    { at: 210, op: 'flash', k: [0.45, 0.45], dur: 160 },
+    { at: 420, op: 'use', id: 'impact.magic', each: true, stagger: 80 },
+  ] },
+  'lightning.red': { duration: 850, steps: [
+    { at: 0, op: 'sprite', tex: 'rune-circle', on: 'src', sizeK: 1.1, scale: [0.6, 1.05], curve: 'out', life: 500, fadeIn: 0.2, fadeOut: 0.5, spin: 40, tint: STORM_RED, tintK: 0.85 },
+    { at: 160, op: 'beam', tex: 'vfx-lightning-fork', from: 'src', to: 'each', life: 340, h: 150, alpha: 1.6, flicker: true, tint: STORM_RED, tintK: 0.85, stagger: 80 },
+    { at: 170, op: 'flash', k: [0.4, 0.4], dur: 160 },
+    { at: 380, op: 'use', id: 'impact.magic', each: true, stagger: 80 },
+  ] },
+  'location.storm': { duration: 800, steps: [
+    { at: 0, op: 'beam', tex: 'vfx-lightning-fork', from: 'stormL', to: 'stormR', life: 420, h: 220, alpha: 1.7, flicker: true },
+    { at: 140, op: 'beam', tex: 'vfx-lightning-fork', from: 'stormR2', to: 'stormL2', life: 360, h: 160, alpha: 1.4, flicker: true },
+    { at: 0, op: 'flash', k: [0.5, 0.5], dur: 200 },
+    { at: 0, op: 'shake', px: [2, 2], dur: 180 },
   ] },
 });
 
@@ -547,6 +593,13 @@ export const CARD_STYLE = {
   'the-ashen-wyrm': { attack: 'attack.wyrm', trigger: 'wyrm.onsummon', cinematic: 'wyrm' },
   // Stage N.
   'skyreach-wyvern': { attack: 'attack.soaring' },
+  // Stage N2: the new textures' cards.
+  'skyreach-stormwing': { storm: true, damage: 'lightning.chain' },
+  'redmaw-stormcaller': { damage: 'lightning.red' },
+  'chain-lightning': { damage: 'lightning.chain' },
+  'the-deepmaw': { arrive: 'water.surge', spend: 'water.spend' },
+  'the-drowned-reach': { damage: 'water.dusk' },
+  'stormbreak-crags': { placed: 'location.storm' },
   'aldric-the-unbroken': { attack: 'attack.oathsworn', final: true, cinematic: 'aldric' },
   // 5.3: Actions, by mode.
   // (Stage E: Firebolt is the new Fire test moment, at each size.)
@@ -610,7 +663,7 @@ export function attackVars(card, rand = Math.random) {
   const slash = kind === 'Beast' ? (rand() < 0.5 ? 'claw-rake' : 'bite-snap') : heavy ? 'cleave-arc' : 'slash-arc';
   return {
     vars: { slash, slash2: kind === 'Beast' ? 'claw-rake' : 'slash-arc', burst: 'arcane-vortex', bolt: 'arcane-bolt' },
-    flags: { heavy: !!heavy, final, tier, orb: spire && tier >= 1, lightning: spire && tier >= 2, undead: kind === 'Undead', beast: kind === 'Beast', stone: st.defeat === 'stone',
+    flags: { heavy: !!heavy, final, tier, orb: spire && tier >= 1, lightning: spire && tier >= 2, undead: kind === 'Undead', beast: kind === 'Beast', stone: st.defeat === 'stone', storm: !!st.storm,
       gust: !!st.summonGust && card?.form === st.summonGust },
   };
 }
@@ -624,7 +677,7 @@ export function effectFor(op, sourceName, kind = null) {
     case 'heal': return 'heal';
     case 'tempAttack': case 'attack': return 'effect.empower';
     case 'health': case 'tempHealth': return 'effect.fortify';
-    case 'spend': return 'effect.spend';
+    case 'spend': return st.spend ?? 'effect.spend';
     case 'activate': return st.activate ?? 'effect.activate';
     case 'returnHand': return 'effect.return';
     // Stage N.
@@ -653,6 +706,10 @@ export function reactFlags(name) {
   const f = src ? CARD_STYLE[src.id]?.reactFlag : null;
   return f ? { [f]: true } : {};
 }
+// Stage N2: a card's own extra moment as it arrives (the Deepmaw's water surge) or as its Location is placed
+// (Stormbreak Crags' lightning), if any.
+export function arrivalEffectFor(card) { return styleOf(card).arrive ?? null; }
+export function placedEffectFor(locationName) { const src = cardByName(locationName); return (src && CARD_STYLE[src.id]?.placed) ?? null; }
 // The cinematic a creature's arrival starts, if any.
 export function cinematicFor(card) { return styleOf(card).cinematic ?? null; }
 

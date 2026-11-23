@@ -11,7 +11,7 @@ import { accentOf, esc, HUMAN, AI, artOf, tintOf, foe, foes } from './text.js';
 import { handLayout, LANE_W, HAND, tileArt } from './view.js';
 import { hasGuard, mightOf } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
-import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS } from './vfx/library.js';
+import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS, arrivalEffectFor, placedEffectFor } from './vfx/library.js';
 import { OLD_OF } from './vfx/stageE.js';
 
 const STAGE_W = 1920;
@@ -515,6 +515,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 arrive: () => { if (t) t.style.opacity = ''; },
               },
             });
+            // (Stage N2: a card's own arrival moment, like the Deepmaw rising on its water surge.)
+            const own = arrivalEffectFor(card);
+            if (own) await fxRun(ctx, own, { anchors: anchors({ dst: focus }), els: { dst: t }, tint: card ? accentOf(card) : '#c7a15a' });
           }, cinematicFor(card) === 'wyrm' ? { cine: 'wyrm', cineFirst: true } : {});
           if (cinematicFor(card) === 'wyrm') activeCine = 'wyrm';
           break;
@@ -1126,6 +1129,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 write: () => (lbl ? ctx.anim(lbl, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: 420, easing: 'linear', fill: 'none' }) : null),
               },
             });
+            // (Stage N2: Stormbreak Crags strikes its lanes with forked lightning as it's placed.)
+            const placed = placedEffectFor(e.name);
+            if (placed) await fxRun(ctx, placed, { anchors: anchors({ dst: rb, stormL: { ...rb, cx: rb.x, cy: rb.y + rb.h * 0.4 }, stormR: { ...rb, cx: rb.x + rb.w, cy: rb.y + rb.h * 0.45 }, stormL2: { ...rb, cx: rb.x, cy: rb.y + rb.h * 0.7 }, stormR2: { ...rb, cx: rb.x + rb.w, cy: rb.y + rb.h * 0.62 } }) });
           });
           break;
         }
