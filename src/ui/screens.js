@@ -35,7 +35,7 @@ export function titleScreen(ui) {
       <div class="title-buttons" role="menu">
         ${btn('play', 'Play', 'primary')}
         ${btn('friend', 'Play a friend')}
-        ${btn('codex', 'Codex')}
+        ${btn('library', 'Card Library')}
         ${btn('settings', 'Settings')}
       </div>
     </div>
@@ -75,6 +75,7 @@ export function setupScreen(ui) {
           <div class="set-row">${[5, 8, 12, 20].map((v) => opt('reactSeconds', v, `${v} s`, st.reactSeconds === v)).join('')}</div>
         </div>
         ${!ui.online || ui.online.role === 'host' ? btn('begin', 'Begin', 'primary big') : '<div class="setup-wait" role="status">Waiting for your friend to begin…</div>'}
+        ${btn('library', 'Card Library')}
         ${ui.online ? btn('net-leave', 'Leave match') : btn('to-title', 'Title screen')}
       </div>
       ${side(AI, ui)}

@@ -134,9 +134,10 @@ const triggerLines = (c) => creatureLines(c).filter((l) => l.startsWith('**'));
 function typeText(c) {
   if (isCreature(c)) {
     const t = c.traits ?? {};
-    if (c.campaignCreature) return `Campaign Creature · ${[t.race, t.class].filter(Boolean).join(' ')}`;
-    if (t.kind) return `${c.legendary ? 'Legendary' : 'Monster'} · ${t.kind}`;
-    return [t.race, t.class].filter(Boolean).join(' · ');
+    // (Stage L: a home group, once a card has one, joins its affiliations.)
+    if (c.campaignCreature) return `Campaign Creature · ${[t.race, t.class].filter(Boolean).join(' ')}${t.home ? ` · ${t.home}` : ''}`;
+    if (t.kind) return [c.legendary ? 'Legendary' : 'Monster', t.kind, t.home].filter(Boolean).join(' · ');
+    return [t.race, t.class, t.home].filter(Boolean).join(' · ');
   }
   switch (c.cardType) {
     case 'Action': return ['Action', c.traits?.class].filter(Boolean).join(' · ');
@@ -284,6 +285,14 @@ function fullRules(c, opts) {
   return { html: blocks.join(''), h };
 }
 
+// A Mini card's affiliations line (stage L): a creature's traits (a Legendary's kind after LEGENDARY), an Action's
+// class; none for other cards.
+function miniAffiliations(c) {
+  const t = c.traits ?? {};
+  if (isCreature(c)) return c.legendary ? ['Legendary', t.kind, t.home].filter(Boolean).join(' · ') : [t.race, t.class, t.kind, t.home].filter(Boolean).join(' · ');
+  if (c.cardType === 'Action' && t.class) return `Action · ${t.class}`;
+  return '';
+}
 // The one line on a Mini card: its trigger or keywords, its modes, or its effect.
 function miniLine(c) {
   if (isCreature(c)) {
@@ -430,8 +439,11 @@ export function renderCard(c, opts = {}) {
   } else if (mini) {
     const npx = nameSize(np.first, 30, 304);
     h += `<div class="cv-name nowrap" data-z="text" style="left:16px;right:16px;top:${panel + 22}px;font-size:${npx}px${foil ? ';color:#ffe9b0' : ''}">${esc(np.first)}</div>`;
+    // (Stage L: a Mini card shows its affiliations too, under its name: a creature's traits, an Action's class.)
+    const aff = miniAffiliations(c);
+    if (aff) h += `<div class="cv-type cv-type-mini nowrap" data-z="text" style="top:${panel + 58}px;color:${acc}${aff.length > 22 ? ';letter-spacing:1px' : ''}">${esc(aff.toUpperCase())}</div>`;
     const line = miniLine(c);
-    if (line) h += `<div class="cv-rules cv-rules-mini" style="top:${panel + 66}px;bottom:${creature ? 66 : 22}px">${line}</div>`;
+    if (line) h += `<div class="cv-rules cv-rules-mini" style="top:${panel + (aff ? 84 : 66)}px;bottom:${creature ? 62 : 22}px">${line}</div>`;
   } else {
     const ny = panel + 22;
     // (The first name keeps its own size, however long the title; the title fits its own line.)

@@ -9,6 +9,8 @@ import { explain } from '../engine/explain.js';
 import { dominanceRenown } from '../engine/rules.js';
 import { GLOSSARY, TERM_NAMES, rulebookSections, searchRules } from '../engine/glossary.js';
 import { renderCard, cardBack } from './cards.js';
+import { cardDef, hasCard, isCreature } from '../engine/cards.js';
+import { affiliationsOf, rewardsOf, groupLabel } from '../engine/decks.js';
 import { energyHtml, CRYSTAL_ICON, fullArtOf, nameParts } from './text.js';
 
 const esc = (x) => String(x ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -48,7 +50,10 @@ const NOW_SKIP = ['round', 'level', 'summon', 'attack', 'health', 'creature'];
 
 // --- The panel ---------------------------------------------------------------------------------------------
 
-export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
+// (Stage L: library: { active(), filterBy(group, value) } when the Card Library is showing: a card's affiliations
+// then link to that filter, and a series page shows every Level.)
+export function createCodex(viewport, { state, viewer: seatOf, lowMotion, library = null }) {
+  const inLibrary = () => !!library?.active();
   // (Stage M: the seat this screen plays, looked up each time.)
   const seat = () => (typeof seatOf === 'function' ? seatOf() : seatOf);
   const layer = document.createElement('div');
@@ -169,6 +174,10 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
     else if (e.kind === 'section') html = sectionPage(e.id);
     else html = searchPage(e.q);
     crumb.innerHTML = crumbs();
+    // (Stage L: the footer says what fits where the Codex is open.)
+    const foot = inLibrary() ? 'Esc to close · an affiliation\'s link shows every card that has it' : 'Right-click any card, or hover it and press C · Esc to close · the match carries on';
+    const fe = panel.querySelector('.cx-foot');
+    if (fe.textContent !== foot) fe.textContent = foot;
     panel.querySelector('.cx-back').hidden = stack.length < 2;
     fitCrumb();
     if (html === lastHtml && !fresh) return;
@@ -186,7 +195,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
     if (!ex && lastEx) { ex = lastEx; gone = true; }
     if (!ex) return '<p class="cx-now">This card is no longer there.</p>';
     lastEx = ex;
-    e.name = ex.name; e.place = e.place ?? ex.place;
+    e.name = ex.name; e.place = e.place ?? (inLibrary() ? 'THE LIBRARY' : ex.place);
     if (ex.kind === 'hidden') return hiddenPage(ex);
     const c = ex.card;
     const opts = { size: 'full' };
@@ -205,8 +214,10 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
     if (ex.item) h += itemBlock(ex);
     if (ex.location) h += locationBlock(ex);
     if (ex.campaign) h += campaignBlock(ex);
+    h += affiliationBlock(c);
     if (!ex.abilities) h += glossaryBox(glOpen ?? ex.terms[0]);
     if (ex.forms) h += formsBlock(ex);
+    if (ex.forms && inLibrary()) h += everyLevelBlock(c);
     return h;
   }
   function levelsLine(ex) {
@@ -244,7 +255,11 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
   function eventBlock(ex) {
     const ev = ex.event;
     return `<h4>RELEASE AND FAVOUR</h4><div class="cx-mode"><span class="cx-cost cx-free">${ev.release}</span><div><b>${linkTerms('Release')} ${ev.release}</b>: put ${ev.release === 1 ? '1 other card' : `${ev.release} other cards`} from your hand in the Released Pile, then: ${line(ev.text)}</div></div>
-      ${ev.favour ? `<div class="cx-mode"><span class="cx-cost cx-fav">★</span><div><b>${linkTerms('Favour')}</b> if you Release ${esc(ev.favour.condition)}: ${line(ev.favour.text)} <span class="cx-dim">(and +${ev.favour.renown} Renown)</span></div></div>` : ''}`;
+      ${ev.favour ? `<div class="cx-mode"><span class="cx-cost cx-fav">★</span><div><b>${linkTerms('Favour')}</b> if you Release ${favourLink(ex)}: ${line(ev.favour.text)} <span class="cx-dim">(and +${ev.favour.renown} Renown)</span></div></div>` : ''}`;
+  }
+  function favourLink(ex) {
+    const r = rewardsOf(defOf(ex.card))[0];
+    return r && inLibrary() ? affLink(r, ex.event.favour.condition) : esc(ex.event.favour.condition);
   }
   function itemBlock(ex) {
     const it = ex.item;
@@ -261,6 +276,41 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
     return `<h4>CAMPAIGN ORDER</h4><div class="cx-mode"><span class="cx-cost">${CRYSTAL_ICON}${c.order.cost}</span><div>${line(c.order.text)}</div></div>
       <h4>QUEST</h4><div class="cx-ab">${line(c.quest.text)} ${c.quest.progress != null ? `<b>${c.quest.complete ? 'Complete' : `${c.quest.progress} of ${c.quest.need}`}</b>` : ''}</div>${segs}
       <h4>CAMPAIGN CREATURE</h4><div class="cx-forms"><button type="button" class="cx-fm" data-open-lc="${esc(c.campaignCreature.id)}"><span class="cx-fw">${renderCard(c.campaignCreature.card, { size: 'full' })}</span>${esc(c.campaignCreature.name)}</button></div>`;
+  }
+  // Stage L: a card's affiliations (ancestry, class, Monster kind, home group...) and the ones it rewards. In the
+  // Card Library each links to its filter.
+  function affLink(a, text = a.value) {
+    return inLibrary() ? `<a href="#" class="cx-aff" data-aff="${esc(`${a.group}:${a.value}`)}" title="Show every ${esc(a.value)} card">${esc(text)}</a>` : `<b>${esc(text)}</b>`;
+  }
+  function defOf(c) {
+    if (c.campaignCreature) return c;
+    return hasCard(c.id) ? cardDef(c.id) : c;
+  }
+  function affiliationBlock(c) {
+    const d = defOf(c);
+    const own = affiliationsOf(d);
+    const rewards = rewardsOf(d);
+    if (!own.length && !rewards.length) return '';
+    const rows = [];
+    if (own.length) rows.push(`<tr><td>Its own</td><td>${own.map((a) => `${affLink(a)} <span class="cx-dim">(${esc(groupLabel(a.group).toLowerCase())})</span>`).join(' · ')}</td></tr>`);
+    if (rewards.length) rows.push(`<tr><td>Rewards</td><td>${rewards.map((a) => affLink(a, `a ${a.value}`)).join(' · ')}</td></tr>`);
+    return `<h4>AFFILIATIONS</h4><table class="cx-tab cx-kv cx-affs">${rows.join('')}</table>`;
+  }
+  // Stage L: a series in the Library: every Level of every form, its stats, its Prime, and each form's text.
+  function everyLevelBlock(c) {
+    const d = defOf(c);
+    if (!isCreature(d) || !d.forms) return '';
+    const rows = d.forms.map((f) => {
+      const lv = Object.entries(f.levels).map(([L, x]) => {
+        const prime = Number(L) === d.prime;
+        return `<tr class="${prime ? 'cx-prime-row' : ''}"><td>${L}</td><td>${x.attack} / ${x.health}${prime ? ` <span class="cx-pr">★ Prime: ${x.attack + 1} / ${x.health + 1}</span>` : ''}</td></tr>`;
+      }).join('');
+      const text = [...(f.text ?? [])];
+      return `<div class="cx-elv"><div class="cx-elv-h"><b>${esc(f.name)}</b> <span class="cx-dim">Levels ${Object.keys(f.levels).join('–')}</span></div>
+        <table class="cx-tab cx-elv-t"><tr><th>Level</th><th>Attack / Health</th></tr>${lv}</table>
+        <div class="cx-ab">${text.length ? text.map((x) => line(x)).join(' · ') : '<span class="cx-dim">No text: its numbers are all on the curve.</span>'}</div></div>`;
+    }).join('');
+    return `<h4>EVERY LEVEL · PRIME AT LEVEL ${d.prime}</h4>${rows}`;
   }
   function formsBlock(ex) {
     const NAMES = ['young', 'grown', 'elder'];
@@ -319,6 +369,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
       if (i < 0) { stack = stack.slice(0, 1); glOpen = null; lastEx = null; return render(true); }
       stack = stack.slice(0, i + 1); glOpen = null; lastEx = null; return render(true);
     }
+    if (a.dataset.aff) { const [g, ...v] = a.dataset.aff.split(':'); library?.filterBy(g, v.join(':')); return close(); }
     if (a.dataset.term) {
       // On a card page the entry opens in its box below; on any other page it opens as its own page.
       if (top()?.kind === 'card') { glOpen = a.dataset.term; lastHtml = ''; render(); body.querySelector('.cx-gl')?.scrollIntoView({ block: 'nearest' }); return; }

@@ -35,7 +35,7 @@ export function removeCopy(list, id) {
   return idsToList(ids);
 }
 // The rules' problems, and whether a deck may be chosen for a match.
-export const listIssues = (list) => deckIssues(listToIds(list));
+export const listIssues = (list) => deckIssues(listToIds(list)).map((x) => x.text);
 export const isLegal = (list) => listIssues(list).length === 0;
 // The most copies a deck may hold of a card (rulebook section 4); 0 for a card that's never in a deck.
 export function maxCopiesOf(id) {

@@ -21,6 +21,8 @@ import { createCodex } from './codex.js';
 import { announcement, announcementHtml, costPreview, energyDisplay } from './turn.js';
 import { termAtOffset, tipHtml } from './tips.js';
 import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
+import { createLibrary } from './library.js';
+import { createDeckStore } from './deckstore.js';
 
 // The presentation art (V3), fetched and decoded before it's first shown.
 const ART = [...['war-table', 'campaign-map', 'campaign-map-scorched', 'title-key-art', 'victory-backdrop', 'card-back'].map((n) => `assets/ui/${n}.jpg`), ...['banner-crimson', 'banner-blue'].map((n) => `assets/ui/${n}.png`)];
@@ -73,7 +75,26 @@ export function startApp(params) {
   const applyMotionClass = () => document.body.classList.toggle('low-motion', !!settings.lowMotion);
   applyMotionClass();
   // Stage G: the Codex, in its own layer over the right-hand column (made first, so its Escape comes before the game's).
-  const codex = createCodex(document.getElementById('viewport'), { state: () => (screen === 'match' ? s : null), viewer: () => HUMAN, lowMotion: () => !!settings.lowMotion });
+  // (Stage L: in the Card Library its pages read a quiet reference game: Round 1, nothing in play.)
+  let libRef = null;
+  const libState = () => (libRef ??= createGame(1, { decks: { p1: FIRST_DECK, p2: FIRST_DECK } }));
+  const codex = createCodex(document.getElementById('viewport'), { state: () => (screen === 'match' ? s : screen === 'library' ? libState() : null), viewer: () => (screen === 'library' ? 'p1' : HUMAN), lowMotion: () => !!settings.lowMotion,
+    library: { active: () => screen === 'library', filterBy: (g, v) => library.filterBy(g, v) } });
+  // Stage L: the decks saved in this browser, and the Card Library with its deck builder.
+  const decks = createDeckStore();
+  const library = createLibrary({ stage, codex, store: decks, toast: (m) => libToast(m), onBack: (from) => go(from === 'lobby' && !online.active() ? 'title' : from), onChange: () => {} });
+  function libToast(msg) {
+    let el = document.getElementById('lib-toast');
+    if (!el) { el = document.createElement('div'); el.id = 'lib-toast'; el.setAttribute('role', 'status'); document.getElementById('viewport').appendChild(el); }
+    el.textContent = msg;
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    clearTimeout(libToast.t);
+    libToast.t = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+  function openLibrary() {
+    const from = screen === 'library' ? library.from : screen;
+    return go('library', () => library.open({ from }));
+  }
   // Stage M: playing a friend online (src/ui/online.js). Its connection light, banner and news sit in their own
   // layer over the stage, so they never disturb a redraw or an animation.
   const netLayer = document.createElement('div');
@@ -201,6 +222,7 @@ export function startApp(params) {
     clearTimeout(timer);
     stopReact();
     if (screen === 'match' && next !== 'match') { vfx.clear(); presenting = false; document.body.dataset.presenting = ''; }
+    if (screen === 'library' && next !== 'library') library.close();
     screen = next;
     ui = ui ?? freshUi();
     ui.settingsOpen = false;
@@ -690,7 +712,7 @@ export function startApp(params) {
     el?.focus({ preventScroll: true });
   }
   document.addEventListener('keydown', (e) => {
-    if (screen === 'match') return;
+    if (screen === 'match' || screen === 'library') return;
     const list = navs();
     if (!list.length) return;
     const i = list.indexOf(document.activeElement);
@@ -709,6 +731,7 @@ export function startApp(params) {
     document.body.dataset.online = online.active() ? online.role : '';
     placeSeat();
     renderNet();
+    if (screen === 'library') { stage.style.translate = ''; return library.draw(); }
     if (screen === 'title' || screen === 'setup' || screen === 'lobby') {
       codex.close();
       const keep = focusKey();
@@ -1042,7 +1065,7 @@ export function startApp(params) {
     if (presenting) { e.stopPropagation(); skips += 1; document.body.dataset.skips = String(skips); presenter.skip(); }
   }, true);
   stage.addEventListener('click', (e) => {
-    if (presenting) return;
+    if (presenting || screen === 'library') return;
     if (suppressClick) { suppressClick = false; return; }
     const pv = stage.querySelector('#preview');
     if (pv) pv.hidden = true;
@@ -1103,7 +1126,7 @@ export function startApp(params) {
       case 'net-retry': return online.retry();
       case 'net-leave': return online.leave();
       case 'net-rematch': return online.rematch();
-      case 'codex': location.href = `${location.pathname}?sheet=full&from=title`; return undefined;
+      case 'library': return openLibrary();
       case 'settings': ui.settingsOpen = !ui.settingsOpen; return draw();
       case 'log': ui.logOpen = !ui.logOpen; return draw();
       // V5: the pace controls (against the AI; Replay online too).
@@ -1487,7 +1510,12 @@ export function startApp(params) {
     if (k === 'title') { screen = 'title'; notice = 'Your friend left the match.'; previewResume = { code: 'HMQXT', round: 4, started: true }; } else screen = online.preview(k);
     draw();
   } else if (screen === 'match') newMatch();
-  else Promise.race([preloadArt(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
+  else if (screen === 'library') {
+    // (Dev aid for the checks: ?screen=library opens the Card Library; &libcode=<deck code> imports that deck and opens
+    // it in the builder; &libdeck=first opens a saved deck; &libfilter=group:value,... sets filters; &libpage=<card key>
+    // opens a card's page; &libfrom=setup|lobby sets where Back goes.)
+    library.open({ from: params.get('libfrom') ?? 'title', code: params.get('libcode'), deckId: params.get('libdeck'), filters: params.get('libfilter'), page: params.get('libpage') });
+  } else Promise.race([preloadArt(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
   preloadArt();
   // Dev hooks for the checks (they read; they never change the match).
   // (Stage E dev aid: stage one of the three test moments and play it through the presenter, for tools/eclips.mjs.
