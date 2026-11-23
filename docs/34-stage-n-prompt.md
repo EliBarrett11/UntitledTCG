@@ -94,3 +94,8 @@ Every card and rule in those four docs is approved by Elliott. Add them to the g
   - a choose-one Summon;
   - Undying triggering.
 - Commit and push to `main` with a README build-log entry. Report as usual, with readings in `docs/03-look-and-feel.md` and the rulebook's open questions.
+
+## 6. Follow-ups from the stage L review
+- **Campaign lengths:** give every Campaign a `length` in `docs/cards.json` (Side-Quest, mid-length or long, as in docs/30; Lady Corwen's Commission is long), show it on the card and its Library page, and turn on the Library's Campaign length filter.
+- **Home groups:** fill in the home group for every Character (old and new), so the filter stage L built has data.
+- **Shorter deck codes:** stage L's codes are about 600 characters. Make new codes compact (for example, a version byte, then each card as its index in a stable card-id list plus its copy count, with a checksum, in URL-safe base64), aiming for under 100 characters for a 40-card deck. Old codes must still import. Test the round-trip and the old format.
