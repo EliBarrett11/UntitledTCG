@@ -183,7 +183,7 @@ export function createLibrary({ stage, codex, store, toast = () => {}, onBack = 
     if (d.kind === 'code') return `<div class="ld-dialog ld-code"><div>${esc(d.copied ? 'Copied. Keep it somewhere safe, or send it to a friend:' : 'Select the code and copy it:')}</div>
       <textarea readonly rows="3" data-lib-focus="code" spellcheck="false">${esc(d.text)}</textarea><button type="button" class="ld-btn" data-lib="cancel">Done</button></div>`;
     if (d.kind === 'import') return `<form class="ld-dialog ld-import" data-lib-form="import"><div>Paste a deck code:</div>
-      <textarea rows="3" data-lib-focus="import" spellcheck="false" placeholder="UTCG1.…">${esc(d.text ?? '')}</textarea>
+      <textarea rows="3" data-lib-focus="import" spellcheck="false" placeholder="UTCG2.…">${esc(d.text ?? '')}</textarea>
       ${d.error ? `<div class="ld-error" role="alert">${esc(d.error)}</div>` : ''}
       <div class="ld-dialog-btns"><button type="submit" class="ld-btn primary">Import</button><button type="button" class="ld-btn" data-lib="cancel">Cancel</button></div></form>`;
     return '';

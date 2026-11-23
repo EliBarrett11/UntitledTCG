@@ -120,7 +120,7 @@ async function run([w, h]) {
     steps.push('rename by typing');
     await click('.ld-foot [data-lib="code"]', 'Copy deck code');
     const code = await p.inputValue('.ld-code textarea');
-    await expect(/^UTCG1\./.test(code), 'a deck code');
+    await expect(/^UTCG2\.[A-Za-z0-9_-]+$/.test(code) && code.length < 100, 'a compact deck code');
     await click('.ld-code [data-lib="cancel"]', 'Done');
     await click('[data-lib="close-deck"]', 'back to your decks');
     await click('[data-lib="import"]', 'Import deck code');

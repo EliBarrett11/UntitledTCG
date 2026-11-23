@@ -710,3 +710,27 @@ Built to `docs/25-stage-l-prompt.md`. No rule changed. The rulebook's section 4 
     - While you're in the Library, the lobby's moves (your friend arriving, going back) don't pull you out; its Back button follows them ("‹ Match setup").
     - A match starting does take you to it.
 21. **The title screen's Codex button** is now "Card Library". The old card sheet (`?sheet=full`) stays a dev aid.
+
+## 20. Readings from stage N (New Cards Batch 1): needing Elliott's approval
+
+1. **Choose one:** summoning Maren asks for her space, then shows a small menu of her modes ("Choice 1 · +2 Attack until Dusk to one of your creatures", "Choice 2 · Draw 1 card"), then the target if the mode has one. At her Prime the menu is skipped: both modes happen, and you choose the one target.
+2. **Tilda's Prime target:** the enemy Warlord lights up as a target, beside the enemy creatures, as it does for an attack.
+3. **"Prime:" lines** read "**Prime:** Ambush", "**Prime:** Armour 1" and "**Prime:** Choose both" on the card, under the card's other lines, in the same style as "**Prime: On Summon:**". On the new cards they show only on the Prime Level's card (rule reading 34).
+4. **Undying's marker:** a teal UNDYING pill near the top of the board card while its Undying is unused (its own or Cinderfeather Amulet's). It goes when Undying saves it.
+5. **Frenzy's glow:** while a Frenzy creature is damaged, its board card glows red and pulses gently (no pulse in low motion). Its Attack tab shows the +2, and the Attack tooltip lists "+ 2 Frenzy".
+6. **Keywords from elsewhere on the board card:** a Location's keyword (Gallows Hill's "Riposte 1") and one until Dusk (Shield Wall's "Armour 2 until Dusk") join the card's keyword line. A long line ("Shield · Undying · Riposte 1 · Armour 1") is set smaller to fit.
+7. **The effects** (docs/20's palettes, within the existing budgets):
+   - **Venom:** a green poison mist and drips running down the creature it hurt, then the Spent smoke, with a VENOM tag;
+   - **Chill:** a frost hexagon and ice shards over the creature that hurt it, which shudders, with a CHILL tag;
+   - **Undying:** a ghostlight burst and ring, motes rising, and the card standing up again, with "UNDYING" and "1 Health";
+   - **Frenzy:** a red aura and embers when it's first hurt, with a FRENZY tag;
+   - **Tinker:** copper sparks and a pulse, "+1 / +1";
+   - **Soaring:** feathers and a wing gust, then the strike arcs high over the guard to its target (any Soaring attacker; the Skyreach series always);
+   - **On Dusk and On Dawn:** the trigger's rune circle and a shockwave in dusk violet or dawn gold;
+   - **The Drowned Reach** at Dusk: its damage comes from its tile.
+8. **Accents for the new affiliations:** Bard lantern gold, Artificer copper, Elemental frost blue (the card's accent colour; existing cards keep theirs).
+9. **Dense rules:** a Full card whose rules don't fit above the art's lowest panel line sets them smaller (12.6 px), more to a line: Shield Wall, Glass Veil, Second Wind, Chain Lightning and Tamsin's Prime. The older cards are unchanged. A Mini card's long line (Maren's choose-one, the Mossback's Prime) and its longer affiliation line (now with home groups, "HALFLING · ROGUE · HOLLOWFOOT") are set smaller to fit.
+10. **Campaign length** shows on the card's type line ("CAMPAIGN · SIDE-QUEST"), as a LENGTH line on its Library page ("Side-Quest · its Campaign Creature arrives at Level 4, at its Prime"), and as the Library's Campaign length filter (Side-Quest, Mid-length, Long).
+11. **Deck codes** are now about 60–75 characters ("UTCG2." and then the code). Old codes still import.
+12. **Tile focus points** for the new Locations: the gallows tree and its cage (Gallows Hill), the shrine and its basin (The Sunlit Shrine), the lightning-struck spire (Stormbreak Crags), the burning cleft (The Ashfall, which now shows its art), the drowned lighthouse (The Drowned Reach).
+13. **Night Raid** the Action has its own picture again (the one it had before set 4's art arrived); Night Raid the Event has the new one (the hooded raider dropping onto the palisade).

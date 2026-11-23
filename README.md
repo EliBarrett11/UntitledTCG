@@ -683,3 +683,28 @@ node tools/compare.mjs
   - results: all 42 test files pass; the AI-vs-AI simulation runs clean; neat text, layout (every scene at 1920×1080, 1366×768 and 1280×720), real input (all three sizes, Player 2's seat, low motion), the Library real-input check, the presenter, the two-browser online match and the effects check all pass;
   - fixes from the checks: "The first deck" keeps its own card order, so every seed shuffles and plays exactly as before; the deck list's counts no longer clip.
 - **Readings for Elliott's approval:** the look in `docs/03-look-and-feel.md` section 19; no rule readings.
+
+### N: New Cards Batch 1 (23 November 2026)
+- Built to `docs/34-stage-n-prompt.md`, from the four approved sets (`docs/26`, `28`, `30`, `32`) and their art (`docs/27`, `29`, `31`, `33`). No balancing: the full pool is for play-testing raw. "The first deck" is unchanged.
+- **The cards** (all in `docs/cards.json`, generated into `src/data` by `tools/buildcards.mjs`):
+  - 31 new deck cards: 11 Character and Monster series (Maren, Hilde, the Mirefang, Vessa, Tamsin, the Cairn, the Skyreach, Grusha, Pell, the Rime, the Ironclaw), 5 Actions (Shield Wall, Glass Veil, Hunter's Snare, Second Wind, Chain Lightning), 3 Events (War Drums, Market Day, Night Raid), 3 Items, 3 Locations, 5 Campaigns with their Campaign Creatures (Rook, Wren, Brannoc, Oakheart, Ysolde) and The Deepmaw with its Location, The Drowned Reach. The pool is now 60 deck cards;
+  - the three Prime revisions (Tilda, Elowen, the Mossback Ancient);
+  - every image from `assets/cards-v3/`, cut by `tools/artcrops.py`; tile focus points for the five new Location images (The Ashfall now shows its art);
+  - **Night Raid** is two cards with one name (Elliott's choice): the Action keeps its id, its place in "The first deck" and its own picture again; the Event is `night-raid-event`, with the new picture.
+- **Affiliations:** every Character has a home group, the eight old ones included (Oathsworn, Hollowfoot, Ashen Spire, Deepforge, Thornwood, Ironhide, Cinderwick, Duskmere); the new Bard and Artificer classes, the Elemental kind and six new home groups. They show on every card and in the Library, each a filter.
+- **The new rules** (rulebook 5.1, 5.3, 7, 8.4, 9, 12.1–12.3), each with tests (`tests/n-rules.test.js`, 31 tests):
+  - keywords Venom, Undying, Soaring, Tinker, Chill and Frenzy; triggers Rally (group), On Attack, On Dawn and On Dusk; "Choose one" and "Prime: Choose both", picked as part of the Summon through `legalActions`; "Prime:" keywords;
+  - Location passives: The Sunlit Shrine's Dawn heal, Stormbreak Crags' +1 Attack and −1 Health (never below 1), Gallows Hill's Riposte 1, The Drowned Reach's Dusk damage (not to the Deepmaw);
+  - a creature may have two triggers (its own and a "Prime:" one); Campaign Creatures arrive at their Campaign's Level (4, 6 or 8 by its length);
+  - triggers at the same moment resolve in a fixed order: the player with initiative first, then left to right (rulebook 12.3).
+- **The AI** plays every new card through `legalActions` (modes, the Deepmaw's place, Items bought), and values the new abilities. `tools/randomdecks.mjs` plays AI-vs-AI matches with random legal decks from the whole pool, to catch crashes and stuck states (no win rates).
+- **Effects** (`src/ui/vfx/library.js`): Venom's green drip, Chill's frost, Undying's burst and stand-up (and its UNDYING marker until used), Frenzy's red glow while damaged, Tinker's sparks, Soaring's arc over the guard, On Dusk and On Dawn pulses; within the existing budgets.
+- **Keyword tips and the Codex:** every new keyword and trigger has its glossary entry, quoted from the rulebook.
+- **From the stage L review:**
+  - Campaign lengths (Side-Quest, mid-length, long) on every Campaign, on the card and its Library page, and the Library's Campaign length filter;
+  - home groups for every Character;
+  - compact deck codes: `UTCG2.` and a version byte, the name, each card as its index in a stable card list with its copies, and a checksum, in URL-safe base64, about 60–75 characters for a 40-card deck (stage L's were about 500). Old codes still import (`tests/n-decks.test.js`).
+- **Checks:**
+  - new tests: `n-rules`, `n-ai-pool`, `n-effects`, `n-decks`; the older tests now cover the whole pool where they're about it;
+  - neat text and contrast on every card at every Level and size; new layout scenes at all three sizes (`n-board`, `n-deepmaw`, `n-choose`, `n-undying`, the Library filtered by the new affiliations and by Campaign length, a new series' page and a Campaign's page); `tools/nshots.mjs` catches Undying as it happens;
+- **Readings for Elliott's approval:** rules in `docs/01-rulebook.md` section 13 (29–50) and open question 3 (Chill); the look in `docs/03-look-and-feel.md` section 20.
