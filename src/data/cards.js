@@ -1346,7 +1346,7 @@ export const CARDS = [
     "name": "Night Raid",
     "art": "assets/cards/night-raid.jpg",
     "artFull": "assets/cards-v3/night-raid.jpg",
-    "cardX": 700,
+    "cardX": 820,
     "traits": {
       "class": "Rogue"
     },
