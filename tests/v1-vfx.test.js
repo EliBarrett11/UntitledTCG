@@ -18,13 +18,13 @@ const kit21 = new Set(read('docs/21-vfx-texture-prompts.md').match(/vfx-[a-z-]+/
 defineCards(CARDS);
 const OPS = new Set(['sprite', 'burst', 'emit', 'ribbon', 'projectile', 'beam', 'wave', 'heat', 'shake', 'hitstop', 'flash', 'dom', 'call', 'use', 'light', 'pushin']);   // (stage E: light and pushin)
 
-test('every creature in the first deck (each form) and the Legendary Creature resolves to an attack effect', () => {
+test('every creature in the first deck (each form) and the Campaign Creature resolves to an attack effect', () => {
   const ids = new Set(FIRST_DECK);
   let n = 0;
   for (const d of CARDS) {
-    if (!ids.has(d.id) && !d.legendaryCreature) continue;
+    if (!ids.has(d.id) && !d.campaignCreature) continue;
     const creatures = d.forms ? d.forms.map((f) => ({ id: d.id, form: f.id, cardType: d.cardType, traits: d.traits, attackKind: d.attackKind, series: d.series })) : [];
-    if (d.legendaryCreature) creatures.push({ ...d.legendaryCreature, legendary: true });
+    if (d.campaignCreature) creatures.push({ ...d.campaignCreature, legendary: true });
     for (const c of creatures) {
       const id = attackEffectFor(c);
       assert.ok(EFFECTS[id], `${c.form ?? c.id}: ${id}`);

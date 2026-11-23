@@ -17,7 +17,7 @@ export const cardDef = (id) => {
   return d;
 };
 export const hasCard = (id) => LIBRARY.has(id);
-// Every definition (the Codex finds a Legendary Creature's Campaign this way).
+// Every definition (the Codex finds a Campaign Creature's Campaign this way).
 export const allDefs = () => [...LIBRARY.values()];
 
 export const CREATURE_TYPES = Object.freeze(['Character', 'Monster']);
@@ -33,10 +33,10 @@ export function formAt(def, level) {
 export const levelsOf = (def) => def.forms.flatMap((f) => Object.keys(f.levels).map(Number)).sort((a, b) => a - b);
 
 // Stage P: a series' Prime. Its stage at a Level: 'rising' below the Prime Level, 'prime' at it, 'waning' above.
-// Legendary cards (and Legendary Creatures) are always Prime. The Prime as a Round: the Round in which cards off the
+// Legendary cards (and Campaign Creatures) are always Prime. The Prime as a Round: the Round in which cards off the
 // battlefield are at the Prime Level (the same for every copy and both players).
 export function stageAt(def, level) {
-  if (def.series === 'Legendary' || def.series === 'Legendary Creature') return 'prime';
+  if (def.series === 'Legendary' || def.series === 'Campaign Creature') return 'prime';
   return level < def.prime ? 'rising' : level === def.prime ? 'prime' : 'waning';
 }
 export const primeRoundOf = (def) => (def.series === 'Legendary' || def.prime == null ? null : def.prime - SERIES_RANGE[def.series][0] + 1);
@@ -49,6 +49,8 @@ export function creatureAtLevel(def, level, uid) {
     uid, id: def.id, form: form.id, cardType: def.cardType, name: form.name, art: form.art ?? null, series: def.series, level,
     prime: def.series === 'Legendary' ? level : def.prime ?? null, primeRound: primeRoundOf(def), stage: stageAt(def, level),
     cost: costFor(level, def.series === 'Legendary'), legendary: def.series === 'Legendary',
+    // Stage R (7.2): a Legendary takes 3 spaces and brings its own Location; every other creature takes one space.
+    width: def.series === 'Legendary' ? RULES.legendaryWidth : 1, ownLocation: def.series === 'Legendary' ? def.location ?? null : null,
     attack: entry.attack, health: entry.health, speed: def.speed, attackKind: def.attackKind, guard: def.guard ?? null,
     traits: structuredClone(def.traits ?? {}), keywords: structuredClone(form.keywords ?? {}),
     trigger: trigger ? structuredClone(trigger) : null,
@@ -65,12 +67,12 @@ export function cardAtRound(id, round, uid) {
   return c;
 }
 
-// A Campaign's Legendary Creature (not a deck card): Level 8, free, a snapshot.
-export function legendaryCreatureOf(campaignDef, uid) {
-  const lc = campaignDef.legendaryCreature;
+// A Campaign's Campaign Creature (not a deck card): Level 8, free, a snapshot.
+export function campaignCreatureOf(campaignDef, uid) {
+  const lc = campaignDef.campaignCreature;
   return {
-    uid, id: lc.id ?? `${campaignDef.id}:lc`, form: lc.id ?? null, cardType: lc.cardType, name: lc.name, art: lc.art ?? null, series: 'Legendary Creature',
-    level: RULES.legendaryLevel, prime: RULES.legendaryLevel, primeRound: null, stage: 'prime', cost: 0, legendaryCreature: true, attack: lc.attack, health: lc.health, speed: lc.speed, attackKind: lc.attackKind,
+    uid, id: lc.id ?? `${campaignDef.id}:lc`, form: lc.id ?? null, cardType: lc.cardType, name: lc.name, art: lc.art ?? null, series: 'Campaign Creature',
+    level: RULES.legendaryLevel, prime: RULES.legendaryLevel, primeRound: null, stage: 'prime', cost: 0, campaignCreature: true, width: 1, ownLocation: null, attack: lc.attack, health: lc.health, speed: lc.speed, attackKind: lc.attackKind,
     guard: lc.guard ?? null, traits: structuredClone(lc.traits ?? {}), keywords: structuredClone(lc.keywords ?? {}),
     trigger: lc.trigger ? structuredClone(lc.trigger) : null,
   };
@@ -88,6 +90,7 @@ export function deckProblems(ids) {
     const max = d.series === 'Legendary' || d.cardType === 'Campaign' ? 1 : RULES.maxCopies;
     if (n > max) out.push(`${nameOf(d)}: at most ${max} ${max === 1 ? 'copy' : 'copies'} (has ${n})`);
     if (d.cardType === 'Campaign') campaigns += 1;
+    if (d.cardType === 'Location' && d.legendaryOf) out.push(`${nameOf(d)} is ${nameOf(cardDef(d.legendaryOf))}'s own Location, never in a deck`);
   }
   if (campaigns > RULES.maxCampaigns) out.push(`At most ${RULES.maxCampaigns} Campaign cards (has ${campaigns})`);
   return out;

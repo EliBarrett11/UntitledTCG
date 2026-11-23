@@ -24,24 +24,32 @@ test('5.1: no mulligan after Round 1', () => {
   assert.ok(!types(s, s.turn).includes('mulligan'));
 });
 
-test('5.1: Dawn: Exhaust recovers, Energy is set, Spent cards become Active, +1 Gold, Dawn healing, Levels, draw 7 less Retained, waiting Legendary Creatures arrive', () => {
+test('5.1: Dawn: Exhaust recovers, Energy is set, Spent cards become Active, +1 Gold, Dawn healing, Levels, draw 7 less Retained, waiting Campaign Creatures arrive', () => {
   let s = blank(1, { round: 4 });
   const p = s.players.p1;
   p.exhaust = [{ position: 1, spentRound: 3, recoversRound: 5 }, { position: 2, spentRound: 3, recoversRound: 6 }];
   const c = put(s, 'p1', 0, 'x-slow', { spent: true, currentHealth: 2 });
-  put(s, 'p2', 8, 'x-slow', { spent: true });
+  put(s, 'p2', 7, 'x-slow', { spent: true });
   give(s, 'p1', 'tlo4');
   s = act(s, { type: 'placeLocation', who: 'p1', uid: s.players.p1.hand[0].uid, start: 0 });
   const keep = give(s, 'p1', 'tc1');
   s = act(s, { type: 'retain', who: 'p2', uid: give(s, 'p2', 'tc3') });
   s = act(s, { type: 'retain', who: 'p1', uid: keep });
   s.players.p1.drawPile.push({ ...s.players.p1.drawPile[0], uid: 'dp-tc5', id: 'tc5' });
-  s.players.p1.waiting.push({ uid: 'lc-test', id: 'lc', cardType: 'Character', name: 'Waiting', level: 8, cost: 0, legendaryCreature: true, attack: 1, health: 1, speed: 'Slow', attackKind: 'Martial', guard: null, traits: {}, keywords: {}, trigger: null });
   s.players.p1.row = s.players.p1.row.map((x, i) => x ?? (i === 0 ? null : { ...c, uid: `fill-${i}` }));
   s.players.p1.row[0] = c;
-  s.players.p1.row[8] = null;
+  s.players.p1.row[7] = null;
   const gold = s.players.p1.gold;
-  s = endPhase(s);
+  // (Waiting since the Battle Phase's last turn.)
+  s = act(s, { type: 'pass', who: s.turn });
+  s.players.p1.waiting.push({ uid: 'lc-test', id: 'lc', cardType: 'Character', name: 'Waiting', level: 8, cost: 0, campaignCreature: true, attack: 1, health: 1, speed: 'Slow', attackKind: 'Martial', guard: null, traits: {}, keywords: {}, trigger: null });
+  s = act(s, { type: 'pass', who: s.turn });
+  // (Stage R: the round's flow pauses for the waiting Campaign Creature's player to choose its space: here at Dusk,
+  // where a space is already free; otherwise at Dawn step 9.)
+  assert.equal(s.phase, 'dusk');
+  assert.equal(s.arrival?.who, 'p1');
+  s = act(s, { type: 'arrive', who: 'p1', uid: 'lc-test', space: 7 });
+  assert.equal(s.phase, 'battle');
   const q = s.players.p1;
   assert.equal(s.round, 5);
   assert.equal(q.exhaust.length, 1, 'the point due at Round 5 recovered');
@@ -53,7 +61,7 @@ test('5.1: Dawn: Exhaust recovers, Energy is set, Spent cards become Active, +1 
   assert.equal(q.hand.length, 7, '1 Retained + 6 drawn');
   assert.ok(q.hand.find((x) => x.uid === keep), 'the Retained card stayed');
   assert.equal(q.hand.find((x) => x.uid === keep).level, 5, 'cards in hand take this Round\'s Level');
-  assert.ok(q.row.some((x) => x?.uid === 'lc-test'), 'the waiting Legendary Creature arrived in the free space');
+  assert.equal(q.row[7]?.uid, 'lc-test', 'the waiting Campaign Creature arrived in the chosen space');
 });
 
 test('5.2: initiative alternates each Round; players alternate one action per turn', () => {

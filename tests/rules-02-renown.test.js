@@ -20,7 +20,7 @@ test('2: defeating an enemy Character or Monster: +2', () => {
   assert.equal(gains(s, 'p1', 'defeat'), 2);
 });
 
-test('2: dominating a placed Location at Dusk: +3 per Location', () => {
+test('2: dominating a placed Location at Dusk: by its width (stage R): two 2-lane Locations, +4 each', () => {
   let s = blank();
   put(s, 'p1', 0, 'x-slow', { spent: true });
   put(s, 'p1', 5, 'x-slow', { spent: true });
@@ -29,7 +29,7 @@ test('2: dominating a placed Location at Dusk: +3 per Location', () => {
   give(s, 'p2', 'tlo2');
   s = act(s, { type: 'placeLocation', who: 'p2', uid: s.players.p2.hand[0].uid, start: 5 });
   s = endPhase(s);
-  assert.equal(gains(s, 'p1', 'dominance'), 6);
+  assert.equal(gains(s, 'p1', 'dominance'), 8);
 });
 
 test('2: completing an Event\'s Favour: +3', () => {

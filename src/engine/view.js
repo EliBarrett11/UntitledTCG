@@ -53,7 +53,11 @@ export function viewFor(s, seat) {
 // drawn cards in their hand, so the unknown cards' numbers match the view's.
 export function redactEvents(events, seat, after = null) {
   const foe = opponentOf(seat);
-  return events.map((e) => {
+  // (Stage R fix: a card an event names may be hidden by the time the action ends, e.g. a Campaign Order whose own draw
+  // shuffled it back into the Draw Pile. Its uid is left out then.)
+  const hidden = new Set(after ? [...after.players[foe].hand, ...PLAYERS.flatMap((w) => after.players[w].drawPile), ...after.strats.filter((x) => x.owner === foe).map((x) => x.card)].map((c) => c.uid) : []);
+  return events.map((e0) => {
+    const e = e0.uid && hidden.has(e0.uid) ? { ...e0, uid: null } : e0;
     if (e.who !== foe) return e;
     if (e.type === 'drew') {
       const n = e.uids.length;

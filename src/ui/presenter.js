@@ -561,8 +561,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           });
           break;
         }
-        case 'legendaryArrived': {
-          B('legendary', `${e.name}, a Legendary Creature, arrives!`, async (ctx) => {
+        case 'campaignArrived': {
+          B('legendary', `${e.name}, a Campaign Creature, arrives!`, async (ctx) => {
             const t = token(e.who, e.space);
             focus = where(e.who, e.space);
             if (t) t.style.opacity = '0';
@@ -1067,8 +1067,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           });
           break;
         case 'questComplete': {
-          // Does Aldric (or another Legendary Creature with a cinematic) arrive in this same action?
-          const aldricNext = !!vfx?.on && events.slice(ei + 1).some((x) => x.type === 'legendaryArrived' && x.who === e.who && cinematicFor(next.players[x.who].row[x.space]) === 'aldric');
+          // Does Aldric (or another Campaign Creature with a cinematic) arrive in this same action?
+          const aldricNext = !!vfx?.on && events.slice(ei + 1).some((x) => x.type === 'campaignArrived' && x.who === e.who && cinematicFor(next.players[x.who].row[x.space]) === 'aldric');
           B('quest', `${POSS[e.who]} Quest for ${e.name} is complete!`, async (ctx) => { await Promise.all([pulse(ctx, q(`[data-region="quest-${e.who}"]`), '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]); }, async (ctx) => {
             const qe = q(`[data-region="quest-${e.who}"]`);
             const qb = qe ? box(qe) : centre;

@@ -258,7 +258,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
     const segs = c.quest.progress != null ? `<div class="cx-segs">${Array.from({ length: c.quest.need }, (_, i) => `<i class="${i < c.quest.progress ? 'on' : ''}"></i>`).join('')}</div>` : '';
     return `<h4>CAMPAIGN ORDER</h4><div class="cx-mode"><span class="cx-cost">${CRYSTAL_ICON}${c.order.cost}</span><div>${line(c.order.text)}</div></div>
       <h4>QUEST</h4><div class="cx-ab">${line(c.quest.text)} ${c.quest.progress != null ? `<b>${c.quest.complete ? 'Complete' : `${c.quest.progress} of ${c.quest.need}`}</b>` : ''}</div>${segs}
-      <h4>LEGENDARY CREATURE</h4><div class="cx-forms"><button type="button" class="cx-fm" data-open-lc="${esc(c.legendaryCreature.id)}"><span class="cx-fw">${renderCard(c.legendaryCreature.card, { size: 'full' })}</span>${esc(c.legendaryCreature.name)}</button></div>`;
+      <h4>CAMPAIGN CREATURE</h4><div class="cx-forms"><button type="button" class="cx-fm" data-open-lc="${esc(c.campaignCreature.id)}"><span class="cx-fw">${renderCard(c.campaignCreature.card, { size: 'full' })}</span>${esc(c.campaignCreature.name)}</button></div>`;
   }
   function formsBlock(ex) {
     const NAMES = ['young', 'grown', 'elder'];

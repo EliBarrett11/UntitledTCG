@@ -2,7 +2,7 @@
 // Prime stages by Round, "Prime:" abilities, On Retain, Patient and the draw, the +1 Renown (and the Last Battle's
 // bonus on it), the deck, and the curve itself.
 import { test, run, assert, blank, give, act, put, endPhase, legalActions } from './helpers.js';
-import { defineCards, cardDef, cardAtRound, creatureAtLevel, levelsOf, deckProblems, isCreature, legendaryCreatureOf, stageAt } from '../src/engine/cards.js';
+import { defineCards, cardDef, cardAtRound, creatureAtLevel, levelsOf, deckProblems, isCreature, campaignCreatureOf, stageAt } from '../src/engine/cards.js';
 import { CARDS, FIRST_DECK, DECKS } from '../src/data/cards.js';
 import { SERIES_RANGE, RULES } from '../src/engine/rules.js';
 
@@ -37,10 +37,10 @@ test('the Primes across the deck: Round 1 (1 series), 2 (2), 3 (1), 4 (3), 5 (3)
   assert.equal(cardAtRound('mossback-ancient', 9, 'x').stage, 'prime', 'from Round 6 a series stays at its last Level');
 });
 
-test('Legendary cards and Legendary Creatures are always Prime', () => {
+test('Legendary cards and Campaign Creatures are always Prime', () => {
   assert.equal(cardAtRound('the-ashen-wyrm', 1, 'x').stage, 'prime');
   assert.equal(stageAt(cardDef('the-ashen-wyrm'), 8), 'prime');
-  assert.equal(legendaryCreatureOf(cardDef('lady-corwens-commission'), 'lc').stage, 'prime');
+  assert.equal(campaignCreatureOf(cardDef('lady-corwens-commission'), 'lc').stage, 'prime');
 });
 
 // --- "Prime:" abilities ---
@@ -172,7 +172,7 @@ test('the curve: every non-Prime Level\'s Attack + Health = Level + 2 − 1 per 
 test('the Legendaries: The Ashen Wyrm 6/6, Aldric the Unbroken 6/6 with Shield and Armour 1', () => {
   const w = cardAtRound('the-ashen-wyrm', 1, 'w');
   assert.deepEqual([w.attack, w.health, w.cost], [6, 6, 5]);
-  const a = legendaryCreatureOf(cardDef('lady-corwens-commission'), 'a');
+  const a = campaignCreatureOf(cardDef('lady-corwens-commission'), 'a');
   assert.deepEqual([a.attack, a.health, a.guard, a.keywords], [6, 6, 'Shield', { armour: 1 }]);
 });
 

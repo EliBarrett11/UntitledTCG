@@ -12,7 +12,7 @@ const expected = {
   'Location card': V.CARD_TYPES.location,
   'Campaign card': V.CARD_TYPES.campaign,
   'Quest': V.CAMPAIGN.quest,
-  'Legendary Creature': V.CAMPAIGN.legendaryCreature,
+  'Campaign Creature': V.CAMPAIGN.campaignCreature,
   'Campaign Order': V.CAMPAIGN.campaignOrder,
   'React': V.ACTION_MODES.react,
   'Adapt': V.ACTION_MODES.adapt,
@@ -90,6 +90,6 @@ assert.throws(() => { 'use strict'; V.CARD_TYPES.character = 'X'; }, TypeError);
 // No DOM code in the engine module.
 assert.equal(typeof globalThis.document, 'undefined');
 
-assert.equal(V.CAMPAIGN.legendaryHero, undefined, 'renamed to Legendary Creature');
+assert.equal(V.CAMPAIGN.legendaryHero, undefined, 'renamed to Campaign Creature');
 
 console.log(`smoke: ${Object.keys(expected).length} terms present, non-empty and frozen`);

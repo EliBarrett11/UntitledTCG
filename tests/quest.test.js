@@ -39,12 +39,16 @@ test('the Last Battle counts as one Location', () => {
 
 test('at 8, the Quest completes: +2 Renown and Aldric the Unbroken arrives (Level 8, 6/6, Steady, Martial, Shield, Armour 1)', () => {
   let s = withCommission(blank(), 7);
-  put(s, 'p1', 7, 'oathsworn-recruit', { spent: true });
-  s = act(s, { type: 'placeLocation', who: 'p1', uid: give(s, 'p1', 'ironroot-pass'), start: 7 });
+  put(s, 'p1', 6, 'oathsworn-recruit', { spent: true });
+  s = act(s, { type: 'placeLocation', who: 'p1', uid: give(s, 'p1', 'ironroot-pass'), start: 6 });
   s = endPhase(s);
   const q = s.players.p1.quests[0];
   assert.equal(q.complete, true);
-  const aldric = s.players.p1.row[0];   // the leftmost empty space (in the Wilds)
+  // (Stage R: Dusk pauses for its player to choose the empty space it arrives in.)
+  assert.equal(s.arrival?.who, 'p1');
+  s = act(s, { type: 'arrive', who: 'p1', uid: s.players.p1.waiting[0].uid, space: 3 });
+  assert.equal(s.phase, 'battle', 'Dusk and the next Dawn went on');
+  const aldric = s.players.p1.row[3];
   assert.equal(aldric.name, 'Aldric the Unbroken');
   assert.deepEqual([aldric.level, aldric.attack, aldric.health, aldric.speed, aldric.attackKind], [8, 6, 6, 'Steady', 'Martial']);
   assert.ok(hasGuard(aldric, 'Shield'));

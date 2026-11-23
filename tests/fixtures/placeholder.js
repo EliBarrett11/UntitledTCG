@@ -92,11 +92,11 @@ const RAW = [
   { id: 'tlo3', cardType: 'Location', name: 'Test Location 3 Lanes Health', width: 3, rounds: 3, passive: { ops: [{ op: 'health', amount: 2 }] } },
   { id: 'tlo4', cardType: 'Location', name: 'Test Location 4 Lanes Dawn Heal', width: 4, rounds: 2, passive: { ops: [{ op: 'dawnHeal', amount: 2 }] } },
 
-  // --- A Campaign: its Quest, its Campaign Order and its Legendary Creature ---
+  // --- A Campaign: its Quest, its Campaign Order and its Campaign Creature ---
   { id: 'tca1', cardType: 'Campaign', name: 'Test Campaign K1',
     quest: { kind: 'dominate', need: 8, text: 'Dominate a Location 8 times' },
     order: { cost: 2, target: 'own', ops: [{ op: 'activate' }] },
-    legendaryCreature: { cardType: 'Character', name: 'Test Legendary Creature K1', speed: 'Swift', attackKind: 'Martial', guard: null, attack: 8, health: 10, traits: { class: 'Fighter', race: 'Dwarf' } } },
+    campaignCreature: { cardType: 'Character', name: 'Test Campaign Creature K1', speed: 'Swift', attackKind: 'Martial', guard: null, attack: 8, health: 10, traits: { class: 'Fighter', race: 'Dwarf' } } },
 ];
 
 export const PLACEHOLDER_CARDS = RAW.map(series);

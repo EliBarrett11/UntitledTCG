@@ -57,13 +57,13 @@ test('11: dominance: more total Might across the battlefield gains 5 Renown (8 w
   let s = blank();
   s.lastBattle = { startedRound: 3, reason: 'test' };
   put(s, 'p1', 0, 'x-slow', { spent: true });
-  put(s, 'p2', 8, 'x-slow', { spent: true, currentHealth: 5 });
+  put(s, 'p2', 7, 'x-slow', { spent: true, currentHealth: 5 });
   s = endPhase(s);
   assert.equal(s.players.p1.renown, 8);
   let t = blank();
   t.lastBattle = { startedRound: 3, reason: 'test' };
   put(t, 'p1', 0, 'x-slow', { spent: true });
-  put(t, 'p2', 8, 'x-slow', { spent: true });
+  put(t, 'p2', 7, 'x-slow', { spent: true });
   t = endPhase(t);
   assert.equal(t.players.p1.renown + t.players.p2.renown, 0);
 });

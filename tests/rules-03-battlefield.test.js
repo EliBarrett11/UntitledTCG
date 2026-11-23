@@ -2,17 +2,17 @@
 import { test, run, assert, blank, newMatch, put, give, act } from './helpers.js';
 import { locationKey, locationAt, legalActions } from '../src/engine/game.js';
 
-test('3: 9 lanes, one space per player each', () => {
+test('3: 8 lanes, one space per player each (stage R; 9 before)', () => {
   const s = newMatch();
-  assert.equal(s.players.p1.row.length, 9);
-  assert.equal(s.players.p2.row.length, 9);
+  assert.equal(s.players.p1.row.length, 8);
+  assert.equal(s.players.p2.row.length, 8);
 });
 
 test('3: the Wilds are the lanes no placed Location covers', () => {
   let s = blank();
   give(s, 'p1', 'tlo3');
   s = act(s, { type: 'placeLocation', who: 'p1', uid: s.players.p1.hand[0].uid, start: 2 });
-  for (const lane of [0, 1, 5, 8]) { assert.equal(locationAt(s, lane), null); assert.equal(locationKey(s, lane), 'wilds'); }
+  for (const lane of [0, 1, 5, 7]) { assert.equal(locationAt(s, lane), null); assert.equal(locationKey(s, lane), 'wilds'); }
   for (const lane of [2, 3, 4]) assert.notEqual(locationKey(s, lane), 'wilds');
 });
 

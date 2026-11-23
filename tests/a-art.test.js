@@ -11,7 +11,7 @@ import { tileArt, TILE_H, LANE_W } from '../src/ui/view.js';
 defineCards(CARDS);
 const json = JSON.parse(readFileSync('docs/cards.json', 'utf8'));
 const crops = JSON.parse(readFileSync('assets/cards-v3/crops.json', 'utf8'));
-const withArt = CARDS.flatMap((d) => [...(d.forms ?? [d]), ...(d.legendaryCreature ? [d.legendaryCreature] : [])]).filter((x) => x.art);
+const withArt = CARDS.flatMap((d) => [...(d.forms ?? [d]), ...(d.campaignCreature ? [d.campaignCreature] : [])]).filter((x) => x.art);
 
 test('every card has its new art: the card crop, its full scene and its crop centre, recorded from the art', () => {
   assert.equal(withArt.length, 54);
@@ -24,7 +24,7 @@ test('every card has its new art: the card crop, its full scene and its crop cen
     assert.equal(x.cardX, crops[id].cardX, `${id}: cardX is the crop centre in crops.json`);
   }
   // (docs/cards.json carries the same, written by tools/buildcards.mjs.)
-  const jsonArt = json.cards.flatMap((d) => [...(d.forms ?? [d]), ...(d.legendaryCreature ? [d.legendaryCreature] : [])]).filter((x) => x.art);
+  const jsonArt = json.cards.flatMap((d) => [...(d.forms ?? [d]), ...(d.campaignCreature ? [d.campaignCreature] : [])]).filter((x) => x.art);
   assert.equal(jsonArt.filter((x) => x.artFull && Number.isFinite(x.cardX)).length, 54);
 });
 
@@ -64,7 +64,7 @@ test('Characters have first names shared by all three forms, and three forms are
   assert.equal(nameOf('hollowfoot-fence'), 'Fennick, the Hollowfoot Guildmaster');
   assert.equal(nameOf('cinderwick-hermit'), 'Tilda, the Cinderwick Pyromancer');
   assert.equal(nameOf('archmagus-of-the-ashen-spire'), 'Corvin, the Archmagus of the Ashen Spire');
-  assert.equal(cardDef('lady-corwens-commission').legendaryCreature.name, 'Aldric the Unbroken');
+  assert.equal(cardDef('lady-corwens-commission').campaignCreature.name, 'Aldric the Unbroken');
 });
 
 test('the card face shows the first name (title beneath on a full card); words use the whole name', () => {

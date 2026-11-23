@@ -6,10 +6,10 @@
 // the same list. The match is deterministic from its seed (state.rng).
 //
 // Reused from the old game's engine (read as a reference only), rewritten in the new vocabulary.
-import { RULES, SPEED_ORDER, levelFor } from './rules.js';
+import { RULES, SPEED_ORDER, levelFor, dominanceRenown } from './rules.js';
 import { nextRandom, shuffle } from './random.js';
 import { newEnergy, refreshEnergy, canPay, payCost, energyLeft } from './energy.js';
-import { cardDef, cardAtRound, isCreature, legendaryCreatureOf } from './cards.js';
+import { cardDef, cardAtRound, isCreature, campaignCreatureOf } from './cards.js';
 import { MAX_CHAIN, PLAYER_OPS } from './abilities.js';
 
 export const PLAYERS = Object.freeze(['p1', 'p2']);
@@ -24,7 +24,7 @@ export function createGame(seed, { decks }) {
     seed, rng: seed >>> 0, round: 0, phase: 'setup', turn: null, initiative: null, passesInARow: 0,
     players: {}, locations: [], strats: [], reactWindow: null, triggers: [],
     market: { pool: [], onSale: null, stock: 0, soldOut: null },
-    lastBattle: null, winner: null, result: null, log: [], events: [], actionsThisRound: 0, turnCount: 0,
+    lastBattle: null, arrival: null, winner: null, result: null, log: [], events: [], actionsThisRound: 0, turnCount: 0,
   };
   for (const who of PLAYERS) {
     // Step 1: the deck is shuffled into the Draw Pile, Campaign cards included.
@@ -54,7 +54,34 @@ export function createGame(seed, { decks }) {
 
 export const creaturesOf = (s, who) => s.players[who].row.map((card, space) => (card ? { card, space, who } : null)).filter(Boolean);
 const allCreatures = (s) => PLAYERS.flatMap((who) => creaturesOf(s, who));
-export const emptySpaces = (s, who) => s.players[who].row.map((c, i) => (c ? null : i)).filter((i) => i !== null);
+// Stage R (7.2): a Legendary stands in the first of its 3 spaces (row[start]) and covers the next two, so every count,
+// guard and target sees it once. The creature covering a lane on a side: { card, space } (space: where it stands).
+export function occupantAt(s, who, lane) {
+  const row = s.players[who].row;
+  for (let i = lane; i >= 0 && i > lane - RULES.legendaryWidth; i--) {
+    const c = row[i];
+    if (c && i + (c.width ?? 1) > lane) return { card: c, space: i };
+    if (c) return null;
+  }
+  return null;
+}
+export const laneFree = (s, who, lane) => lane >= 0 && lane < RULES.lanes && !occupantAt(s, who, lane);
+export const emptySpaces = (s, who) => Array.from({ length: RULES.lanes }, (_, i) => i).filter((i) => laneFree(s, who, i));
+// The lanes a creature stands in.
+export const lanesOfCard = (space, card) => Array.from({ length: card?.width ?? 1 }, (_, i) => space + i);
+// 7.2: where a Legendary can be summoned: the first of 3 adjacent empty spaces on its side, in lanes with no Location
+// (during the Last Battle there are no Locations, so any 3 adjacent empty spaces).
+export function legendaryStarts(s, who, card) {
+  const w = card.width ?? RULES.legendaryWidth;
+  const out = [];
+  for (let start = 0; start + w <= RULES.lanes; start++) {
+    const lanes = lanesOfCard(start, card);
+    if (lanes.every((l) => laneFree(s, who, l) && (s.lastBattle || !locationAt(s, l)))) out.push(start);
+  }
+  return out;
+}
+// The spaces a creature can be summoned into.
+export const summonSpaces = (s, who, card) => ((card.width ?? 1) > 1 ? legendaryStarts(s, who, card) : emptySpaces(s, who));
 
 // 3, 9: the placed Location covering a lane, or null (the Wilds).
 export const locationAt = (s, lane) => s.locations.find((l) => lane >= l.start && lane < l.start + l.width) ?? null;
@@ -158,7 +185,7 @@ export function specTargets(s, who, spec) {
     case 'enemy': return creaturesOf(s, foe).map(({ space }) => ({ who: foe, space }));
     case 'own': return creaturesOf(s, who).map(({ space }) => ({ who, space }));
     case 'ownNoHeld': return creaturesOf(s, who).filter(({ card }) => !card.held).map(({ space }) => ({ who, space }));
-    case 'ownDeckCard': return creaturesOf(s, who).filter(({ card }) => !card.legendaryCreature).map(({ space }) => ({ who, space }));
+    case 'ownDeckCard': return creaturesOf(s, who).filter(({ card }) => !card.campaignCreature).map(({ space }) => ({ who, space }));
     // A Location with a creature of that side in it: one target per Location (its leftmost lane); in the
     // Wilds each lane is its own area (rulebook 12); during the Last Battle, the whole battlefield.
     case 'enemyLocation': return areaTargets(s, foe);
@@ -205,6 +232,7 @@ const subsetsOf = (arr) => arr.reduce((acc, x) => [...acc, ...acc.map((c) => [..
 
 // Who must act now: the mulliganing player, the React window's reactor, or the player whose turn it is.
 export function actor(s) {
+  if (s.arrival) return s.arrival.who;   // stage R: a Campaign Creature's player chooses its space first
   if (s.phase === 'mulligan') return PLAYERS.find((w) => !s.players[w].mulliganed) ?? null;
   if (s.reactWindow) return s.reactWindow.reactor;
   return s.phase === 'battle' ? s.turn : null;
@@ -219,6 +247,11 @@ export function legalActions(s, who, only = null) {
   const p = s.players[who];
   const out = [];
   const want = (type) => !only || only === type;
+  // 8.4 (stage R): a Campaign Creature arrives in the empty space its player chooses.
+  if (s.arrival) {
+    if (want('arrive')) for (const space of emptySpaces(s, who)) out.push({ type: 'arrive', who, uid: p.waiting[0].uid, space });
+    return out;
+  }
   if (s.phase === 'mulligan') {
     // 5.1: once, in Round 1: put any number of cards back (to the Discard Pile) and draw as many.
     if (want('mulligan')) for (const cards of subsetsOf(p.hand.map((c) => c.uid))) out.push({ type: 'mulligan', who, cards });
@@ -236,7 +269,7 @@ export function legalActions(s, who, only = null) {
     if (isCreature(c) && want('summon') && canPay(p, c.cost)) {
       // 12.2: an On Summon that needs a chosen target: one Summon per legal target, or none if there's none.
       const chosen = summonTargets(s, who, c);
-      for (const space of emptySpaces(s, who)) {
+      for (const space of summonSpaces(s, who, c)) {
         if (!chosen) out.push({ type: 'summon', who, uid: c.uid, space });
         else for (const target of chosen) out.push({ type: 'summon', who, uid: c.uid, space, target });
       }
@@ -297,9 +330,10 @@ export function applyAction(state, action) {
   if (!isLegal(state, action)) throw new Error(`Illegal action: ${actionKey(action)}`);
   const s = structuredClone(state);
   s.events = [];
-  s.actionsThisRound += 1;
+  if (action.type !== 'arrive') s.actionsThisRound += 1;
   ACTIONS[action.type](s, action);
-  arriveWaiting(s);
+  drainTriggers(s);
+  offerArrival(s, null);
   syncBonuses(s);
   return s;
 }
@@ -330,11 +364,13 @@ const ACTIONS = {
     const card = removeFromHand(p, uid);
     payCost(p, card.cost, s.round);
     p.row[space] = onBoard(s, card);
+    // Stage R (7.2): a Legendary's own Location arrives with it on its 3 lanes, on both sides (not in the Last Battle).
+    if (card.ownLocation && !s.lastBattle) placeOwnLocation(s, who, p.row[space], space);
     // Stage P: summoned at its Prime Level (a Legendary card always is): it keeps that, and its player gains Renown.
     const atPrime = card.stage === 'prime';
     p.row[space].primeSummon = atPrime;
     emit(s, 'summoned', { who, space, uid, name: card.name, level: card.level, active: !p.row[space].spent, prime: atPrime });
-    log(s, `${NAME[who]} summoned ${card.name} (Level ${card.level}${atPrime ? ', at its Prime' : ''}) into lane ${space + 1} for ${card.cost} Energy${p.row[space].spent ? '' : ' (Ambush: it arrives Active)'}.`);
+    log(s, `${NAME[who]} summoned ${card.name} (Level ${card.level}${atPrime ? ', at its Prime' : ''}) into ${laneWords(space, card)} for ${card.cost} Energy${p.row[space].spent ? '' : ' (Ambush: it arrives Active)'}.`);
     syncBonuses(s);
     if (atPrime) {
       emit(s, 'primeSummon', { who, space, uid, name: card.name });
@@ -478,6 +514,18 @@ const ACTIONS = {
     finishTurn(s, who);
   },
 
+  // 8.4 (stage R): a waiting Campaign Creature arrives in the chosen empty space. Not a turn: no Stock, the turn stays.
+  arrive(s, { who, space }) {
+    const p = s.players[who];
+    const resume = s.arrival.resume;
+    s.arrival = null;
+    creatureArrives(s, who, p.waiting.shift(), space);
+    drainTriggers(s);
+    if (s.phase === 'gameOver' || offerArrival(s, resume)) return;
+    if (resume === 'dusk') duskAfterArrivals(s);
+    else if (resume === 'dawn') dawnAfterArrivals(s);
+  },
+
   // 5.2: +1 Base Energy, except the Pass that ends the phase. Unmatched Ready cards become Spent.
   pass(s, { who }) {
     const p = s.players[who];
@@ -493,6 +541,26 @@ const ACTIONS = {
 
 // A card as it stands on the battlefield.
 // 12.1 Ambush: it arrives Active rather than Spent.
+const laneWords = (space, card) => ((card.width ?? 1) > 1 ? `lanes ${space + 1}–${space + card.width}` : `lane ${space + 1}`);
+
+// 7.2: a Legendary's own Location: on its 3 lanes, no countdown, its passive hitting every creature there but it.
+function placeOwnLocation(s, who, card, start) {
+  const loc = cardAtRound(card.ownLocation, s.round, `loc-of-${card.uid}`);
+  const uid = `loc-${card.uid}`;
+  s.locations.push({ uid, owner: who, card: loc, name: loc.name, start, width: card.width, roundsLeft: null, passive: loc.passive, legendaryUid: card.uid });
+  emit(s, 'locationPlaced', { who, uid, name: loc.name, start, width: card.width, own: card.uid });
+  log(s, `${loc.name}, ${card.name}'s own Location, covers lanes ${start + 1}–${start + card.width}.`);
+}
+// It goes as soon as its Legendary is defeated or leaves play: its lanes are the Wilds again; it leaves the match.
+function removeOwnLocation(s, legendaryUid) {
+  const l = s.locations.find((x) => x.legendaryUid === legendaryUid);
+  if (!l) return;
+  s.locations = s.locations.filter((x) => x !== l);
+  emit(s, 'locationRemoved', { uid: l.uid, name: l.name, own: legendaryUid });
+  log(s, `${l.name} is gone with its Legendary: its lanes are the Wilds again.`);
+  syncBonuses(s);
+}
+
 export function onBoard(s, card) {
   return { ...card, currentHealth: card.health, spent: !hasKeyword(card, 'ambush'), summonedRound: s.round, bonusAttack: 0, bonusHealth: 0, tempAttack: 0, tempHealth: 0, held: null };
 }
@@ -678,7 +746,7 @@ function effectTargets(s, ctx, o) {
     case 'eachEnemyHere': return ctx.src ? lanesHere(s, ctx.src.space).filter((l) => s.players[foe].row[l]).map((l) => ({ who: foe, space: l })) : [];
     case 'eachOwnHere': return ctx.src ? lanesHere(s, ctx.src.space).filter((l) => s.players[ctx.who].row[l]).map((l) => ({ who: ctx.who, space: l })) : [];
     // On Defeat: the enemy in the lane it stood in (nothing if that space is empty).
-    case 'acrossEnemy': return ctx.src && s.players[foe].row[ctx.src.space] ? [{ who: foe, space: ctx.src.space }] : [];
+    case 'acrossEnemy': { const o = ctx.src ? occupantAt(s, foe, ctx.src.space) : null; return o ? [{ who: foe, space: o.space }] : []; }
     case 'self': return ctx.src && s.players[ctx.src.who].row[ctx.src.space]?.uid === ctx.src.uid ? [ctx.src] : [];
     case 'eachEnemy': return each(foe);
     case 'eachOwn': return each(ctx.who);
@@ -716,6 +784,7 @@ function defeat(s, who, space, by) {
   s.players[who].released.push(plain);
   emit(s, 'defeated', { who, space, uid: card.uid, name: card.name, by });
   log(s, `${NAME[who]}'s ${card.name} was defeated.`);
+  removeOwnLocation(s, card.uid);
   queueTrigger(s, who, space, card, 'defeat', { by });
   if (by === who) return;
   gainGold(s, by, RULES.goldPerDefeat, `defeating ${card.name}`);
@@ -727,12 +796,13 @@ function defeat(s, who, space, by) {
 // anything gained are lost; a Held Item goes to the Market's pool.
 function returnToHand(s, who, space) {
   const c = s.players[who].row[space];
-  if (!c || c.legendaryCreature) return;
+  if (!c || c.campaignCreature) return;
   s.players[who].row[space] = null;
   if (c.held) s.market.pool.push(c.held);
   s.players[who].hand.push(cardAtRound(c.id, s.round, c.uid));
   emit(s, 'returned', { who, space, uid: c.uid, name: c.name });
   log(s, `${NAME[who]}'s ${c.name} returns to their hand.`);
+  removeOwnLocation(s, c.uid);
 }
 
 // --- Triggers (12) ----------------------------------------------------------------------------------------
@@ -827,7 +897,7 @@ function gainGold(s, who, n, source) {
   emit(s, 'gold', { who, amount: n, source });
 }
 
-// --- Campaigns, Quests and Legendary Creatures (8.4) ------------------------------------------------------
+// --- Campaigns, Quests and Campaign Creatures (8.4) ------------------------------------------------------
 
 function progressQuests(s, who, kind, n = 1) {
   for (const q of s.players[who].quests) {
@@ -847,32 +917,35 @@ function completeQuest(s, who, q) {
   for (const pile of ['drawPile', 'hand', 'discard']) {
     if (p[pile].some((c) => c.uid === q.cardUid)) { p[pile] = p[pile].filter((c) => c.uid !== q.cardUid); emit(s, 'campaignTaken', { who, uid: q.cardUid, from: pile }); }
   }
-  // 2. Its Legendary Creature arrives in the leftmost empty space, Spent, or waits for one.
-  const lc = legendaryCreatureOf(cardDef(q.id), `lc-${q.uid}`);
-  const space = p.row.findIndex((c) => !c);
-  if (space >= 0) creatureArrives(s, who, lc, space);
-  else { p.waiting.push(lc); log(s, `${lc.name} waits for a free space.`); }
+  // 2. Its Campaign Creature arrives Spent in the empty space its player chooses (stage R): it waits until the choice
+  // is offered (offerArrival), as soon as the action, the Dusk step or the Dawn step that completed it is done.
+  const lc = campaignCreatureOf(cardDef(q.id), `lc-${q.uid}`);
+  p.waiting.push(lc);
+  emit(s, 'campaignWaiting', { who, uid: lc.uid, name: lc.name });
+  log(s, emptySpaces(s, who).length ? `${lc.name} is ready to arrive.` : `${lc.name} waits for a free space.`);
   // 3. +2 Renown.
   gainRenown(s, who, RULES.perQuest, 'quest', `${q.name}'s Quest`);
 }
 function creatureArrives(s, who, card, space) {
   s.players[who].row[space] = onBoard(s, card);
-  emit(s, 'legendaryArrived', { who, space, uid: card.uid, name: card.name });
-  log(s, `${card.name}, a Legendary Creature, arrives in lane ${space + 1}.`);
+  emit(s, 'campaignArrived', { who, space, uid: card.uid, name: card.name });
+  log(s, `${NAME[who]}'s ${card.name}, a Campaign Creature, arrives in lane ${space + 1}.`);
   syncBonuses(s);
   queueTrigger(s, who, space, s.players[who].row[space], 'summon');
 }
-// Waiting Legendary Creatures arrive as soon as a space frees (after every action, and at Dawn).
-function arriveWaiting(s) {
-  for (const who of PLAYERS) {
-    const p = s.players[who];
-    while (p.waiting.length && s.phase !== 'gameOver') {
-      const space = p.row.findIndex((c) => !c);
-      if (space < 0) break;
-      creatureArrives(s, who, p.waiting.shift(), space);
-    }
+// Stage R: a waiting Campaign Creature's player is offered the choice of space as soon as one is free: after every
+// action, at Dusk just after Quest progress, and at Dawn step 9. One at a time, the player with initiative first.
+// `resume` says what continues once the choices are made ('dusk', 'dawn', or nothing). True if a choice is open.
+function offerArrival(s, resume) {
+  if (s.arrival) return true;
+  if (s.phase === 'gameOver') return false;
+  for (const who of [s.initiative, opponentOf(s.initiative)]) {
+    if (!s.players[who].waiting.length || !emptySpaces(s, who).length) continue;
+    s.arrival = { who, resume };
+    emit(s, 'arrivalChoice', { who, uid: s.players[who].waiting[0].uid, name: s.players[who].waiting[0].name });
+    return true;
   }
-  drainTriggers(s);
+  return false;
 }
 
 // --- Location passives and Held Items --------------------------------------------------------------------
@@ -880,17 +953,21 @@ function arriveWaiting(s) {
 // Stat bonuses from a card's Location passive and its Held Item, kept in step with the board after every
 // action. Losing a Health bonus never defeats a card: at least 1 Health is left.
 export function wantedBonus(s, space, card) {
-  const ops = [...passiveOps(locationAt(s, space)), ...heldOps(card)];
+  const l = locationAt(s, space);
+  const ops = [...(l?.legendaryUid && l.legendaryUid === card?.uid ? [] : passiveOps(l)), ...heldOps(card)];
   const sum = (kind) => ops.filter((o) => o.op === kind).reduce((n, o) => n + o.amount, 0);
   return { attack: sum('attack'), health: sum('health') };
 }
 export function syncBonuses(s) {
   for (const { card, space } of allCreatures(s)) {
-    const kw = Object.fromEntries(passiveOps(locationAt(s, space)).filter((o) => o.op === 'keyword').map((o) => [o.keyword, o.amount ?? true]));
+    const kw = Object.fromEntries(passiveOps(locationAt(s, space)?.legendaryUid === card.uid ? null : locationAt(s, space)).filter((o) => o.op === 'keyword').map((o) => [o.keyword, o.amount ?? true]));
     if (Object.keys(kw).length) card.locKw = kw; else delete card.locKw;
     const want = wantedBonus(s, space, card);
-    card.attack += want.attack - card.bonusAttack;
-    card.bonusAttack = want.attack;
+    // (Stage R: Attack can't go below 0; a creature gets back only what it lost.)
+    const base = card.attack - card.bonusAttack;
+    const atk = Math.max(want.attack, -Math.max(0, base));
+    card.attack = base + atk;
+    card.bonusAttack = atk;
     const d = want.health - card.bonusHealth;
     if (d) {
       card.health += d;
@@ -991,7 +1068,11 @@ function dawn(s, round) {
     draw(s, who, Math.max(0, RULES.handDraw - p.retainedNext));            // 8
     p.retainedNext = 0;
   }
-  arriveWaiting(s);                                                        // 9
+  if (offerArrival(s, 'dawn')) return;                                     // 9
+  dawnAfterArrivals(s);
+}
+function dawnAfterArrivals(s) {
+  const round = s.round;
   syncBonuses(s);
   for (const who of [s.initiative, opponentOf(s.initiative)]) for (const { card, space } of creaturesOf(s, who)) queueTrigger(s, who, space, card, 'dawn');
   drainTriggers(s);
@@ -1043,7 +1124,7 @@ function duskAfterStrats(s) {
     if (!d) continue;
     dominated[d] += 1;
     emit(s, 'dominance', { who: d, uid: l.uid });
-    gainRenown(s, d, RULES.perDominance, 'dominance', `dominating ${l.name}`);
+    gainRenown(s, d, dominanceRenown(l.width), 'dominance', `dominating ${l.name}`);
     if (s.phase === 'gameOver') return;
   }
   if (s.lastBattle) {
@@ -1059,8 +1140,15 @@ function duskAfterStrats(s) {
   for (const who of PLAYERS) if (dominated[who]) progressQuests(s, who, 'dominate', dominated[who]);
   drainTriggers(s);
   if (s.phase === 'gameOver') return;
-  // 4. Location durations count down; expired Locations go to their owners' Discard Piles.
+  // (Stage R: a Campaign Creature whose Quest completed arrives now, in the space its player chooses.)
+  if (offerArrival(s, 'dusk')) return;
+  duskAfterArrivals(s);
+}
+function duskAfterArrivals(s) {
+  // 4. Location durations count down; expired Locations go to their owners' Discard Piles. A Legendary's own
+  // Location has no countdown (7.2).
   for (const l of [...s.locations]) {
+    if (l.roundsLeft == null) continue;
     l.roundsLeft -= 1;
     if (l.roundsLeft > 0) continue;
     s.locations = s.locations.filter((x) => x !== l);
@@ -1094,10 +1182,11 @@ function duskAfterStrats(s) {
   dawn(s, s.round + 1);
 }
 
-// 11: the Last Battle begins: every placed Location is removed; it covers all 9 lanes until the end.
+// 11: the Last Battle begins: every placed Location is removed; it covers all 8 lanes until the end. A Legendary's own
+// Location is removed too (it leaves the match); the Legendary stays 3 lanes wide.
 function beginLastBattle(s, round) {
   const reason = round >= RULES.lastBattleRound ? `Round ${RULES.lastBattleRound}` : `${RULES.lastBattleRenown}+ Renown`;
-  for (const l of s.locations) s.players[l.owner].discard.push(l.card);
+  for (const l of s.locations) if (!l.legendaryUid) s.players[l.owner].discard.push(l.card);
   s.locations = [];
   s.lastBattle = { startedRound: round, reason };
   syncBonuses(s);

@@ -19,7 +19,7 @@ export const CARD_TYPES = freeze({
 
 export const CAMPAIGN = freeze({
   quest: 'Quest',
-  legendaryCreature: 'Legendary Creature',
+  campaignCreature: 'Campaign Creature',
   campaignOrder: 'Campaign Order',
 });
 

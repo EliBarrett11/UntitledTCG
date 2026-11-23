@@ -94,8 +94,10 @@ export function heldText(ops) {
 }
 export function passiveText(ops) {
   return ops.map((o) => {
-    if (o.op === 'attack') return `Creatures here have +${o.amount} Attack.`;
-    if (o.op === 'health') return `Creatures here have +${o.amount} Health.`;
+    // (Stage R: a Legendary's Location has a negative passive, written with a minus sign: "−1 Attack".)
+    const signed = (n) => (n < 0 ? `\u2212${-n}` : `+${n}`);
+    if (o.op === 'attack') return `Creatures here have ${signed(o.amount)} Attack.`;
+    if (o.op === 'health') return `Creatures here have ${signed(o.amount)} Health.`;
     if (o.op === 'dawnHeal') return `At Dawn, heal ${o.amount} to each creature here.`;
     throw new Error(`No wording for a passive op "${o.op}"`);
   }).join(' ');

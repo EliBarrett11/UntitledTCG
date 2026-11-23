@@ -172,17 +172,15 @@ test('On Summon: heal 3 to each of your creatures in its Location (Deepforge Pri
   assert.equal(s.players.p1.row[5].currentHealth, 1, 'not outside it');
 });
 
-test('On Summon: 2 damage to each enemy creature in its Location (The Ashen Wyrm)', () => {
+test('On Summon: 2 damage to each enemy creature in its Location (The Ashen Wyrm: its own 3-lane Location, stage R)', () => {
   let s = blank(1, { round: 6 });
   put(s, 'p2', 2, 'gloomfang-wolf', { level: 1, spent: true, health: 3 });
   put(s, 'p2', 3, 'gloomfang-wolf', { level: 1, spent: true, health: 3 });
-  put(s, 'p2', 7, 'gloomfang-wolf', { level: 1, spent: true, health: 3 });
-  s = act(s, { type: 'placeLocation', who: 'p1', uid: give(s, 'p1', 'emberfall-ruins'), start: 1 });
-  s = act(s, { type: 'pass', who: 'p2' });
-  s = summon(s, 'p1', 'the-ashen-wyrm', 2);
+  put(s, 'p2', 4, 'gloomfang-wolf', { level: 1, spent: true, health: 3 });
+  s = summon(s, 'p1', 'the-ashen-wyrm', 1);   // lanes 2–4: The Ashfall covers them
   assert.equal(s.players.p2.row[2].currentHealth, 1);
   assert.equal(s.players.p2.row[3].currentHealth, 1);
-  assert.equal(s.players.p2.row[7].currentHealth, 3);
+  assert.equal(s.players.p2.row[4].currentHealth, 3, 'lane 5 is outside its Location');
 });
 
 test('On Summon: draw 1 card (Thornwood Scout)', () => {

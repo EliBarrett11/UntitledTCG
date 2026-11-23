@@ -26,7 +26,7 @@ test('more Might dominates, even against more Health (Health alone would have ch
   s = place(s, 'p1', 'tlo3', 0);   // (+2 Health to both: 11 against 10)
   assert.equal(dominantIn(s, [0, 1, 2]), 'p1');
   s = endPhase(s);
-  assert.equal(domRenown(s, 'p1'), 3);
+  assert.equal(domRenown(s, 'p1'), 5, 'a 3-lane Location: +5 (stage R)');
   assert.equal(domRenown(s, 'p2'), 0);
 });
 
@@ -88,14 +88,14 @@ test('the Last Battle: more Might across the battlefield gains 5 Renown (8 with 
   let s = blank();
   s.lastBattle = { startedRound: 3, reason: 'test' };
   put(s, 'p1', 0, 'x-swift', { spent: true, attack: 7, health: 2 });   // Might 9, Health 2
-  put(s, 'p2', 8, 'x-slow', { spent: true, attack: 1, health: 7 });    // Might 8, Health 7
+  put(s, 'p2', 7, 'x-slow', { spent: true, attack: 1, health: 7 });    // Might 8, Health 7
   s = endPhase(s);
   assert.equal(lbRenown(s, 'p1'), 8);
   assert.equal(lbRenown(s, 'p2'), 0);
   let t = blank();
   t.lastBattle = { startedRound: 3, reason: 'test' };
   put(t, 'p1', 0, 'x-swift', { spent: true, attack: 6, health: 2 });   // 8
-  put(t, 'p2', 8, 'x-slow', { spent: true, attack: 1, health: 7 });    // 8
+  put(t, 'p2', 7, 'x-slow', { spent: true, attack: 1, health: 7 });    // 8
   t = endPhase(t);
   assert.equal(lbRenown(t, 'p1') + lbRenown(t, 'p2'), 0, 'a tie gives nothing');
 });

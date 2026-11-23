@@ -9,7 +9,7 @@ Keywords, triggers and card effects aren't listed here. They start from nothing 
 ## 1. Winning
 
 - **The first player to 100 Renown wins**, at once, at any moment, even in the middle of an action.
-- **Out of creatures:** if neither player has a Character or Monster left (in play, in hand, or in their Draw Pile), the match ends at that Round's Dusk. It's checked at the end of Dusk, after hands are discarded. A Character or Monster in the **Discard Pile** counts as left, because the Discard Pile reshuffles into the Draw Pile, and so does a Legendary Creature waiting for a space. So the match only ends this way once every creature is Released or gone.
+- **Out of creatures:** if neither player has a Character or Monster left (in play, in hand, or in their Draw Pile), the match ends at that Round's Dusk. It's checked at the end of Dusk, after hands are discarded. A Character or Monster in the **Discard Pile** counts as left, because the Discard Pile reshuffles into the Draw Pile, and so does a Campaign Creature waiting for a space. So the match only ends this way once every creature is Released or gone.
   - The player with more Renown wins.
   - On a tie, the player whose Warlord has taken less damage this match wins.
   - If that's tied too, it's a draw.
@@ -20,7 +20,7 @@ Keywords, triggers and card effects aren't listed here. They start from nothing 
 |---|---|
 | Damage to the enemy Warlord | 1 per point of damage |
 | Defeating an enemy Character or Monster | +2 |
-| Dominating a placed Location at Dusk | +3 per Location |
+| Dominating a placed Location at Dusk | by its width: 2 lanes +4, 3 lanes +5, 4 lanes +6 (section 9) |
 | Completing an Event's Favour | +3 |
 | Completing a Campaign's Quest | +2 |
 | Dominating the Last Battle at Dusk | +5 |
@@ -30,7 +30,8 @@ During the Last Battle, all Renown earned is increased by half, rounded up (1 �
 
 ## 3. The battlefield
 
-- **9 lanes.** Each lane has one space per player, facing each other.
+- **8 lanes.** Each lane has one space per player, facing each other. (9 until stage R, 23 November 2026.)
+- **A Legendary takes 3 spaces** side by side, with its own Location (section 7.2). Every other creature takes one space.
 - **The Wilds:** lanes not covered by a placed Location.
 - **Each player's Warlord** sits off the battlefield. It has no Health and takes no space. It can be attacked, and each point of damage to it gives the attacker's player 1 Renown.
 - **The Released Pile:** where defeated Characters and Monsters go, and cards Released by Events. It's never reshuffled.
@@ -62,7 +63,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
 6. Dawn healing (from Location passives and keywords, once they exist).
 7. Cards off the battlefield take this Round's Level (section 7).
 8. Each player draws 7 cards, less one per card they Retained. When a player must draw from an empty Draw Pile, their Discard Pile is shuffled to make a new one; if both are empty, they draw nothing. (The Released Pile is never used.)
-9. Waiting Legendary Creatures arrive.
+9. Waiting Campaign Creatures arrive: for each, its player chooses an empty space (section 8.4).
 
 **Round 1:** its Dawn runs every step (Energy, Gold, the draw). Then each player may **mulligan** once: they put any number of cards from their hand into their Discard Pile and draw as many (keeping the whole hand is allowed). Then the Battle Phase begins. Round 1's initiative is decided at random from the match's seed.
 
@@ -76,8 +77,8 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
 ### 5.3 Dusk, in this order
 1. Pending Strats resolve, in the order played. Each may open a React window for the other player.
 2. **Dominance:** each placed Location, or the Last Battle, is scored (section 9).
-3. Quest progress from dominance.
-4. Location durations count down, and expired Locations are removed.
+3. Quest progress from dominance. A Campaign Creature whose Quest completes here arrives now (its player chooses its space).
+4. Location durations count down, and expired Locations are removed. A Legendary's Location has no duration (7.2).
 5. "Until Dusk" effects end.
 6. Each player discards their hand, except Retained cards. Unbought Items in hand are discarded too, unless they were Retained: a Retained Item stays in hand like any Retained card.
 
@@ -107,7 +108,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
   - A series may change form (name and art) at certain Levels.
 - **Levels off the battlefield** (hand, Draw Pile and Discard Pile): the series' first Level in Round 1, +1 each Round, up to its maximum.
 - **On the battlefield,** a summoned card is a snapshot at the Level it was summoned and doesn't develop further.
-- **Cost:** `ceil(Level / 2)` Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. **Legendary** cards cost 5 and are Level 8 from the start. **Legendary Creatures** are Level 8 and arrive free.
+- **Cost:** `ceil(Level / 2)` Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. **Legendary** cards cost 5 and are Level 8 from the start. **Campaign Creatures** are Level 8 and arrive free.
 - **Traits:** every Character has a Class and a Race. Traits carry no rules of their own until a keyword, trigger or effect refers to them.
 - **Stats:**
   - **Attack:** the damage it deals.
@@ -115,7 +116,7 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
   - **Speed:** Slow, Steady or Swift.
   - **Attack kind:** Martial or Arcane.
   - **Guard** (optional): Shield (against Martial) or Ward (against Arcane).
-- **Summoning** (an action): pay the cost and place it in an empty space on your side. It arrives **Spent**. Summoned at its Prime Level, it gives its player +1 Renown (7.1).
+- **Summoning** (an action): pay the cost and place it in an empty space on your side (a Legendary takes 3: section 7.2). It arrives **Spent**. Summoned at its Prime Level, it gives its player +1 Renown (7.1).
 - **Active, Ready and Spent:**
   - Active cards can act this Round.
   - A **Ready** card is one of the fastest Active cards on both sides: the highest Speed among all Active cards. Only Ready cards can attack.
@@ -131,9 +132,25 @@ Each Round has three phases: **Dawn**, the **Battle Phase** and **Dusk**.
   - Swift series lean to Attack, Steady series are even, Slow series lean to Health.
 - **"Prime:" abilities** (for example "Prime: On Summon: Draw 2 cards.") work only if the creature was summoned at its Prime Level. At any other Level the line shows on the card but does nothing, and asks for no target.
 - **Summoning at Prime** gives **+1 Renown** (section 2), increased by half in the Last Battle like all Renown.
-- **Legendary cards and Legendary Creatures** are always Prime.
+- **Legendary cards and Campaign Creatures** are always Prime.
 - **Foil** marks the Prime Level (and Legendaries).
 - Nothing else changes: costs, Levels by Round, the snapshot on summon, Retain's cost, combat and Renown.
+
+### 7.2 Legendaries are three lanes wide (decided by Elliott, 23 November 2026)
+
+This applies to **Legendary cards** only (today, The Ashen Wyrm). Campaign Creatures are not Legendaries (8.4).
+- **Summoning:** a Legendary needs **3 adjacent empty spaces** on its owner's side, in lanes with no Location (for example the Wilds 1–3). Its player chooses where. It takes all 3 spaces. If no such place exists, it can't be summoned.
+- **Its Location** arrives on those 3 lanes, on both sides, at the same moment:
+  - it never overlaps another Location, and no Location can be placed over it or over any of its lanes;
+  - it has **no countdown**: it's removed as soon as its Legendary is defeated or leaves play, and those lanes become the Wilds again;
+  - its passive is **always negative**, and it applies to every creature there **except the Legendary**;
+  - its owner can't summon into it (the Legendary fills all 3 of their spaces); the opponent can summon into their 3 spaces across from it, where the passive hits them;
+  - it's scored for dominance like any Location (section 9), with the Legendary's Might counted once;
+  - it's never in a deck; when removed, it leaves the match.
+- **The Ashen Wyrm's Location:** **The Ashfall**, 3 lanes. "Creatures here have −1 Attack." Attack can't go below 0. (Elliott is approving the name and passive with New Cards Batch 1.)
+- **A Legendary is one creature.** It attacks and is attacked once. Its Shield or Ward, if any, guards its Location as normal. "In its Location" means its own Location's 3 lanes.
+- **Defeat, the Released Pile and Renown** work as for any creature.
+- **In the Last Battle,** its Location is removed like the others, and the Legendary stays 3 lanes wide. If the Last Battle starts while it's on the field, nothing moves.
 
 ## 8. Battle Phase actions
 
@@ -183,25 +200,31 @@ Each Action card has up to three **modes**, each with its own cost and effect.
 - **Release N:** choose exactly N other cards from your hand and put them in the Released Pile. Then the Event resolves and is Released too.
 - **Favour:** if any Released card meets the Event's Favour condition, you get the stronger effect and +3 Renown.
 
-### 8.4 Campaign cards, Quests and Legendary Creatures
+### 8.4 Campaign cards, Quests and Campaign Creatures
 - Campaign cards are shuffled into the deck. Each one's **Quest** is tracked from the start of the match, whether the card has been drawn or not.
 - **A drawn Campaign card** can only be played as its **Campaign Order**: an action with its own Energy cost. The Order resolves at once and can't be Reacted to. The card is then discarded and keeps cycling through the deck. Playing it doesn't affect the Quest.
 - **When a Quest is completed:**
   1. The Campaign card is taken at once from wherever it is and leaves the deck for good.
-  2. Its **Legendary Creature** arrives in your leftmost empty space, Spent. If there's no empty space, it waits and arrives as soon as one frees up.
+  2. Its **Campaign Creature** arrives Spent, in the empty space **its player chooses**. It takes one space. If there's no empty space, it waits, and the choice is offered as soon as a space frees up (at the Round step where waiting creatures arrive). (Decided by Elliott, 23 November 2026.)
   3. You gain 2 Renown.
 
   The Quest stays ticked and makes no further progress. If the card was already Released, the Quest still completes as normal.
-- A defeated Legendary Creature goes to the Released Pile.
+- A defeated Campaign Creature goes to the Released Pile.
 - **Quests** the engine can count: defeats, Locations dominated (each Location at a Dusk is 1; the Last Battle is 1), damage to the enemy Warlord, and Items bought from the Market.
 
 ## 9. Locations
 
-- **Placing one** is an action that costs no Energy. It covers the lane you choose and the lanes to its right (2, 3 or 4 lanes, set per card) on both sides. It can be placed over lanes where cards already stand. Either player may place one, limited only by free lanes.
+- **Placing one** is an action that costs no Energy. It covers the lane you choose and the lanes to its right (2, 3 or 4 lanes, set per card) on both sides. It can be placed over lanes where cards already stand. Either player may place one, limited only by free lanes. A Legendary's Location (7.2) arrives with its Legendary and is never placed.
 - **Duration:** a Location stays for a set number of Rounds, counting down at Dusk after scoring. When it expires, it goes to its owner's Discard Pile, its lanes become the Wilds again, and cards stay where they are.
 - **Passive:** each Location has one rule that applies to both players' cards in it, immediately and while they stay. Losing a Health bonus never defeats a card: at least 1 Health is left.
 - **Might:** a creature's Might is its current Attack plus its current Health. Damage, buffs, Prime, Items and Location passives all count, because Might uses current stats. (Decided at Elliott's request, 17 November 2026.)
-- **Dominance:** at Dusk, for each placed Location, the player with more total Might there gains 3 Renown. Ties and empty Locations give nothing. The Wilds are never scored.
+- **Dominance:** at Dusk, for each Location, the player with more total Might there gains Renown by the Location's width. Ties and empty Locations give nothing. The Wilds are never scored. (Decided by Elliott, 23 November 2026; it was 3 for any Location.)
+
+  | Width | Renown |
+  |---|---|
+  | 2 lanes | 4 |
+  | 3 lanes (including a Legendary's Location) | 5 |
+  | 4 lanes | 6 |
 
 ## 10. Items, Gold and the Market
 
@@ -221,8 +244,8 @@ Each Action card has up to three **modes**, each with its own cost and effect.
 
 - **Trigger:** at Dawn of Round 10, or at the first Dawn where either player has 70 or more Renown, whichever comes first.
 - **The transition:**
-  - All placed Locations are removed, to their owners' Discard Piles.
-  - The Last Battle covers all 9 lanes, and cards stay where they are.
+  - All placed Locations are removed, to their owners' Discard Piles. A Legendary's Location is removed too (it leaves the match); the Legendary stays 3 lanes wide.
+  - The Last Battle covers all 8 lanes, and cards stay where they are.
   - Location passives no longer apply, and no Location can be placed for the rest of the match.
   - The Last Battle lasts until the match ends.
 - **Passive:** all Renown earned is increased by half, rounded up.
@@ -240,7 +263,7 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 
 **"Creature"** in card text means a Character or Monster.
 
-**Return to hand:** the card goes back to its owner's hand at this Round's Level; damage and anything it gained are lost; its Held Item goes to the Market's pool. A Legendary Creature can't be returned (it isn't a deck card).
+**Return to hand:** the card goes back to its owner's hand at this Round's Level; damage and anything it gained are lost; its Held Item goes to the Market's pool. A Campaign Creature can't be returned (it isn't a deck card). A Legendary returned to hand leaves play, so its Location is removed.
 
 ### 12.1 Keywords (approved by Elliott, 13 November 2026)
 
@@ -267,7 +290,7 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 
 ### Readings from S2: approved by Elliott, 14 November 2026
 
-3. **"In its Location" / "in a Location" in the Wilds:** for an area effect, a creature in the Wilds is in a Location of its own lane only (as in the old game). So Deepforge Priest in the Wilds heals only itself, The Ashen Wyrm in the Wilds hits only the enemy across from it, and a Location target in the Wilds (Night Raid's Strat, Mending Prayer's Adapt) covers one lane. The Wilds still count as one Location for guards (8.1). During the Last Battle, "its Location" is the whole battlefield.
+3. **"In its Location" / "in a Location" in the Wilds:** for an area effect, a creature in the Wilds is in a Location of its own lane only (as in the old game). So Deepforge Priest in the Wilds heals only itself (The Ashen Wyrm always stands in its own Location since stage R), and a Location target in the Wilds (Night Raid's Strat, Mending Prayer's Adapt) covers one lane. The Wilds still count as one Location for guards (8.1). During the Last Battle, "its Location" is the whole battlefield.
 4. **A Location target** is offered once per Location that holds a matching creature (once per lane in the Wilds). A Strat with a Location target finds the creatures there when it resolves; it never fizzles. If the Location has expired by then, it covers that one lane.
 5. **Riposte timing:** it happens after the attack's damage, any hit back and any defeats. It doesn't happen if the attack fizzled (the attack didn't resolve). It does happen if the attack dealt 0 damage. A creature that Riposte defeats pays the Riposting creature's player (2 Renown, 1 Gold).
 6. **Parry's React ("the attack deals 2 less damage"):** it lowers only the attack's damage, not the hit back, before Armour, minimum 0. It works against an attack on the Warlord too.
@@ -289,6 +312,21 @@ Each keyword, trigger and effect is designed with Elliott and added here with it
 19. **Wording:** "Prime:" joins the trigger's bold name ("**Prime: On Summon:** Draw 2 cards."). An On Retain effect starts with a capital like every effect ("**On Retain:** Gain 1 Gold.", where docs/12 writes "gain").
 20. **Counting abilities for the curve:** Armour X and Riposte X count 1 whatever X is, and a "Prime:" ability is free at every Level (as docs/12's numbers show: Cinderwick Prodigy is 2 / 2 at Level 2 with its "Prime:" line).
 21. **The Legendaries are off the curve:** The Ashen Wyrm (6 / 6 with its On Summon) and Aldric (6 / 6 with Shield and Armour 1) take docs/12's numbers as given; the curve test covers the series only.
+
+### Readings from stage R: needing Elliott's approval
+
+22. **When a Campaign Creature's choice is offered:**
+    - **During the Battle Phase** (or a React window), once the action that completed the Quest has fully resolved, triggers included. Its player chooses before anyone acts next.
+    - **At Dusk,** just after step 3 (Quest progress from dominance), before Locations count down. So it's on the field, Spent, and becomes Active at the next Dawn, as before.
+    - **At Dawn,** at step 9.
+    - **Several at once:** one choice at a time, in the order the Quests completed. If both players have one, the player with initiative chooses first.
+    - Choosing isn't a turn: it uses no Market Stock and doesn't pass the turn.
+23. **A Legendary summoned during the Last Battle** takes 3 adjacent empty spaces in any lanes, and no Location arrives with it, since no Location can be placed in the Last Battle.
+24. **A Legendary's Location when removed** leaves the match (it's never in a deck), so it goes to no Discard Pile.
+25. **"Attack can't go below 0"** with The Ashfall: a creature with 0 Attack loses nothing, and when it leaves the Location (or the Location goes) it gets back only what it lost.
+26. **"The enemy across from it"** (On Defeat) includes a Legendary that covers that lane.
+27. **Out of creatures:** a Legendary still counts as one creature left.
+28. **The Ashen Wyrm's On Summon** now hits its 3-lane Location. In the Last Battle (no Location) it hits the whole battlefield, as "its Location" there is the whole battlefield (reading 3).
 
 ### Open questions
 

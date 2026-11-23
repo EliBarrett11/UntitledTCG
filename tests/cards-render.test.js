@@ -1,7 +1,7 @@
 // The card renderer (card design v4): one function for every card and size, one outline per card type, foil,
 // wording from the card data.
 import { test, run, assert } from './helpers.js';
-import { defineCards, cardAtRound, creatureAtLevel, cardDef, legendaryCreatureOf } from '../src/engine/cards.js';
+import { defineCards, cardAtRound, creatureAtLevel, cardDef, campaignCreatureOf } from '../src/engine/cards.js';
 import { CARDS } from '../src/data/cards.js';
 
 defineCards(CARDS);
@@ -41,13 +41,13 @@ test('the stat tabs show the attack and guard: blade or orb corner, step, ring o
   assert.ok(tabs('gloomfang-wolf', 1).includes('Q267,417 267,427'), 'no guard: plain');
 });
 
-test('foil (stage P): the Prime Level, the Legendary and the Legendary Creature; on the board, a Prime summon', () => {
+test('foil (stage P): the Prime Level, the Legendary and the Campaign Creature; on the board, a Prime summon', () => {
   const captain = cardDef('oathsworn-recruit');   // Prime at Level 5
   assert.equal(isFoil(creatureAtLevel(captain, 5, 'a')), true);
   assert.equal(isFoil(creatureAtLevel(captain, 7, 'b')), false, 'the top Level is no longer foil');
   assert.equal(isFoil(creatureAtLevel(captain, 2, 'c')), false);
   assert.equal(isFoil(cardAtRound('the-ashen-wyrm', 1, 'd')), true);
-  assert.equal(isFoil(legendaryCreatureOf(cardDef('lady-corwens-commission'), 'e')), true);
+  assert.equal(isFoil(campaignCreatureOf(cardDef('lady-corwens-commission'), 'e')), true);
   assert.equal(isFoil(cardAtRound('lady-corwens-commission', 1, 'f')), false);
   assert.ok(renderCard(creatureAtLevel(captain, 5, 'g')).includes('class="holo"'));
   assert.ok(!renderCard(creatureAtLevel(captain, 7, 'h')).includes('class="holo"'));
@@ -69,7 +69,7 @@ test('one Level well (stages F and G): the Level and "LVL"; gold with a star at 
   const token = (prime) => renderCard({ ...creatureAtLevel(captain, 5, 'e'), currentHealth: 5, primeSummon: prime }, { size: 'token', live: true });
   assert.ok(token(true).includes('class="cv-star"') && token(true).includes('cv-level nowrap prime'), 'a token summoned at Prime keeps the gold well and star');
   assert.ok(!token(false).includes('class="cv-star"'), 'summoned at another Level: a plain well, even at the Prime Level');
-  const lc = renderCard(legendaryCreatureOf(cardDef('lady-corwens-commission'), 'lc'), { size: 'full' });
+  const lc = renderCard(campaignCreatureOf(cardDef('lady-corwens-commission'), 'lc'), { size: 'full' });
   assert.ok(lc.includes('LEGEND') && lc.includes('class="cv-star"'), 'LEGEND, with the star');
 });
 
@@ -121,8 +121,8 @@ test('the wording on every card is the generated wording (no card text typed by 
   }
 });
 
-test('a Legendary Creature shows ★ for cost and Level; a board creature shows its current stats', () => {
-  const lc = legendaryCreatureOf(cardDef('lady-corwens-commission'), 'lc');
+test('a Campaign Creature shows ★ for cost and Level; a board creature shows its current stats', () => {
+  const lc = campaignCreatureOf(cardDef('lady-corwens-commission'), 'lc');
   const html = renderCard(lc, { size: 'full' });
   assert.ok(html.includes('>★</div>') && html.includes('LEGEND'));
   const wolf = { ...creatureAtLevel(cardDef('gloomfang-wolf'), 1, 'w'), health: 3, currentHealth: 1, bonusAttack: 1, attack: 4, tempAttack: 0 };

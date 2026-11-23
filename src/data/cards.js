@@ -1207,6 +1207,7 @@ export const CARDS = [
     "speed": "Swift",
     "attackKind": "Arcane",
     "guard": null,
+    "location": "the-ashfall",
     "traits": {
       "kind": "Dragon"
     },
@@ -1240,6 +1241,23 @@ export const CARDS = [
         ]
       }
     ]
+  },
+  {
+    "id": "the-ashfall",
+    "cardType": "Location",
+    "name": "The Ashfall",
+    "legendaryOf": "the-ashen-wyrm",
+    "width": 3,
+    "rounds": null,
+    "passive": {
+      "ops": [
+        {
+          "op": "attack",
+          "amount": -1
+        }
+      ]
+    },
+    "text": "Creatures here have −1 Attack."
   },
   {
     "id": "firebolt",
@@ -1690,7 +1708,7 @@ export const CARDS = [
       ],
       "text": "Draw 2 cards."
     },
-    "legendaryCreature": {
+    "campaignCreature": {
       "id": "aldric-the-unbroken",
       "cardType": "Character",
       "name": "Aldric the Unbroken",

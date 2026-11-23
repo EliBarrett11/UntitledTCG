@@ -42,7 +42,7 @@ test('the match totals match the log', () => {
     else assert.equal(st.lastBattle, null);
     // An arrival's Round is the Round its log line falls in.
     for (const a of st.arrivals) {
-      const i = s.log.findIndex((l) => l.startsWith(`${a.name}, a Legendary Creature, arrives`));
+      const i = s.log.findIndex((l) => l.startsWith(`${a.name}, a Campaign Creature, arrives`));
       const dawn = s.log.slice(0, i).filter((l) => /^Round \d+ · Dawn\.$/.test(l)).at(-1);
       assert.equal(dawn, `Round ${a.round} · Dawn.`);
     }
@@ -58,7 +58,7 @@ test('heroes: up to three of yours, by Renown from their attacks on the Warlord,
     for (let i = 1; i < heroes.length; i++) assert.ok(heroes[i - 1].renown >= heroes[i].renown, 'most first');
     for (const h of heroes) {
       assert.ok(h.card.cardType === 'Character' || h.card.cardType === 'Monster');
-      if (!h.card.legendaryCreature && !h.card.legendary) assert.ok(h.card.level >= 1, h.card.name);
+      if (!h.card.campaignCreature && !h.card.legendary) assert.ok(h.card.level >= 1, h.card.name);
     }
   }
 });

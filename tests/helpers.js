@@ -1,3 +1,4 @@
+import { RULES } from '../src/engine/rules.js';
 // Shared helpers for the rules tests: build a match, then stage exact positions.
 // Tests may set up state directly; every move under test goes through applyAction.
 import assert from 'node:assert/strict';
@@ -30,7 +31,7 @@ defineCards([
   { id: 'x-held-keyword', cardType: 'Item', name: 'X Held Keyword', price: 1, kind: 'Held', ops: [{ op: 'keyword', keyword: 'testKeyword', amount: 2 }] },
   { id: 'x-campaign-defeat', cardType: 'Campaign', name: 'X Campaign Defeat',
     quest: { kind: 'defeat', need: 1, text: 'Defeat 1 enemy' }, order: { cost: 1, target: 'none', ops: [{ op: 'draw', amount: 1 }] },
-    legendaryCreature: { cardType: 'Monster', name: 'X Legendary Creature', speed: 'Slow', attackKind: 'Martial', attack: 8, health: 10 } },
+    campaignCreature: { cardType: 'Monster', name: 'X Campaign Creature', speed: 'Slow', attackKind: 'Martial', attack: 8, health: 10 } },
 ].map(series));
 
 export { PLACEHOLDER_DECK, cardDef, applyAction, legalActions, actionKey };
@@ -57,7 +58,7 @@ export function blank(seed = 1, { turn = 'p1', round = 3 } = {}) {
     const p = s.players[who];
     p.discard.push(...p.hand);
     p.hand = [];
-    p.row = Array(9).fill(null);
+    p.row = Array(RULES.lanes).fill(null);
     p.baseEnergy = 10;
     p.exertMax = 3;
     p.exhaust = [];

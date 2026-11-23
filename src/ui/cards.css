@@ -72,7 +72,7 @@
 /* The Location's chips */
 .cv-chips { display: flex; gap: 6px; font-family: Cinzel, serif; font-weight: 600; font-size: 9.5px; letter-spacing: 1.8px; color: #bfa36a; }
 .cv-chips span { border: 1px solid rgba(194,163,106,0.5); padding: 2px 6px; line-height: 1.2; }
-/* The Campaign's Quest dots, ending in the Legendary Creature's portrait */
+/* The Campaign's Quest dots, ending in the Campaign Creature's portrait */
 .cv-dots { display: flex; align-items: center; gap: 6px; }
 .cv-dot { width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid rgba(240,213,144,0.6); display: inline-block; }
 .cv-dot.on { background: #f0d590; border: none; }

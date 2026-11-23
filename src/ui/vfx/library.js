@@ -26,7 +26,7 @@ import { stageEffects } from './stageE.js';
 import { hitstopMs } from './shaping.js';
 
 // The timing budget at normal speed (docs/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
-// V2 (section 5.10, proposed): the Ashen Wyrm's arrival 3.5 s, a Legendary Creature 3 s, the Last Battle 3 s,
+// V2 (section 5.10, proposed): the Ashen Wyrm's arrival 3.5 s, a Campaign Creature 3 s, the Last Battle 3 s,
 // a Location placed 1 s (gone 0.8 s), and about 0.6 s per dominated Location at Dusk.
 export const BUDGET = { attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800, prime: 900, primeLow: 500,
   wyrm: 3500, location: 1000, locationGone: 800, dominance: 600 };
@@ -236,7 +236,7 @@ export const EFFECTS = {
     { at: 300, op: 'sprite', tex: 'ambush-burst', on: 'dst', sizeK: 1.8, scale: [0.5, 1.2], curve: 'out', life: 450, fadeOut: 0.5, alpha: 0.9, if: 'ambush' },
     { at: 300, op: 'burst', tex: 'smoke-atlas', on: 'dst', n: 6, speed: [80, 220], spread: 360, life: [350, 450], size: [80, 140], drag: 3, alpha: 0.7, if: 'ambush' },
   ] },
-  // A Legendary Creature with no cinematic of its own (Aldric and the Wyrm have theirs: 5.9).
+  // A Campaign Creature with no cinematic of its own (Aldric and the Wyrm have theirs: 5.9).
   legendary: { duration: 2500, steps: [
     { at: 0, op: 'sprite', tex: 'gate-of-light', on: 'dst', size: 260, h: 560, dy: -80, scale: [0.3, 1], curve: 'out', life: 1600, fadeIn: 0.2, fadeOut: 0.6, tint: 'accent', tintK: 0.3, alpha: 1.2 },
     { at: 0, op: 'emit', tex: 'embers-atlas', on: 'dst', rate: 40, dur: 1200, speed: [40, 140], angle: 'up', spread: 60, life: [600, 1000], size: [10, 22], gravity: -80 },
@@ -505,12 +505,12 @@ const NAMES = new Map();
 for (const d of CARDS) {
   NAMES.set(d.name ?? d.forms?.[0]?.name, { id: d.id, form: d.id, def: d });
   for (const f of d.forms ?? []) NAMES.set(f.name, { id: d.id, form: f.id, def: d });
-  if (d.legendaryCreature) NAMES.set(d.legendaryCreature.name, { id: d.legendaryCreature.id, form: d.legendaryCreature.id, def: d.legendaryCreature });
+  if (d.campaignCreature) NAMES.set(d.campaignCreature.name, { id: d.campaignCreature.id, form: d.campaignCreature.id, def: d.campaignCreature });
 }
 const DEFS = new Map(CARDS.map((d) => [d.id, d]));
 export const cardByName = (name) => NAMES.get(name) ?? null;
 const styleOf = (card) => ({ ...(CARD_STYLE[card?.id] ?? {}), ...(card?.form && card.form !== card.id ? CARD_STYLE[card.form] ?? {} : {}) });
-// Which form a creature is in: 0 for the first; final for the last of two or more (or a Legendary Creature's own).
+// Which form a creature is in: 0 for the first; final for the last of two or more (or a Campaign Creature's own).
 export function formTier(card) {
   const forms = DEFS.get(card?.id)?.forms ?? [];
   const i = Math.max(0, forms.findIndex((f) => f.id === (card?.form ?? card?.id)));

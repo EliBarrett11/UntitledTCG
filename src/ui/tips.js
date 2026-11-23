@@ -25,7 +25,7 @@ export const TIP_TERMS = [
   ...K('strat', ['Strat'], 'Action mode', '#7fe3d0'),
   ...K('order', ['Campaign Order', 'Order'], 'Campaign', '#c9a6ff'),
   ...K('quest', ['Quest'], 'Campaign', '#c9a6ff'),
-  ...K('legendaryCreature', ['Legendary Creature'], 'Campaign', '#c9a6ff'),
+  ...K('campaignCreature', ['Campaign Creature'], 'Campaign', '#c9a6ff'),
   ...K('legendary', ['Legendary'], 'card', '#ffd77a'),
   ...K('held', ['Held'], 'Item', '#e8b34a'),
   ...K('consumed', ['Consumed'], 'Item', '#e8b34a'),

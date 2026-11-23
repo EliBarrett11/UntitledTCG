@@ -1,7 +1,7 @@
 // Card sheets (dev aid): ?sheet=full shows every card at Full size (the contact sheet); ?sheet=all shows
 // every card at every Level of every form at Full, Mini and Token size, plus Chips, for the neat-text test
 // (tools/cardtext.mjs). Everything is drawn by the one card renderer, src/ui/cards.js.
-import { defineCards, cardDef, creatureAtLevel, cardAtRound, legendaryCreatureOf, isCreature } from '../engine/cards.js';
+import { defineCards, cardDef, creatureAtLevel, cardAtRound, campaignCreatureOf, isCreature } from '../engine/cards.js';
 import { CARDS } from '../data/cards.js';
 import { onBoard } from '../engine/game.js';
 import { renderCard, seriesLine } from './cards.js';
@@ -10,7 +10,7 @@ import { esc } from './text.js';
 defineCards(CARDS);
 
 // Every card instance: each Level of each Character and Monster series, every other card, and the
-// Legendary Creature.
+// Campaign Creature.
 export function allInstances() {
   const out = [];
   let n = 0;
@@ -18,7 +18,7 @@ export function allInstances() {
     if (isCreature(def)) {
       for (const f of def.forms) for (const lv of Object.keys(f.levels).map(Number)) out.push(creatureAtLevel(def, lv, `sheet-${n++}`));
     } else out.push(cardAtRound(def.id, 1, `sheet-${n++}`));
-    if (def.legendaryCreature) out.push(legendaryCreatureOf(def, `sheet-${n++}`));
+    if (def.campaignCreature) out.push(campaignCreatureOf(def, `sheet-${n++}`));
   }
   return out;
 }
@@ -44,7 +44,7 @@ export function runSheet(params) {
   if (mode === 'g-types') { document.body.innerHTML = typesSheet(); document.body.dataset.done = 'true'; return; }
   if (mode === 'prime') { document.body.innerHTML = primeSheet(params.get('series') ?? 'oathsworn-recruit', Number(params.get('round') ?? 2)); document.body.dataset.done = 'true'; return; }
   if (mode === 'foil') {
-    const foil = cards.filter((c) => (c.form === 'oathsworn-captain' && c.level === 7) || c.legendary || c.legendaryCreature === true);
+    const foil = cards.filter((c) => (c.form === 'oathsworn-captain' && c.level === 7) || c.legendary || c.campaignCreature === true);
     html = `<div class="sheet-grid">${foil.map((c) => cell(c.name, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>`)).join('')}</div>`;
   } else if (mode === 'full') {
     const firsts = [];
@@ -52,10 +52,10 @@ export function runSheet(params) {
     for (const c of cards) { const k = c.form ?? c.id; if (!seen.has(k)) { seen.add(k); firsts.push(c); } }   // one per form: its first Level
     // The Codex (opened from the title screen) shows each series' line of Levels under its card (stage F).
     const codex = params.get('from') === 'title';
-    html = `<div class="sheet-grid">${firsts.map((c) => cell(`${c.name}${isCreature(c) ? ` · L${c.legendaryCreature ? '★' : c.level}` : ''}`, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>${codex ? `<div class="sheet-series">${seriesLine(c)}</div>` : ''}`)).join('')}</div>`;
+    html = `<div class="sheet-grid">${firsts.map((c) => cell(`${c.name}${isCreature(c) ? ` · L${c.campaignCreature ? '★' : c.level}` : ''}`, `<div class="sheet-card" data-sheet-card>${renderCard(c, { size: 'full' })}</div>${codex ? `<div class="sheet-series">${seriesLine(c)}</div>` : ''}`)).join('')}</div>`;
   } else {
     html = `<div class="sheet-grid">${cards.map((c, i) => {
-      const label = `${c.name}${isCreature(c) ? ` · L${c.legendaryCreature ? '★' : c.level}` : ''}`;
+      const label = `${c.name}${isCreature(c) ? ` · L${c.campaignCreature ? '★' : c.level}` : ''}`;
       const tokens = isCreature(c) ? tokenStates(c).map((t, k) => `<div class="sheet-card sheet-token${t.spent ? ' spent' : ''}" data-sheet-card data-size="token" data-i="${i}-${k}">${renderCard(t, { size: 'token', live: true })}</div>`).join('') : '';
       const chips = [24, 32, 40].map((px) => `<span class="sheet-chip" data-sheet-chip data-px="${px}">${renderCard(c, { size: 'chip', px })}</span>`).join('');
       return cell(label, `<div class="sheet-row">
@@ -94,7 +94,7 @@ function compareSheet(which) {
   }
   if (which === 'finishes') {
     const cards = [[at('oathsworn-recruit', 7), 'FINAL FORM', 'Captain at Level 7 · gold line, holo'], [cardAtRound('the-ashen-wyrm', 1, 'w'), 'LEGENDARY', 'Cost 5 · one per deck'],
-      [legendaryCreatureOf(cardDef('lady-corwens-commission'), 'a'), 'LEGENDARY CREATURE', '★ for cost and Level']];
+      [campaignCreatureOf(cardDef('lady-corwens-commission'), 'a'), 'CAMPAIGN CREATURE', '★ for cost and Level']];
     return page('finishes', 3 * 340 + 2 * 56 + 140, 56, cards.map(([c, t, s]) => col(full(c), t, s)).join(''));
   }
   const cap = live(at('oathsworn-recruit', 5));

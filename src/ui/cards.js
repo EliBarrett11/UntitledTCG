@@ -86,20 +86,20 @@ const KIND = { Character: 'character', Monster: 'monster', Action: 'action', Eve
 export const FRAMES = Object.freeze(Object.fromEntries(Object.entries(KIND).map(([t, k]) => [t, outline(k, 0)])));
 
 // --- Card facts -----------------------------------------------------------------------------------------------
-const LC_CAMPAIGN = new Map(CARDS.filter((c) => c.legendaryCreature).map((c) => [c.legendaryCreature.id, c]));
+const LC_CAMPAIGN = new Map(CARDS.filter((c) => c.campaignCreature).map((c) => [c.campaignCreature.id, c]));
 const safeDef = (id) => { try { return cardDef(id); } catch { return null; } };
-const isLC = (c) => isCreature(c) && c.legendaryCreature === true;
-// Foil (stage P): the Prime Level, the Legendary, and Legendary Creatures. On the battlefield, a creature keeps
+const isLC = (c) => isCreature(c) && c.campaignCreature === true;
+// Foil (stage P): the Prime Level, the Legendary, and Campaign Creatures. On the battlefield, a creature keeps
 // the foil only if it was summoned at its Prime.
 export function isFoil(c) {
   if (!isCreature(c)) return false;
-  if (c.legendary || c.legendaryCreature) return true;
+  if (c.legendary || c.campaignCreature) return true;
   if ('primeSummon' in c) return !!c.primeSummon;
   return c.stage === 'prime';
 }
 // Stage F: one Level well. It shows only the Level; at Prime it turns gold, with a dark number, a soft gold glow
 // and a small gold star on its lower left (docs/mockups/feedback-v1/m1-cards.png). Off the battlefield that's a card
-// at its Prime Level; on the battlefield, a creature summoned at its Prime. Legendary Creatures keep their LEGEND
+// at its Prime Level; on the battlefield, a creature summoned at its Prime. Campaign Creatures keep their LEGEND
 // well, with the star.
 export function primeWell(c) {
   if (!isCreature(c) || isLC(c)) return false;
@@ -134,7 +134,7 @@ const triggerLines = (c) => creatureLines(c).filter((l) => l.startsWith('**'));
 function typeText(c) {
   if (isCreature(c)) {
     const t = c.traits ?? {};
-    if (c.legendaryCreature) return `Legendary Creature · ${[t.race, t.class].filter(Boolean).join(' ')}`;
+    if (c.campaignCreature) return `Campaign Creature · ${[t.race, t.class].filter(Boolean).join(' ')}`;
     if (t.kind) return `${c.legendary ? 'Legendary' : 'Monster'} · ${t.kind}`;
     return [t.race, t.class].filter(Boolean).join(' · ');
   }
@@ -226,7 +226,7 @@ function fullRules(c, opts) {
     const kw = keywordsOf(c);
     if (kw.length) add(KW(kw.join(' · ')), 0, 15);
     for (const l of triggerLines(c)) add(RULE(triggerHtml(l)), linesOf(l.replace(/\*\*/g, '')));
-    if (c.legendaryCreature) {
+    if (c.campaignCreature) {
       const camp = LC_CAMPAIGN.get(c.id);
       const t = `Arrives when the Quest for ${camp?.name ?? 'its Campaign'} is complete.`;
       add(RULE(esc(t), 'cv-reminder'), linesOf(t, 46));
@@ -271,9 +271,9 @@ function fullRules(c, opts) {
       add(RULE(`<b>Quest</b> · ${esc(c.quest.text)}`), linesOf(qt));
       const need = c.quest.need;
       const done = opts.quest ? Math.min(opts.quest.progress, need) : 0;
-      const lc = c.legendaryCreature;
+      const lc = c.campaignCreature;
       const dots = Array.from({ length: need }, (_, i) => `<span class="cv-dot${i < done ? ' on' : ''}"></span>`).join('');
-      const art = artOf({ ...lc, cardType: lc.cardType ?? 'Character', legendaryCreature: true });
+      const art = artOf({ ...lc, cardType: lc.cardType ?? 'Character', campaignCreature: true });
       add(`<div class="cv-dots" data-z="text" aria-label="Quest ${done} of ${need}">${dots}<span class="cv-dash"></span><span class="cv-portrait" style="${art ? `background-image:url('${esc(art)}')` : ''}"></span></div>`, 0, 30);
       add(`<div class="cv-small nowrap" data-z="text" style="color:${ACC.Campaign}">${done} OF ${need} · ${esc(lc.name.toUpperCase())}</div>`, 0, 13);
       break;
@@ -304,7 +304,7 @@ function miniLine(c) {
 // --- Chip (24–40 px): a round crop of the art, a brass ring and the Level ------------------------------------
 export function chipFor(c, px = 32) {
   const art = artOf(c);
-  const lvl = isCreature(c) ? (c.legendaryCreature ? '★' : c.level) : null;
+  const lvl = isCreature(c) ? (c.campaignCreature ? '★' : c.level) : null;
   return `<span class="card-chip${isFoil(c) ? ' foil' : ''}" style="--accent:${accent(c)};width:${px}px;height:${px}px" title="${esc(c.name)}">${art ? `<img src="${esc(art)}" alt="" draggable="false" style="object-position:${CHIP_POS}">` : '<span class="chip-pending"></span>'}${lvl !== null && lvl !== undefined ? `<span class="chip-lvl nowrap">${lvl}</span>` : ''}</span>`;
 }
 
@@ -372,7 +372,7 @@ export function renderCard(c, opts = {}) {
   if (creature) {
     // The cost well (top-left socket) and the Level well (top-right socket).
     if (!token) {
-      // (A Legendary Creature arrives free: its well keeps the star, as before.)
+      // (A Campaign Creature arrives free: its well keeps the star, as before.)
       if (isLC(c)) s += well(30, 30, 22, '#f0b85a', br);
       else s += crystal(30, 30, 25, `cyc${n}`);
       const cost = isLC(c) ? '★' : c.cost;

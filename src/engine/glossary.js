@@ -11,7 +11,7 @@ export const GLOSSARY = Object.freeze({
     'During the Last Battle, all Renown earned is increased by half, rounded up (1 → 2, 3 → 5, 5 → 8).'] },
   warlord: { term: 'Warlord', section: '3', names: ['Warlord'], quotes: [
     "Each player's Warlord sits off the battlefield. It has no Health and takes no space. It can be attacked, and each point of damage to it gives the attacker's player 1 Renown."] },
-  lane: { term: 'Lanes', section: '3', names: ['lanes', 'lane'], quotes: ['9 lanes. Each lane has one space per player, facing each other.'] },
+  lane: { term: 'Lanes', section: '3', names: ['lanes', 'lane'], quotes: ['8 lanes. Each lane has one space per player, facing each other.'] },
   wilds: { term: 'The Wilds', section: '3', names: ['the Wilds', 'Wilds'], quotes: [
     'The Wilds: lanes not covered by a placed Location.',
     'The Wilds are never scored.'], see: ['location'] },
@@ -50,7 +50,7 @@ export const GLOSSARY = Object.freeze({
   form: { term: 'Forms', section: '7.1', names: ['forms', 'form'], quotes: [
     "Three forms per series, two Levels each: young (the series' first two Levels), grown (the next two) and elder (the last two). The Prime can fall in any form."] },
   cost: { term: 'Cost', section: '7', names: ['cost'], quotes: [
-    'Cost: ceil(Level / 2) Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. Legendary cards cost 5 and are Level 8 from the start. Legendary Creatures are Level 8 and arrive free.'] },
+    'Cost: ceil(Level / 2) Energy. Level 1–2 costs 1, 3–4 costs 2, 5–6 costs 3, 7–8 costs 4. Legendary cards cost 5 and are Level 8 from the start. Campaign Creatures are Level 8 and arrive free.'] },
   prime: { term: 'Prime', section: '7.1', names: ['Prime', 'Rising', 'Waning'], quotes: [
     'Prime: each Character and Monster series names one Prime Level. A card is Rising below it, Prime at it and Waning above it.',
     'At the Prime Level a card has +1 Attack and +1 Health on top of the curve.',
@@ -80,7 +80,7 @@ export const GLOSSARY = Object.freeze({
     'A Ward does the same against Arcane attacks.',
     "A guard also protects its Warlord, but only against attackers of the matching kind standing in the guard's own Location.", 'Action cards ignore guards.'] },
   summon: { term: 'Summon', section: '7', names: ['Summoning', 'Summon', 'summoned'], quotes: [
-    'Summoning (an action): pay the cost and place it in an empty space on your side. It arrives Spent. Summoned at its Prime Level, it gives its player +1 Renown (7.1).'] },
+    'Summoning (an action): pay the cost and place it in an empty space on your side (a Legendary takes 3: section 7.2). It arrives Spent. Summoned at its Prime Level, it gives its player +1 Renown (7.1).'] },
   active: { term: 'Active', section: '7', names: ['Active'], quotes: ['Active cards can act this Round.'] },
   ready: { term: 'Ready', section: '7', names: ['Ready'], quotes: ['A Ready card is one of the fastest Active cards on both sides: the highest Speed among all Active cards. Only Ready cards can attack.'] },
   spent: { term: 'Spent', section: '7', names: ['Spent'], quotes: ["A Spent card can't attack or hit back until the next Dawn."] },
@@ -109,17 +109,20 @@ export const GLOSSARY = Object.freeze({
     "Each one's Quest is tracked from the start of the match, whether the card has been drawn or not.",
     'Quests the engine can count: defeats, Locations dominated (each Location at a Dusk is 1; the Last Battle is 1), damage to the enemy Warlord, and Items bought from the Market.',
     'The Quest stays ticked and makes no further progress.'] },
-  legendaryCreature: { term: 'Legendary Creature', section: '8.4', names: ['Legendary Creature'], quotes: [
-    'Its Legendary Creature arrives in your leftmost empty space, Spent. If there\'s no empty space, it waits and arrives as soon as one frees up.',
-    'A defeated Legendary Creature goes to the Released Pile.', 'Legendary cards and Legendary Creatures are always Prime.'] },
-  legendary: { term: 'Legendary', section: '4, 7', names: ['Legendary'], quotes: [
-    'A Legendary card: at most 1 copy (any number of different Legendaries).', 'Legendary cards cost 5 and are Level 8 from the start.'] },
+  campaignCreature: { term: 'Campaign Creature', section: '8.4', names: ['Campaign Creature'], quotes: [
+    'Its Campaign Creature arrives Spent, in the empty space its player chooses. It takes one space. If there\'s no empty space, it waits, and the choice is offered as soon as a space frees up (at the Round step where waiting creatures arrive).',
+    'A defeated Campaign Creature goes to the Released Pile.', 'Legendary cards and Campaign Creatures are always Prime.'] },
+  legendary: { term: 'Legendary', section: '4, 7, 7.2', names: ['Legendary'], quotes: [
+    'A Legendary card: at most 1 copy (any number of different Legendaries).', 'Legendary cards cost 5 and are Level 8 from the start.',
+    'Summoning: a Legendary needs 3 adjacent empty spaces on its owner\'s side, in lanes with no Location (for example the Wilds 1–3). Its player chooses where. It takes all 3 spaces. If no such place exists, it can\'t be summoned.',
+    'it has no countdown: it\'s removed as soon as its Legendary is defeated or leaves play, and those lanes become the Wilds again;',
+    'its passive is always negative, and it applies to every creature there except the Legendary;'], see: ['location'] },
   location: { term: 'Location', section: '9', names: ['Locations', 'Location'], quotes: [
     'Placing one is an action that costs no Energy. It covers the lane you choose and the lanes to its right (2, 3 or 4 lanes, set per card) on both sides.',
     'Duration: a Location stays for a set number of Rounds, counting down at Dusk after scoring.',
     'Passive: each Location has one rule that applies to both players\' cards in it, immediately and while they stay. Losing a Health bonus never defeats a card: at least 1 Health is left.'], see: ['dominance'] },
   dominance: { term: 'Dominance', section: '9', names: ['dominance', 'Dominate', 'dominated', 'dominates', 'DOMINATES', 'DOMINATE'], quotes: [
-    'Dominance: at Dusk, for each placed Location, the player with more total Might there gains 3 Renown. Ties and empty Locations give nothing. The Wilds are never scored.'], see: ['might'] },
+    'Dominance: at Dusk, for each Location, the player with more total Might there gains Renown by the Location\'s width. Ties and empty Locations give nothing. The Wilds are never scored.'], see: ['might'] },
   might: { term: 'Might', section: '9', names: ['Might'], quotes: [
     'Might: a creature\'s Might is its current Attack plus its current Health. Damage, buffs, Prime, Items and Location passives all count, because Might uses current stats.'], see: ['dominance'] },
   gold: { term: 'Gold', section: '10', names: ['Gold'], quotes: ['Gold: +1 at each Dawn, +1 for each enemy card defeated.'] },
@@ -156,7 +159,7 @@ export const UNWRITTEN = Object.freeze([
   'Kind (a Monster\'s Kind: only in the open questions, not a settled rule)',
 ]);
 
-// Every name that links to an entry, longest first (so "Legendary Creature" wins over "Legendary").
+// Every name that links to an entry, longest first (so "Campaign Creature" wins over "Legendary").
 export const TERM_NAMES = Object.freeze(Object.entries(GLOSSARY)
   .flatMap(([key, e]) => e.names.map((name) => ({ name, key })))
   .sort((a, b) => b.name.length - a.name.length));

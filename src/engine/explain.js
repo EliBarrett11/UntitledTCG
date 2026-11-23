@@ -9,8 +9,8 @@
 //          'strat' | 'pile' | 'enemyHand', ...where } (see locate()).
 //
 // Text in the result marks bold with **…**; the interface links glossary terms and draws Energy crystals.
-import { cardDef, cardAtRound, creatureAtLevel, formAt, levelsOf, isCreature, legendaryCreatureOf, allDefs, primeRoundOf } from './cards.js';
-import { levelFor, RULES, SPEED_ORDER } from './rules.js';
+import { cardDef, cardAtRound, creatureAtLevel, formAt, levelsOf, isCreature, campaignCreatureOf, allDefs, primeRoundOf } from './cards.js';
+import { levelFor, RULES, SPEED_ORDER, dominanceRenown } from './rules.js';
 import { availableExert } from './energy.js';
 import { opponentOf, locationAt, lanesOf, passiveOps, isReady, topSpeed, keywordAmount, mightIn, dominantIn, guardsOf } from './game.js';
 import { KEYWORDS } from './abilities.js';
@@ -49,7 +49,7 @@ export function locate(s, ref, viewer = 'p1') {
     return { card: creatureAtLevel(def, level, `codex-${ref.id}-${level}`), generic: true };
   }
   if (z === 'card') return { card: cardAtRound(ref.id, s.round, `codex-${ref.id}`), generic: true };
-  if (z === 'lc') { const def = cardDef(ref.id); return { card: legendaryCreatureOf(def, `codex-lc-${ref.id}`), generic: true, campaign: def }; }
+  if (z === 'lc') { const def = cardDef(ref.id); return { card: campaignCreatureOf(def, `codex-lc-${ref.id}`), generic: true, campaign: def }; }
   if (z === 'strat') {
     const x = s.strats.find((y) => y.uid === ref.uid);
     if (!x) return null;
@@ -62,11 +62,11 @@ export function locate(s, ref, viewer = 'p1') {
 
 // --- Stats: each split into its sources, adding up to the number shown ----------------------------------------
 
-// The card's printed numbers at its Level (a Legendary Creature's from its Campaign).
+// The card's printed numbers at its Level (a Campaign Creature's from its Campaign).
 function printed(card) {
-  if (card.legendaryCreature) {
-    const camp = allDefs().find((d) => d.cardType === 'Campaign' && (d.legendaryCreature?.id ?? `${d.id}:lc`) === card.id);
-    return camp ? { attack: camp.legendaryCreature.attack, health: camp.legendaryCreature.health } : { attack: card.attack, health: card.health };
+  if (card.campaignCreature) {
+    const camp = allDefs().find((d) => d.cardType === 'Campaign' && (d.campaignCreature?.id ?? `${d.id}:lc`) === card.id);
+    return camp ? { attack: camp.campaignCreature.attack, health: camp.campaignCreature.health } : { attack: card.attack, health: card.health };
   }
   const { entry } = formAt(cardDef(card.id), card.level);
   return { attack: entry.attack, health: entry.health };
@@ -77,12 +77,12 @@ export function statBreakdown(s, found) {
   const { card, space } = found;
   const onBoard = space !== undefined && s.players[found.who]?.row[space]?.uid === card.uid;
   const base = printed(card);
-  const curveFree = card.legendary || card.legendaryCreature;
+  const curveFree = card.legendary || card.campaignCreature;
   const primeBonus = !curveFree && card.stage === 'prime' ? 1 : 0;
   const out = [];
   for (const stat of ['attack', 'health']) {
     const parts = [];
-    if (curveFree) parts.push({ label: card.legendaryCreature ? 'a Legendary Creature, as printed' : 'a Legendary card, as printed', value: base[stat], term: card.legendaryCreature ? 'legendaryCreature' : 'legendary' });
+    if (curveFree) parts.push({ label: card.campaignCreature ? 'a Campaign Creature, as printed' : 'a Legendary card, as printed', value: base[stat], term: card.campaignCreature ? 'campaignCreature' : 'legendary' });
     else {
       parts.push({ label: `on the curve at Level ${card.level}`, value: base[stat] - primeBonus, term: 'curve' });
       if (primeBonus) parts.push({ label: 'Prime bonus', value: primeBonus, term: 'prime', signed: true });
@@ -90,7 +90,8 @@ export function statBreakdown(s, found) {
     let total = base[stat];
     if (onBoard) {
       const loc = s.lastBattle ? null : locationAt(s, space);
-      const fromLoc = sumOps(passiveOps(loc), stat);
+      // (Stage R: a Legendary's own Location's passive doesn't apply to it.)
+      const fromLoc = loc?.legendaryUid === card.uid ? 0 : sumOps(passiveOps(loc), stat);
       const fromItem = sumOps(card.held?.ops ?? [], stat);
       const temp = stat === 'attack' ? card.tempAttack ?? 0 : card.tempHealth ?? 0;
       const bonus = stat === 'attack' ? card.bonusAttack ?? 0 : card.bonusHealth ?? 0;
@@ -98,7 +99,7 @@ export function statBreakdown(s, found) {
       if (fromLoc) parts.push({ label: `${loc.name} (Location)`, value: fromLoc, term: 'location', signed: true });
       if (fromItem) parts.push({ label: `${card.held.name} (Held Item)`, value: fromItem, term: 'held', signed: true });
       // (The board keeps the Location and Item bonuses as one number; if it ever differs from their sum, show the rest.)
-      if (bonus !== fromLoc + fromItem) parts.push({ label: 'Location and Item bonuses (kept at least 1 Health)', value: bonus - fromLoc - fromItem, signed: true, term: 'location' });
+      if (bonus !== fromLoc + fromItem) parts.push({ label: stat === 'attack' ? "Attack can't go below 0" : 'Location and Item bonuses (kept at least 1 Health)', value: bonus - fromLoc - fromItem, signed: true, term: 'location' });
       if (temp) parts.push({ label: 'effects until Dusk', value: temp, term: 'untilDusk', signed: true });
       const kept = max - base[stat] - bonus - temp;
       if (kept) parts.push({ label: 'effects for good', value: kept, signed: true });
@@ -132,9 +133,9 @@ export function statBreakdown(s, found) {
 // --- Abilities ----------------------------------------------------------------------------------------------
 
 function creatureLines(card) {
-  if (card.legendaryCreature) {
-    const camp = allDefs().find((d) => d.cardType === 'Campaign' && (d.legendaryCreature?.id ?? `${d.id}:lc`) === card.id);
-    return [...(camp?.legendaryCreature.text ?? [])];
+  if (card.campaignCreature) {
+    const camp = allDefs().find((d) => d.cardType === 'Campaign' && (d.campaignCreature?.id ?? `${d.id}:lc`) === card.id);
+    return [...(camp?.campaignCreature.text ?? [])];
   }
   const { form, entry } = formAt(cardDef(card.id), card.level);
   return [...(entry.text ?? form.text ?? [])];
@@ -155,7 +156,7 @@ function abilities(card) {
 
 const traitWords = (c) => [c.traits?.race, c.traits?.class, c.traits?.kind].filter(Boolean);
 export function typeLine(card) {
-  if (isCreature(card)) return [...traitWords(card), card.legendaryCreature ? 'Legendary Creature' : card.series, card.speed, card.attackKind, card.guard].filter(Boolean).join(' · ');
+  if (isCreature(card)) return [...traitWords(card), card.campaignCreature ? 'Campaign Creature' : card.series, card.speed, card.attackKind, card.guard].filter(Boolean).join(' · ');
   if (card.cardType === 'Action') return ['Action', card.traits?.class].filter(Boolean).join(' · ');
   if (card.cardType === 'Event') return `Event · Release ${card.release}`;
   if (card.cardType === 'Item') return `Item · ${card.kind}`;
@@ -182,7 +183,7 @@ export function explain(s, ref, viewer = 'p1') {
   if (isCreature(card)) {
     ex.stats = statBreakdown(s, found);
     ex.abilities = abilities(card);
-    const def = card.legendaryCreature ? null : cardDef(card.id);
+    const def = card.campaignCreature ? null : cardDef(card.id);
     if (def && def.series !== 'Legendary') {
       ex.levels = { levels: levelsOf(def), current: card.level, prime: def.prime, primeRound: primeRoundOf(def) };
       ex.forms = def.forms.map((f) => {
@@ -210,14 +211,14 @@ export function explain(s, ref, viewer = 'p1') {
     ex.terms = ['location', 'dominance'];
   } else if (card.cardType === 'Campaign') {
     const q = found.quest ?? me.quests.find((x) => x.cardUid === card.uid) ?? me.quests.find((x) => x.id === card.id) ?? null;
-    const lc = legendaryCreatureOf(cardDef(card.id), `codex-lc-${card.id}`);
+    const lc = campaignCreatureOf(cardDef(card.id), `codex-lc-${card.id}`);
     ex.campaign = {
       order: { cost: card.order.cost, text: card.order.text, target: chosenTargetWords(card.order.target) },
       quest: { text: card.quest.text, need: card.quest.need, progress: q ? Math.min(q.progress, q.quest.need) : null, complete: q?.complete ?? false, whose: q ? (found.who ?? viewer) : null },
-      legendaryCreature: { id: card.id, name: lc.name, card: lc },
+      campaignCreature: { id: card.id, name: lc.name, card: lc },
     };
     ex.now = otherNow(s, found, viewer);
-    ex.terms = ['order', 'quest', 'legendaryCreature'];
+    ex.terms = ['order', 'quest', 'campaignCreature'];
   }
   ex.cost = costOf(card, found);
   return ex;
@@ -226,7 +227,7 @@ const TRIGGER_TERM = { summon: 'onSummon', defeat: 'onDefeat', retain: 'onRetain
 
 function costOf(card, found) {
   if (isCreature(card)) {
-    if (card.legendaryCreature) return { kind: 'free', amount: 0, why: 'a Legendary Creature arrives free' };
+    if (card.campaignCreature) return { kind: 'free', amount: 0, why: 'a Campaign Creature arrives free' };
     if (found.space !== undefined) return null;   // (on the battlefield: already summoned)
     return card.legendary ? { kind: 'energy', amount: card.cost, why: 'Legendary cards cost 5' } : { kind: 'energy', amount: card.cost, why: 'half its Level, rounded up' };
   }
@@ -249,9 +250,9 @@ function creatureNow(s, found, viewer) {
   const p = s.players[viewer];
   if (space !== undefined) {
     const loc = s.lastBattle ? null : locationAt(s, space);
-    const where = s.lastBattle ? 'the Last Battle' : loc ? `**${loc.name}** (${plural(loc.roundsLeft, 'Round')} left)` : 'the Wilds';
+    const where = s.lastBattle ? 'the Last Battle' : loc ? `**${loc.name}** (${loc.roundsLeft == null ? 'until its Legendary leaves' : `${plural(loc.roundsLeft, 'Round')} left`})` : 'the Wilds';
     lines.push(`On the battlefield, ${ME(viewer, who)} side, lane ${space + 1}, in ${where}.`);
-    if (card.legendaryCreature) lines.push(`A Legendary Creature: Level ${card.level}, always Prime.`);
+    if (card.campaignCreature) lines.push(`A Campaign Creature: Level ${card.level}, always Prime.`);
     else lines.push(`Summoned in Round ${card.summonedRound} at **Level ${card.level}**, ${card.stage === 'prime' ? '**its Prime**' : STAGE_WORD[card.stage]}${card.stage === 'prime' && !card.legendary ? ' (+1 Attack, +1 Health)' : ''}.`);
     if (card.spent) lines.push('**Spent:** it can\'t attack or hit back until the next Dawn.');
     else if (isReady(s, card)) lines.push(`**Ready:** it can attack (the fastest Active Speed is ${SPEED_ORDER[topSpeed(s)]}).`);
@@ -265,7 +266,7 @@ function creatureNow(s, found, viewer) {
     return lines;
   }
   if (found.generic) {
-    if (card.legendaryCreature) lines.push(`The Legendary Creature of **${found.campaign?.name ?? 'a Campaign'}**: it arrives when the Quest is completed, at Level ${card.level}, free and Spent.`);
+    if (card.campaignCreature) lines.push(`The Campaign Creature of **${found.campaign?.name ?? 'a Campaign'}**: it arrives when the Quest is completed, at Level ${card.level}, free and Spent.`);
     else if (card.legendary) lines.push(`A Legendary card: Level ${card.level}, always Prime.`);
     else lines.push(`At **Level ${card.level}** this is ${card.stage === 'prime' ? '**its Prime**' : STAGE_WORD[card.stage]}${card.primeRound ? `; cards of this series are at their Prime in Round ${card.primeRound}` : ''}.`);
     return lines;
@@ -291,8 +292,9 @@ function otherNow(s, found, viewer) {
     const mine = mightIn(s, lanes, viewer);
     const theirs = mightIn(s, lanes, opponentOf(viewer));
     const dom = dominantIn(s, lanes);
-    lines.push(`Placed by ${who === viewer ? 'you' : 'the enemy'} over lanes ${lanes[0] + 1}–${lanes[lanes.length - 1] + 1}, with **${plural(l.roundsLeft, 'Round')} left**.`);
-    lines.push(`Might here now: you ${mine}, the enemy ${theirs}. ${dom === viewer ? `**You dominate** it: +${RULES.perDominance} Renown at Dusk.` : dom ? `**The enemy dominates** it: +${RULES.perDominance} Renown to them at Dusk.` : 'Tied: nobody scores it at Dusk.'}`);
+    if (l.legendaryUid) lines.push(`${who === viewer ? 'Your' : 'The enemy\u2019s'} **${s.players[who].row[l.start]?.name ?? 'Legendary'}**'s own Location, over lanes ${lanes[0] + 1}–${lanes[lanes.length - 1] + 1}. It has no countdown: it goes when its Legendary is defeated or leaves play. Its passive doesn't touch its Legendary.`);
+    else lines.push(`Placed by ${who === viewer ? 'you' : 'the enemy'} over lanes ${lanes[0] + 1}–${lanes[lanes.length - 1] + 1}, with **${plural(l.roundsLeft, 'Round')} left**.`);
+    lines.push(`Might here now: you ${mine}, the enemy ${theirs}. ${dom === viewer ? `**You dominate** it: +${dominanceRenown(l.width)} Renown at Dusk.` : dom ? `**The enemy dominates** it: +${dominanceRenown(l.width)} Renown to them at Dusk.` : 'Tied: nobody scores it at Dusk.'}`);
     return lines;
   }
   if (found.quest) {

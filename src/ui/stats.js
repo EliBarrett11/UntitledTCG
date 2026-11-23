@@ -1,10 +1,10 @@
 // The end screen's figures (stage V3), all worked out from the match's own state and log. Pure: no DOM.
 //   - Renown for each side, split by where it came from (each player's Renown record, which sums to their Renown).
 //   - The match: Rounds played, creatures defeated, Locations dominated, when the Last Battle began, when the
-//     Legendary Creature arrived.
+//     Campaign Creature arrived.
 //   - Heroes of the match: up to three of your cards, by the rule below.
 import { CARDS } from '../data/cards.js';
-import { cardAtRound, legendaryCreatureOf, cardDef } from '../engine/cards.js';
+import { cardAtRound, campaignCreatureOf, cardDef } from '../engine/cards.js';
 
 // Where Renown comes from, in the order the panel lists them (the engine's kinds).
 export const RENOWN_SOURCES = [
@@ -17,11 +17,11 @@ export const RENOWN_SOURCES = [
   ['prime', 'Prime summons'],   // stage P
 ];
 
-// A creature's base card id from any of its names (a series' forms, or a Legendary Creature).
+// A creature's base card id from any of its names (a series' forms, or a Campaign Creature).
 const SERIES = new Map();
 for (const d of CARDS) {
   for (const f of d.forms ?? []) SERIES.set(f.name, { id: d.id });
-  if (d.legendaryCreature) SERIES.set(d.legendaryCreature.name, { id: d.legendaryCreature.id, campaign: d.id });
+  if (d.campaignCreature) SERIES.set(d.campaignCreature.name, { id: d.campaignCreature.id, campaign: d.id });
 }
 
 // The log, read in order with the Round each line belongs to ("Round N · Dawn." starts a Round).
@@ -44,8 +44,8 @@ export function matchStats(s) {
   const lines = roundsOfLog(s.log);
   const defeated = lines.filter((l) => / was defeated\.$/.test(l.line)).length;
   const dominated = players.reduce((n, who) => n + s.players[who].renownLog.filter((r) => r.kind === 'dominance').length, 0);
-  // The Legendary Creature's arrival: the log's line, in its Round (and whose it was, from the battlefield or piles).
-  const arrivals = lines.filter((l) => /, a Legendary Creature, arrives in lane \d+\.$/.test(l.line)).map((l) => ({ round: l.round, name: l.line.replace(/, a Legendary Creature, arrives in lane \d+\.$/, '') }));
+  // The Campaign Creature's arrival: the log's line, in its Round (and whose it was, from the battlefield or piles).
+  const arrivals = lines.filter((l) => /, a Campaign Creature, arrives in lane \d+\.$/.test(l.line)).map((l) => ({ round: l.round, name: l.line.replace(/, a Campaign Creature, arrives in lane \d+\.$/, '') }));
   return {
     renown,
     rounds: s.round,
@@ -60,7 +60,7 @@ export function matchStats(s) {
 // Heroes of the match (up to three of yours). The rule: your creatures that earned you the most Renown by attacking
 // the enemy's Warlord (your Renown record names the attacker: "Gloomfang Wolf's attack"), counted by series, most
 // first; on a tie, the one that earned its first such Renown earlier. Each is drawn at its final Level: as it
-// would be in the match's last Round (a Legendary Creature as itself).
+// would be in the match's last Round (a Campaign Creature as itself).
 export function heroesOf(s, who) {
   const tally = new Map();
   s.players[who].renownLog.forEach((r, i) => {
@@ -74,6 +74,6 @@ export function heroesOf(s, who) {
   });
   return [...tally.values()].sort((a, b) => b.renown - a.renown || a.first - b.first).slice(0, 3).map((t) => ({
     renown: t.renown,
-    card: t.campaign ? legendaryCreatureOf(cardDef(t.campaign), `hero-${t.id}`) : cardAtRound(t.id, s.round, `hero-${t.id}`),
+    card: t.campaign ? campaignCreatureOf(cardDef(t.campaign), `hero-${t.id}`) : cardAtRound(t.id, s.round, `hero-${t.id}`),
   }));
 }

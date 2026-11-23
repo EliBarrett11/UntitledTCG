@@ -31,11 +31,13 @@ export function stateProblems(s) {
     if (p.gold < 0) out.push(`${who}: negative Gold`);
     if (p.bag.length > RULES.bagSize) out.push(`${who}: Bag over ${RULES.bagSize}`);
     // Every deck card is somewhere exactly once (a completed Campaign card has left the deck for good).
-    const uids = [...p.drawPile, ...p.hand, ...p.discard, ...p.released, ...p.row.filter(Boolean).filter((c) => !c.legendaryCreature),
+    const uids = [...p.drawPile, ...p.hand, ...p.discard, ...p.released, ...p.row.filter(Boolean).filter((c) => !c.campaignCreature),
       ...s.locations.filter((l) => l.owner === who).map((l) => l.card), ...s.strats.filter((x) => x.owner === who).map((x) => x.card),
       ...(s.reactWindow?.pending?.who === who && s.reactWindow.pending.card ? [s.reactWindow.pending.card] : [])].map((c) => c.uid).filter((u) => u.startsWith(`${who}-`));
     if (new Set(uids).size !== uids.length) out.push(`${who}: a card is in two places`);
   }
+  // (Stage R: nothing stands in a lane a Legendary covers.)
+  for (const who of PLAYERS) s.players[who].row.forEach((c, i) => { for (let k = 1; c && k < (c.width ?? 1); k++) if (s.players[who].row[i + k] || i + k >= RULES.lanes) out.push(`${who}: lane ${i + k + 1} is covered by ${c.name}`); });
   for (const l of s.locations) for (const m of s.locations) if (l !== m && l.start < m.start + m.width && m.start < l.start + l.width) out.push('two Locations overlap');
   if (s.lastBattle && s.locations.length) out.push('a Location during the Last Battle');
   return out;

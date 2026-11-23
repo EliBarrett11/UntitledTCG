@@ -1,7 +1,7 @@
 // Words the board shows. Card wording comes from the generated card data (src/data/cards.js); nothing here
 // is card text. This file only looks it up, and turns the engine's neutral log ("Player 1", "Player 2")
 // into the human's view ("You", "The enemy").
-import { cardDef, creatureAtLevel, isCreature, cardAtRound, legendaryCreatureOf } from '../engine/cards.js';
+import { cardDef, creatureAtLevel, isCreature, cardAtRound, campaignCreatureOf } from '../engine/cards.js';
 import { CARDS } from '../data/cards.js';
 import { ART } from '../data/art.js';
 import { KEYWORDS, TRIGGERS } from '../engine/abilities.js';
@@ -23,8 +23,8 @@ export function setSeat(me, { online = false } = {}) {
 export const foe = (cap = true) => (ONLINE ? (cap ? 'Your friend' : 'your friend') : cap ? 'The enemy' : 'the enemy');
 export const foes = (cap = true) => `${foe(cap)}'s`;
 
-// Legendary Creatures aren't deck cards: find their definitions inside the Campaign cards.
-const LEGENDARY_CREATURES = new Map(CARDS.filter((c) => c.legendaryCreature).map((c) => [c.legendaryCreature.id, c.legendaryCreature]));
+// Campaign Creatures aren't deck cards: find their definitions inside the Campaign cards.
+const LEGENDARY_CREATURES = new Map(CARDS.filter((c) => c.campaignCreature).map((c) => [c.campaignCreature.id, c.campaignCreature]));
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 // Card wording uses **bold** for a trigger's name.
@@ -33,7 +33,7 @@ export const rich = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
 // Stage A (Elliott, 18 November 2026): a Character's name in two parts, from the card data: its first name, which
 // the card face, Mini cards and board tokens show, and its title ("the Thornwood Pathfinder"), on the full card's
 // smaller second line. Everything that names it in words uses c.name, the whole "Ilyra, the Thornwood Pathfinder".
-// Monsters, Legendary Creatures and every other card have no title: { first: c.name, title: null }.
+// Monsters, Campaign Creatures and every other card have no title: { first: c.name, title: null }.
 export function nameParts(c) {
   const def = c?.id ? safeDef(c.id) : null;
   const form = def?.forms?.find((f) => f.id === (c.form ?? c.id)) ?? (c?.firstName ? c : null);
@@ -41,14 +41,14 @@ export function nameParts(c) {
 }
 
 // Stage A: a card's full-art scene (assets/cards-v3/, 3:2), from the card data: its form's, its own, or its
-// Legendary Creature's. Null when it has none.
+// Campaign Creature's. Null when it has none.
 export function fullArtOf(c) {
   if (!c) return null;
   if (c.artFull) return c.artFull;
   for (const d of CARDS) {
     const f = d.forms?.find((x) => x.id === (c.form ?? c.id));
     if (f?.artFull) return f.artFull;
-    if (d.legendaryCreature && d.legendaryCreature.id === (c.form ?? c.id)) return d.legendaryCreature.artFull ?? null;
+    if (d.campaignCreature && d.campaignCreature.id === (c.form ?? c.id)) return d.campaignCreature.artFull ?? null;
   }
   return safeDef(c.id)?.artFull ?? null;
 }
@@ -62,7 +62,7 @@ const safeDef = (id) => { try { return cardDef(id); } catch { return null; } };
 
 // A creature card's lines (keywords, then its trigger) at its Level.
 export function creatureLines(c) {
-  if (c.legendaryCreature) return LEGENDARY_CREATURES.get(c.id)?.text ?? [];
+  if (c.campaignCreature) return LEGENDARY_CREATURES.get(c.id)?.text ?? [];
   const def = safeDef(c.id);
   const form = def?.forms?.find((f) => f.id === c.form);
   if (!form) return [];
@@ -83,7 +83,7 @@ export const triggerName = (c) => (c.trigger ? TRIGGERS[c.trigger.on]?.name ?? n
 
 // The printed stats for its Level (before any bonus or damage), for ▲ and ▼.
 export function printedOf(c) {
-  if (c.legendaryCreature) { const d = LEGENDARY_CREATURES.get(c.id); return { attack: d.attack, health: d.health }; }
+  if (c.campaignCreature) { const d = LEGENDARY_CREATURES.get(c.id); return { attack: d.attack, health: d.health }; }
   const def = safeDef(c.id);
   if (!def) return { attack: c.attack, health: c.health };
   const p = creatureAtLevel(def, c.level, 'x');
@@ -101,8 +101,8 @@ export const speedIndex = (sp) => SPEED_ORDER.indexOf(sp);
 // The type line for a card face: "CHARACTER · HUMAN FIGHTER · L5", "ACTION · WIZARD", "ITEM · HELD".
 export function typeLine(c) {
   if (isCreature(c)) {
-    const kind = c.legendaryCreature ? `Legendary ${c.cardType}` : c.legendary ? `Legendary ${c.cardType}` : c.cardType;
-    return [kind, traitsLine(c), c.legendaryCreature ? '★' : `L${c.level}`].filter(Boolean).join(' · ');
+    const kind = c.campaignCreature ? `Legendary ${c.cardType}` : c.legendary ? `Legendary ${c.cardType}` : c.cardType;
+    return [kind, traitsLine(c), c.campaignCreature ? '★' : `L${c.level}`].filter(Boolean).join(' · ');
   }
   switch (c.cardType) {
     case 'Action': return ['Action', c.traits?.class].filter(Boolean).join(' · ');
@@ -147,14 +147,14 @@ export function bodyLines(c) {
     case 'Action': return Object.entries(c.modes).map(([m, x]) => `<b>${m[0].toUpperCase()}${m.slice(1)} ${x.cost}:</b> ${esc(x.text)}`).map((h) => ({ html: h }));
     case 'Event': return [defText(c), { html: `<b>Favour</b> (${esc(c.favour.conditionText)}): ${esc(c.favour.text)}` }];
     case 'Item': case 'Location': return [defText(c)];
-    case 'Campaign': return [{ html: `<b>Quest:</b> ${esc(c.quest.text)}` }, { html: `<b>Campaign Order ${c.order.cost}:</b> ${esc(c.order.text)}` }, { html: `<b>Legendary Creature:</b> ${esc(c.legendaryCreature.name)}` }];
+    case 'Campaign': return [{ html: `<b>Quest:</b> ${esc(c.quest.text)}` }, { html: `<b>Campaign Order ${c.order.cost}:</b> ${esc(c.order.text)}` }, { html: `<b>Campaign Creature:</b> ${esc(c.campaignCreature.name)}` }];
     default: return [];
   }
 }
 
 // A card's corner value: its cost, its mode costs, its price, or nothing.
 export function costBadge(c) {
-  if (isCreature(c)) return c.legendaryCreature ? null : { kind: 'energy', text: String(c.cost) };
+  if (isCreature(c)) return c.campaignCreature ? null : { kind: 'energy', text: String(c.cost) };
   if (c.cardType === 'Action') { const cs = Object.values(c.modes).map((m) => m.cost); const lo = Math.min(...cs); const hi = Math.max(...cs); return { kind: 'energy', text: lo === hi ? `${lo}` : `${lo}–${hi}` }; }
   if (c.cardType === 'Event' || c.cardType === 'Location') return null;   // (stage G: they cost no Energy, so no well)
   if (c.cardType === 'Campaign') return { kind: 'energy', text: String(c.order.cost) };
@@ -191,7 +191,7 @@ export function chipCardFor(line) {
     for (const def of CARDS) {
       if (isCreature(def)) for (const f of def.forms) NAMED.push([f.name, creatureAtLevel(def, Number(Object.keys(f.levels)[0]), `chip-${f.id}`)]);
       else NAMED.push([def.name, cardAtRound(def.id, 1, `chip-${def.id}`)]);
-      if (def.legendaryCreature) NAMED.push([def.legendaryCreature.name, { ...legendaryCreatureOf(def, 'chip-lc'), campaignId: def.id }]);
+      if (def.campaignCreature) NAMED.push([def.campaignCreature.name, { ...campaignCreatureOf(def, 'chip-lc'), campaignId: def.id }]);
     }
     NAMED.sort((a, b) => b[0].length - a[0].length);
   }
@@ -199,7 +199,7 @@ export function chipCardFor(line) {
   if (!hit) return null;
   // On the board a creature keeps its Level: show the Level the line names, if it does.
   const lv = line.match(/\(Level (\d+)\)/);
-  if (lv && isCreature(hit[1]) && !hit[1].legendaryCreature) {
+  if (lv && isCreature(hit[1]) && !hit[1].campaignCreature) {
     try { return creatureAtLevel(cardDef(hit[1].id), Number(lv[1]), hit[1].uid); } catch { return hit[1]; }
   }
   return hit[1];

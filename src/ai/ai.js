@@ -2,9 +2,9 @@
 // action from legalActions, tries each on a copy of its own view of the state through applyAction,
 // scores the result, and plays the best. It never edits state directly and never sees the other
 // player's hand, Draw Pile or face-down Strats. Its small random tie-break comes from a seeded generator.
-import { applyAction, legalActions, resolveStrats, drainTriggers, opponentOf, creaturesOf, isReady, dominantOf, lastBattleDominant, boosted, actionKey, locationKey, emptySpaces, guardsOf, keywordAmount } from '../engine/game.js';
+import { applyAction, legalActions, resolveStrats, drainTriggers, opponentOf, creaturesOf, isReady, dominantOf, lastBattleDominant, boosted, actionKey, locationKey, emptySpaces, guardsOf, keywordAmount, occupantAt } from '../engine/game.js';
 import { isCreature } from '../engine/cards.js';
-import { RULES } from '../engine/rules.js';
+import { RULES, dominanceRenown } from '../engine/rules.js';
 import { makeRng } from '../engine/random.js';
 import { viewFor } from '../engine/view.js';
 
@@ -60,7 +60,8 @@ function evaluateNow(s, who) {
   let dom = 0;
   for (const l of s.locations) {
     const d = dominantOf(s, l);
-    if (d) dom += (d === who ? 1 : -1) * RULES.perDominance * l.roundsLeft * 1.6 * 0.8;
+    // (Stage R: Renown by the Location's width; a Legendary's own Location has no countdown: valued as 2 more Dusks.)
+    if (d) dom += (d === who ? 1 : -1) * dominanceRenown(l.width) * (l.roundsLeft ?? 2) * 1.6 * 0.8;
   }
   if (s.lastBattle) {
     const d = lastBattleDominant(s);
@@ -88,7 +89,7 @@ export function summonSpaces(s, who) {
   const keep = new Set();
   const seen = new Set();
   for (const space of emptySpaces(s, who)) {
-    const k = `${locationKey(s, space)}:${s.players[foe].row[space] ? 'faced' : 'open'}`;
+    const k = `${locationKey(s, space)}:${occupantAt(s, foe, space) ? 'faced' : 'open'}`;
     if (seen.has(k)) continue;
     seen.add(k);
     keep.add(space);
@@ -106,7 +107,9 @@ export function candidates(s, who) {
   for (const a of legalActions(s, who)) {
     if (a.type === 'event') { (events[a.uid] ??= []).push(a); continue; }
     if (a.type === 'retain') continue;
-    if (a.type === 'summon' && !spaces.has(a.space)) continue;
+    // (Stage R: a Legendary's few 3-lane positions are all tried; a Campaign Creature's arrival like a summon.)
+    if (a.type === 'summon' && (byUid[a.uid]?.width ?? 1) === 1 && !spaces.has(a.space)) continue;
+    if (a.type === 'arrive' && !spaces.has(a.space)) continue;
     const card = byUid[a.uid];
     const key = actionKey({ ...a, uid: card ? `${card.id}:${card.level ?? ''}` : a.uid });
     if (seen.has(key)) continue;
@@ -135,7 +138,7 @@ const meets = (c, cond) => (!cond.cardType || c.cardType === cond.cardType) && (
 
 // The action the AI plays now. rng: a seeded generator (default: one seeded from the state).
 export function chooseAction(real, who, rng = makeRng(real.rng ^ 0x9e3779b9)) {
-  if (real.phase === 'mulligan') {
+  if (real.phase === 'mulligan' && !real.arrival) {
     // Put back creatures that cost more than 1 now, keeping the rest.
     const back = real.players[who].hand.filter((c) => isCreature(c) && c.cost > 1).map((c) => c.uid);
     return legalActions(real, who, 'mulligan').find((a) => actionKey(a) === actionKey({ type: 'mulligan', who, cards: back }));

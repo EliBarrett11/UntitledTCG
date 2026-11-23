@@ -10,9 +10,9 @@
 | **Event** | Something that happens: a festival, a betrayal, a call to arms | Release N other cards; Favour if a Released card meets its condition (rulebook 8.3) | Name, Release N, effect, Favour condition and stronger effect |
 | **Item** | Weapons, potions, relics | Bought for Gold; Held or Consumed (rulebook 10) | Name, price, Held or Consumed, effect |
 | **Location** | A region of the map | Placed over 2–4 lanes for a number of Rounds (rulebook 9) | Name, lanes, Rounds, passive |
-| **Campaign** | A quest-giver and their quest | Quest tracked from the start; the card itself is played as a Campaign Order (rulebook 8.4) | Name, Order cost and effect, Quest and progress, Legendary Creature preview |
+| **Campaign** | A quest-giver and their quest | Quest tracked from the start; the card itself is played as a Campaign Order (rulebook 8.4) | Name, Order cost and effect, Quest and progress, Campaign Creature preview |
 
-**Legendary Creatures** aren't deck cards. Each Campaign card has one, and it arrives when the Quest is complete. It's drawn like a Character card, with ★ in place of its Level and no cost.
+**Campaign Creatures** aren't deck cards. Each Campaign card has one, and it arrives when the Quest is complete. It's drawn like a Character card, with ★ in place of its Level and no cost.
 
 **Legendary** cards (a Legendary Character or Monster) are deck cards: Level 8 from the start, cost 5, 1 copy per deck.
 

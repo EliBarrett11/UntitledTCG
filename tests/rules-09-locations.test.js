@@ -18,9 +18,9 @@ test('9: Locations of 2, 3 and 4 lanes; only where every lane is free of Locatio
   s = place(s, 'p1', 'tlo4', 0);
   s = place(s, 'p2', 'tlo2', 4);
   const uid = give(s, 'p1', 'tlo3');
-  assert.deepEqual(locationStarts(s, { width: 3 }), [6]);
-  assert.ok(!has(s, { type: 'placeLocation', who: 'p1', uid, start: 3 }));
-  assert.ok(has(s, { type: 'placeLocation', who: 'p1', uid, start: 6 }));
+  assert.deepEqual(locationStarts(s, { width: 3 }), [], '8 lanes (stage R): lanes 7–8 are too few for 3');
+  assert.deepEqual(locationStarts(s, { width: 2 }), [6]);
+  assert.ok(!has(s, { type: 'placeLocation', who: 'p1', uid, start: 5 }));
 });
 
 test('9: it can be placed over lanes where cards already stand, and either player may place one', () => {

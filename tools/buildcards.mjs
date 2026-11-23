@@ -20,7 +20,7 @@ const ART_OUT = join(ROOT, 'src', 'data', 'art.js');
 // Every art path the cards name, and which of those files exist (so the game shows Art Pending, without a
 // failed request, for the rest). Rebuild after adding art.
 export function artList(data) {
-  const paths = data.cards.flatMap((c) => (c.forms ? c.forms.map((f) => f.art) : [c.art, c.legendaryCreature?.art])).filter(Boolean);
+  const paths = data.cards.flatMap((c) => (c.forms ? c.forms.map((f) => f.art) : [c.art, c.campaignCreature?.art])).filter(Boolean);
   return [...new Set(paths)].filter((p) => existsSync(join(ROOT, p))).sort();
 }
 export function buildArt(data) {
@@ -71,8 +71,18 @@ export function validate(data) {
     if (c.cardType === 'Event') { spec(c.id, c.target); ops(c.id, c.ops); ops(`${c.id} Favour`, c.favour?.ops); }
     if (c.cardType === 'Item' && c.kind === 'Consumed') { spec(c.id, c.target); ops(c.id, c.ops); }
     if (c.cardType === 'Campaign') { spec(c.id, c.order.target); ops(`${c.id} Order`, c.order.ops); }
+    // Stage R: a Legendary's own Location: 3 lanes, no countdown, a negative passive; its Legendary names it back.
+    if (c.cardType === 'Location' && c.legendaryOf) {
+      const owner = data.cards.find((x) => x.id === c.legendaryOf);
+      if (owner?.series !== 'Legendary' || owner.location !== c.id) out.push(`${c.id}: its Legendary (${c.legendaryOf}) should name it as its location`);
+      if (c.width !== 3 || c.rounds !== null) out.push(`${c.id}: a Legendary's Location is 3 lanes wide with no countdown`);
+      if (!c.passive.ops.every((o) => o.amount < 0)) out.push(`${c.id}: a Legendary's Location has a negative passive`);
+    }
+    if (c.series === 'Legendary' && c.location && !data.cards.some((x) => x.id === c.location && x.legendaryOf === c.id)) out.push(`${c.id}: its Location ${c.location} is missing`);
   }
+  const ownLocations = new Set(data.cards.filter((c) => c.legendaryOf).map((c) => c.id));
   for (const [name, d] of Object.entries(data.decks)) for (const x of d.cards) if (!ids.has(x.id)) out.push(`deck ${name}: unknown card ${x.id}`);
+  for (const [name, d] of Object.entries(data.decks)) for (const x of d.cards) if (ownLocations.has(x.id)) out.push(`deck ${name}: ${x.id} is a Legendary's own Location, never in a deck`);
   return out;
 }
 
@@ -91,7 +101,7 @@ export function generateText(c) {
     case 'Event': return { text: effectText(c.ops, c.target), favour: effectText(c.favour.ops, c.target) };
     case 'Item': return { text: c.kind === 'Held' ? heldText(c.ops) : effectText(c.ops, c.target) };
     case 'Location': return { text: passiveText(c.passive.ops) };
-    case 'Campaign': return { quest: questText(c.quest), order: effectText(c.order.ops, c.order.target), legendaryCreature: creatureLines(c.legendaryCreature.keywords, c.legendaryCreature.trigger) };
+    case 'Campaign': return { quest: questText(c.quest), order: effectText(c.order.ops, c.order.target), campaignCreature: creatureLines(c.campaignCreature.keywords, c.campaignCreature.trigger) };
     default: throw new Error(`Unknown card type ${c.cardType}`);
   }
 }
@@ -104,7 +114,7 @@ export function approvedText(c) {
     case 'Event': return { text: c.text, favour: c.favour.text };
     case 'Item': return { text: c.text };
     case 'Location': return { text: c.text };
-    case 'Campaign': return { quest: c.quest.text, order: c.order.text, legendaryCreature: c.legendaryCreature.text };
+    case 'Campaign': return { quest: c.quest.text, order: c.order.text, campaignCreature: c.campaignCreature.text };
     default: throw new Error(`Unknown card type ${c.cardType}`);
   }
 }
@@ -126,7 +136,7 @@ function withGeneratedText(c) {
     case 'Action': for (const m of Object.keys(x.modes)) x.modes[m].text = g.modes[m]; break;
     case 'Event': x.text = g.text; x.favour.text = g.favour; break;
     case 'Item': case 'Location': x.text = g.text; break;
-    case 'Campaign': x.quest.text = g.quest; x.order.text = g.order; x.legendaryCreature.text = g.legendaryCreature; break;
+    case 'Campaign': x.quest.text = g.quest; x.order.text = g.order; x.campaignCreature.text = g.campaignCreature; break;
     default: break;
   }
   return x;
@@ -149,7 +159,7 @@ export const FIRST_DECK = DECKS.first.cards.flatMap(({ id, copies }) => Array(co
 `;
 }
 
-// Stage A: the art data, recorded from the art itself (never hand-typed). Every card (and Legendary Creature) with
+// Stage A: the art data, recorded from the art itself (never hand-typed). Every card (and Campaign Creature) with
 // art gets artFull (its full-art scene in assets/cards-v3/, 1536 × 1024) and cardX (the centre of its 5:7 card crop,
 // from assets/cards-v3/crops.json; tools/artcrops.py cuts the crops). Locations also get tileX and tileY, the
 // point a placed tile is drawn around (assets/cards-v3/tiles.json).
@@ -182,7 +192,7 @@ export function syncArt(data) {
   data.cards = data.cards.map((c) => {
     let x = one(c, c.cardType === 'Location');
     if (x.forms) x = { ...x, forms: x.forms.map((f) => one(f)) };
-    if (x.legendaryCreature) x = { ...x, legendaryCreature: one(x.legendaryCreature) };
+    if (x.campaignCreature) x = { ...x, campaignCreature: one(x.campaignCreature) };
     return x;
   });
   if (problems.length) throw new Error(`The art data has problems:\n  ${problems.join('\n  ')}`);

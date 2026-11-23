@@ -5,7 +5,7 @@
 // kept (warlord-…, quest-…, piles-…, energy-…, your-gold, enemy-hand, turn-plaque, column).
 import { RULES } from '../engine/rules.js';
 import { actor } from '../engine/game.js';
-import { cardDef, legendaryCreatureOf } from '../engine/cards.js';
+import { cardDef, campaignCreatureOf } from '../engine/cards.js';
 import { renderCard, cardBack, chipFor } from './cards.js';
 import { energyDisplay, turnPlaque } from './turn.js';
 import { esc, HUMAN, AI, ONLINE, foe, chipCardFor, energyHtml } from './text.js';
@@ -74,8 +74,8 @@ export function enemyBand(s, ui) {
   const q = p.quests[0];
   const quest = q ? `<div class="hc hc-quest" data-region="quest-${AI}" data-hover="quest" data-id="${esc(q.id)}" data-who="${AI}">
       <span class="cap">QUEST</span>
-      <div class="hv"><span class="quest-name">${esc(q.name)}</span>${chipFor(legendaryCreatureOf(cardDef(q.id), `chip-${q.uid}`), 26)}</div>
-      <div class="hv-sub">${pips(q)}<span class="sub">${q.complete ? `Complete · ${esc(cardDef(q.id).legendaryCreature.name)} has arrived` : `${Math.min(q.progress, q.quest.need)} of ${q.quest.need}`}</span></div>
+      <div class="hv"><span class="quest-name">${esc(q.name)}</span>${chipFor(campaignCreatureOf(cardDef(q.id), `chip-${q.uid}`), 26)}</div>
+      <div class="hv-sub">${pips(q)}<span class="sub">${q.complete ? `Complete · ${esc(cardDef(q.id).campaignCreature.name)} has arrived` : `${Math.min(q.progress, q.quest.need)} of ${q.quest.need}`}</span></div>
     </div>` : '<div class="hc hc-quest"><span class="cap">QUEST</span><span class="sub">No Campaign in this deck</span></div>';
   const n = p.hand.length;
   const backs = Array.from({ length: Math.min(n, 8) }, () => '<i></i>').join('');
@@ -107,13 +107,13 @@ export function youPanel(s, ui) {
   let quest = '<div class="quest" data-region="quest-' + HUMAN + '"><span class="cap">QUEST</span><span class="sub">No Campaign in this deck</span></div>';
   if (q) {
     const def = cardDef(q.id);
-    const lc = def.legendaryCreature.name;
+    const lc = def.campaignCreature.name;
     const need = q.quest.need;
     const k = Math.min(q.progress, need);
     const line = q.complete ? `Complete · ${lc} has arrived` : `${q.quest.kind === 'dominate' ? 'Dominate at Dusk' : 'Progress'}: ${k} of ${need} · then ${lc}`;
     quest = `<div class="quest" data-region="quest-${HUMAN}" data-hover="quest" data-id="${esc(q.id)}" data-who="${HUMAN}">
       <span class="cap">QUEST</span><div class="quest-name">${esc(q.name)}</div>
-      <div class="quest-row">${pips(q)}${chipFor(legendaryCreatureOf(def, `chip-${q.uid}`), 30)}</div>
+      <div class="quest-row">${pips(q)}${chipFor(campaignCreatureOf(def, `chip-${q.uid}`), 30)}</div>
       <div class="quest-line">${esc(line)}</div>
     </div>`;
   }
@@ -189,9 +189,9 @@ function buyButton(s, ui, item) {
   return `<button type="button" class="btn buy${me.gold < item.price ? ' short' : ''}" disabled>${why}</button>`;
 }
 
-// Stage G: what a log chip opens in the Codex (a series at the Level the line names, a card, or a Legendary Creature).
+// Stage G: what a log chip opens in the Codex (a series at the Level the line names, a card, or a Campaign Creature).
 function codexAttrs(c) {
-  if (c.legendaryCreature) return c.campaignId ? `data-codex="card" data-lc="${esc(c.campaignId)}"` : '';
+  if (c.campaignCreature) return c.campaignId ? `data-codex="card" data-lc="${esc(c.campaignId)}"` : '';
   if (c.level !== undefined && c.series) return `data-codex="card" data-series="1" data-id="${esc(c.id)}" data-level="${c.level}"`;
   return `data-codex="card" data-id="${esc(c.id)}"`;
 }

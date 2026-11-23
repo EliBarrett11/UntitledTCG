@@ -32,7 +32,7 @@ test('every series in the first deck has its own attack signature, grander on it
   for (const id of ['attack.oathsworn', 'attack.ironhide', 'attack.hollowfoot', 'attack.thornwood', 'attack.barrow', 'attack.stonehide']) {
     assert.ok(flatten(id, { final: true }).length > flatten(id, { final: false }).length, `${id} is grander on the final form`);
   }
-  assert.equal(attackEffectFor(CARDS.find((d) => d.legendaryCreature).legendaryCreature), 'attack.oathsworn');
+  assert.equal(attackEffectFor(CARDS.find((d) => d.campaignCreature).campaignCreature), 'attack.oathsworn');
 });
 
 test('every Action resolves each of its modes to its own effect; every React has a flare', () => {
