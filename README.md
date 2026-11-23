@@ -680,4 +680,6 @@ node tools/compare.mjs
   - new layout scenes at all three sizes: the Library with filters, a series page with every form, the builder with a full deck, with errors and read-only, a refused import, match setup with a deck list open, online setup with a refused deck, and both lobby screens; the layout check now covers the Library's text and panels;
   - `tools/libinput.mjs`: a real-input check of the Library and deck choice at all three sizes (43 real clicks, drags, right-clicks and keys each);
   - the two-browser check now has the guest build its deck in the Library from a code, choose it on match setup, and the host's game deal it that deck.
+  - results: all 42 test files pass; the AI-vs-AI simulation runs clean; neat text, layout (every scene at 1920×1080, 1366×768 and 1280×720), real input (all three sizes, Player 2's seat, low motion), the Library real-input check, the presenter, the two-browser online match and the effects check all pass;
+  - fixes from the checks: "The first deck" keeps its own card order, so every seed shuffles and plays exactly as before; the deck list's counts no longer clip.
 - **Readings for Elliott's approval:** the look in `docs/03-look-and-feel.md` section 19; no rule readings.
