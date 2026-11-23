@@ -150,7 +150,7 @@
   "cardX": 820
  },
  "night-raid": {
-  "cardX": 700
+  "cardX": 820
  },
  "parry": {
   "cardX": 720
@@ -160,5 +160,182 @@
  },
  "stonehide-hatchling": {
   "cardX": 820
+ },
+ "mire-spiderling": {
+  "cardX": 700
+ },
+ "mirefang-stalker": {
+  "cardX": 760
+ },
+ "stonewatch-thane": {
+  "cardX": 790
+ },
+ "stonewatch-warden": {
+  "cardX": 820
+ },
+ "lanternhall-loremaster": {
+  "cardX": 760
+ },
+ "stonewatch-bulwark": {
+  "cardX": 880
+ },
+ "lanternhall-busker": {
+  "cardX": 720
+ },
+ "lanternhall-minstrel": {
+  "cardX": 680
+ },
+ "mirefang-broodmother": {
+  "cardX": 770
+ },
+ "shield-wall": {
+  "cardX": 720
+ },
+ "war-drums": {
+  "cardX": 800
+ },
+ "glass-veil": {
+  "cardX": 720
+ },
+ "the-ashfall": {
+  "cardX": 760
+ },
+ "the-bounty-board": {
+  "cardX": 760
+ },
+ "rook-the-bounty-hunter": {
+  "cardX": 770
+ },
+ "skyreach-stormwing": {
+  "cardX": 820
+ },
+ "gallows-hill": {
+  "cardX": 760
+ },
+ "skyreach-wyvernling": {
+  "cardX": 760
+ },
+ "venomglass-dagger": {
+  "cardX": 960
+ },
+ "hunters-snare": {
+  "cardX": 880
+ },
+ "skyreach-wyvern": {
+  "cardX": 820
+ },
+ "second-wind": {
+  "cardX": 820
+ },
+ "cairn-dread-lord": {
+  "cardX": 760
+ },
+ "hearthmoor-matriarch": {
+  "cardX": 800
+ },
+ "nightglass-shadowmaster": {
+  "cardX": 770
+ },
+ "hearthmoor-novice": {
+  "cardX": 740
+ },
+ "nightglass-cutthroat": {
+  "cardX": 740
+ },
+ "cairn-revenant": {
+  "cardX": 760
+ },
+ "nightglass-blade": {
+  "cardX": 740
+ },
+ "hearthmoor-keeper": {
+  "cardX": 740
+ },
+ "cairn-risen": {
+  "cardX": 780
+ },
+ "the-sunlit-shrine": {
+  "cardX": 780
+ },
+ "stormbreak-crags": {
+  "cardX": 840
+ },
+ "warhorn-of-the-vanguard": {
+  "cardX": 880
+ },
+ "ysolde-the-ember-queen": {
+  "cardX": 760
+ },
+ "cinderfeather-amulet": {
+  "cardX": 740
+ },
+ "the-ember-crown": {
+  "cardX": 770
+ },
+ "oakheart-the-grove-guardian": {
+  "cardX": 760
+ },
+ "the-grove-accord": {
+  "cardX": 760
+ },
+ "brannoc-the-siegebreaker": {
+  "cardX": 720
+ },
+ "the-siege-of-greywater": {
+  "cardX": 740
+ },
+ "wren-the-smuggler": {
+  "cardX": 680
+ },
+ "the-smugglers-run": {
+  "cardX": 690
+ },
+ "the-drowned-reach": {
+  "cardX": 780
+ },
+ "the-deepmaw": {
+  "cardX": 820
+ },
+ "ironclaw-warbear": {
+  "cardX": 820
+ },
+ "ironclaw-cub": {
+  "cardX": 820
+ },
+ "ironclaw-bear": {
+  "cardX": 820
+ },
+ "market-day": {
+  "cardX": 760
+ },
+ "chain-lightning": {
+  "cardX": 560
+ },
+ "rime-colossus": {
+  "cardX": 760
+ },
+ "rime-sprite": {
+  "cardX": 780
+ },
+ "rime-elemental": {
+  "cardX": 760
+ },
+ "cogwright-master-engineer": {
+  "cardX": 700
+ },
+ "cogwright-apprentice": {
+  "cardX": 760
+ },
+ "cogwright-inventor": {
+  "cardX": 760
+ },
+ "redmaw-stormcaller": {
+  "cardX": 760
+ },
+ "redmaw-bonecaster": {
+  "cardX": 780
+ },
+ "redmaw-shaman": {
+  "cardX": 760
  }
 }

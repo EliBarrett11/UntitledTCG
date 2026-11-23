@@ -1,4 +1,6 @@
-# New Cards Batch 1, set 1 of 4: proposals for Elliott's approval (23 November 2026)
+# New Cards Batch 1, set 1 of 4: approved by Elliott (23 November 2026)
+
+All eight cards and the four new rules (Rally, Venom, Choose one, "Prime: Choose both") are approved. The art prompts are in `docs/27-art-prompts-batch1-set1.md`.
 
 Designed to `docs/23-card-design-principles.md` and the stat curve (rulebook 7.1):
 - A Rising or Waning creature's Attack + Health = **Level + 2, less 1 per ability**.
@@ -6,7 +8,6 @@ Designed to `docs/23-card-design-principles.md` and the stat curve (rulebook 7.1
 - **At Prime, a creature gets +1 Attack and +1 Health.**
 - **A creature with a choice of modes** pays for its strongest mode plus 1.
 
-Nothing here is final until Elliott approves it.
 
 ## New rules this set needs (each for approval)
 - **Rally (group):** resolves when another creature of that group is summoned on your side. *Rally (Fighter): …* (1 ability.)
