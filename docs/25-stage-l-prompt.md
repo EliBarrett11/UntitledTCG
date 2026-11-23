@@ -71,3 +71,9 @@ Stage L. **Read first:** `docs/23-card-design-principles.md` and rulebook sectio
 
   No text cut off or overlapping.
 - Commit and push to `main` with a README build-log entry. Report with screenshots, the differences from this prompt, and the readings needing approval (`docs/03-look-and-feel.md`, next free section).
+
+## 5. A fix from the stage R review (do this first)
+In the arrival scene (`tools/screenshots/r-r-arrival-1920x1080.png`), Aldric's arrival lights up only the four empty spaces under the two Ironroot Pass tiles. The three empty spaces in the Wilds (lanes 6–8) on the player's side stay unlit.
+- Check whether those spaces are missing from `legalActions` (for example, the AI's reduced space list leaking into the player's options) or are only missing their highlight.
+- Every empty space on the player's side must be offered and lit.
+- Add a test for it.
