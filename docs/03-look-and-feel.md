@@ -622,3 +622,40 @@ Built to `docs/22-stage-e-prompt.md`, `docs/20-vfx-style-guide.md` and the textu
     - **The renderer here is software** (SwiftShader), at about 3 frames a second for old and new alike, so these numbers compare old with new; they can't show 60 fps. On this renderer, the new moments cost the same as the old ones on average (within ±5%), and their worst frames are within about 50 ms.
     - **Automatic quality,** with the five moments played one after another, stays at full through the attack and the first two Firebolts, steps to "particles ¾" during the Strat Firebolt, and settles at "particles ½" after the Prime summon. On software rendering it is expected to step down; the first steps give up particles only, so bloom and resolution are kept.
     - **Reading needing approval:** a real 60 fps figure needs a measurement on Elliott's machine (`node tools/eperf.mjs` with a GPU).
+
+## 18. Readings from stage R (the rules update): needing Elliott's approval
+
+Built to `docs/24-stage-r-prompt.md`. Rule readings are in the rulebook's section 13 (22–28); these are the look.
+
+1. **The board at 8 lanes:**
+   - lanes are 191.5 px wide (170 with 9), and cards on the board grow from 164 × 230 to **180 × 252**;
+   - the rows sit 8 px from the map's top and bottom edges;
+   - the Location labels, the Wilds and the lane numbers sit in the 124 px band between the rows.
+2. **The prompt and the caption** no longer have a fixed place. They go in that band, at the free spot nearest the centre, clear of every Location label, card and dominance line. If the band is full, they go just under your row. (Before, the prompt moved to the top of the band when a label was under it; with bigger cards there's no room above a label.)
+3. **The Wyrm on the board** is one wide token across its 3 spaces (562 × 252), drawn like a Location tile:
+   - its full-art scene, placed around its card crop's centre (cardX) and 42% down the scene;
+   - a gold rim, the foil sheen on the art, and a gold Level badge with the Legendary star;
+   - its name with a line beneath ("LEGENDARY · DRAGON · ON SUMMON");
+   - Attack and Health tabs at the bottom corners and its Speed at the bottom centre.
+   
+   Spent, it tilts 1.2° (a single card tilts 4°). It stands under its Location's tile, like any creature on a tile. Mock-up: `tools/screenshots/r-r-wyrm-1920x1080.png`.
+4. **The Ashfall's tile** shows the Art Pending panel: a dark ember glow with "ART PENDING". Its label reads "WHILE THE ASHEN WYRM STANDS · YOURS" in place of the Rounds left, with no pips. The Location card's chip says "NO END" (the room left beside "DOMINATE · +5 RENOWN"), and the Codex says it has no countdown and gives its dominance Renown.
+5. **Choosing where a Legendary goes:** you pick the **middle** of its 3 spaces, by click or by drop. Hovering one outlines all three. (Picking the leftmost, as for a Location, would put the highlight off-centre from the card's drop.)
+6. **A Campaign Creature's arrival:**
+   - when it's yours to place, every empty space on your side lights up at once, with the prompt "Aldric the Unbroken's Quest is complete: choose the empty space where it arrives";
+   - nothing else can be done until you choose;
+   - the AI and a friend online choose through the same legal actions.
+7. **"Prime next Round":**
+   - a tab in the Prime tab's family, outlined rather than filled: dark with a gold edge, gold text and an outline star;
+   - it's centred over the hand card, and over its hover preview;
+   - the Retain menu's line still says "Prime next Round" as before.
+8. **Protection labels while targeting an attack:**
+   - a dark plate with a pale steel edge across each protected creature's art, between its badges and its name, so it never covers the name or stats (the layout check tests this);
+   - the enemy Warlord's label goes under its portrait;
+   - each guard that protects glows pale blue as the target to hit;
+   - labels appear when you choose an attacker (clicked or dragged) and go when targeting ends;
+   - **an attack whose only legal target is a guard now shows its targeting step** rather than attacking at once, so you see why. With nothing protected, a single target is still attacked at once.
+9. **Wording:**
+   - "Protected by Garrick (Shield)" uses the first name;
+   - several guards: "Protected by Garrick (Shield) and Mossback Treant (Shield)";
+   - a Held Item's guard is named by its source: "Protected: Tower Shield".

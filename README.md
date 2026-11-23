@@ -627,3 +627,22 @@ node tools/compare.mjs
   - the real-input and presenter checks pass.
 - **Frame times** (software WebGL here, about 3 fps for old and new alike): the new moments average within ±5% of the old ones, and their worst frames are within about 50 ms. Automatic quality settles at "particles ½" after the Prime summon. The table is in `docs/03` section 17.
 - Readings for Elliott's approval: `docs/03-look-and-feel.md` section 17.
+
+### R: The rules update (23 November 2026)
+- Built to `docs/24-stage-r-prompt.md`, from Elliott's decisions in `docs/16` ("Rules for the next stage"). The rulebook is updated: sections 2, 3, 5, 7.2 (new), 8.4, 9 and 11.
+- **8 lanes** instead of 9. Lanes are wider and cards on the board grow from 164 × 230 to 180 × 252. Rows, labels, lane numbers, the AI, the online view and every check's seeds follow.
+- **Legendaries are three lanes wide** (today, The Ashen Wyrm):
+  - **Summoning:** it needs 3 adjacent empty spaces on its side, in lanes with no Location; you choose where, and every legal place is offered through `legalActions` (the AI uses them too).
+  - **Its own Location arrives with it:** **The Ashfall**, 3 lanes, "Creatures here have −1 Attack." Attack can't go below 0, and it never hits the Wyrm. It has no countdown; nothing overlaps it; it's gone the moment the Wyrm is. It's scored like any Location, and it's never in a deck.
+  - **On the board:** the Wyrm is one wide token across its 3 spaces, drawn like a Location tile, under The Ashfall's tile (Art Pending until its art arrives). Its On Summon covers its 3 lanes.
+  - **In the Last Battle,** The Ashfall goes like the others and the Wyrm stays 3 wide.
+- **Campaign Creatures** (renamed from "Legendary Creatures" everywhere) take one space, and **their player chooses where they arrive**. A choice is offered as soon as there's an empty space: after the action that completed the Quest, at Dusk, or at Dawn. The AI and a friend online choose too.
+- **Dominance Renown by width:** 2 lanes +4, 3 lanes +5, 4 lanes +6 (it was +3). The Last Battle is unchanged.
+- **"Prime next Round"** shows on a hand card (and its preview) whose Prime is next Round.
+- **Protection labels:** while you target an attack, each enemy you can't reach says what protects it ("Protected by Garrick (Shield)"; "Protected: Tower Shield"), and the guard glows as the one to hit.
+- **Fix:** an online guest's view could name a card that a Campaign Order's own draw had just shuffled back into the hidden Draw Pile; its event no longer names it.
+- **Checks:**
+  - `tests/r-rules.test.js` (17 tests): 8 lanes, Legendary placement, its Location's life and passive, non-overlap, the Last Battle, "the enemy across", scaled Renown, the AI, "Prime next Round" and the protection labels;
+  - the existing tests are updated to the new rules;
+  - new layout scenes: `r-wyrm`, `r-arrival`, `r-prime-next` (and its hover), `r-protect`.
+- **Readings for Elliott's approval:** rules in `docs/01-rulebook.md` section 13 (22–28); the look in `docs/03-look-and-feel.md` section 18.

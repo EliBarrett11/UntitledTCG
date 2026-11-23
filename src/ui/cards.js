@@ -261,8 +261,8 @@ function fullRules(c, opts) {
     case 'Location': {
       add(RULE(esc(defText(c))), linesOf(defText(c)));
       // (Stage R: dominance Renown by width; a Legendary's own Location has no countdown.)
-      const rounds = c.legendaryOf ? 'NO COUNTDOWN' : opts.roundsLeft != null ? `${opts.roundsLeft} ROUND${opts.roundsLeft === 1 ? '' : 'S'} LEFT` : `${c.rounds} ROUNDS`;
-      add(`<div class="cv-chips" data-z="text"><span class="nowrap">${c.width} LANES · ${rounds}</span><span class="nowrap">DOMINATE · +${dominanceRenown(c.width)} RENOWN</span></div>`, 0, 18);
+      const rounds = c.legendaryOf ? 'NO END' : opts.roundsLeft != null ? `${opts.roundsLeft} ROUND${opts.roundsLeft === 1 ? '' : 'S'} LEFT` : `${c.rounds} ROUNDS`;
+      add(`<div class="cv-chips" data-z="text"><span class="nowrap">${rounds}</span><span class="nowrap">DOMINATE · +${dominanceRenown(c.width)} RENOWN</span></div>`, 0, 18);
       break;
     }
     case 'Campaign': {
