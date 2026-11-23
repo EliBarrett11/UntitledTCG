@@ -514,7 +514,7 @@ Built to `docs/17-art-style-guide.md` (sections 0, 0.1, 2, 3 and 8), `docs/19-ar
 
 **Approved with one follow-up (18 November 2026):** the empty campaign map's cream wash (0.40, from stage V3) is too strong for the new map art. It comes down to about 0.12, and empty slots are outlined rather than filled with cream (`docs/mockups/style-test/map-wash-compare.jpg`). The Last Battle's scorched map stays as it is. Scheduled for the effects test stage.
 
-## 17. Readings from stage E (the effects test): needing Elliott's approval
+## 17. Readings from stage E (the effects test): approved as the baseline for the rebuild, 23 November 2026
 
 Built to `docs/22-stage-e-prompt.md`, `docs/20-vfx-style-guide.md` and the texture kit in `assets/vfx/` (`docs/21`). Only the three test moments changed: every other effect is exactly as it was. No rule changed. The old effects are kept: `?fx=old` plays them, for the side-by-side clips.
 
