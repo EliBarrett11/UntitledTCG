@@ -21,11 +21,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(readFileSync(join(root, 'assets/vfx/manifest.json'), 'utf8')).textures;
 // The storyboard's effects (docs/10-feel-and-vfx.md section 3) that a real match must play.
 // V1 (section 3) and V2 (section 5): each series' attack, the Actions' modes, Events, Locations, Dawn and Dusk, the
-// Quest and the cinematics.
+// Quest and the cinematics. Stage E's rebuilt moments stand in for the ones they replace (defeat, the Firebolts).
 const STORYBOARD = ['attack.oathsworn', 'attack.ironhide', 'attack.spire', 'attack.hollowfoot', 'attack.deepforge', 'attack.thornwood', 'attack.beast', 'attack.barrow',
-  'attack.stonehide', 'defeat', 'summon', 'renown', 'heal', 'strat.seal', 'strat.resolve', 'gold.gain', 'item.bought', 'react', 'event', 'draw', 'location',
-  'location.gone', 'dawn', 'dusk', 'dominance.scored', 'quest', 'firebolt.strat', 'nightraid.strat', 'cine.wyrm', 'cine.last'];
-const ALSO = ['attack.wyrm', 'wyrm.onsummon', 'renown.favour', 'riposte', 'item.wildfire', 'item.draught', 'item.held.blade', 'item.held.shield', 'spell.firebolt', 'firebolt.react',
+  'attack.stonehide', 'e.defeat', 'summon', 'renown', 'heal', 'strat.seal', 'strat.resolve', 'gold.gain', 'item.bought', 'react', 'event', 'draw', 'location',
+  'location.gone', 'dawn', 'dusk', 'dominance.scored', 'quest', 'e.firebolt.strat', 'nightraid.strat', 'cine.wyrm', 'cine.last'];
+const ALSO = ['attack.wyrm', 'wyrm.onsummon', 'renown.favour', 'riposte', 'item.wildfire', 'item.draught', 'item.held.blade', 'item.held.shield', 'e.firebolt', 'e.firebolt.react', 'e.attack.steel', 'e.prime',
   'shade.drain', 'parry.adapt', 'nightraid.adapt', 'mending.strat', 'energy', 'cine.aldric', 'cine.aldric.quest'];
 // Chromium's own notices about software GPU readbacks are not page problems.
 const noise = (t) => /GL Driver Message|GPU stall due to ReadPixels|Automatic fallback to software WebGL/.test(t);
