@@ -660,7 +660,7 @@ Built to `docs/24-stage-r-prompt.md`. Rule readings are in the rulebook's sectio
    - several guards: "Protected by Garrick (Shield) and Mossback Treant (Shield)";
    - a Held Item's guard is named by its source: "Protected: Tower Shield".
 
-## 19. Readings from stage L (the Card Library, deck building and choosing decks): needing Elliott's approval
+## 19. Readings from stage L (the Card Library, deck building and choosing decks): approved by Elliott, 23 November 2026
 
 Built to `docs/25-stage-l-prompt.md`. No rule changed. The rulebook's section 4 now says each player plays a deck of their own, with "The first deck" as the default (the prompt's decision). These are the readings.
 
