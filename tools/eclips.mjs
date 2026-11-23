@@ -87,7 +87,7 @@ async function recordMoment(name, mode) {
 }
 // The raw stretch, sped back up K times, at 60 fps.
 function cut(r, dest, { w = 1920, h = 1080 } = {}) {
-  ff(['-ss', r.from.toFixed(2), '-i', r.file, '-t', (r.to - r.from).toFixed(2), '-vf', `setpts=(PTS-STARTPTS)/${K},fps=60,scale=${w}:${h}`, '-an', '-c:v', 'libvpx-vp9', '-b:v', '3M', '-row-mt', '1', dest]);
+  ff(['-i', r.file, '-ss', r.from.toFixed(2), '-t', (r.to - r.from).toFixed(2), '-vf', `setpts=(PTS-STARTPTS)/${K},fps=60,scale=${w}:${h}`, '-an', '-c:v', 'libvpx-vp9', '-b:v', '3M', '-row-mt', '1', dest]);
   return (r.to - r.from) / K;
 }
 
@@ -116,10 +116,12 @@ for (const name of Object.keys(PARTS)) {
   if (tmp.low) { ff(['-i', tmp.low, '-c:v', 'copy', join(out, `e-${name}-low.webm`)]); log(`  saved e-${name}-low.webm`); }
 }
 
-// A real match against the AI: autoplay at normal speed, slowing down only while one of the new moments plays; those
+// A real match against the AI: autoplay at normal speed. The page slows itself the instant one of the new moments starts
+// (a watch on the presenter's effect counter), and the tool speeds it back up once that effect's length has passed; those
 // stretches, in the order they came, make the clip.
 if (want('match')) {
   log('match:');
+  const LEN = { 'e.attack.steel': 1250, 'e.defeat': 1000, 'e.firebolt': 1000, 'e.firebolt.react': 600, 'e.firebolt.strat': 1300, 'e.prime': 900 };
   const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, recordVideo: { dir: raw, size: { width: 1920, height: 1080 } } });
   const page = await ctx.newPage();
   const t0 = Date.now();
@@ -127,23 +129,35 @@ if (want('match')) {
   const slow = await slowMo(ctx, page, 1);
   await page.goto(`${base}?seed=7&autoplay=1&pace=60&speed=normal&lowmotion=0&prefer=firebolt:react,firebolt:strat,firebolt:adapt`, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return !v || (v.standIns.length === 0 && v.ready >= 110); }, null, { timeout: 120000, polling: 250 });
-  const NEW = new Set(['e.attack.steel', 'e.defeat', 'e.firebolt', 'e.firebolt.react', 'e.firebolt.strat', 'e.prime']);
-  const seen = new Set(); const spans = []; let cur = null; let slowed = false;
+  await page.evaluate(([names, k]) => {
+    window.__eHits = [];
+    new MutationObserver(() => {
+      const e = document.body.dataset.effect ?? '';
+      if (names.includes(e) && window.__slowK() === 1) { window.__slowMo(k); window.__eHits.push(e); }
+    }).observe(document.body, { attributes: true, attributeFilter: ['data-effect-seq'] });
+  }, [Object.keys(LEN), K]);
+  const spans = []; let done = 0;
   const t1 = Date.now();
-  while (Date.now() - t1 < 25 * 60 * 1000) {
-    const st = await page.evaluate(() => ({ e: document.body.dataset.effect ?? '', p: document.body.dataset.presenting === '1', over: !!document.querySelector('[data-region="end"]') })).catch(() => null);
+  while (Date.now() - t1 < 25 * 60 * 1000 && spans.length < 7) {
+    const st = await page.evaluate(() => ({ hits: window.__eHits.slice(), over: !!document.querySelector('[data-region="end"]') })).catch(() => null);
     if (!st || st.over) break;
-    const on = st.p && NEW.has(st.e);
-    if (on && !slowed) { await slow.set(K); slowed = true; cur = { from: sec(), what: st.e }; seen.add(st.e); }
-    if (!on && slowed) { await page.waitForTimeout(500 * K); await slow.set(1); slowed = false; cur.to = sec(); spans.push(cur); cur = null; }
-    if (['e.attack.steel', 'e.firebolt', 'e.prime'].every((x) => [...seen].some((y) => y.startsWith(x))) && spans.length >= 4 && !slowed) break;
-    await new Promise((r) => setTimeout(r, 40));
+    if (st.hits.length > done) {
+      const what = st.hits[done]; done += 1;
+      await slow.set(K);
+      const from = sec() - 1;   // (the page slowed itself at the start; this only covers the poll's delay)
+      await page.waitForTimeout((LEN[what] + 700) * K);
+      spans.push({ from, to: sec(), what });
+      await slow.set(1);
+      // (Skip the moments that came while this one was slowed: they start a span of their own only after it.)
+      done = await page.evaluate(() => window.__eHits.length);
+    }
+    await new Promise((r) => setTimeout(r, 30));
   }
   const video = page.video();
   await ctx.close();
   const file = await video.path();
   const parts = [];
-  spans.forEach((s, i) => { const f = join(raw, `match-${i}.webm`); cut({ file, from: s.from, to: s.to }, f); parts.push(f); });
+  spans.forEach((s, i) => { const f = join(raw, `match-${i}.webm`); cut({ file, from: Math.max(0, s.from), to: s.to }, f); parts.push(f); });
   if (parts.length) {
     ff([...parts.flatMap((f) => ['-i', f]), '-filter_complex', `${parts.map((_, i) => `[${i}:v]`).join('')}concat=n=${parts.length}:v=1[v]`, '-map', '[v]', '-c:v', 'libvpx-vp9', '-b:v', '3M', '-row-mt', '1', join(out, 'e-match.webm')]);
     log(`  saved e-match.webm: ${spans.map((s) => s.what).join(', ')}`);

@@ -4,7 +4,7 @@
 // "ENEMY ▲ · ▼ YOU" marker off the lanes, every Location label on one line; and no page errors. It also
 // plays one debug match (?debug=1). Screenshots go to tools/screenshots/.
 //
-// Usage: node tools/layout.mjs
+// Usage: node tools/layout.mjs   (SCENES=title,mid node tools/layout.mjs re-runs those scenes only)
 // Needs Playwright with Chromium (a dev tool only; never a runtime dependency).
 import { createRequire } from 'node:module';
 import { mkdir } from 'node:fs/promises';
@@ -295,6 +295,7 @@ let failures = 0;
 for (const [w, h] of SIZES) {
   for (const sc of SCENES) {
     if (sc.only && !sc.only.includes(w)) continue;   // (V5: a token's text is too small to tip at 1280×720)
+    if (process.env.SCENES && !process.env.SCENES.split(',').includes(sc.name)) continue;   // (re-run some scenes only)
     const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });

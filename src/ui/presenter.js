@@ -319,6 +319,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     const id = fxOld ? OLD_OF[id0] ?? id0 : id0;
     try { recordLayering(id, env); } catch { /* (a check aid only) */ }
     document.body.dataset.effect = id;
+    document.body.dataset.effectSeq = String(Number(document.body.dataset.effectSeq ?? 0) + 1);
     document.body.dataset.effectFlags = Object.entries(env.flags ?? {}).filter(([, v]) => v).map(([k]) => k).join(' ');
     return runEffect(ctx, vfx, id, env);
   };

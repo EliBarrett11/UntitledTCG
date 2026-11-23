@@ -620,4 +620,10 @@ node tools/compare.mjs
   - `tests/e-effects.test.js`: palettes, erosion, sheet frames, the timing table, the light curve, and the moments' budgets and textures;
   - the effects, layout, real-input and presenter checks;
   - `tools/eperf.mjs` for frame times.
+- **Results:**
+  - all 37 test files pass;
+  - the effects check passes (every storyboard effect, with the rebuilt ones in place of those they replace, in real matches; stand-ins; failed downloads; the 2D fallback);
+  - the layout check passes at all three sizes, with the map's labels at 6.06:1 contrast or better;
+  - the real-input and presenter checks pass.
+- **Frame times** (software WebGL here, about 3 fps for old and new alike): the new moments average within ±5% of the old ones, and their worst frames are within about 50 ms. Automatic quality settles at "particles ½" after the Prime summon. The table is in `docs/03` section 17.
 - Readings for Elliott's approval: `docs/03-look-and-feel.md` section 17.

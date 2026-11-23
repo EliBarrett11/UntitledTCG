@@ -609,3 +609,16 @@ Built to `docs/22-stage-e-prompt.md`, `docs/20-vfx-style-guide.md` and the textu
     - The Wilds labels and lane numbers have a fuller cream halo. The Last Battle's map is unchanged.
 16. **The clips are recorded in slow motion** (`tools/slowmo.mjs`, `tools/eclips.mjs`): the page's clock and animations run 36× slower, and the video is sped back up. This container renders WebGL in software at a few frames a second, so a real-time recording would skip most of each moment.
 17. **Dev aids:** `?fxdemo` (`window.__match.fxDemo(name)`) stages each moment through the real engine. `?fx=old` plays the old effects.
+18. **Frame times** (`tools/eperf.mjs`, 1920×1080, normal speed, the top quality step; the frames drawn while each moment plays, over two runs):
+
+    | Moment | Old: average / worst | New: average / worst |
+    |---|---|---|
+    | Martial attack and defeat | 318 / 417 ms | 313 / 450 ms |
+    | Firebolt, Adapt | 317 / 450 ms | 303 / 400 ms |
+    | Firebolt, React | 288 / 333 ms | 291 / 383 ms |
+    | Firebolt, Strat | 302 / 383 ms | 289 / 367 ms |
+    | Prime summon | 288 / 333 ms | 298 / 350 ms |
+
+    - **The renderer here is software** (SwiftShader), at about 3 frames a second for old and new alike, so these numbers compare old with new; they can't show 60 fps. On this renderer, the new moments cost the same as the old ones on average (within ±5%), and their worst frames are within about 50 ms.
+    - **Automatic quality,** with the five moments played one after another, stays at full through the attack and the first two Firebolts, steps to "particles ¾" during the Strat Firebolt, and settles at "particles ½" after the Prime summon. On software rendering it is expected to step down; the first steps give up particles only, so bloom and resolution are kept.
+    - **Reading needing approval:** a real 60 fps figure needs a measurement on Elliott's machine (`node tools/eperf.mjs` with a GPU).
