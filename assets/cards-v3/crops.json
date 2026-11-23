@@ -205,5 +205,53 @@
  },
  "rook-the-bounty-hunter": {
   "cardX": 770
+ },
+ "skyreach-stormwing": {
+  "cardX": 820
+ },
+ "gallows-hill": {
+  "cardX": 760
+ },
+ "skyreach-wyvernling": {
+  "cardX": 760
+ },
+ "venomglass-dagger": {
+  "cardX": 960
+ },
+ "hunters-snare": {
+  "cardX": 880
+ },
+ "skyreach-wyvern": {
+  "cardX": 820
+ },
+ "second-wind": {
+  "cardX": 820
+ },
+ "cairn-dread-lord": {
+  "cardX": 760
+ },
+ "hearthmoor-matriarch": {
+  "cardX": 800
+ },
+ "nightglass-shadowmaster": {
+  "cardX": 770
+ },
+ "hearthmoor-novice": {
+  "cardX": 740
+ },
+ "nightglass-cutthroat": {
+  "cardX": 740
+ },
+ "cairn-revenant": {
+  "cardX": 760
+ },
+ "nightglass-blade": {
+  "cardX": 740
+ },
+ "hearthmoor-keeper": {
+  "cardX": 740
+ },
+ "cairn-risen": {
+  "cardX": 780
  }
 }
