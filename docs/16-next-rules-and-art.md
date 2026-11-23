@@ -1,6 +1,29 @@
 # Next rules and the new art style (17 November 2026)
 
-## Rules decided by Elliott (17 November 2026), to build when he's ready
+## Rules for the next stage (Elliott, 23 November 2026): these replace the 17 November list
+1. **Legendaries are three lanes wide.** Legendary cards (The Ashen Wyrm) and Legendary Creatures (Aldric the Unbroken) take three lanes, and each arrives with **its own unique 3-lane Location**.
+   - Unlike normal Locations, a Legendary's Location **always has a negative passive** (for example, creatures here have −1 Attack).
+   - The Legendary's owner can earn dominance Renown there while the Legendary holds it, and the opponent gets a hard new Location to take down.
+   - **Settled with Elliott (23 November 2026):**
+     - **Playing one:** a Legendary needs 3 adjacent empty spaces on its owner's side, in lanes with no Location (for example the Wilds 1–3).
+     - **No overlapping:** its Location never overlaps another Location, and nobody can place a Location over it.
+     - **Duration:** it has no countdown and is removed as soon as its Legendary is defeated; those lanes become the Wilds again.
+     - **The negative passive** hits every creature summoned there except the Legendary. The Legendary's owner can't summon into it anyway, since the Legendary fills all 3 of their spaces there; the opponent can summon into their 3 spaces across from it.
+     - **Dominance** is scored like any Location.
+     - **In the Last Battle** it is removed like the others, and the Legendary stays 3 lanes wide.
+     - **Only The Ashen Wyrm** gets a Location for now (designed with New Cards Batch 1).
+   - **Campaign Creatures are not Legendaries.** Aldric the Unbroken is a Campaign Creature. When a Quest completes, the player chooses which empty space it arrives in.
+2. **8 lanes instead of 9.** Each fielded card is bigger, and fewer creatures fit on the field.
+3. **"Prime next Round" in hand.** A creature in hand that would be in its Prime next Round is labelled as such, so the player sees at a glance that it may be worth Retaining.
+4. **Protection shown while targeting.** When a player starts targeting with an attack, any Creature or Warlord protected by a Shield or Ward is labelled with which Creature or effect protects it from that attack.
+
+5. **More Renown for dominating Locations, scaled by size** (Elliott, 23 November 2026): a 2-lane Location gives 4, a 3-lane one 5, a 4-lane one 6. The Last Battle is unchanged.
+6. **Campaign Creatures take one space.**
+7. **Decks for the AI:** the AI plays "The first deck" by default, and the player can choose any of their saved decks for it.
+
+**Set aside for now (23 November 2026):** Monster sizes for ordinary Monsters. The 17 November list below is kept for the record.
+
+## Rules decided by Elliott (17 November 2026), superseded on 23 November
 1. **Monster sizes.** A Monster's form sets how many lanes it takes when summoned: young form 1 lane, grown form 2, elder form 3 (Legendary beasts can be 3). It needs that many empty spaces side by side on its side. Its size is fixed once summoned, like its Level.
 2. **What wide Monsters gain:** extra stats above the curve for each extra lane (the design chat proposed about +2 Attack and +2 Health per extra lane, to be tested), and their Might counts in every Location they touch.
 3. **8 lanes instead of 9.**
