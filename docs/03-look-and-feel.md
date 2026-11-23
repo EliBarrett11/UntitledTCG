@@ -659,3 +659,54 @@ Built to `docs/24-stage-r-prompt.md`. Rule readings are in the rulebook's sectio
    - "Protected by Garrick (Shield)" uses the first name;
    - several guards: "Protected by Garrick (Shield) and Mossback Treant (Shield)";
    - a Held Item's guard is named by its source: "Protected: Tower Shield".
+
+## 19. Readings from stage L (the Card Library, deck building and choosing decks): needing Elliott's approval
+
+Built to `docs/25-stage-l-prompt.md`. No rule changed. The rulebook's section 4 now says each player plays a deck of their own, with "The first deck" as the default (the prompt's decision). These are the readings.
+
+1. **The Card Library** is a screen of its own (`?screen=library` opens it directly). It has a header (Back, search, sort), the filters on the left, the cards in the middle and your decks on the right. A card's page is the Codex's page, opened over the right-hand panel as in a match. Its trail says "THE LIBRARY", and its footer drops "the match carries on".
+2. **A series is one entry,** drawn as its first form at its starting Level (its Level in Round 1). A filter matches the series if *any* of its forms does: Elowen is shown under "On Summon" because her Prime form has a Prime: On Summon, though her first form has none. The page shows the three forms, an "Every Level" table (each Level's Attack and Health, the Prime row with its +1/+1 "★ Prime: 5 / 6"), and each form's text.
+3. **"Ancestry":** the Library calls the stored `race` trait "Ancestry", in the filter group and on the Codex's Affiliations line ("Human (ancestry)"), as the prompt and `docs/23` do. The vocabulary table (`docs/00`) still says Race. Should it change to Ancestry everywhere?
+4. **Affiliations on the card's face:**
+   - Full cards already showed them in their type line ("HUMAN · FIGHTER").
+   - Mini cards (the Library's tiles, the heroes on the end screen) now do too, in a small line under the name: a creature's traits, an Action's class ("ACTION · WIZARD"), "LEGENDARY · DRAGON". The name moves up and the rules text drops from 22 to 20 px to make room.
+   - Other cards (Events, Items, Locations, Campaigns) have no affiliations and no line.
+5. **Home groups** aren't stored yet (stage N adds them). The Library, the card faces, the filters and the Codex all read a `home` trait as the home group, so `traits.home` will appear everywhere without another change.
+6. **The cost filter** has two modes:
+   - **By Round:** a card's Energy cost in a chosen Round (1 to 9). A creature at its Level that Round; an Action if any of its modes costs that; Events and Locations 0; a Campaign its Order's cost. Items cost Gold, not Energy, so they never match.
+   - **By Level:** creatures whose series reaches that Level.
+7. **Campaign length** isn't shown until a Campaign carries one (`quest.length` or `length` in `docs/cards.json`); then its filter appears by itself.
+8. **Affiliation links:** on a card's page, each affiliation ("Fighter (class)") and each one it rewards ("Rewards: a Fighter", and "a Fighter" in Call to Arms' Favour line) is a link. It closes the page and shows every card with that affiliation. The deck summary's affiliation chips do the same.
+9. **Only in play:** a section under the cards for decks, with Aldric the Unbroken ("Lady Corwen's Commission's Campaign Creature") and The Ashfall ("The Ashen Wyrm's own Location"). They can be looked up but never added.
+10. **Building a deck:**
+    - click a card (or drag it onto the deck) to add a copy;
+    - right-click it (or drag its row out of the deck) to remove one;
+    - each row also has − and +;
+    - in the builder, a card's page opens from its PAGE button (shown on hover) or by hovering it and pressing C, since click and right-click now add and remove.
+11. **Limits as errors, not walls:** adding a third Firebolt is allowed, and the deck shows "Firebolt: 3 copies, the most is 2" (as the prompt's example implies), with the row marked red and the card's strip red. The same goes for a 41st card.
+12. **Saved as it changes:** a deck is saved in the browser at every change, finished or not; there's no Save button. A deck that breaks the rules says so and "It's saved as it is; finish it to choose it for a match."
+13. **Copy counts** sit in a strip under each card while a deck is open ("IN THE DECK 1 of 2", gold when full, red when over), not on the card, where they hid its text.
+14. **The deck list** groups by type. Creatures are ordered by starting Level (shown as "L2"); Actions by their cheapest mode ("1+"); Items show their Gold price. The summary's Actions curve uses each Action's cheapest mode.
+15. **Deck codes** are one line: `UTCG1.<name>.<cards>.<checksum>`:
+    - the name is in base64url;
+    - the cards are ids with "*2" for two copies;
+    - the checksum is FNV-1a in 6 characters.
+
+    Card ids are spelled out rather than shortened, so a code keeps working as cards are added and can name a card it doesn't know. A full deck's code is about 600 characters: shorter than a list, longer than a "short" code might suggest.
+16. **Importing** a code that names unknown cards is refused, naming them ("This deck code names a card this game doesn't have: zz-dragon"). So are damaged, foreign and newer codes, each saying why. A code for a deck that breaks the rules is imported as an unfinished deck.
+17. **Names:** a duplicate is "Name (copy)", then "(2)", "(3)"... An import or a new deck takes a free name the same way. Names are trimmed to 40 characters.
+18. **Match setup:**
+    - Each side shows its deck's name and count, with a "Choose your deck ▾" / "Choose the AI's deck ▾" list of "The first deck" and your saved legal decks only; unfinished decks aren't listed.
+    - The card shown is the deck's Campaign, else its Legendary, else its first card.
+    - Setup has a Card Library button; Back from the Library returns there.
+    - The choices are remembered, and a remembered deck that's deleted or no longer legal falls back to "The first deck".
+19. **Online:**
+    - Your deck is the same remembered "your deck" as against the AI.
+    - Your friend's side shows their deck's name and card count, with the card back (never a card from it).
+    - A refused Begin shows, on both screens, under the options: "Your deck “Half a Deck” can't be played: 38 of 40 cards. Choose another deck." or "Your friend's deck “…” can't be played: … They need to choose another deck." The host's own deck is checked the same way.
+    - The game's online version changed, so a stage M page can't play a stage L page.
+20. **The lobby:**
+    - The host's waiting screen and the join screen have a Card Library button.
+    - While you're in the Library, the lobby's moves (your friend arriving, going back) don't pull you out; its Back button follows them ("‹ Match setup").
+    - A match starting does take you to it.
+21. **The title screen's Codex button** is now "Card Library". The old card sheet (`?sheet=full`) stays a dev aid.

@@ -43,7 +43,7 @@ During the Last Battle, all Renown earned is increased by half, rounded up (1 â†
   - A Legendary card: at most 1 copy (any number of different Legendaries).
   - 0 to 3 Campaign cards, 1 copy each.
   - Any number of Locations.
-  - **For the first basic match,** both players use copies of one shared deck.
+  - **Each player plays a deck of their own,** built to these rules (stage L: chosen on match setup, and online by each player for themselves). "The first deck" is built in, and is the default; both players may play it.
 - **Setup:**
   1. Each player shuffles their deck into their Draw Pile, Campaign cards included.
   2. For each Campaign card in a deck, a **Quest tracker** goes into that player's Campaign area, linked to the card. It's active from Round 1, costs nothing and starts at progress 0.

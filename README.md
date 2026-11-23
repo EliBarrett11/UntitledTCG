@@ -8,7 +8,9 @@
 
 1. On the title screen, choose **Play a friend**. You get a 5-letter room code and an invite link.
 2. Send your friend the link (the **Copy** button copies it). They open it, or open the game, choose Play a friend and type the code under "Got a code from a friend?".
-3. You both see match setup with both Warlords. When you're ready, press **Begin** (the host does). You both play the shared first deck.
+3. You both see match setup with both Warlords. Each of you chooses your own deck there (**Choose your deck**: "The first deck" or any legal deck you've built); you see your friend's deck's name and card count, never its cards. When you're ready, press **Begin** (the host does). The host's game checks both decks first and says why if one can't be played.
+
+**Building decks:** open the **Card Library** from the title screen, match setup or the lobby. Look up any card (right-click it, or its PAGE button), filter by type, cost, speed, keyword, trigger, affiliation and more, and build decks beside it: click or drag a card to add it, right-click to remove one. Decks are saved in your browser; **Copy deck code** gives a line of text to back a deck up or send it to a friend, and **Import deck code** brings it back.
 
 Your browser (the host's) runs the match; your friend's only sends its moves. If either of you refreshes or loses the connection, the match waits:
 - your friend just opens the same link again (or waits: it retries by itself every few seconds);
@@ -648,3 +650,34 @@ node tools/compare.mjs
   - results: all 38 test files pass; the AI-vs-AI simulation runs clean; neat text, layout (every scene at 1920×1080, 1366×768 and 1280×720), real input (all three sizes, Player 2's seat, low motion), the presenter, the two-browser online match and the effects check all pass;
   - fixes from the checks: attacking a guarded target no longer asks for the target twice; the enemy Warlord's preview badge moves inside its panel, clear of the top row's badges; the effects check has more seeds for 8-lane matches.
 - **Readings for Elliott's approval:** rules in `docs/01-rulebook.md` section 13 (22–28); the look in `docs/03-look-and-feel.md` section 18.
+
+### L: The Card Library, deck building and choosing decks (23 November 2026)
+- Built to `docs/25-stage-l-prompt.md`. No rule changed; rulebook section 4 now says each player plays a deck of their own, with "The first deck" as the default.
+- **First, the fix from the stage R review:** the empty spaces in the Wilds weren't lit when Aldric arrived (they were offered and clickable, but a style for empty spaces in the Wilds outranked the highlight). Every space you can choose now lights up, under a tile or in the Wilds, for every kind of choice. `tests/l-arrival.test.js` checks that every empty space is offered (both seats; the AI's choice never narrows yours), and the layout check now fails if any choosable space isn't lit.
+- **The Card Library** (title screen, match setup, and the online lobby for host and guest):
+  - every card that can go in a deck, a series as one entry, and a separate "Only in play" section (Aldric the Unbroken, The Ashfall);
+  - each card's page is the Codex's: for a series, its three forms, every Level's stats, its Prime and each form's text;
+  - affiliations (ancestry, class, Monster kind, home group once cards carry one) on every card's face (Mini cards now have them too) and on its page, linked to their filter, as is what a card rewards ("a Fighter");
+  - filters: type, cost (by Round or by Level), speed, attack kind, guard, keyword, trigger and affiliation (Campaign length appears once Campaigns carry one); search across names and text; sort by name, cost or type;
+  - all from `docs/cards.json`: new cards appear by themselves, with the Art Pending panel until their art arrives.
+- **The deck builder,** beside the Library:
+  - click or drag a card to add a copy; right-click it or drag its row out to remove one; copy counts under each card;
+  - the rules checked live, in plain words ("38 of 40 cards", "Firebolt: 3 copies, the most is 2"), from the engine's own deck check (`deckIssues` in `src/engine/cards.js`);
+  - a summary: count by type, creatures by starting Level, Actions by cost, affiliations, Campaigns;
+  - decks saved in the browser as they change (wrapped, so blocked storage never breaks the game): edit, duplicate, rename, delete with a confirm; "The first deck" is built in and read-only, and can be duplicated;
+  - deck codes (`src/engine/decks.js`): **Copy deck code** gives one versioned line with a checksum; **Import deck code** makes a saved deck from one, and says plainly when a code is damaged or names cards this game doesn't have.
+- **Choosing decks:**
+  - against the AI, match setup chooses your deck and the AI's from "The first deck" and your saved legal decks; both choices are remembered;
+  - online, each player chooses their own deck on match setup; the guest sends its list to the host, and the host checks both with the engine's rules before the match, refusing an illegal one with the reason on both screens;
+  - each player sees only the other's deck name and card count;
+  - the match uses `decks: { p1, p2 }`, the Market's pool comes from both decks as before, and a rematch keeps the decks.
+- **Checks:**
+  - new tests:
+    - `l-decks` (validation wording, deck codes round-trip, damaged, foreign, newer and unknown codes, saving, loading, renaming, duplicating, deleting, blocked or damaged storage, the summary);
+    - `l-online-decks` (each player's deck reaching the engine, against the AI and online; the host refusing an illegal guest deck, with the reason to both; names and counts only; rematch and resume keep the decks);
+    - `l-ai-decks` (the AI plays 12 whole matches with two deliberately unusual legal decks, on both seats);
+    - `l-arrival`;
+  - new layout scenes at all three sizes: the Library with filters, a series page with every form, the builder with a full deck, with errors and read-only, a refused import, match setup with a deck list open, online setup with a refused deck, and both lobby screens; the layout check now covers the Library's text and panels;
+  - `tools/libinput.mjs`: a real-input check of the Library and deck choice at all three sizes (43 real clicks, drags, right-clicks and keys each);
+  - the two-browser check now has the guest build its deck in the Library from a code, choose it on match setup, and the host's game deal it that deck.
+- **Readings for Elliott's approval:** the look in `docs/03-look-and-feel.md` section 19; no rule readings.
