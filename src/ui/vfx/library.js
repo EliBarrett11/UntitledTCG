@@ -477,7 +477,8 @@ Object.assign(EFFECTS, {
   ] },
   'kw.undying': { duration: 950, steps: [
     { at: 0, op: 'hitstop', ms: [40, 70] },
-    { at: 0, op: 'sprite', tex: 'spirit-rise', on: 'dst', sizeK: 1.4, h: 320, scale: [0.5, 1.1], curve: 'out', life: 800, fadeIn: 0.1, fadeOut: 0.5, tint: GHOST, tintK: 0.8, alpha: 1.3 },
+    { at: 0, op: 'sprite', tex: 'spirit-rise', on: 'dst', sizeK: 1.8, h: 380, scale: [0.6, 1.15], curve: 'out', life: 900, fadeIn: 0.1, fadeOut: 0.45, tint: GHOST, tintK: 0.8, alpha: 1.8 },
+    { at: 60, op: 'sprite', tex: 'halo-ring', on: 'dst', sizeK: 1.4, flat: 0.5, dy: 110, scale: [0.5, 1.2], curve: 'out', life: 700, fadeIn: 0.1, fadeOut: 0.5, tint: GHOST, tintK: 0.9, alpha: 1.3 },
     { at: 0, op: 'sprite', tex: 'shockwave-ring', on: 'dst', sizeK: 1.1, scale: [0.4, 1.8], curve: 'out', life: 450, fadeOut: 0.3, tint: GHOST, tintK: 0.8, alpha: 0.9 },
     { at: 40, op: 'burst', tex: 'renown-motes-atlas', on: 'dst', area: 'card', n: 16, speed: [60, 200], angle: 'up', spread: 70, life: [400, 700], size: [10, 22], gravity: -120, tint: GHOST, tintK: 0.8 },
     { at: 160, op: 'dom', name: 'lift', el: 'dst', dur: 520 },

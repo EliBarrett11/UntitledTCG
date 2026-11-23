@@ -28,7 +28,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 'l';
+const STAGE = 'n';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -114,10 +114,27 @@ const SCENES = [
   { name: 'l-import-error', query: '?screen=library', steps: async (p) => { await clickTop(p, '[data-lib="import"]', 0); await p.fill('.ld-import textarea', ERROR_CODE.slice(0, -2) + 'zz'); await clickTop(p, '.ld-import [type="submit"]', 0); }, need: '.ld-error' },
   { name: 'l-setup-menu', query: '?screen=setup', steps: async (p) => { await clickTop(p, '[data-act="deck-menu"]', 1); }, need: '.deck-menu' },
   { name: 'l-setup-refused', query: '?lobby=setup-refused', need: '[data-region="deck-refused"]' },
+  // Stage N: a mid-game board of Batch 1's cards (with Gallows Hill and Stormbreak Crags); The Deepmaw summoned with The
+  // Drowned Reach; a choose-one Summon (by real clicks: Maren, a space, then her modes); Undying's marker before an
+  // attack; the Library filtered by the new affiliations and a Campaign length; a new series' page; a Campaign's page.
+  { name: 'n-board', query: '?seed=10&scene=n-board&pace=100000', need: '.cv-undying' },
+  { name: 'n-deepmaw', query: '?seed=10&scene=n-deepmaw&pace=100000', need: '.slot-card.wide .card-wide' },
+  { name: 'n-choose', query: '?seed=10&scene=n-choose&pace=100000', steps: async (p) => {
+    await clickTop(p, '[data-act="hand"][data-uid="scene-maren"]', 0);
+    if (await p.$('.menu-item[data-act="menu"]')) { const i = await p.evaluate(() => [...document.querySelectorAll('.menu-item[data-act="menu"]')].findIndex((b) => b.textContent.startsWith('Summon'))); if (i >= 0) await clickTop(p, '.menu-item[data-act="menu"]', i); }
+    if (await p.$('.cell[data-pick]')) await clickTop(p, '.cell[data-pick]', 0);
+  }, need: '.menu .menu-title' },
+  { name: 'n-undying', query: '?seed=10&scene=n-undying&pace=100000', need: '[data-cell="p2:3"] .cv-undying' },
+  { name: 'n-library', query: '?screen=library', steps: async (p) => {
+    for (const v of ['class:Bard', 'class:Artificer', 'kind:Elemental', 'home:Redmaw', 'home:Nightglass']) await scrollClick(p, `[data-lib="chip"][data-g="affiliation"][data-v="${v}"]`, 0);
+  }, need: '.lf-chip.on[data-v="kind:Elemental"]' },
+  { name: 'n-library-length', query: '?screen=library', steps: async (p) => { await scrollClick(p, '[data-lib="chip"][data-g="length"][data-v="Side-Quest"]'); await scrollClick(p, '[data-lib="chip"][data-g="length"][data-v="Long"]'); }, need: '.lf-chip.on[data-g="length"]' },
+  { name: 'n-page', query: '?screen=library', steps: async (p) => { await p.fill('.lib-search', 'Maren'); await p.waitForTimeout(300); await hoverTop(p, '[data-lib-card="lanternhall-minstrel"]', 0); await clickTop(p, '[data-lib-card="lanternhall-minstrel"] .lib-page', 0); await p.waitForSelector('#codex:not([hidden]) .cx-elv', { timeout: 5000 }).catch(() => {}); }, need: '#codex:not([hidden]) .cx-elv' },
+  { name: 'n-campaign-page', query: '?screen=library', steps: async (p) => { await p.fill('.lib-search', 'Ember Crown'); await p.waitForTimeout(300); await hoverTop(p, '[data-lib-card="the-ember-crown"]', 0); await clickTop(p, '[data-lib-card="the-ember-crown"] .lib-page', 0); await p.waitForSelector('#codex:not([hidden])', { timeout: 5000 }).catch(() => {}); }, need: '#codex:not([hidden])' },
 ];
 // The labels on the painted map, checked for contrast in these scenes.
-const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles', 'a-tiles-2-4', 'a-tiles-3', 'r-wyrm']);
-const SHOT_ALL_SIZES = new Set(['l-library', 'l-page', 'l-deck-full', 'l-deck-errors', 'l-deck-first', 'l-import-error', 'l-setup-menu', 'l-setup-refused', 'setup', 'm-lobby-waiting', 'm-lobby-join', 'm-setup-host', 'm-setup-guest', 'r-wyrm', 'r-arrival', 'r-prime-next', 'r-protect', 'a-codex-art', 'a-tiles-2-4', 'a-tiles-3', 'lastbattle', 'title', 'victory', 'defeat', 'mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
+const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles', 'a-tiles-2-4', 'a-tiles-3', 'r-wyrm', 'n-board', 'n-deepmaw']);
+const SHOT_ALL_SIZES = new Set(['n-board', 'n-deepmaw', 'n-choose', 'n-undying', 'n-library', 'n-library-length', 'n-page', 'n-campaign-page', 'l-library', 'l-page', 'l-deck-full', 'l-deck-errors', 'l-deck-first', 'l-import-error', 'l-setup-menu', 'l-setup-refused', 'setup', 'm-lobby-waiting', 'm-lobby-join', 'm-setup-host', 'm-setup-guest', 'r-wyrm', 'r-arrival', 'r-prime-next', 'r-protect', 'a-codex-art', 'a-tiles-2-4', 'a-tiles-3', 'lastbattle', 'title', 'victory', 'defeat', 'mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
 
 async function topPoint(p, sel, i) {
   return p.evaluate(([s, k]) => {
@@ -158,6 +175,9 @@ async function hoverText(p, word, within) {
   if (pt) { await p.mouse.move(pt.x - 30, pt.y - 30); await p.mouse.move(pt.x, pt.y, { steps: 4 }); await p.waitForTimeout(800); }
 }
 async function clickTop(p, sel, i) { const pt = await topPoint(p, sel, i); if (pt) { await p.mouse.click(pt.x, pt.y); await p.waitForTimeout(250); } }
+// (Stage N: a Library chip or card may be below the fold: brought into view first, then clicked where it's on top.)
+async function seen(p, sel, i = 0) { await p.evaluate(([s, k]) => document.querySelectorAll(s)[k]?.scrollIntoView({ block: 'center' }), [sel, i]); await p.waitForTimeout(150); }
+async function scrollClick(p, sel, i = 0) { await seen(p, sel, i); await clickTop(p, sel, i); }
 
 // Everything the page checks about itself (in stage pixels, so every size is judged the same way).
 function inspect() {
