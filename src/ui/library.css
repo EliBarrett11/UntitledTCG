@@ -115,7 +115,7 @@ body[data-lib-drag] .screen-library, body[data-lib-drag] .screen-library * { cur
 /* The deck being built */
 .ld-head { flex: none; display: flex; align-items: center; gap: 12px; }
 .ld-name { flex: 1; min-width: 0; margin: 0; font: 700 20px Cinzel, serif; letter-spacing: 2px; color: #f1e4c8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ld-count { flex: none; font: 700 30px Cinzel, serif; line-height: 1; }
+.ld-count { flex: none; font: 700 30px Cinzel, serif; line-height: 1.25; }
 .ld-count small { font-size: 16px; color: #b9a98a; }
 .ld-count.ok { color: #9fe08b; }
 .ld-count.bad { color: #ffb4a6; }

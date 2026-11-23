@@ -438,12 +438,13 @@ export function renderCard(c, opts = {}) {
     if (c.held) h += `<div class="cv-held nowrap" data-z="badge" title="Holds ${esc(c.held.name)}" style="${box(24, panel - 72, W - 48, 30)}">${esc(c.held.name.toUpperCase())}</div>`;
   } else if (mini) {
     const npx = nameSize(np.first, 30, 304);
-    h += `<div class="cv-name nowrap" data-z="text" style="left:16px;right:16px;top:${panel + 22}px;font-size:${npx}px${foil ? ';color:#ffe9b0' : ''}">${esc(np.first)}</div>`;
-    // (Stage L: a Mini card shows its affiliations too, under its name: a creature's traits, an Action's class.)
+    // (Stage L: a Mini card shows its affiliations too, under its name: a creature's traits, an Action's class. The
+    // name sits a little higher and the rules a little smaller to make room.)
     const aff = miniAffiliations(c);
-    if (aff) h += `<div class="cv-type cv-type-mini nowrap" data-z="text" style="top:${panel + 58}px;color:${acc}${aff.length > 22 ? ';letter-spacing:1px' : ''}">${esc(aff.toUpperCase())}</div>`;
+    h += `<div class="cv-name nowrap" data-z="text" style="left:16px;right:16px;top:${panel + (aff ? 10 : 22)}px;font-size:${npx}px${foil ? ';color:#ffe9b0' : ''}">${esc(np.first)}</div>`;
+    if (aff) h += `<div class="cv-type cv-type-mini nowrap" data-z="text" style="top:${panel + 52}px;color:${acc}${aff.length > 22 ? ';letter-spacing:1px' : ''}">${esc(aff.toUpperCase())}</div>`;
     const line = miniLine(c);
-    if (line) h += `<div class="cv-rules cv-rules-mini" style="top:${panel + (aff ? 84 : 66)}px;bottom:${creature ? 62 : 22}px">${line}</div>`;
+    if (line) h += `<div class="cv-rules cv-rules-mini${aff ? ' with-aff' : ''}" style="top:${panel + (aff ? 74 : 66)}px;bottom:${creature ? (aff ? 56 : 66) : 22}px">${line}</div>`;
   } else {
     const ny = panel + 22;
     // (The first name keeps its own size, however long the title; the title fits its own line.)

@@ -139,3 +139,5 @@ body.sheet #viewport { position: static; }
 .card-token .cv-tokkw { text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95); }
 /* Stage L: a Mini card's affiliations line, under its name. */
 .cv-type-mini { left: 14px; right: 14px; font-size: 17px; letter-spacing: 2px; }
+.cv-rules-mini.with-aff { font-size: 20px; line-height: 1.2; }
+.cv-rules-mini.with-aff .cv-kw { font-size: 16px; }

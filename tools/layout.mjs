@@ -12,6 +12,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { staticServer } from './serve.mjs';
 import { measureHand } from './handread.mjs';
+import { defineCards } from '../src/engine/cards.js';
+import { CARDS, FIRST_DECK } from '../src/data/cards.js';
+import { encodeDeck, idsToList, addCopy, removeCopy } from '../src/engine/decks.js';
+
+defineCards(CARDS);
+// (Stage L: the decks for the builder scenes, as deck codes: a full legal deck of your own, and one with errors.)
+const FULL_CODE = encodeDeck({ name: 'Thornwood Ambush', cards: idsToList(FIRST_DECK) });
+const ERROR_CODE = encodeDeck({ name: 'Fire and Steel', cards: addCopy(removeCopy(removeCopy(removeCopy(idsToList(FIRST_DECK), 'parry'), 'parry'), 'night-raid'), 'firebolt') });
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -94,10 +102,22 @@ const SCENES = [
   { name: 'r-prime-next-hover', query: '?seed=10&scene=prime-next&pace=100000', steps: async (p) => { await hoverTop(p, '.hand-card', await p.evaluate(() => [...document.querySelectorAll('.hand-card')].findIndex((el) => el.querySelector('.prime-tab.next')))); }, need: '#preview:not([hidden]) .prime-tab.next', preview: true },
   { name: 'r-protect', query: '?seed=10&scene=protect&pace=100000', steps: async (p) => { await clickTop(p, '[data-act="attacker"]', 0); }, need: '.protect-label' },
   { name: 'codex-campaign', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await rightClickTop(p, '[data-region="quest-p1"]', 0); }, need: '#codex:not([hidden]) .cx-segs' },
+  // Stage L: the Card Library with filters chosen (by real clicks); a series' page with all its forms and every Level;
+  // the deck builder with a full deck of your own, with errors, and the read-only first deck; importing a damaged code;
+  // match setup with a deck list open; and online setup with a refused deck. (The lobby scenes above now carry the
+  // Card Library button, for host and guest.)
+  { name: 'l-library', query: '?screen=library', steps: async (p) => { await clickTop(p, '[data-lib="chip"][data-g="type"][data-v="Character"]', 0); await clickTop(p, '[data-lib="chip"][data-g="trigger"][data-v="summon"]', 0); await clickTop(p, '[data-lib="cost-mode"][data-v="level"]', 0); }, need: '.lf-chip.on[data-g="trigger"]' },
+  { name: 'l-page', query: '?screen=library', steps: async (p) => { await hoverTop(p, '[data-lib-card="oathsworn-recruit"]', 0); await clickTop(p, '[data-lib-card="oathsworn-recruit"] .lib-page', 0); await p.waitForSelector('#codex:not([hidden]) .cx-elv'); await p.evaluate(() => document.querySelector('.cx-elv')?.scrollIntoView({ block: 'start' })); }, need: '#codex:not([hidden]) .cx-elv' },
+  { name: 'l-deck-full', query: `?screen=library&libcode=${encodeURIComponent(FULL_CODE)}`, need: '.ld-legal' },
+  { name: 'l-deck-errors', query: `?screen=library&libcode=${encodeURIComponent(ERROR_CODE)}`, need: '.ld-issues' },
+  { name: 'l-deck-first', query: '?screen=library&libdeck=first', need: '.ld-readonly' },
+  { name: 'l-import-error', query: '?screen=library', steps: async (p) => { await clickTop(p, '[data-lib="import"]', 0); await p.fill('.ld-import textarea', ERROR_CODE.slice(0, -2) + 'zz'); await clickTop(p, '.ld-import [type="submit"]', 0); }, need: '.ld-error' },
+  { name: 'l-setup-menu', query: '?screen=setup', steps: async (p) => { await clickTop(p, '[data-act="deck-menu"]', 1); }, need: '.deck-menu' },
+  { name: 'l-setup-refused', query: '?lobby=setup-refused', need: '[data-region="deck-refused"]' },
 ];
 // The labels on the painted map, checked for contrast in these scenes.
 const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles', 'a-tiles-2-4', 'a-tiles-3', 'r-wyrm']);
-const SHOT_ALL_SIZES = new Set(['r-wyrm', 'r-arrival', 'r-prime-next', 'r-protect', 'a-codex-art', 'a-tiles-2-4', 'a-tiles-3', 'lastbattle', 'title', 'victory', 'defeat', 'mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
+const SHOT_ALL_SIZES = new Set(['l-library', 'l-page', 'l-deck-full', 'l-deck-errors', 'l-deck-first', 'l-import-error', 'l-setup-menu', 'l-setup-refused', 'setup', 'm-lobby-waiting', 'm-lobby-join', 'm-setup-host', 'm-setup-guest', 'r-wyrm', 'r-arrival', 'r-prime-next', 'r-protect', 'a-codex-art', 'a-tiles-2-4', 'a-tiles-3', 'lastbattle', 'title', 'victory', 'defeat', 'mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
 
 async function topPoint(p, sel, i) {
   return p.evaluate(([s, k]) => {
@@ -158,7 +178,11 @@ function inspect() {
     if (b.l < -1 || b.t < -1 || b.r > 1921 || b.b > 1081) out.push(`${name(el)} is off-screen (${b.l | 0},${b.t | 0} → ${b.r | 0},${b.b | 0})`);
   }
   // No text clipped or cut off.
-  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .hud, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c b, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .tp-title, .tp-line, .tp-btn, .tp-hint, .en-num, .en-label, .ex-word, .ex-ready, .dom-line, .dom-say, .hud .cap, .hud .sub, .pile-n, .round-n, .phase, .pass-note, .stock, .log-line, .log-open, .warlord-title, .quest-name, .quest-line, .dial-n, .dial-of, .hud .num, .gold-n, .lb-note, .lobby-h, .lobby-code, .lobby-k, .lobby-p, .lobby-wait, .lobby-err, .title-notice, .title-resume-sub, .setup-wait, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b')) {
+  for (const el of stage.querySelectorAll('.card .name, .card .rule, .card .type, .card .sub, .card .tab, .card .gem, .loc-label, .loc-line, .quest, .hud, .react-bar, .react-text, .react-opt, .prompt, .caption, .market-info, .market-name, .dialog, .warlord, .log-panel, .btn, .menu-item, .tag, .held, .guard, .lb-label, .side-marker, .toast, .loc-name, .loc-time, .prime-tab, .sl-t, .sl-c b, .scr-btn, .set, .fact, .st-row, .st-l, .end-totals, .end-how, .end-title, .hero-note, .title-kicker, .title-main, .title-sub, .title-note, .setup-who, .setup-deck, .setup-title, .tp-title, .tp-line, .tp-btn, .tp-hint, .en-num, .en-label, .ex-word, .ex-ready, .dom-line, .dom-say, .hud .cap, .hud .sub, .pile-n, .round-n, .phase, .pass-note, .stock, .log-line, .log-open, .warlord-title, .quest-name, .quest-line, .dial-n, .dial-of, .hud .num, .gold-n, .lb-note, .lobby-h, .lobby-code, .lobby-k, .lobby-p, .lobby-wait, .lobby-err, .title-notice, .title-resume-sub, .setup-wait, .opening-text, .rx-n, .rx-e, .rx-r, .rx-h1, .rx-h2, .rx-h3, .rx-chip, .rx-lab, .rx-ring b, '
+    // (Stage L: the Card Library, the deck builder, and the deck choice on match setup.)
+    + '.lib-title, .lib-back, .lib-fbtn, .lf-chip, .lf-head, .lf-sub, .lf-round, .lf-clear-all, .lf-hint, .lib-count, .lib-sec, .lib-copies, .lib-only, .lib-empty, .ld-title, .ld-btn, .ld-open b, .ld-open > span, '
+    + '.ld-name, .ld-count, .ld-readonly, .ld-issues li, .ld-legal, .ld-sub, .ld-gh, .ld-cn, .ld-x, .ld-cost, .ld-lv, .ld-gold, .ls-h, .ls-types, .ls-aff, .ls-camp div, .ls-bar b, .ls-bar span, .ld-note, .ld-error, '
+    + '.ld-dialog > div, .ld-dialog label, .deck-change, .deck-opt b, .deck-opt span, .deck-opt-note, .setup-refused')) {
     if (!visible(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) out.push(`text clipped in ${name(el)}: "${el.textContent.trim().slice(0, 50)}"`);
   }
@@ -222,6 +246,12 @@ function inspect() {
     // (Stage R: a protection label never covers a card's name or stats; nor does the band's prompt.)
     ['.protect-label', '.slot-card .cv-name'], ['.protect-label', '.slot-card .tab'], ['.protect-label', '.card-wide .wide-name'], ['.warlord-protect', '.slot-card'], ['.prompt', '.dom-line'],
     ['.dom-say', '[data-region="map"] .slot-card'], ['.caption', '.dom-line'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
+    // (Stage L: the Library's panels never meet; in the deck panel, its parts stay apart; on match setup, a deck list
+    // and a refusal cover nothing in the middle column.)
+    ['.lib-head', '[data-region="lib-filters"]'], ['.lib-head', '[data-region="lib-deck"]'], ['.lib-head', '[data-region="lib-grid"]'], ['[data-region="lib-filters"]', '[data-region="lib-grid"]'],
+    ['[data-region="lib-grid"]', '[data-region="lib-deck"]'], ['.ld-status', '[data-region="deck-list"]'], ['[data-region="deck-list"]', '[data-region="deck-summary"]'], ['[data-region="deck-summary"]', '.ld-foot'],
+    ['.ld-head', '.ld-status'], ['.ld-readonly', '.ld-status'], ['.ld-row', '.ld-row'], ['.ld-top', '.ld-list'], ['.ld-list', '.ld-note'], ['.lib-head > *', '.lib-head > *'],
+    ['.deck-menu', '.setup-mid'], ['.setup-refused', '.scr-btn'], ['.setup-refused', '.setup-opts'], ['.deck-change', '.setup-deck'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);
   // (Stage L fix: every space you can choose is lit, in the Wilds as well as under a Location tile.)
