@@ -9,7 +9,7 @@
 //          'strat' | 'pile' | 'enemyHand', ...where } (see locate()).
 //
 // Text in the result marks bold with **…**; the interface links glossary terms and draws Energy crystals.
-import { cardDef, cardAtRound, creatureAtLevel, formAt, levelsOf, isCreature, campaignCreatureOf, allDefs, primeRoundOf } from './cards.js';
+import { cardDef, cardAtRound, creatureAtLevel, formAt, levelsOf, isCreature, campaignCreatureOf, allDefs, primeRoundOf, nameOf } from './cards.js';
 import { levelFor, RULES, SPEED_ORDER, dominanceRenown } from './rules.js';
 import { availableExert } from './energy.js';
 import { opponentOf, locationAt, lanesOf, passiveOps, isReady, topSpeed, keywordAmount, mightIn, dominantIn, guardsOf } from './game.js';
@@ -334,7 +334,7 @@ function otherNow(s, found, viewer) {
 function locationFacts(s, found) {
   const { card } = found;
   const l = found.placed;
-  return { text: cardDef(card.id).text, width: card.width, rounds: card.rounds, roundsLeft: l?.roundsLeft ?? null, lanes: l ? lanesOf(l) : null };
+  return { text: cardDef(card.id).text, width: card.width, rounds: card.rounds, roundsLeft: l?.roundsLeft ?? null, lanes: l ? lanesOf(l) : null, legendaryOf: card.legendaryOf ? nameOf(cardDef(card.legendaryOf)) : null };
 }
 
 // What the viewer can know about something hidden: only what's public.

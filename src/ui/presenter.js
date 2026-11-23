@@ -6,7 +6,7 @@
 // Weighty and physical: cards slide and settle; an attack is a short lunge and strike with a flash in the
 // attacker's accent colour; numbers rise and fade like ink; a defeat crumbles into ash and embers towards the
 // Released Pile; Renown flows to the Warlord's dial as a ribbon of light.
-import { renderCard, cardBack } from './cards.js';
+import { renderCard, cardBack, TOKEN_W, TOKEN_H } from './cards.js';
 import { accentOf, esc, HUMAN, AI, artOf, tintOf, foe, foes } from './text.js';
 import { handLayout, LANE_W, HAND, tileArt } from './view.js';
 import { hasGuard, mightOf } from '../engine/game.js';
@@ -128,8 +128,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   // (Stage F: no line is drawn once a target is chosen; the attack or effect animation shows what was targeted.)
   // A card face (or back) sliding from one place to another and settling like card stock on leather.
   async function slide(ctx, html, from, to, { size = 'mini', hold = 0, scaleTo = 1 } = {}) {
-    const w = size === 'mini' ? 200 : size === 'token' ? 164 : size === 'full' ? 340 : 46;
-    const h = size === 'mini' ? 280 : size === 'token' ? 230 : size === 'full' ? 476 : 64;
+    const w = size === 'mini' ? 200 : size === 'token' ? TOKEN_W : size === 'full' ? 340 : 46;
+    const h = size === 'mini' ? 280 : size === 'token' ? TOKEN_H : size === 'full' ? 476 : 64;
     const el = add(html, from.cx - w / 2, from.cy - h / 2, 'ghost');
     const dx = to.cx - from.cx; const dy = to.cy - from.cy;
     if (settings().lowMotion) {
@@ -1012,7 +1012,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           });
           break;
         case 'locationPlaced': {
-          B('location', `${NAME[e.who]} placed ${e.name} over lanes ${e.start + 1}–${e.start + e.width}.`, async (ctx) => {
+          B('location', e.own ? `${e.name} arrives with its Legendary over lanes ${e.start + 1}–${e.start + e.width}.` : `${NAME[e.who]} placed ${e.name} over lanes ${e.start + 1}–${e.start + e.width}.`, async (ctx) => {
             const els = [...stage.querySelectorAll(`[data-loc="${e.uid}"]`)];
             await Promise.all(els.map((el) => ctx.anim(el, [{ clipPath: 'inset(0 100% 0 0)', opacity: 0.4 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }], { duration: 950, easing: 'ease-out', fill: 'none' })));
           }, async (ctx) => {
@@ -1107,7 +1107,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         // A Location expires at Dusk: it burns away like parchment.
         case 'locationRemoved': {
           const l = prevLoc.get(e.uid);
-          B('locationGone', `${e.name} expires: its lanes are the Wilds again.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => {
+          B('locationGone', e.own ? `${e.name} is gone with its Legendary: its lanes are the Wilds again.` : `${e.name} expires: its lanes are the Wilds again.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => {
             if (!l) return;
             const x = 24 + l.start * LANE_W + 4; const w = l.width * LANE_W - 8;
             const dst = { x, y: 136, w, h: 622, cx: x + w / 2, cy: 447 };
@@ -1167,7 +1167,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const a = cell(e.who, l.start); const b = cell(e.who, l.start + l.width - 1);
             if (!a || !b) return;
             const ba = box(a); const bb = box(b);
-            focus = { cx: (ba.x + bb.x + bb.w) / 2, cy: e.who === HUMAN ? 640 : 250, w: bb.x + bb.w - ba.x, h: 230 };
+            focus = { cx: (ba.x + bb.x + bb.w) / 2, cy: e.who === HUMAN ? 640 : 250, w: bb.x + bb.w - ba.x, h: TOKEN_H };
             // 5.7: a banner planted on the Location in the winner's colour; its Renown flows to the dial.
             const dial = dialEl(e.who);
             if (dial && rBefore !== null) setText(dial, rBefore);
@@ -1193,7 +1193,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 900 });
           }, async (ctx) => {
             await mightCount(ctx, prev, Array.from({ length: 9 }, (_, i) => i), 'lb');
-            focus = { cx: 790, cy: e.who === HUMAN ? 640 : 250, w: 1520, h: 230 };
+            focus = { cx: 790, cy: e.who === HUMAN ? 640 : 250, w: 1520, h: TOKEN_H };
             await fxRun(ctx, 'dominance.scored', { anchors: anchors({ dst: focus, banner: { cx: 790, cy: 452, w: 70, h: 145 } }), sideTint: BANNER_TINT[e.who], hooks: { highlight: () => {
               const el = add('', 30, 136, `dominate ${e.who === HUMAN ? 'mine' : 'theirs'}`);
               el.style.width = '1520px';

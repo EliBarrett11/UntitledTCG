@@ -1,17 +1,18 @@
 // The board, drawn from the game state and the UI's own state (what's selected, what's highlighted).
 // It only draws: every action goes through src/ui/app.js, legalActions and applyAction.
-import { RULES } from '../engine/rules.js';
-import { isReady, locationAt, lanesOf, lanesHere, creaturesOf, actor, mightIn, mightOf, dominantIn, allLanes, boosted } from '../engine/game.js';
+import { RULES, dominanceRenown } from '../engine/rules.js';
+import { isReady, locationAt, lanesOf, lanesHere, creaturesOf, actor, mightIn, mightOf, dominantIn, allLanes, boosted, primeNextRound } from '../engine/game.js';
 import { enemyBand, youPanel, energyPanel, column, fullLog } from './hud.js';
-import { renderCard, cardBack, STAR_PATH } from './cards.js';
+import { renderCard, cardBack, STAR_PATH, renderWideToken, TOKEN_W, TOKEN_H } from './cards.js';
 import { energyHtml } from './text.js';
 import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText, foe, foes, ONLINE } from './text.js';
 import { endScreen } from './screens.js';
 
-export const LANE_W = 1532 / 9;
+// (Stage R: 8 lanes, so each lane and each card on the board is wider: lanes 191.5 px, cards 180 × 252.)
+export const LANE_W = 1532 / RULES.lanes;
 export const MAP = { x: 24, y: 128, w: 1532, h: 644 };
 // (Stage M: your side's row is at the bottom, whichever seat this screen plays.)
-export const ROW_Y = new Proxy({}, { get: (_, who) => (who === HUMAN ? 408 : 18) });
+export const ROW_Y = new Proxy({}, { get: (_, who) => (who === HUMAN ? 644 - TOKEN_H - 8 : 8) });
 // (Stage F: 8 px lower than before, so the "★ PRIME" tab above a card at its Prime clears the board. Stage H: from
 // your Warlord's panel to your Energy panel, 16 px from each, less 12 px for the fan's tilt at each end.)
 export const HAND = { x: 348, w: 910, y: 794 };
@@ -39,7 +40,7 @@ export function domLine(s, lanes, key, renown) {
 }
 
 function map(s, ui) {
-  const lines = Array.from({ length: 8 }, (_, i) => `<div class="lane-line" style="left:${Math.round((i + 1) * LANE_W)}px"></div>`).join('');
+  const lines = Array.from({ length: RULES.lanes - 1 }, (_, i) => `<div class="lane-line" style="left:${Math.round((i + 1) * LANE_W)}px"></div>`).join('');
   const covered = new Set(s.locations.flatMap((l) => lanesOf(l)));
   const regions = s.lastBattle ? '' : s.locations.map((l) => {
     const left = l.start * LANE_W + 4;
@@ -51,9 +52,12 @@ function map(s, ui) {
     const mine = l.owner === HUMAN;
     const full = goldNumber(defText(l.card));
     const short = goldNumber(shortPassive(l.card));
-    const total = Math.max(l.roundsLeft, l.card.rounds ?? l.roundsLeft);
+    const total = Math.max(l.roundsLeft ?? 0, l.card.rounds ?? l.roundsLeft ?? 0);
     const pips = Array.from({ length: total }, (_, i) => `<i class="${i < l.roundsLeft ? 'on' : ''}"></i>`).join('');
-    return `<div class="loc" style="left:${left}px;width:${width}px;--tint:${tint}" data-hover="location" data-id="${esc(l.card.id)}" data-loc="${esc(l.uid)}">
+    // (Stage R: a Legendary's own Location has no countdown: it lasts while its Legendary stands.)
+    const legend = l.legendaryUid ? s.players[l.owner].row[l.start] : null;
+    const time = legend ? `WHILE ${esc(legend.name.split(',')[0].toUpperCase())} STANDS` : `${l.roundsLeft} ROUND${l.roundsLeft === 1 ? '' : 'S'} LEFT`;
+    return `<div class="loc${legend ? ' own-loc' : ''}" style="left:${left}px;width:${width}px;--tint:${tint}" data-hover="location" data-id="${esc(l.card.id)}" data-loc="${esc(l.uid)}">
         ${tileArt(l.card, width)}
       </div>
       <div class="loc-label-wrap" style="left:${l.start * LANE_W}px;width:${l.width * LANE_W}px">
@@ -61,8 +65,8 @@ function map(s, ui) {
           <div class="loc-name">${esc(l.name.toUpperCase())}</div>
           <div class="loc-rule" aria-hidden="true"></div>
           <div class="loc-line" data-full="${esc(full)}" data-short="${esc(short)}">${full}</div>
-          <div class="loc-time"><span class="pips" aria-hidden="true">${pips}</span>${l.roundsLeft} ROUND${l.roundsLeft === 1 ? '' : 'S'} LEFT · <span class="own ${mine ? 'mine' : 'theirs'}">${mine ? 'YOURS' : ONLINE ? 'YOUR FRIEND’S' : 'ENEMY’S'}</span></div>
-          ${domLine(s, lanesOf(l), l.uid, RULES.perDominance)}
+          <div class="loc-time"><span class="pips" aria-hidden="true">${pips}</span>${time} · <span class="own ${mine ? 'mine' : 'theirs'}">${mine ? 'YOURS' : ONLINE ? 'YOUR FRIEND’S' : 'ENEMY’S'}</span></div>
+          ${domLine(s, lanesOf(l), l.uid, dominanceRenown(l.width))}
         </div>
       </div>`;
   }).join('');
@@ -82,7 +86,8 @@ function map(s, ui) {
 export const TILE_H = 622;
 export function tileArt(card, w, h = TILE_H) {
   const def = card?.artFull ? card : null;
-  if (!def) { const a = artOf(card); return a ? `<img class="loc-art" src="${esc(a)}" alt="" draggable="false">` : ''; }
+  // (Stage R: a Location without art yet, The Ashfall, shows the Art Pending panel.)
+  if (!def) { const a = artOf(card); return a ? `<img class="loc-art" src="${esc(a)}" alt="" draggable="false">` : '<div class="loc-pending"><span>ART PENDING</span></div>'; }
   const IW = 1536; const IH = 1024;
   const k = Math.max(w / IW, h / IH);
   const ox = Math.max(0, Math.min(IW * k - w, def.tileX * k - w / 2));
@@ -90,17 +95,23 @@ export function tileArt(card, w, h = TILE_H) {
   return `<img class="loc-art" src="${esc(def.artFull)}" alt="" draggable="false" style="object-position:${(-ox).toFixed(1)}px ${(-oy).toFixed(1)}px">`;
 }
 // A Location's effect with its number in gold (the words are the card data's, escaped).
-const goldNumber = (text) => esc(text).replace(/([+]?\d+( (?:Attack|Health))?)/, '<b>$1</b>');
+const goldNumber = (text) => esc(text).replace(/([+\u2212]?\d+( (?:Attack|Health))?)/, '<b>$1</b>');
 const shortPassive = (card) => {
   const o = card.passive.ops[0];
-  if (o.op === 'attack') return `+${o.amount} Attack`;
-  if (o.op === 'health') return `+${o.amount} Health`;
+  const signed = (n) => (n < 0 ? `\u2212${-n}` : `+${n}`);
+  if (o.op === 'attack') return `${signed(o.amount)} Attack`;
+  if (o.op === 'health') return `${signed(o.amount)} Health`;
   if (o.op === 'dawnHeal') return `Dawn: heal ${o.amount}`;
   return defText(card);
 };
 
 function row(s, who, ui) {
+  // (Stage R: a Legendary's cell spans its 3 lanes; the lanes it covers have no cell of their own.)
+  const covered = new Set();
+  s.players[who].row.forEach((c, lane) => { for (let k = 1; c && k < (c.width ?? 1); k++) covered.add(lane + k); });
   const cells = s.players[who].row.map((c, lane) => {
+    if (covered.has(lane)) return '';
+    const span = c?.width ?? 1;
     const pick = ui.picks?.cell?.[`${who}:${lane}`];
     const cpick = ui.picks?.creature?.[`${who}:${lane}`];
     const chips = s.strats.filter((x) => !x.target.none && x.target.who === who && (x.target.area ? lanesHere(s, x.target.space).includes(lane) && (x.target.space === lane) : x.target.space === lane))
@@ -114,14 +125,17 @@ function row(s, who, ui) {
       // (V5: its Might, shown while the pointer is over its Location's dominance line; none in the Wilds.)
       const mloc = s.lastBattle ? 'lb' : locationAt(s, lane)?.uid;
       const hex = mloc ? `<div class="might-hex ${who === HUMAN ? 'you' : 'them'}" data-mloc="${esc(mloc)}"><span>${mightOf(c)}</span></div>` : '';
-      body = `<div class="slot-card ${cls}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board">${tag}${renderCard(c, { size: 'token', live: true })}${hex}</div>`;
+      const face = span > 1 ? renderWideToken(c, span * LANE_W - 12, TOKEN_H, { live: true }) : renderCard(c, { size: 'token', live: true });
+      body = `<div class="slot-card ${cls}${span > 1 ? ' wide' : ''}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board"${span > 1 ? ` style="width:${(span * LANE_W - 12).toFixed(1)}px"` : ''}>${tag}${face}${hex}</div>`;
     }
     const attrs = cpick ? `data-pick="${esc(cpick)}"` : pick ? `data-pick="${esc(pick)}"` : ui.picks?.attacker?.[lane] && who === HUMAN && c ? 'data-act="attacker"' : '';
     // The preview of choosing this target (on a Location target, once, on its leftmost lane).
     const pk = cpick ?? pick;
     const showBadge = pk && ui.previews?.[pk] && (!pk.endsWith(':area') || pk.split(':')[2] === String(lane));
     const badge = showBadge ? `<div class="preview-badge">${esc(ui.previews[pk])}</div>` : '';
-    return `<div class="cell${pick ? ' target' : ''}" data-cell="${who}:${lane}" data-lane="${lane}" style="left:${lane * LANE_W}px;top:${ROW_Y[who]}px;width:${LANE_W}px" ${attrs}>${body}${chips}${badge}</div>`;
+    // (Stage R: choosing where a Legendary goes picks the middle of its 3 spaces; the cell shows the footprint.)
+    const foot = ui.picks?.span?.[`${who}:${lane}`] ? ' span3' : '';
+    return `<div class="cell${pick ? ' target' : ''}${foot}" data-cell="${who}:${lane}" data-lane="${lane}" style="left:${lane * LANE_W}px;top:${ROW_Y[who]}px;width:${span * LANE_W}px" ${attrs}>${body}${chips}${badge}</div>`;
   }).join('');
   return cells;
 }
@@ -159,11 +173,16 @@ function hand(s, ui) {
     const favour = ui.favourCards?.includes(c.uid);
     const attrs = `data-uid="${esc(c.uid)}" data-hover="hand" ${pick ? `data-pick="${esc(pick)}"` : playable && !ui.locked ? 'data-act="hand"' : ''}`;
     const atPrime = c.stage === 'prime' && (c.cardType === 'Character' || c.cardType === 'Monster');
+    // (Stage R: a creature whose Prime is next Round says so, in the same family as the Prime tab.)
+    const nextPrime = primeNextRound(s, c);
     return `<div class="hand-card${playable ? ' playable' : ''}${sel ? ' selected' : ''}${pick ? ' target' : ''}${chosen ? ' chosen' : ''}${atPrime ? ' at-prime' : ''}" style="left:${pos[i].x}px;top:${HAND.y}px;--r:${pos[i].rot.toFixed(2)}deg;--k:${pos[i].k};z-index:${10 + i}" ${attrs}>
-      ${renderCard(c, { size: 'mini' })}${favour ? '<div class="favour-tag">FAVOUR</div>' : ''}${atPrime ? `<div class="prime-tab" aria-label="At its Prime"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>PRIME</div>` : ''}
+      ${renderCard(c, { size: 'mini' })}${favour ? '<div class="favour-tag">FAVOUR</div>' : ''}${atPrime ? `<div class="prime-tab" aria-label="At its Prime"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>PRIME</div>` : ''}${nextPrime ? primeNextTab() : ''}
     </div>`;
   }).join('')}</div>`;
 }
+
+// Stage R: the "Prime next Round" tab (on a hand card and on its preview).
+export const primeNextTab = () => `<div class="prime-tab next" aria-label="Prime next Round" data-region="prime-next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>PRIME NEXT ROUND</div>`;
 
 // --- Overlays ------------------------------------------------------------------------------------------------
 

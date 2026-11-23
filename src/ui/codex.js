@@ -6,6 +6,7 @@
 // (quoted from the rulebook). The panel sits in its own layer beside the stage, scaled with it, so the game's
 // redraws never touch it.
 import { explain } from '../engine/explain.js';
+import { dominanceRenown } from '../engine/rules.js';
 import { GLOSSARY, TERM_NAMES, rulebookSections, searchRules } from '../engine/glossary.js';
 import { renderCard, cardBack } from './cards.js';
 import { energyHtml, CRYSTAL_ICON, fullArtOf, nameParts } from './text.js';
@@ -251,7 +252,7 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion }) {
   function locationBlock(ex) {
     const l = ex.location;
     return `<h4>THE LOCATION</h4><div class="cx-ab"><b>Passive:</b> ${line(l.text)}</div>
-      <table class="cx-tab cx-kv"><tr><td>Lanes</td><td>${l.lanes ? `${l.lanes[0] + 1}–${l.lanes[l.lanes.length - 1] + 1}` : l.width}</td></tr><tr><td>Rounds</td><td>${l.roundsLeft != null ? `${l.roundsLeft} left of ${l.rounds}` : l.rounds}</td></tr></table>`;
+      <table class="cx-tab cx-kv"><tr><td>Lanes</td><td>${l.lanes ? `${l.lanes[0] + 1}–${l.lanes[l.lanes.length - 1] + 1}` : l.width}</td></tr><tr><td>Rounds</td><td>${l.rounds == null ? 'No countdown: it goes when its Legendary is defeated or leaves play' : l.roundsLeft != null ? `${l.roundsLeft} left of ${l.rounds}` : l.rounds}</td></tr><tr><td>Dominance</td><td>+${dominanceRenown(l.width)} Renown at Dusk</td></tr>${l.legendaryOf ? `<tr><td>Belongs to</td><td>${esc(l.legendaryOf)}, never in a deck</td></tr>` : ''}</table>`;
   }
   function campaignBlock(ex) {
     const c = ex.campaign;

@@ -7,11 +7,11 @@
 // No card text is typed here: wording comes from src/data/cards.js and the engine's wording templates; the
 // few reminder lines (Release, Held, dominance) are built from the rulebook's numbers.
 import { cardDef, isCreature, levelsOf, formAt } from '../engine/cards.js';
-import { RULES, levelFor } from '../engine/rules.js';
+import { RULES, levelFor, dominanceRenown } from '../engine/rules.js';
 import { KEYWORDS, TRIGGERS } from '../engine/abilities.js';
 import { CARDS } from '../data/cards.js';
 import { chosenTargetWords } from '../engine/wording.js';
-import { esc, artOf, creatureLines, printedOf, accentOf, defText, costBadge, energyHtml, CRYSTAL_ICON, nameParts } from './text.js';
+import { esc, artOf, creatureLines, printedOf, accentOf, defText, costBadge, energyHtml, CRYSTAL_ICON, nameParts, fullArtOf } from './text.js';
 
 // --- Small icons used outside cards (the Gold counter) ---------------------------------------------------
 const P = {
@@ -260,8 +260,9 @@ function fullRules(c, opts) {
     }
     case 'Location': {
       add(RULE(esc(defText(c))), linesOf(defText(c)));
-      const rounds = opts.roundsLeft !== undefined ? `${opts.roundsLeft} ROUND${opts.roundsLeft === 1 ? '' : 'S'} LEFT` : `${c.rounds} ROUNDS`;
-      add(`<div class="cv-chips" data-z="text"><span class="nowrap">${rounds}</span><span class="nowrap">DOMINATE · +${RULES.perDominance} RENOWN</span></div>`, 0, 18);
+      // (Stage R: dominance Renown by width; a Legendary's own Location has no countdown.)
+      const rounds = c.legendaryOf ? 'NO COUNTDOWN' : opts.roundsLeft != null ? `${opts.roundsLeft} ROUND${opts.roundsLeft === 1 ? '' : 'S'} LEFT` : `${c.rounds} ROUNDS`;
+      add(`<div class="cv-chips" data-z="text"><span class="nowrap">${c.width} LANES · ${rounds}</span><span class="nowrap">DOMINATE · +${dominanceRenown(c.width)} RENOWN</span></div>`, 0, 18);
       break;
     }
     case 'Campaign': {
@@ -443,9 +444,49 @@ export function renderCard(c, opts = {}) {
   }
   if (c.retained && !token) h += `<div class="cv-retained nowrap" data-z="badge" style="top:${creature ? 64 : 70}px">RETAINED</div>`;
 
-  const k = token ? 164 / W : mini ? 200 / W : 1;
+  const k = token ? TOKEN_W / W : mini ? 200 / W : 1;
   const draw = `<div class="cv" style="transform:scale(${k})" data-outline="${o}" data-inner="${inner}">${artHtml}${holo}<svg class="cv-frame" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${s}</svg>${h}</div>`;
   return `<div class="card card-${size} frame-${kind}${foil ? ' foil' : ''}${art ? '' : ' no-art'} ${opts.classes ?? ''}" style="--accent:${acc}" data-card="${esc(c.id)}" ${opts.attrs ?? ''}>${draw}</div>`;
+}
+
+// Stage R: board cards are bigger with 8 lanes (164 × 230 with 9).
+export const TOKEN_W = 180;
+export const TOKEN_H = 252;
+
+// Stage R: a Legendary on the board: one wide token across its 3 spaces, drawn like a Location tile (its full-art
+// scene placed around its focus point, a gold rim), with its name, what it is, its stats and its Speed in the same
+// places as on a token. Without its scene, the Art Pending panel.
+export function renderWideToken(c, w, h, opts = {}) {
+  const acc = accent(c);
+  const full = fullArtOf(c);
+  const def = (() => { try { return cardDef(c.id); } catch { return null; } })();
+  const fx = def?.forms?.find((f) => f.id === (c.form ?? c.id))?.cardX ?? 768;
+  let art = '<div class="wide-pending"><span class="nowrap">ART PENDING</span></div>';
+  if (full) {
+    const IW = 1536; const IH = 1024;
+    const k = Math.max(w / IW, h / IH);
+    const ox = Math.max(0, Math.min(IW * k - w, fx * k - w / 2));
+    const oy = Math.max(0, Math.min(IH * k - h, IH * 0.42 * k - h / 2));
+    art = `<img class="wide-art" src="${esc(full)}" alt="" draggable="false" style="width:${Math.round(IW * k)}px;height:${Math.round(IH * k)}px;left:${(-ox).toFixed(1)}px;top:${(-oy).toFixed(1)}px">`;
+  }
+  const v = statValues(c, opts.live);
+  const kw = keywordsOf(c);
+  const trig = triggerLines(c)[0]?.match(/^\*\*(.+?):\*\*/)?.[1];
+  const sub = ['LEGENDARY', c.traits?.kind?.toUpperCase(), ...kw.map((x) => x.toUpperCase()), trig?.toUpperCase()].filter(Boolean).join(' · ');
+  const sn = SPEEDN[c.speed] ?? 2;
+  const chev = Array.from({ length: sn }, (_, i) => `<path d="M${i * 9},0 L${i * 9 + 7},7 L${i * 9},14" fill="none" stroke="#f3d48a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  const cw = 9 * (sn - 1) + 8;
+  const num = (cls, n, trend, title, label) => `<div class="tab ${cls} cv-num nowrap" data-z="badge" ${title ? `title="${esc(title)}"` : ''} aria-label="${label}"><span class="${trend}">${n}${trend === 'up' ? '<span class="mark">▲</span>' : trend === 'down' ? '<span class="mark">▼</span>' : ''}</span></div>`;
+  return `<div class="card card-wide foil ${opts.classes ?? ''}" style="--accent:${acc};width:${w}px;height:${h}px" data-card="${esc(c.id)}">
+    <div class="wide-clip">${art}<div class="wide-shade"></div><div class="holo"></div></div>
+    <div class="wide-rim" aria-hidden="true"></div>
+    <div class="wide-lvl nowrap" data-z="badge" aria-label="Legendary, Level ${c.level}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>${c.level}</div>
+    <div class="wide-name nowrap" data-z="text">${esc(nameParts(c).first)}</div>
+    <div class="wide-sub nowrap" data-z="text" style="color:${acc}">${esc(sub)}</div>
+    <div class="wide-atk">${num('tab-a', v.atk, v.at, v.aTitle, `Attack ${v.atk}, ${c.attackKind}`)}</div>
+    <div class="wide-hp">${num('tab-h', v.hp, v.ht, v.hTitle, `Health ${v.hp}`)}</div>
+    <div class="cv-speed wide-speed" data-z="badge" aria-label="${esc(c.speed)}"><svg width="${cw + 4}" height="16" viewBox="-2 -1 ${cw + 4} 16" aria-hidden="true">${chev}</svg><span class="nowrap">${esc(c.speed.toUpperCase())}</span></div>
+  </div>`;
 }
 
 // A face-down card (the enemy's hand, the piles, a sealed Strat): the painted back, in the cards' rounded outline.

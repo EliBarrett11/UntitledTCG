@@ -3,6 +3,7 @@
 // Every word about the other player follows this screen's seat: "the enemy" against the AI, "your friend" online.
 import { actor, locationAt, lanesOf } from '../engine/game.js';
 import { availableExert } from '../engine/energy.js';
+import { RULES } from '../engine/rules.js';
 import { isHidden } from '../engine/view.js';
 import { esc, HUMAN, AI, ONLINE, foe, foes, artOf, defText, creatureLines, energyHtml } from './text.js';
 
@@ -83,7 +84,7 @@ export function turnPlaque(s, ui, pace) {
 
 
 // --- The other player's action, announced over the board ------------------------------------------------------------
-const LANE_W = 170;
+const LANE_W = 1532 / RULES.lanes;   // (the board's lane width: view.js LANE_W)
 const where = (s, lane) => {
   if (s.lastBattle) return `the Last Battle, lane ${lane + 1}`;
   const l = locationAt(s, lane);

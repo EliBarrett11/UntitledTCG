@@ -4,7 +4,9 @@
 import { test, run, assert, blank, put, give, act, has, endPhase } from './helpers.js';
 import { defineCards, cardDef, deckProblems } from '../src/engine/cards.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
-import { legalActions, locationAt, locationStarts, occupantAt, emptySpaces, creaturesOf, mightIn, dominantOf, attackTargets, createGame, actor, applyAction } from '../src/engine/game.js';
+import { legalActions, locationAt, locationStarts, occupantAt, emptySpaces, creaturesOf, mightIn, dominantOf, attackTargets, createGame, actor, applyAction, protections, primeNextRound } from '../src/engine/game.js';
+import { cardAtRound } from '../src/engine/cards.js';
+import { protectionText } from '../src/ui/text.js';
 import { RULES, dominanceRenown } from '../src/engine/rules.js';
 import { chooseAction } from '../src/ai/ai.js';
 import { makeRng } from '../src/engine/random.js';
@@ -219,6 +221,48 @@ test('the AI summons the Wyrm and chooses where Campaign Creatures arrive, throu
   }
   assert.ok(wyrm >= 1, `the Wyrm was summoned (${wyrm})`);
   console.log(`  AI: the Wyrm summoned ${wyrm} times, ${arrivals} Campaign Creature arrivals chosen.`);
+});
+
+test('"Prime next Round": a creature in hand that will be at its Prime next Round; not at or past it, not for other cards, not once the match is over', () => {
+  // Garrick's series: Mid (Levels 2–7), its Prime Level from the data; off the battlefield, Level = 2 + Round − 1.
+  const def = cardDef('oathsworn-recruit');
+  const primeRound = def.prime - 2 + 1;
+  const at = (round) => { const s = blank(1, { round }); return { s, c: cardAtRound('oathsworn-recruit', round, 'x') }; };
+  { const { s, c } = at(primeRound - 1); assert.equal(primeNextRound(s, c), true); }
+  { const { s, c } = at(primeRound); assert.equal(primeNextRound(s, c), false, 'at its Prime now'); }
+  { const { s, c } = at(primeRound + 1); assert.equal(primeNextRound(s, c), false, 'past it'); }
+  { const { s, c } = at(Math.max(1, primeRound - 2)); if (primeRound - 2 >= 1) assert.equal(primeNextRound(s, c), false, 'two Rounds away'); }
+  { const { s, c } = at(primeRound - 1); s.phase = 'gameOver'; assert.equal(primeNextRound(s, c), false, 'no next Round'); }
+  { const s = blank(1, { round: 3 }); assert.equal(primeNextRound(s, cardAtRound('firebolt', 3, 'f')), false, 'not an Action'); }
+  { const s = blank(1, { round: 3 }); assert.equal(primeNextRound(s, cardAtRound(WYRM, 3, 'w')), false, 'a Legendary is always Prime'); }
+});
+
+test('protection labels: each enemy a guard keeps out of this attack\'s reach, and what protects it; several are listed; an Item is named by its source', () => {
+  const s = blank(1, { round: 6 });
+  put(s, 'p1', 0, 'ironhide-brawler', { level: 5 });                     // Martial
+  put(s, 'p1', 1, 'ashen-spire-apprentice', { level: 5 });               // Arcane
+  put(s, 'p2', 2, 'oathsworn-recruit', { level: 5, spent: true });       // Shield
+  put(s, 'p2', 3, 'mossback-ancient', { level: 5, spent: true });        // Shield
+  put(s, 'p2', 4, 'gloomfang-wolf', { level: 4, spent: true });
+  put(s, 'p2', 5, 'deepforge-acolyte', { level: 4, spent: true });       // Ward
+  const martial = protections(s, 'p1', 0);
+  const wolf = martial.find((p) => p.target.space === 4);
+  assert.deepEqual(wolf.by.map((g) => g.space), [2, 3], 'both Shields');
+  assert.equal(protectionText(wolf.by), 'Protected by Garrick (Shield) and Mossback Treant (Shield)');
+  assert.ok(martial.some((p) => p.target.kind === 'warlord'), 'the Warlord too (a guard in the attacker\'s Location)');
+  assert.ok(!martial.some((p) => p.target.space === 2 || p.target.space === 3), 'a guard itself is never labelled: it is the target to hit');
+  // Against Arcane, the Ward.
+  const arcane = protections(s, 'p1', 1);
+  assert.equal(protectionText(arcane.find((p) => p.target.space === 4).by), 'Protected by Brenna (Ward)');
+  // A Held Item's guard: named by its source.
+  assert.equal(protectionText([{ name: 'Gloomfang Wolf', guard: 'Shield', item: 'Tower Shield' }]), 'Protected: Tower Shield');
+  // In another Location, nothing protects it.
+  const t = blank(1, { round: 6 });
+  put(t, 'p1', 0, 'ironhide-brawler', { level: 5 });
+  put(t, 'p2', 2, 'oathsworn-recruit', { level: 5, spent: true });
+  put(t, 'p2', 6, 'gloomfang-wolf', { level: 4, spent: true });
+  const u = act(t, { type: 'placeLocation', who: 'p1', uid: give(t, 'p1', 'ironroot-pass'), start: 6 });
+  assert.ok(!protections(u, 'p1', 0).some((p) => p.target.space === 6));
 });
 
 run('r-rules');

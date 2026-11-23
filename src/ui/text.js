@@ -204,3 +204,12 @@ export function chipCardFor(line) {
   }
   return hit[1];
 }
+
+// Stage R: the label on an enemy a guard keeps out of an attack's reach ("Protected by Garrick (Shield)"; a guard a
+// Held Item gives is named by its source: "Protected: Tower Shield"; several are listed).
+export function protectionText(by) {
+  const first = (name) => name.split(',')[0];
+  const parts = [...new Set(by.map((g) => (g.item ? g.item : `${first(g.name)} (${g.guard})`)))];
+  const list = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0];
+  return by.every((g) => g.item) ? `Protected: ${list}` : `Protected by ${list}`;
+}

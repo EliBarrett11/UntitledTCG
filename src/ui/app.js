@@ -1,15 +1,15 @@
 // The match against the AI, in the browser. Every action goes through legalActions and applyAction; the
 // UI never edits the state. A choice is narrowed one click at a time: the legal actions for what you
 // clicked, then (one field at a time) the space, the leftmost lane, the cards to Release, the target.
-import { defineCards, cardAtRound, cardDef } from '../engine/cards.js';
+import { defineCards, cardAtRound, cardDef, campaignCreatureOf, creatureAtLevel } from '../engine/cards.js';
 import { CARDS, FIRST_DECK } from '../data/cards.js';
-import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lanesOf, passBlockers, meetsCondition } from '../engine/game.js';
+import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lanesOf, passBlockers, meetsCondition, protections, primeNextRound, onBoard, syncBonuses } from '../engine/game.js';
 import { chooseAction } from '../ai/ai.js';
 import { makeRng } from '../engine/random.js';
-import { render, fitLabels } from './view.js';
+import { render, fitLabels, primeNextTab, ROW_Y } from './view.js';
 import { fitMarket } from './hud.js';
-import { renderCard, seriesLine } from './cards.js';
-import { displayLine, HUMAN, AI, esc, foe, foes, setSeat } from './text.js';
+import { renderCard, seriesLine, TOKEN_H } from './cards.js';
+import { displayLine, HUMAN, AI, esc, foe, foes, setSeat, protectionText } from './text.js';
 import { createPresenter } from './presenter.js';
 import { createVfx } from './vfx/index.js';
 import { outcome, diff, badgeFor, summary, outcomeLine } from './preview.js';
@@ -225,9 +225,10 @@ export function startApp(params) {
       enemy: () => s.round >= 4 && s.phase === 'battle' && !s.reactWindow && actor(s) === AI,
       end: () => s.phase === 'gameOver',
       quest: () => s.phase === 'battle' && !s.reactWindow && Object.values(s.players).some((p) => (p.quests ?? []).some((qq) => !qq.complete && qq.progress >= qq.quest.need - 2)),
-    }[scene];
+    }[scene] ?? (R_SCENES[scene] ? () => s.round >= 4 && s.phase === 'battle' && !s.reactWindow && actor(s) === HUMAN : null);
     if (!done) return;
     for (let i = 0; i < 4000 && !done() && s.phase !== 'gameOver'; i++) apply(preferred(actor(s)) ?? chooseAction(s, actor(s), rng));
+    if (R_SCENES[scene]) R_SCENES[scene]();
     // (Stage H, a dev aid for the hand's layout scenes: ?hand=N moves cards between your Draw Pile and your hand
     // until you hold N. Only the checks use it; it is never part of play.)
     if (params.has('hand')) {
@@ -238,6 +239,50 @@ export function startApp(params) {
       while (me.hand.length < n && me.drawPile.length) me.hand.push(me.drawPile.shift());
     }
   }
+
+  // Stage R's scenes (dev aids for the screenshots and checks, from the mid-match position; never part of play):
+  //   wyrm       you summon The Ashen Wyrm (a real Summon action), its Location arriving with it;
+  //   arrival    your Campaign Creature's Quest is complete: you choose its space;
+  //   prime-next a creature in your hand whose Prime is next Round;
+  //   protect    your Martial creature is Ready and an enemy Shield guards another enemy (click it to target).
+  const R_SCENES = {
+    wyrm: () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN];
+      me.hand.push(cardAtRound('the-ashen-wyrm', s.round, 'scene-wyrm'));
+      me.baseEnergy = Math.max(me.baseEnergy, 5);
+      const list = legalActions(s, HUMAN, 'summon').filter((a) => a.uid === 'scene-wyrm');
+      if (list.length) apply(list[Math.floor(list.length / 2)]);
+    },
+    arrival: () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN];
+      const camp = CARDS.find((d) => d.cardType === 'Campaign');
+      if (!camp || !me.row.some((c, i) => !c)) return;
+      me.waiting.push(campaignCreatureOf(cardDef(camp.id), 'scene-lc'));
+      s.arrival = { who: HUMAN, resume: null };
+    },
+    'prime-next': () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN];
+      if (me.hand.some((c) => primeNextRound(s, c))) return;
+      const i = me.drawPile.findIndex((c) => primeNextRound(s, c));
+      const id = i >= 0 ? null : CARDS.find((d) => (d.cardType === 'Character' || d.cardType === 'Monster') && primeNextRound(s, cardAtRound(d.id, s.round, 'x')))?.id;
+      if (i >= 0) me.hand.splice(1, 0, me.drawPile.splice(i, 1)[0]);
+      else if (id) me.hand.splice(1, 0, cardAtRound(id, s.round, 'scene-prime-next'));
+    },
+    protect: () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN]; const them = s.players[AI];
+      const L = (id, level, uid) => onBoard(s, creatureAtLevel(cardDef(id), level, uid));
+      me.row = me.row.map(() => null); them.row = them.row.map(() => null); s.locations = [];
+      me.row[1] = { ...L('ironhide-brawler', 5, 'scene-atk'), spent: false };
+      them.row[3] = { ...L('oathsworn-recruit', 5, 'scene-shield'), spent: true };
+      them.row[5] = { ...L('gloomfang-wolf', 4, 'scene-wolf'), spent: true };
+      them.row[6] = { ...L('deepforge-acolyte', 4, 'scene-priest'), spent: true };
+      syncBonuses(s);
+    },
+  };
 
   function apply(a) {
     const before = s.log.length;
@@ -468,15 +513,23 @@ export function startApp(params) {
     if (!sel) return draw();
     const keys = new Set(sel.cands.map(actionKey));
     if (!sel.cands.length) return cancel();
-    if (keys.size === 1) return act(sel.cands[0]);
+    // (Stage R: an attack whose other targets are protected still shows its targeting, with the protection labels, so
+    // you see why the guard is the one to hit; with nothing protected, a single target is attacked at once.)
+    const showGuarded = sel.cands[0].type === 'attack' && protections(s, HUMAN, sel.cands[0].from).length > 0;
+    if (keys.size === 1 && !showGuarded) return act(sel.cands[0]);
     const differs = (f) => new Set(sel.cands.map((a) => (f === 'release' ? [...(a.release ?? [])].sort().join() : f === 'target' ? tkey(a.target) : String(a[f])))).size > 1;
-    const field = ['space', 'start', 'release', 'target'].find(differs);
+    const field = ['space', 'start', 'release', 'target'].find(differs) ?? (showGuarded ? 'target' : undefined);
     if (!field) return act(sel.cands[0]);
     sel.field = field;
     const p = ui.picks;
     if (field === 'space') {
-      p.cell = Object.fromEntries([...new Set(sel.cands.map((a) => a.space))].map((sp) => [`${HUMAN}:${sp}`, `space:${sp}`]));
-      ui.prompt = `${sel.label}: choose an empty space on your side · Esc to cancel`;
+      // (Stage R: a Legendary takes 3 spaces: you choose the middle one, and the cell shows all three.)
+      const wide = sel.cands[0].type === 'summon' && (s.players[HUMAN].hand.find((c) => c.uid === sel.cands[0].uid)?.width ?? 1) > 1;
+      const at = (sp) => (wide ? sp + 1 : sp);
+      p.cell = Object.fromEntries([...new Set(sel.cands.map((a) => a.space))].map((sp) => [`${HUMAN}:${at(sp)}`, `space:${sp}`]));
+      if (wide) p.span = Object.fromEntries(Object.keys(p.cell).map((k) => [k, true]));
+      ui.prompt = sel.cands[0].type === 'arrive' ? `${sel.label}: choose the empty space where it arrives`
+        : wide ? `${sel.label}: choose the middle of its 3 spaces, in lanes with no Location · Esc to cancel` : `${sel.label}: choose an empty space on your side · Esc to cancel`;
     } else if (field === 'start') {
       p.cell = {};
       for (const st of new Set(sel.cands.map((a) => a.start))) for (const who of [HUMAN, AI]) p.cell[`${who}:${st}`] = `start:${st}`;
@@ -672,6 +725,11 @@ export function startApp(params) {
     // 2026; the hint under Pass says it.)
     ui.pace = { speed: settings.speed, pause: settings.pauseAfter, waiting: paceWaiting, canReplay: !!lastShown && lastShown.next === s && !presenting };
     ui.energyPreview = energyPreviewNow();
+    // (Stage R: a Campaign Creature's arrival: its player chooses its space before anything else.)
+    if (s.arrival?.who === HUMAN && actor(s) === HUMAN && !ui.locked && !presenting && !ui.sel) {
+      const list = legalActions(s, HUMAN, 'arrive');
+      if (list.length) { ui.menu = null; ui.sel = { cands: list, label: `${s.players[HUMAN].waiting[0]?.name ?? 'Your Campaign Creature'}'s Quest is complete`, release: [] }; return step(); }
+    }
     if (!ui.sel && !ui.menu) { ui.picks = basePicks(); ui.handSel = null; ui.chosenRelease = null; ui.favourCards = null; ui.attacker = ui.attacker ?? null; }
     const keep = focusKey();
     // The end screen shows once the match is over and its last beats have played.
@@ -697,6 +755,42 @@ export function startApp(params) {
     drawMoment();
     drawAim(true);
     afterDraw();
+    // (Stage R: while you choose an attack's target, what protects each enemy it can't reach.)
+    if (ui.sel?.cands?.[0]?.type === 'attack' && ui.sel.field === 'target') showProtect(ui.sel.cands[0].from);
+  }
+
+  // Stage R: protection labels while targeting an attack (by clicking or by dragging): on each enemy a guard keeps out
+  // of this attacker's reach, what protects it; the guard to hit instead glows. Gone when targeting ends.
+  function showProtect(from) {
+    clearProtect();
+    for (const p of protections(s, HUMAN, from)) {
+      const text = protectionText(p.by);
+      if (p.target.kind === 'creature') {
+        const el = stage.querySelector(`.slot-card[data-who="${AI}"][data-space="${p.target.space}"]`);
+        if (!el) continue;
+        const lab = document.createElement('div');
+        lab.className = 'protect-label';
+        lab.dataset.region = 'protect';
+        lab.textContent = text;
+        el.appendChild(lab);
+      } else {
+        const w = stage.querySelector(`[data-region="warlord-${AI}"]`);
+        if (!w) continue;
+        const r = stageBox(stage, w);
+        const lab = document.createElement('div');
+        lab.className = 'warlord-protect';
+        lab.dataset.region = 'protect';
+        lab.textContent = text;
+        lab.style.left = `${Math.round(r.x)}px`;
+        lab.style.top = `${Math.round(r.y + r.h + 6)}px`;
+        stage.appendChild(lab);
+      }
+      for (const g of p.by) stage.querySelector(`.slot-card[data-who="${g.who}"][data-space="${g.space}"]`)?.classList.add('guard-hint');
+    }
+  }
+  function clearProtect() {
+    stage.querySelectorAll('[data-region="protect"]').forEach((x) => x.remove());
+    stage.querySelectorAll('.guard-hint').forEach((x) => x.classList.remove('guard-hint'));
   }
 
   // --- V5: the Energy display and the turn plaque, after each draw ------------------------------------------------
@@ -734,16 +828,34 @@ export function startApp(params) {
     shownPreview = key;
     el.innerHTML = energyDisplay(s, HUMAN, 'full', p);
   }
+  function placeInBand(el) {
+    const k = stage.getBoundingClientRect().width / STAGE_W;
+    const sr = stage.getBoundingClientRect();
+    const rect = (x) => { const r = x.getBoundingClientRect(); return { l: (r.left - sr.left) / k, r: (r.right - sr.left) / k, t: (r.top - sr.top) / k, b: (r.bottom - sr.top) / k }; };
+    const map = stage.querySelector('[data-region="map"]');
+    if (!map) return;
+    const m = rect(map);
+    const e0 = rect(el);
+    const w = e0.r - e0.l; const h = e0.b - e0.t;
+    const top = m.t + ROW_Y[AI] + TOKEN_H + (ROW_Y[HUMAN] - ROW_Y[AI] - TOKEN_H - h) / 2;
+    const blocks = [...stage.querySelectorAll('.loc-label, [data-region="map"] .slot-card, .dom-line, .preview-badge')].map(rect).filter((b) => b.r > b.l);
+    const free = (cx) => blocks.every((b) => cx + w / 2 + 6 <= b.l || cx - w / 2 - 6 >= b.r || top + h <= b.t || top >= b.b);
+    const lo = m.l + w / 2 + 6; const hi = m.r - w / 2 - 6;
+    const mid = (m.l + m.r) / 2;
+    let x = null;
+    for (let d = 0; d <= m.r - m.l && x === null; d += 16) for (const cx of [mid - d, mid + d]) if (x === null && cx >= lo && cx <= hi && free(cx)) x = cx;
+    el.style.left = `${Math.round(x ?? mid)}px`;
+    el.style.top = `${Math.round(x === null ? m.t + ROW_Y[HUMAN] + TOKEN_H + 2 : top)}px`;
+  }
+
   function afterDraw() {
     if (screen !== 'match' || !s) return;
     // (V5: the Location labels are taller now; where one would be under the prompt line, the prompt moves up to the
     // top of the band, under the upper row of cards.)
-    const prompt = stage.querySelector('.prompt');
-    if (prompt) {
-      const pr = prompt.getBoundingClientRect();
-      const hit = [...stage.querySelectorAll('.loc-label')].some((l) => { const r = l.getBoundingClientRect(); return r.left < pr.right && pr.left < r.right && r.top < pr.bottom && pr.top < r.bottom; });
-      if (hit) prompt.classList.add('high');
-    }
+    // (Stage R: with 8 lanes the cards are taller, and the band between the rows holds the Location labels; the prompt
+    // and the caption go in that band at the free place nearest the centre, clear of every label and card, or just
+    // under your row if the band is full.)
+    for (const el of stage.querySelectorAll('.prompt, .caption')) placeInBand(el);
     const p = s.players[HUMAN];
     const disp = stage.querySelector('.my-energy .en-disp');
     // Energy changed: the number counts to its new value and the crystal pulses; a spent Exert point flares into it.
@@ -1075,7 +1187,8 @@ export function startApp(params) {
     hover.el = el;
     // Stage F: a creature in hand shows its series line under the card (Levels, this Round's, the Prime).
     const strip = h.strip ? seriesLine(h.card, s.round) : '';
-    pv.innerHTML = `${renderCard(h.card, { size: 'full', ...h.opts })}${strip}`;
+    // (Stage R: a hand card whose Prime is next Round says so on its preview too.)
+    pv.innerHTML = `${h.strip && primeNextRound(s, h.card) ? primeNextTab() : ''}${renderCard(h.card, { size: 'full', ...h.opts })}${strip}`;
     pv.classList.toggle('with-series', !!strip);
     pv.hidden = false;
     const scale = stage.getBoundingClientRect().width / STAGE_W;
@@ -1238,7 +1351,8 @@ export function startApp(params) {
   const toStage = (x, y) => { const sr = stage.getBoundingClientRect(); const k = sr.width / STAGE_W; return { x: (x - sr.left) / k, y: (y - sr.top) / k }; };
   // Where an action can be dropped: the keys of the board elements that stand for its space, lane or target.
   function dropKeys(a) {
-    if (a.type === 'summon') return [`cell:${HUMAN}:${a.space}`];
+    // (Stage R: a Legendary is dropped on the middle of its 3 spaces.)
+    if (a.type === 'summon') return [`cell:${HUMAN}:${a.space + ((s.players[HUMAN].hand.find((c) => c.uid === a.uid)?.width ?? 1) > 1 ? 1 : 0)}`];
     if (a.type === 'placeLocation') return [`cell:${HUMAN}:${a.start}`, `cell:${AI}:${a.start}`];
     const t = a.target;
     if (a.type === 'buyItem' && a.then === 'store') return ['bag'];
@@ -1280,6 +1394,7 @@ export function startApp(params) {
     if (!drag) return;
     drag.ghost?.remove();
     stage.querySelectorAll('.drop-ok, .drop-hover').forEach((x) => x.classList.remove('drop-ok', 'drop-hover'));
+    clearProtect();
     if (drag.active) { suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); }
     drag = null;
   }
@@ -1294,6 +1409,7 @@ export function startApp(params) {
       drag.cands = drag.kind === 'hand' ? mine().filter((a) => a.uid === drag.uid && a.type !== 'retain' && !(a.type === 'buyItem' && a.from === 'market')) : mine().filter((a) => a.type === 'attack' && a.from === drag.lane);
       drag.keys = new Set(drag.cands.flatMap(dropKeys));
       for (const k of drag.keys) elFor(k)?.classList.add('drop-ok');
+      if (drag.kind === 'attacker') showProtect(drag.lane);
       const card = drag.kind === 'hand' ? s.players[HUMAN].hand.find((c) => c.uid === drag.uid) : s.players[HUMAN].row[drag.lane];
       const g = document.createElement('div');
       g.className = 'drag-ghost';
@@ -1318,6 +1434,7 @@ export function startApp(params) {
     setTimeout(() => { suppressClick = false; }, 0);
     d.ghost?.remove();
     stage.querySelectorAll('.drop-ok, .drop-hover').forEach((x) => x.classList.remove('drop-ok', 'drop-hover'));
+    clearProtect();
     const k = keyAt(e.clientX, e.clientY);
     const list = d.cands.filter((a) => { const ks = dropKeys(a); return ks.includes(k) || (ks.includes('map') && (k === 'map' || k?.startsWith('cell:'))); });
     if (!list.length) return toast('It can\'t be played there.');

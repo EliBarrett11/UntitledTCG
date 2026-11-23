@@ -1,0 +1,59 @@
+/* Stage R: the rules update (docs/24). 8 lanes, so cards on the board are bigger; a Legendary's wide token under its
+   own Location; choosing a Legendary's 3 spaces; "Prime next Round" in hand; protection labels while targeting. */
+
+/* Bigger board cards: 180 × 252 (164 × 230 with 9 lanes). */
+.cell { height: 252px; }
+.empty-slot, .slot-card, .card-token { width: 180px; height: 252px; }
+/* The Location label sits in the band between the two rows (rows 8–260 and 384–636). */
+.loc-label-wrap { top: 266px; }
+.wilds { top: 296px; }
+.lane-num { top: 324px; }
+
+/* A Legendary: one wide token across its 3 spaces, drawn like a Location tile (full art, focus point, gold rim). */
+.slot-card.wide { height: 252px; }
+.slot-card.wide.spent { transform: rotate(-1.2deg); }
+.card-wide { position: relative; border-radius: 14px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); }
+.card-wide .wide-clip { position: absolute; inset: 0; border-radius: 14px; overflow: hidden; background: #140c07; }
+.card-wide .wide-art { position: absolute; max-width: none; pointer-events: none; }
+.card-wide .wide-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,7,5,0) 38%, rgba(10,7,5,.55) 62%, rgba(10,7,5,.92) 84%, rgba(7,5,4,.97) 100%); }
+.card-wide .holo { position: absolute; inset: 0; opacity: .5; -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 70%); mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 70%); }
+.card-wide .wide-rim { position: absolute; inset: 0; border-radius: 14px; pointer-events: none;
+  box-shadow: inset 0 0 0 2px #050302, inset 0 0 0 3.5px #d9a84a, inset 0 0 0 5px rgba(5,3,2,.8), inset 0 0 0 6px rgba(255,226,150,.55), 0 0 14px rgba(255,190,90,.35); }
+.card-wide .wide-pending { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--accent) 70%, transparent), #0c0805 75%); }
+.card-wide .wide-pending span { font: 700 14px/1 Cinzel, serif; letter-spacing: 3px; color: rgba(255,240,210,.8); }
+.card-wide .wide-lvl { position: absolute; right: 12px; top: 10px; height: 30px; padding: 0 10px 0 8px; display: flex; gap: 4px; align-items: center; border-radius: 15px;
+  font: 700 17px/1 Cinzel, serif; color: #1a0f08; background: radial-gradient(circle at 40% 35%, #fff0bf, #e7b552 55%, #9c6a1e); box-shadow: 0 0 0 2px #1a0f08, 0 0 0 3px #fff1c4, 0 0 12px rgba(255,196,80,.6); }
+.card-wide .wide-lvl svg { width: 15px; height: 15px; fill: #fff3c8; stroke: #5a3a0c; stroke-width: 1.4; }
+.card-wide .wide-name { position: absolute; left: 70px; right: 70px; bottom: 58px; text-align: center; font: 700 22px/1.1 Cinzel, serif; color: #ffe9b0; letter-spacing: 1px;
+  text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95), 0 0 14px rgba(0,0,0,.8); overflow: hidden; text-overflow: ellipsis; }
+.card-wide .wide-sub { position: absolute; left: 70px; right: 70px; bottom: 40px; text-align: center; font: 700 10.5px/1.2 Cinzel, serif; letter-spacing: 1.6px; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.95); overflow: hidden; text-overflow: ellipsis; }
+.card-wide .wide-atk, .card-wide .wide-hp { position: absolute; bottom: 8px; width: 54px; height: 40px; border-radius: 10px; background: rgba(10,7,5,.94); box-shadow: inset 0 0 0 1.3px #d9a84a; display: grid; place-items: center; }
+.card-wide .wide-atk { left: 10px; }
+.card-wide .wide-hp { right: 10px; }
+.card-wide .wide-atk .tab, .card-wide .wide-hp .tab { position: static; font: 700 24px/1 Cinzel, serif; color: #f4ead2; }
+.card-wide .tab-a { color: #f4ead2; }
+.card-wide .wide-speed { position: absolute; left: 50%; bottom: 8px; width: auto; height: auto; transform: translateX(-50%); display: flex; flex-direction: row; gap: 6px; align-items: center; font: 700 10px/1 Cinzel, serif; letter-spacing: 2px; color: #f3d48a; }
+
+/* A Legendary's own Location: no countdown (its line says while what stands); the Art Pending panel until its art. */
+.loc-pending { position: absolute; inset: 0; display: grid; place-items: start center; padding-top: 40px; background:
+  radial-gradient(ellipse at 50% 30%, rgba(170,70,40,.45), rgba(20,10,6,.9) 70%), repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0 10px, transparent 10px 20px); border-radius: inherit; }
+.loc-pending span { font: 700 13px/1 Cinzel, serif; letter-spacing: 3px; color: rgba(255,232,200,.55); }
+
+/* Choosing where a Legendary goes: the middle of its 3 spaces; the outline shows all three. */
+.cell.target.span3:hover::after, .cell.span3.drop-hover::after { content: ''; position: absolute; left: calc(-100% + 6px); width: calc(300% - 12px); top: 0; height: 252px; border-radius: 12px; pointer-events: none;
+  box-shadow: 0 0 0 3px var(--target, #f0c86e), 0 0 22px 6px rgba(240,200,110,.6); background: rgba(240,200,110,.12); z-index: 4; }
+
+/* "Prime next Round" in hand: the Prime tab's family, outlined rather than filled. */
+.prime-tab.next { left: 50%; transform: translateX(-50%); letter-spacing: 1.6px; font-size: 10px; color: #ffe8a6; background: linear-gradient(#3a2812, #1d130a); box-shadow: 0 0 0 1px #d9a446, 0 0 8px rgba(255,200,90,.45); }
+.prime-tab.next svg { fill: none; stroke: #ffe08a; stroke-width: 1.8; }
+#preview .prime-tab.next { top: -20px; }
+
+/* While targeting an attack: what protects each enemy it can't reach; the guard to hit instead glows. */
+.protect-label { position: absolute; z-index: 25; left: 8px; right: 8px; top: 64px; padding: 5px 8px; border-radius: 8px; text-align: center; pointer-events: none;
+  font: 700 12.5px/1.25 'Alegreya Sans', sans-serif; color: #f4ead2; background: rgba(12,8,5,.9); box-shadow: 0 0 0 1px #9cb3c8, 0 2px 8px rgba(0,0,0,.6); }
+.slot-card.wide .protect-label { left: 30%; right: 30%; }
+.slot-card.guard-hint .card, .slot-card.guard-hint .card-wide { filter: drop-shadow(0 0 3px #cfe2f3) drop-shadow(0 0 12px rgba(160,200,240,.95)); }
+.warlord-protect { position: absolute; z-index: 40; padding: 5px 10px; border-radius: 8px; pointer-events: none; white-space: nowrap;
+  font: 700 13px/1.25 'Alegreya Sans', sans-serif; color: #f4ead2; background: rgba(12,8,5,.92); box-shadow: 0 0 0 1px #9cb3c8, 0 2px 8px rgba(0,0,0,.6); }
+.slot-card.spent .protect-label { transform: rotate(4deg); }
+.slot-card.wide.spent .protect-label { transform: rotate(1.2deg); }

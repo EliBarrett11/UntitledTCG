@@ -126,6 +126,30 @@ export function warlordGuard(s, who, from) {
   const key = locationKey(s, from);
   return creaturesOf(s, opponentOf(who)).find(({ card, space }) => hasGuard(card, guardFor(a.attackKind)) && locationKey(s, space) === key) ?? null;
 }
+// Stage R: what keeps each enemy out of an attack's reach, for the labels shown while targeting it: for every enemy
+// creature (and the Warlord) a guard protects from this attacker, each guard there: { who, space, name, guard, item }
+// (item: the Held Item that gives the guard, when it isn't the creature's own).
+export function protections(s, who, from) {
+  const a = s.players[who].row[from];
+  if (!a) return [];
+  const foe = opponentOf(who);
+  const kind = guardFor(a.attackKind);
+  const guardsIn = (key, except) => creaturesOf(s, foe).filter(({ card, space }) => space !== except && hasGuard(card, kind) && locationKey(s, space) === key)
+    .map(({ card, space }) => ({ who: foe, space, name: card.name, guard: kind, item: card.guard === kind ? null : heldOps(card).some((o) => o.op === 'guard' && o.guard === kind) ? card.held.name : null }));
+  const out = [];
+  for (const { card, space } of creaturesOf(s, foe)) {
+    if (hasGuard(card, kind)) continue;
+    const by = guardsIn(locationKey(s, space), space);
+    if (by.length) out.push({ target: { kind: 'creature', space }, by });
+  }
+  const wl = guardsIn(locationKey(s, from), null);
+  if (wl.length) out.push({ target: { kind: 'warlord' }, by: wl });
+  return out;
+}
+// Stage R: a Character or Monster in hand that will be at its Prime Level next Round (so it may be worth Retaining).
+// Not for a card past or at its Prime, nor once the match is over (there's no next Round).
+export const primeNextRound = (s, c) => !!c && (c.cardType === 'Character' || c.cardType === 'Monster') && c.stage === 'rising' && c.primeRound === s.round + 1 && s.phase !== 'gameOver';
+
 export function attackTargets(s, who, from) {
   const a = s.players[who].row[from];
   if (!a) return [];

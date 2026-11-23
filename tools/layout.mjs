@@ -20,7 +20,7 @@ try { ({ chromium } = require('playwright')); } catch { console.error('Playwrigh
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = join(root, 'tools', 'screenshots');
 const SIZES = [[1920, 1080], [1366, 768], [1280, 720]];
-const STAGE = 'e';
+const STAGE = 'r';
 const SEED = 7;
 
 // Each scene: a URL, then optional real-input steps to reach it.
@@ -86,11 +86,18 @@ const SCENES = [
   { name: 'codex-location', query: '?seed=2&scene=mid&pace=100000', steps: async (p) => { await rightClickTop(p, '.loc-label', 0); }, need: '#codex:not([hidden]) .cx-kv' },
   // (Stage A: "View full art", opened from a creature's Codex page.)
   { name: 'a-codex-art', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await rightClickHand(p, 'Character'); await clickTop(p, '.cx-view-art', 0); await p.waitForFunction(() => document.querySelector('.cx-art img')?.complete, null, { timeout: 15000 }); await p.waitForTimeout(300); }, need: '.cx-art:not([hidden]) img' },
+  // Stage R: the 8-lane board mid-game, the Wyrm with its own Location, a Campaign Creature's placement choice, a
+  // "Prime next Round" hand card (and its preview), and the protection labels while targeting an attack.
+  { name: 'r-wyrm', query: '?seed=10&scene=wyrm&pace=100000', need: '.slot-card.wide .card-wide' },
+  { name: 'r-arrival', query: '?seed=10&scene=arrival&pace=100000', need: '.cell.target' },
+  { name: 'r-prime-next', query: '?seed=10&scene=prime-next&pace=100000', need: '.hand-card .prime-tab.next' },
+  { name: 'r-prime-next-hover', query: '?seed=10&scene=prime-next&pace=100000', steps: async (p) => { await hoverTop(p, '.hand-card', await p.evaluate(() => [...document.querySelectorAll('.hand-card')].findIndex((el) => el.querySelector('.prime-tab.next')))); }, need: '#preview:not([hidden]) .prime-tab.next', preview: true },
+  { name: 'r-protect', query: '?seed=10&scene=protect&pace=100000', steps: async (p) => { await clickTop(p, '[data-act="attacker"]', 0); }, need: '.protect-label' },
   { name: 'codex-campaign', query: '?seed=10&scene=mid&pace=100000', steps: async (p) => { await rightClickTop(p, '[data-region="quest-p1"]', 0); }, need: '#codex:not([hidden]) .cx-segs' },
 ];
 // The labels on the painted map, checked for contrast in these scenes.
-const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles', 'a-tiles-2-4', 'a-tiles-3']);
-const SHOT_ALL_SIZES = new Set(['a-codex-art', 'a-tiles-2-4', 'a-tiles-3', 'lastbattle', 'title', 'victory', 'defeat', 'mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
+const CONTRAST = new Set(['opening-board', 'mid', 'lastbattle', 'tiles', 'a-tiles-2-4', 'a-tiles-3', 'r-wyrm']);
+const SHOT_ALL_SIZES = new Set(['r-wyrm', 'r-arrival', 'r-prime-next', 'r-protect', 'a-codex-art', 'a-tiles-2-4', 'a-tiles-3', 'lastbattle', 'title', 'victory', 'defeat', 'mid', 'react', 'tiles', 'codex-hand', 'v5-energy-preview', 'v5-turn-enemy', 'v5-dom-tie', 'h-hand-7', 'h-hand-10', 'h-hand-10-hover', 'h-turn-enemy']);
 
 async function topPoint(p, sel, i) {
   return p.evaluate(([s, k]) => {
@@ -212,6 +219,8 @@ function inspect() {
     ['.setup-side', '.setup-mid'], ['.title-block', '.title-note'],
     // (V5: the Energy display beside the hand never meets the hand or its piles.)
     ['.my-energy', '.hand-card'], ['.my-energy', '.me-piles .piles'],
+    // (Stage R: a protection label never covers a card's name or stats; nor does the band's prompt.)
+    ['.protect-label', '.slot-card .cv-name'], ['.protect-label', '.slot-card .tab'], ['.protect-label', '.card-wide .wide-name'], ['.warlord-protect', '.slot-card'], ['.prompt', '.dom-line'],
     ['.dom-say', '[data-region="map"] .slot-card'], ['.caption', '.dom-line'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
   ];
   for (const [a, b] of pairs) for (const x of one(a)) for (const y of one(b)) if (x !== y && overlap(x, y)) out.push(`${name(x)} covers ${name(y)}`);

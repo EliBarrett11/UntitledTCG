@@ -2,7 +2,7 @@
 // action from legalActions, tries each on a copy of its own view of the state through applyAction,
 // scores the result, and plays the best. It never edits state directly and never sees the other
 // player's hand, Draw Pile or face-down Strats. Its small random tie-break comes from a seeded generator.
-import { applyAction, legalActions, resolveStrats, drainTriggers, opponentOf, creaturesOf, isReady, dominantOf, lastBattleDominant, boosted, actionKey, locationKey, emptySpaces, guardsOf, keywordAmount, occupantAt } from '../engine/game.js';
+import { applyAction, legalActions, resolveStrats, drainTriggers, opponentOf, creaturesOf, isReady, dominantOf, lastBattleDominant, boosted, actionKey, locationKey, emptySpaces, guardsOf, keywordAmount, occupantAt, primeNextRound } from '../engine/game.js';
 import { isCreature } from '../engine/cards.js';
 import { RULES, dominanceRenown } from '../engine/rules.js';
 import { makeRng } from '../engine/random.js';
@@ -74,7 +74,7 @@ function evaluateNow(s, who) {
 
 // Stage P: a creature whose Prime is next Round (the Round it would be summoned at its Prime if kept), and what
 // Retaining it for that is worth: about the Prime summon's +1 Renown and its +1/+1, less the delay.
-export const primeNext = (s, c) => isCreature(c) && c.stage === 'rising' && c.primeRound === s.round + 1;
+export const primeNext = (s, c) => primeNextRound(s, c);
 export const PRIME_HOLD = 1.6;
 
 // A card's worth in hand, for choosing what to Release or mulligan.
