@@ -75,7 +75,8 @@ const browser = await chromium.launch();
 // 1. Coverage.
 const seen = new Set();
 const PREFER = 'prefer=night-raid:strat,firebolt:strat,call-to-arms:favour';
-for (const q of ['seed=5', 'seed=7', `seed=11&${PREFER}`, 'seed=3&scene=quest', `seed=21&${PREFER}`, 'seed=8', `seed=13&scene=quest&${PREFER}`]) {
+for (const q of ['seed=5', 'seed=7', `seed=11&${PREFER}`, 'seed=3&scene=quest', `seed=21&${PREFER}`, 'seed=8', `seed=13&scene=quest&${PREFER}`, 'seed=2', 'seed=17', `seed=30&${PREFER}`, 'seed=41']) {
+  // (Stage R: the 8-lane matches go differently, so more seeds may be needed; it stops once every effect played.)
   const r = await match(browser, `?${q}&autoplay=1&pace=30&speed=fast&lowmotion=0`, { label: `coverage, ${q}` });
   for (const e of r.seen) seen.add(e);
   if (STORYBOARD.every((e) => seen.has(e)) && ALSO.every((e) => seen.has(e))) break;

@@ -645,4 +645,6 @@ node tools/compare.mjs
   - `tests/r-rules.test.js` (17 tests): 8 lanes, Legendary placement, its Location's life and passive, non-overlap, the Last Battle, "the enemy across", scaled Renown, the AI, "Prime next Round" and the protection labels;
   - the existing tests are updated to the new rules;
   - new layout scenes: `r-wyrm`, `r-arrival`, `r-prime-next` (and its hover), `r-protect`.
+  - results: all 38 test files pass; the AI-vs-AI simulation runs clean; neat text, layout (every scene at 1920×1080, 1366×768 and 1280×720), real input (all three sizes, Player 2's seat, low motion), the presenter, the two-browser online match and the effects check all pass;
+  - fixes from the checks: attacking a guarded target no longer asks for the target twice; the enemy Warlord's preview badge moves inside its panel, clear of the top row's badges; the effects check has more seeds for 8-lane matches.
 - **Readings for Elliott's approval:** rules in `docs/01-rulebook.md` section 13 (22–28); the look in `docs/03-look-and-feel.md` section 18.

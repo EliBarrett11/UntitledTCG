@@ -515,7 +515,7 @@ export function startApp(params) {
     if (!sel.cands.length) return cancel();
     // (Stage R: an attack whose other targets are protected still shows its targeting, with the protection labels, so
     // you see why the guard is the one to hit; with nothing protected, a single target is attacked at once.)
-    const showGuarded = sel.cands[0].type === 'attack' && protections(s, HUMAN, sel.cands[0].from).length > 0;
+    const showGuarded = sel.cands[0].type === 'attack' && !sel.targetPicked && protections(s, HUMAN, sel.cands[0].from).length > 0;
     if (keys.size === 1 && !showGuarded) return act(sel.cands[0]);
     const differs = (f) => new Set(sel.cands.map((a) => (f === 'release' ? [...(a.release ?? [])].sort().join() : f === 'target' ? tkey(a.target) : String(a[f])))).size > 1;
     const field = ['space', 'start', 'release', 'target'].find(differs) ?? (showGuarded ? 'target' : undefined);
@@ -574,7 +574,7 @@ export function startApp(params) {
     if (kind === 'space') sel.cands = sel.cands.filter((a) => String(a.space) === v);
     else if (kind === 'start') sel.cands = sel.cands.filter((a) => String(a.start) === v);
     else if (kind === 'rel') { sel.release.push(v); sel.cands = sel.cands.filter((a) => sel.release.every((u) => a.release.includes(u))); }
-    else if (kind === 't') sel.cands = sel.cands.filter((a) => tkey(a.target) === v);
+    else if (kind === 't') { sel.cands = sel.cands.filter((a) => tkey(a.target) === v); sel.targetPicked = true; }
     step();
   }
   function cancel() {
@@ -845,7 +845,7 @@ export function startApp(params) {
     let x = null;
     for (let d = 0; d <= m.r - m.l && x === null; d += 16) for (const cx of [mid - d, mid + d]) if (x === null && cx >= lo && cx <= hi && free(cx)) x = cx;
     el.style.left = `${Math.round(x ?? mid)}px`;
-    el.style.top = `${Math.round(x === null ? m.t + ROW_Y[HUMAN] + TOKEN_H + 2 : top)}px`;
+    el.style.top = `${Math.round(x === null ? m.t + ROW_Y[HUMAN] + TOKEN_H + 6 : top)}px`;
   }
 
   function afterDraw() {

@@ -62,3 +62,6 @@
 .cell.top-row .preview-badge { bottom: auto; top: -10px; }
 /* In the Last Battle, the lane numbers sit under its title and line, in the band between the rows. */
 .map.last-battle .lane-num { top: 352px; }
+/* Stage R: the top row's preview badges sit above the cards, so the enemy Warlord's badge moves inside its panel
+   (bottom right) instead of hanging below it over the first lane. */
+.warlord-badge { left: 296px; top: 84px; }
