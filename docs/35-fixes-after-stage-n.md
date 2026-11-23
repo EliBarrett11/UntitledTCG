@@ -112,3 +112,5 @@ Square 1024 × 1024. A single upward-rising aura of stylised red flame-like ener
 
 No text, letters, symbols that read as letters, borders or watermarks.
 ```
+
+**Delivered 23 November 2026:** all six textures are processed into `assets/vfx/` (venom drips and ice shards with 16 frames each), and the Knives in the Dark art is in `assets/cards-v3/knives-in-the-dark.jpg` (cardX 800). Checked: `docs/mockups/vfx-batch3.jpg`.
