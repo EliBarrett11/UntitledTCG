@@ -17,7 +17,9 @@
 3. **"Prime next Round" in hand.** A creature in hand that would be in its Prime next Round is labelled as such, so the player sees at a glance that it may be worth Retaining.
 4. **Protection shown while targeting.** When a player starts targeting with an attack, any Creature or Warlord protected by a Shield or Ward is labelled with which Creature or effect protects it from that attack.
 
-5. **More Renown for dominating Locations** (the 17 November rule, kept on 23 November). The amount is to be chosen by Elliott.
+5. **More Renown for dominating Locations, scaled by size** (Elliott, 23 November 2026): a 2-lane Location gives 4, a 3-lane one 5, a 4-lane one 6. The Last Battle is unchanged.
+6. **Campaign Creatures take one space.**
+7. **Decks for the AI:** the AI plays "The first deck" by default, and the player can choose any of their saved decks for it.
 
 **Set aside for now (23 November 2026):** Monster sizes for ordinary Monsters. The 17 November list below is kept for the record.
 
