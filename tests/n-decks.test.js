@@ -47,6 +47,12 @@ test('version 2 codes round-trip and are short: under 100 characters for a 40-ca
   assert.equal(decodeDeck(encodeDeck({ name: 'x'.repeat(200), cards: odd })).deck.name.length, 120);
   // (Spaces and line breaks picked up when copying are ignored.)
   assert.ok(decodeDeck(` ${code.slice(0, 30)}\n${code.slice(30)} `).ok);
+  // (Any changed letter is refused, the last one too, whose spare bits would otherwise go unread.)
+  for (let k = 6; k < code.length; k += 1) {
+    const ch = code[k] === 'a' ? 'b' : 'a';
+    const bad = decodeDeck(code.slice(0, k) + ch + code.slice(k + 1));
+    assert.ok(!bad.ok && /damaged/.test(bad.error), `letter ${k} changed: ${bad.error ?? 'accepted'}`);
+  }
 });
 
 test('version 1 codes (stage L) still import; damaged, foreign and newer codes are refused, saying why', () => {

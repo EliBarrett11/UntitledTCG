@@ -707,4 +707,6 @@ node tools/compare.mjs
 - **Checks:**
   - new tests: `n-rules`, `n-ai-pool`, `n-effects`, `n-decks`; the older tests now cover the whole pool where they're about it;
   - neat text and contrast on every card at every Level and size; new layout scenes at all three sizes (`n-board`, `n-deepmaw`, `n-choose`, `n-undying`, the Library filtered by the new affiliations and by Campaign length, a new series' page and a Campaign's page); `tools/nshots.mjs` catches Undying as it happens;
+  - results: all 46 test files pass; neat text (804 renders) and contrast (lowest 4.87:1 on cards) pass; layout passes at 1920×1080, 1366×768 and 1280×720 (236 scenes); realinput, libinput, presenter, online2 and vfxcheck pass; 60 first-deck AI matches and 300 random-deck matches finish with no crash, illegal state or stall (59 of the 60 deck cards played; Smuggler's Run was never played as an Order);
+  - fixed on the way by the checks: a changed last letter of a deck code could hide in its unused bits and still import (codes must now read back exactly); event records with empty fields; the Library input checks pinned to the old card count;
 - **Readings for Elliott's approval:** rules in `docs/01-rulebook.md` section 13 (29–50) and open question 3 (Chill); the look in `docs/03-look-and-feel.md` section 20.

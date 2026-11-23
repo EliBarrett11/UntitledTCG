@@ -181,6 +181,8 @@ export function decodeDeck(code) {
   if (!m) return { ok: false, error: 'That isn\'t a deck code: it has characters a deck code never has.' };
   let bytes;
   try { bytes = unb64urlBytes(m[1]); } catch { return { ok: false, error: 'This deck code is damaged: it can\'t be read. Copy the whole code again.' }; }
+  // (A code must read back exactly: a changed last letter can otherwise hide in its unused bits.)
+  if (b64urlBytes(bytes) !== m[1]) return { ok: false, error: 'This deck code is damaged: it can\'t be read. Copy the whole code again.' };
   const damaged = { ok: false, error: 'This deck code is damaged: its checksum doesn\'t match. Copy the whole code again.' };
   if (bytes.length < 4) return damaged;
   const body = bytes.slice(0, -2);
