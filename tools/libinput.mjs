@@ -82,14 +82,14 @@ async function run([w, h]) {
     await p.waitForSelector('[data-region="library"]');
     // Browsing.
     await click('[data-lib="chip"][data-g="type"][data-v="Monster"]', 'filter: Monster');
-    await expect((await text('[data-region="lib-count"]')).startsWith('5 of 29'), `Monster filter: ${await text('[data-region="lib-count"]')}`);
+    await expect((await text('[data-region="lib-count"]')).startsWith('11 of 60'), `Monster filter: ${await text('[data-region="lib-count"]')}`);
     await click('[data-lib="cost-mode"][data-v="level"]', 'cost by Level');
     await click('[data-lib="chip"][data-g="level"][data-v="8"]', 'Level 8');
-    await expect((await text('[data-region="lib-count"]')).startsWith('3 of 29'), `Monsters reaching Level 8: ${await text('[data-region="lib-count"]')}`);
+    await expect((await text('[data-region="lib-count"]')).startsWith('6 of 60'), `Monsters reaching Level 8: ${await text('[data-region="lib-count"]')}`);
     await click('[data-lib="clear-all"]', 'clear all filters');
     await p.locator('.lib-search').click();
     await p.keyboard.type('wyrm');
-    await expect((await text('[data-region="lib-count"]')).startsWith('1 of 29'), 'search "wyrm"');
+    await expect((await text('[data-region="lib-count"]')).startsWith('1 of 60'), 'search "wyrm"');
     for (let k = 0; k < 4; k++) await p.keyboard.press('Backspace');
     await click('[data-lib="sort"][data-v="cost"]', 'sort by cost');
     await click('[data-lib="filters"]', 'close the filters');
@@ -98,7 +98,7 @@ async function run([w, h]) {
     await click('[data-lib-card="call-to-arms"] .lib-card', 'right-click: Call to Arms\'s page', { button: 'right' });
     await p.waitForSelector('#codex:not([hidden]) .cx-aff');
     await click('#codex .cx-aff', 'its "a Fighter" link');
-    await expect((await text('[data-region="lib-count"]')).startsWith('3 of 29'), 'the Fighter filter from the link');
+    await expect((await text('[data-region="lib-count"]')).startsWith('6 of 60'), 'the Fighter filter from the link');
     await click('[data-lib="clear-all"]', 'clear all filters');
     // Building a deck.
     await click('[data-lib="new"]', 'New deck');
