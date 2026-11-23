@@ -253,5 +253,41 @@
  },
  "cairn-risen": {
   "cardX": 780
+ },
+ "the-sunlit-shrine": {
+  "cardX": 780
+ },
+ "stormbreak-crags": {
+  "cardX": 840
+ },
+ "warhorn-of-the-vanguard": {
+  "cardX": 880
+ },
+ "ysolde-the-ember-queen": {
+  "cardX": 760
+ },
+ "cinderfeather-amulet": {
+  "cardX": 740
+ },
+ "the-ember-crown": {
+  "cardX": 770
+ },
+ "oakheart-the-grove-guardian": {
+  "cardX": 760
+ },
+ "the-grove-accord": {
+  "cardX": 760
+ },
+ "brannoc-the-siegebreaker": {
+  "cardX": 720
+ },
+ "the-siege-of-greywater": {
+  "cardX": 740
+ },
+ "wren-the-smuggler": {
+  "cardX": 680
+ },
+ "the-smugglers-run": {
+  "cardX": 690
  }
 }
