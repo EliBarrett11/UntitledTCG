@@ -14,7 +14,7 @@
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdir, rm } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { staticServer } from './serve.mjs';
 import { slowMo } from './slowmo.mjs';
@@ -87,7 +87,7 @@ async function recordMoment(name, mode) {
 }
 // The raw stretch, sped back up K times, at 60 fps.
 function cut(r, dest, { w = 1920, h = 1080 } = {}) {
-  ff(['-i', r.file, '-ss', r.from.toFixed(2), '-t', (r.to - r.from).toFixed(2), '-vf', `setpts=(PTS-STARTPTS)/${K},fps=60,scale=${w}:${h}`, '-an', '-c:v', 'libvpx-vp9', '-b:v', '3M', '-row-mt', '1', dest]);
+  ff(['-i', r.file, '-vf', `trim=start=${r.from.toFixed(2)}:end=${r.to.toFixed(2)},setpts=(PTS-STARTPTS)/${K},fps=60,scale=${w}:${h}`, '-an', '-c:v', 'libvpx-vp9', '-b:v', '3M', '-row-mt', '1', dest]);
   return (r.to - r.from) / K;
 }
 
@@ -156,6 +156,7 @@ if (want('match')) {
   const video = page.video();
   await ctx.close();
   const file = await video.path();
+  await writeFile(join(raw, 'match-spans.json'), JSON.stringify({ file, spans }, null, 1));
   const parts = [];
   spans.forEach((s, i) => { const f = join(raw, `match-${i}.webm`); cut({ file, from: Math.max(0, s.from), to: s.to }, f); parts.push(f); });
   if (parts.length) {
