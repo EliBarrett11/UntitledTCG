@@ -43,7 +43,7 @@ The painted kit (docs/21) has no ice, venom, water or lightning yet; stage N bui
 
 ### 1. Frost crust → `vfx-frost-crust`
 
-*Used for:* For Chill's Frozen marker: frost creeping over a creature that hit a Chilled one.
+*Used for:* Chill's Frozen marker: frost creeping over a creature that hit a Chilled one.
 
 ```
 Create an original visual-effects texture for a fantasy card game, in the painting style of the attached style reference: hand-painted with visible brushstrokes, bold graphic shapes, crisp designed edges, stylised like effects in a painterly animated fantasy film.
