@@ -160,5 +160,50 @@
  },
  "stonehide-hatchling": {
   "cardX": 820
+ },
+ "mire-spiderling": {
+  "cardX": 700
+ },
+ "mirefang-stalker": {
+  "cardX": 760
+ },
+ "stonewatch-thane": {
+  "cardX": 790
+ },
+ "stonewatch-warden": {
+  "cardX": 820
+ },
+ "lanternhall-loremaster": {
+  "cardX": 760
+ },
+ "stonewatch-bulwark": {
+  "cardX": 880
+ },
+ "lanternhall-busker": {
+  "cardX": 720
+ },
+ "lanternhall-minstrel": {
+  "cardX": 680
+ },
+ "mirefang-broodmother": {
+  "cardX": 770
+ },
+ "shield-wall": {
+  "cardX": 720
+ },
+ "war-drums": {
+  "cardX": 800
+ },
+ "glass-veil": {
+  "cardX": 720
+ },
+ "the-ashfall": {
+  "cardX": 760
+ },
+ "the-bounty-board": {
+  "cardX": 760
+ },
+ "rook-the-bounty-hunter": {
+  "cardX": 770
  }
 }

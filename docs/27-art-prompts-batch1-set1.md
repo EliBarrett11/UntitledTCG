@@ -198,20 +198,20 @@ Composition: the soldier behind her shield in the centre of the frame, her head 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
 
-### 11. Glass Veil · Action → `glass-veil`
+### 11. Glass Veil · Action → `glass-veil` (revised 23 November: the first image looked too much like Elowen)
 
 *Attach the style reference `assets/cards-v3/deepforge-priest.jpg`.*
 
 ```
 Create an original fantasy illustration for a collectible card game: a cinematic full-art frame in landscape format, 3:2 (1536 × 1024), like a still from a painterly animated fantasy film. Match the painting style, brushwork and lighting of the attached style reference, but not its subject.
 
-Subject: a hooded elven seer in pale lavender robes stands calmly as a sword strike shatters against a veil of floating mirror-glass around her; the shards hang in the air, each reflecting her face from a different angle, as she begins to fade into the reflections.
+Subject: a young male elven seer with short black hair, dark brown skin and silver eyes, in close-fitting midnight-teal and silver robes, stands calmly as a sword strike shatters against a veil of floating mirror-glass around him; the shards hang in the air, each reflecting his face from a different angle, as he begins to fade into the reflections.
 
-Setting: a moonlit marble terrace at night, a still lake behind, soft mist.
+Setting: a ruined hall of black stone at night, rain falling through a broken roof, cold moonlight in shafts.
 
-Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes on skin, hair, fur, cloth and metal; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: cool silver and lavender against bright cyan glints, deep violet as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Expressive, intense acting through the eyes, brow and posture, but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
+Style: a frame from a high-end, painterly animated fantasy film. Stylised 3D-feeling forms with hand-painted textures and visible brushstrokes on skin, hair, fur, cloth and metal; slightly stylised proportions with bold, graphic shape design and a strong, readable silhouette. Backgrounds painted loosely like cinematic concept art, softer than the subject. Rich, vibrant colour scripting: deep teal and black stone against bright cyan and silver glints, a touch of warm gold as the accent, with saturated complementary accents and bold rim lighting from one motivated key light; atmospheric depth and a shallow-focus lens feel. Expressive, intense acting through the eyes, brow and posture, but restrained: no wide grins or comic faces. Serious, beautiful and cinematic. Not photorealistic, not cel-shaded cartoon, not anime, not glossy plastic 3D.
 
-Composition: the seer and the floating glass in the centre of the frame, her head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames her perfectly. Keep the lower third directly beneath simpler and darker (the marble terrace in shadow), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
+Composition: the seer and the floating glass in the centre of the frame, his head in its upper half with clear space above, so a tall portrait crop from the centre (about half the width) frames him perfectly. Keep the lower third directly beneath simpler and darker (wet black flagstones in shadow), as card text will sit there. Use the full width for atmosphere, with soft, uncluttered edges. No other figures.
 
 Any glyphs or runes are abstract shapes, never letters. Do not include any text, letters, logos, borders, frames, card layouts or watermarks.
 ```
