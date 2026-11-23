@@ -1,4 +1,6 @@
-# New Cards Batch 1, set 4 of 4: proposals for Elliott's approval (23 November 2026)
+# New Cards Batch 1, set 4 of 4: approved by Elliott (23 November 2026)
+
+All eight cards and the new rules (On Dusk, Tinker, Chill, Frenzy) and affiliations are approved. The art prompts are in `docs/33-art-prompts-batch1-set4.md`.
 
 The last set. Same curve as before:
 - Attack + Health = **Level + 2, less 1 per ability**.
