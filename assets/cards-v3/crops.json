@@ -150,7 +150,7 @@
   "cardX": 820
  },
  "night-raid": {
-  "cardX": 700
+  "cardX": 820
  },
  "parry": {
   "cardX": 720
@@ -289,5 +289,53 @@
  },
  "the-smugglers-run": {
   "cardX": 690
+ },
+ "the-drowned-reach": {
+  "cardX": 780
+ },
+ "the-deepmaw": {
+  "cardX": 820
+ },
+ "ironclaw-warbear": {
+  "cardX": 820
+ },
+ "ironclaw-cub": {
+  "cardX": 820
+ },
+ "ironclaw-bear": {
+  "cardX": 820
+ },
+ "market-day": {
+  "cardX": 760
+ },
+ "chain-lightning": {
+  "cardX": 560
+ },
+ "rime-colossus": {
+  "cardX": 760
+ },
+ "rime-sprite": {
+  "cardX": 780
+ },
+ "rime-elemental": {
+  "cardX": 760
+ },
+ "cogwright-master-engineer": {
+  "cardX": 700
+ },
+ "cogwright-apprentice": {
+  "cardX": 760
+ },
+ "cogwright-inventor": {
+  "cardX": 760
+ },
+ "redmaw-stormcaller": {
+  "cardX": 760
+ },
+ "redmaw-bonecaster": {
+  "cardX": 780
+ },
+ "redmaw-shaman": {
+  "cardX": 760
  }
 }
