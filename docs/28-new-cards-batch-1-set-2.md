@@ -1,4 +1,6 @@
-# New Cards Batch 1, set 2 of 4: proposals for Elliott's approval (23 November 2026)
+# New Cards Batch 1, set 2 of 4: approved by Elliott (23 November 2026)
+
+All eight cards, the four new rules (On Attack, On Dawn, Undying, Soaring) and the three Prime revisions are approved. The art prompts are in `docs/29-art-prompts-batch1-set2.md`.
 
 Same curve as set 1 (rulebook 7.1):
 - Attack + Health = **Level + 2, less 1 per ability**.
