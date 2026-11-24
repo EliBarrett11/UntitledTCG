@@ -208,6 +208,7 @@ export function createVfx(stage, { settings, params }) {
     boardRipple: (o) => { if (!settings().lowMotion) board.ripple(o); },
     boardHaze: (o) => { if (!settings().lowMotion) board.haze(o); },
     alive: () => (r ? r.aliveCount() : 0),
+    debugState: () => r?.debugState?.(),
     pushIn(k, x, y, dur) { if (settings().lowMotion || !k || !r) return; push = { k, x, y, t0: performance.now(), dur }; r.wake(); },
     refreshOccluders() { if (r) r.setOccluders(occluders()); },
     shake(px, dur) { if (settings().lowMotion || !px) return; shakeT0 = performance.now(); shakeUntil = shakeT0 + dur; shakePx = Math.max(px, shakeUntil > shakeT0 ? shakePx : 0); r.wake(); },

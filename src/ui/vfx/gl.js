@@ -306,8 +306,9 @@ void main() {
     if (uProtK[i] <= 0.0) continue;
     vec2 q = (p - r.xy) / max(r.zw, vec2(1.0));
     float inside = step(0.0, q.x) * step(q.x, 1.0) * step(0.0, q.y) * step(q.y, 1.0);
-    vec3 capped = add / (1.0 + add * 2.2) * 0.85;
-    add = mix(add, min(add, capped), inside * uProtK[i]);
+    // (A compressor whose strength rises with k: blending toward a capped value would leak an HDR white through.)
+    float k = inside * uProtK[i];
+    add = add / (1.0 + add * 3.0 * k) * mix(1.0, 0.75, k);
   }
   o = vec4(add, min(1.0, s.a + dim * (1.0 - s.a)));
 }`;
@@ -860,7 +861,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   return {
     gl, now, freeze, upload, has: (id) => textures.has(id), poolAlive: (id, t) => (pools.get(id)?.deathAt ?? 0) > t, isReal: (id) => !!textures.get(id)?.real, blendOf: (id) => textures.get(id)?.blend,
     spawn, ribbon, wave, shimmer, flash, emitter, kill, release, resize, clear, frameAspect, frameCount,
-    light, setOccluders, setPalettes, dip, protect, aliveCount, marksAlive: () => marksAlive(now()), lightCount: () => lights.length, NOISE,
+    light, setOccluders, setPalettes, dip, protect, aliveCount, debugState: () => ({ t: now(), prots: prots.map((p) => ({ ...p })), dip: dipState }), marksAlive: () => marksAlive(now()), lightCount: () => lights.length, NOISE,
     set lowMotion(v) { lowMotion = !!v; }, set bloom(v) { bloomBase = v; },
     get running() { return running; }, get frames() { return frames; }, frameTimes, wake,
     get size() { return { w: W, h: H }; },
