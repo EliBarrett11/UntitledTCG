@@ -23,7 +23,7 @@ const manifest = JSON.parse(readFileSync(join(root, 'assets/vfx/manifest.json'),
 // V1 (section 3) and V2 (section 5): each series' attack, the Actions' modes, Events, Locations, Dawn and Dusk, the
 // Quest and the cinematics. Stage E's rebuilt moments stand in for the ones they replace (defeat, the Firebolts).
 const STORYBOARD = ['attack.oathsworn', 'attack.ironhide', 'attack.spire', 'attack.hollowfoot', 'attack.deepforge', 'attack.thornwood', 'attack.beast', 'attack.barrow',
-  'attack.stonehide', 'e.defeat', 'summon', 'renown', 'heal', 'strat.seal', 'strat.resolve', 'gold.gain', 'item.bought', 'react', 'event', 'draw', 'location',
+  'attack.stonehide', 'defeat', 'summon', 'renown', 'heal', 'strat.seal', 'strat.resolve', 'gold.gain', 'item.bought', 'react', 'event', 'draw', 'location',
   'location.gone', 'dawn', 'dusk', 'dominance.scored', 'quest', 'e.firebolt.strat', 'nightraid.strat', 'cine.wyrm', 'cine.last'];
 const ALSO = ['attack.wyrm', 'wyrm.onsummon', 'renown.favour', 'riposte', 'item.wildfire', 'item.draught', 'item.held.blade', 'item.held.shield', 'e.firebolt', 'e.firebolt.react', 'e.attack.steel', 'e.prime',
   'shade.drain', 'parry.adapt', 'nightraid.adapt', 'mending.strat', 'energy', 'cine.aldric', 'cine.aldric.quest'];
