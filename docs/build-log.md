@@ -699,8 +699,11 @@ Built from `docs/38-stage-x-prompts.md` (stage X1), with the plan in `docs/37-vf
   - the dev scenes and aids only with `?dev` (`src/ui/devparams.js`; the checks add it through `tools/serve.mjs`'s `withDev`);
   - the README is a page for players; this build log moved here.
   - The old kit's textures are all still used by the first deck's V2 signatures; they go as X2 rebuilds each.
-- **The site's size:** SITE_SIZE.
-- **Loading** (`src/ui/loader.js`, `tools/loadmetrics.mjs`): LOAD_NUMBERS.
+- **The site's size** (every file in git, which GitHub Pages publishes): 2,858 MB before, 250 MB after (the check screenshots were 2,396 MB and the clips 199 MB). Git's history stays large; the published site is well under 1 GB.
+- **Loading** (`src/ui/loader.js`, `tools/loadmetrics.mjs`, measured on the local server with a cold cache):
+  - to an interactive title: before, 4.96 MB in 0.55 s (with the whole effects kit then downloading behind it: 34 MB within 20 s); after, 1.63 MB in 0.36 s;
+  - after the title is up, a background queue fetches setup's art, both chosen decks' cards, the board's art, then the effects kit;
+  - to the first match (Play, Begin, the hand dealt): before, 10.8 MB in 2.7 s; after, 3.6 s, by which time the background queue has fetched 33.5 MB (the match itself needs about 10 MB of it). If a player starts a match before its art is in, the painted loading bar shows over the board until it is.
 - **The renderer, finished:**
   - Frost, Venom, Water and Storm join the eight palettes;
   - particles ride a flow field and streak along their flight;
@@ -715,6 +718,15 @@ Built from `docs/38-stage-x-prompts.md` (stage X1), with the plan in `docs/37-vf
   - defeats by kind (stage E's burn, stone, ghostlight, leaves, ice) and Undying;
   - summons by weight, the chosen mode inked, and Rally.
 - **Clips** (`tools/x1clips.mjs`, local in `tools/clips/x1/`): every moment before and after, a frame strip, low motion, and a contact video per group.
-- **Frame times** (`tools/x1perf.mjs`): PERF_NUMBERS.
-- **Results:** RESULTS.
+- **Frame times** (`tools/x1perf.mjs`): this container has no GPU; Chromium renders WebGL in software (SwiftShader), at about 3 frames a second whatever plays.
+  - Every rebuilt moment averages 340–450 ms a frame (worst 420–630 ms), beside stage E's approved Martial attack at 343 ms (worst 483 ms). The Undead moment is the heaviest, about 30% over that baseline; the rest are within 15%.
+  - The automatic quality ignores frames over 250 ms (stalls), so it stayed on the top step; it can't be exercised here.
+  - A 60 fps verdict needs a real GPU (`?fps=1` shows the frame times on any machine).
+- **Results:**
+  - all 51 test files pass;
+  - neat text (804 renders) and card contrast (lowest 4.87:1) pass;
+  - layout passes at 1920×1080, 1366×768 and 1280×720;
+  - realinput, libinput, presenter, online2 and vfxcheck pass;
+  - 60 first-deck AI matches and 300 random-deck matches finish with no crash, illegal state or stall.
+  - The checks found two things on the way: a cancelled drag's card now flies home before it goes (the real-input check waits for it), and the effects check counts the rebuilt defeat moment.
 - **Readings for Elliott's approval:** `docs/03-look-and-feel.md` section 22.
