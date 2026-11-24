@@ -1,7 +1,7 @@
 // Stage N (section 4): effects for New Cards Batch 1. Every new card resolves to an effect (its attack, each Action
 // mode's ops, each Event's and Item's), the new keywords have their cues (Venom's drip, Chill's frost, Undying's
 // burst and stand-up, Frenzy's red glow, Tinker's sparks, Soaring's arc over the guard, On Dusk and On Dawn pulses),
-// and each keeps within the existing timing budgets (docs/10-feel-and-vfx.md).
+// and each keeps within the existing timing budgets (docs/archive/10-feel-and-vfx.md).
 import { test, run, assert } from './helpers.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
 import { EFFECTS, BUDGET, BUDGET_SLACK, attackEffectFor, effectFor, heldEffectFor, longestRun, cardByName, texturesOf, arrivalEffectFor, placedEffectFor, attackVars } from '../src/ui/vfx/library.js';

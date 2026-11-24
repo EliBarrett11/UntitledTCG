@@ -9,7 +9,7 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFile, mkdir } from 'node:fs/promises';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -25,7 +25,7 @@ const browser = await chromium.launch({ args: process.env.PERF_ARGS ? process.en
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
-await page.goto(`http://127.0.0.1:${server.address().port}/?seed=${SEED}&autoplay=1&pace=300&speed=normal&lowmotion=0${EXTRA}`, { waitUntil: 'networkidle' });
+await page.goto(withDev(`http://127.0.0.1:${server.address().port}/?seed=${SEED}&autoplay=1&pace=300&speed=normal&lowmotion=0${EXTRA}`), { waitUntil: 'networkidle' });
 const renderer = await page.evaluate(() => { const c = document.createElement('canvas'); const g = c.getContext('webgl2'); const d = g?.getExtension('WEBGL_debug_renderer_info'); return g ? g.getParameter(d ? d.UNMASKED_RENDERER_WEBGL : g.RENDERER) : 'no WebGL2'; });
 // Wait for the textures to load, then time frames while beats play.
 await page.waitForTimeout(4000);

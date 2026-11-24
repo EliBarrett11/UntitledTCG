@@ -8,7 +8,7 @@
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
@@ -31,7 +31,7 @@ console.log(`Renderer: ${renderer}. 1920×1080, normal speed.`);
 async function measure(name, mode, quality) {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   const q = `?seed=10&scene=mid&pace=100000&timer=off&speed=normal&lowmotion=0${mode === 'old' ? '&fx=old' : ''}${quality === null ? '' : `&vfxquality=${quality}`}`;
-  await page.goto(`${base}${q}`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${base}${q}`), { waitUntil: 'networkidle' });
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return v && v.standIns.length === 0 && v.ready >= 110; }, null, { timeout: 120000, polling: 250 });
   await page.waitForTimeout(600);
   const parts = PARTS[name][mode];
@@ -68,7 +68,7 @@ for (const name of Object.keys(PARTS)) {
 // Automatic quality: every new moment in turn on one page.
 {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
-  await page.goto(`${base}?seed=10&scene=mid&pace=100000&timer=off&speed=normal&lowmotion=0`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${base}?seed=10&scene=mid&pace=100000&timer=off&speed=normal&lowmotion=0`), { waitUntil: 'networkidle' });
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return v && v.standIns.length === 0 && v.ready >= 110; }, null, { timeout: 120000, polling: 250 });
   const steps = [];
   for (const name of Object.keys(PARTS)) { await page.evaluate((n) => window.__match.fxDemo(n), name); steps.push(`${name}: ${await page.evaluate(() => window.__match.vfx().qualityName)}`); }

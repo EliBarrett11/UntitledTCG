@@ -10,7 +10,7 @@
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
@@ -21,7 +21,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
 const errors = [];
 page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
-await page.goto(`http://127.0.0.1:${server.address().port}/?sheet=all`, { waitUntil: 'networkidle' });
+await page.goto(withDev(`http://127.0.0.1:${server.address().port}/?sheet=all`), { waitUntil: 'networkidle' });
 await page.waitForSelector('body[data-done="true"]');
 await page.evaluate(() => document.fonts.ready);
 await page.addStyleTag({ content: '*, *::before, *::after { animation-play-state: paused !important; transition: none !important; } .holo { display: none !important; }' });

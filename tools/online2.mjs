@@ -12,7 +12,7 @@ import { createRequire } from 'node:module';
 import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
@@ -174,7 +174,7 @@ const hostState = () => host.page.evaluate(() => { const s = window.__match?.sta
 let failed = null;
 try {
   // --- The lobby ---
-  await host.page.goto(`${base}?peerserver=${PEER}&speed=fast&lowmotion=1`, { waitUntil: 'networkidle' });
+  await host.page.goto(withDev(`${base}?peerserver=${PEER}&speed=fast&lowmotion=1`), { waitUntil: 'networkidle' });
   await waitFor(host, () => document.querySelector('[data-act="friend"]'));
   await host.page.screenshot({ path: join(shots, 'm-title.png') });
   await click(host, '[data-act="friend"]', 0, 'Play a friend');
@@ -185,7 +185,7 @@ try {
   await host.page.screenshot({ path: join(shots, 'm-lobby-host.png') });
   // The guest opens the game, chooses Play a friend, and types the code into the join form (the invite link is
   // used for its refresh later).
-  await guest.page.goto(`${base}?peerserver=${PEER}&speed=fast&lowmotion=1`, { waitUntil: 'networkidle' });
+  await guest.page.goto(withDev(`${base}?peerserver=${PEER}&speed=fast&lowmotion=1`), { waitUntil: 'networkidle' });
   await waitFor(guest, () => document.querySelector('[data-act="friend"]'));
   await click(guest, '[data-act="friend"]', 0, 'Play a friend');
   await waitFor(guest, () => document.querySelector('[data-region="join-form"] input'));
@@ -254,7 +254,7 @@ try {
     if (!guestRefreshed && hs?.round >= 3 && shotsAt.has('r3')) {
       guestRefreshed = true;
       say('the guest refreshes');
-      await guest.page.goto(guestUrl, { waitUntil: 'networkidle' });
+      await guest.page.goto(withDev(guestUrl), { waitUntil: 'networkidle' });
       await waitFor(guest, () => document.body.dataset.screen === 'match', null, 45000);
       await host.page.waitForFunction(() => !document.querySelector('[data-region="net-banner"]'), null, { timeout: 30000 });
       say('the guest rejoined and the host sees it back');
@@ -265,7 +265,7 @@ try {
     if (!hostRefreshed && hs?.round >= 5) {
       hostRefreshed = true;
       say('the host refreshes');
-      await host.page.goto(`${base}?peerserver=${PEER}&speed=fast&lowmotion=1`, { waitUntil: 'networkidle' });
+      await host.page.goto(withDev(`${base}?peerserver=${PEER}&speed=fast&lowmotion=1`), { waitUntil: 'networkidle' });
       await waitFor(host, () => document.querySelector('[data-act="net-resume"]'), null, 20000);
       await host.page.screenshot({ path: join(shots, 'm-resume.png') });
       await click(host, '[data-act="net-resume"]', 0, 'Resume');

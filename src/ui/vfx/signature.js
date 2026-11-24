@@ -1,4 +1,4 @@
-// V2: signature moments (docs/10-feel-and-vfx.md section 5), as data. library.js merges these into EFFECTS.
+// V2: signature moments (docs/archive/10-feel-and-vfx.md section 5), as data. library.js merges these into EFFECTS.
 // The same step format as library.js. The shared pieces (impacts, the guard's sigil, the settle) come from there.
 
 export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {

@@ -16,7 +16,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 import { slowMo } from './slowmo.mjs';
 
 const require = createRequire(import.meta.url);
@@ -54,7 +54,7 @@ async function recordMoment(name, mode) {
   page.on('pageerror', (e) => log(`  page error: ${e.message}`));
   const slow = await slowMo(ctx, page, 1);
   const q = `?seed=10&scene=mid&pace=100000&timer=off&speed=normal&lowmotion=${mode === 'low' ? 1 : 0}${mode === 'old' ? '&fx=old' : ''}`;
-  await page.goto(`${base}${q}`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${base}${q}`), { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return !v || (v.standIns.length === 0 && v.ready >= 110); }, null, { timeout: 120000, polling: 250 });
   await page.waitForTimeout(800);
@@ -127,7 +127,7 @@ if (want('match')) {
   const t0 = Date.now();
   const sec = () => (Date.now() - t0) / 1000;
   const slow = await slowMo(ctx, page, 1);
-  await page.goto(`${base}?seed=7&autoplay=1&pace=60&speed=normal&lowmotion=0&prefer=firebolt:react,firebolt:strat,firebolt:adapt`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${base}?seed=7&autoplay=1&pace=60&speed=normal&lowmotion=0&prefer=firebolt:react,firebolt:strat,firebolt:adapt`), { waitUntil: 'networkidle' });
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return !v || (v.standIns.length === 0 && v.ready >= 110); }, null, { timeout: 120000, polling: 250 });
   await page.evaluate(([names, k]) => {
     window.__eHits = [];

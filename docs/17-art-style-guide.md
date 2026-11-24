@@ -1,6 +1,6 @@
 # Art style guide
 
-> **Revised 18 November 2026 (Elliott):** batches 1 and 2 were a step forward in personality but read as corny, cartoonish and obviously AI-generated: over-emotive faces, gag props and busy backgrounds full of people. The direction is now **cinematic, beautiful and serious, with personality shown through restrained expression.** Section 0 overrides anything below it; the format, crops and naming (sections 2, 3, 5 and 8) still stand. The staged images in `assets/cards-v2/` are kept for reference, not for use.
+> **Revised 18 November 2026 (Elliott):** batches 1 and 2 were a step forward in personality but read as corny, cartoonish and obviously AI-generated: over-emotive faces, gag props and busy backgrounds full of people. The direction is now **cinematic, beautiful and serious, with personality shown through restrained expression.** Section 0 overrides anything below it; the format, crops and naming (sections 2, 3, 5 and 8) still stand. The style reference for all new art is the current set in `assets/cards-v3/` (the old staged set in `assets/cards-v2/` was removed in stage X1).
 
 ## 0. Cinematic revision (18 November 2026) — locked
 
@@ -15,7 +15,7 @@
 - **Mature, believable faces** with real age, skin texture and asymmetry; not doll-like, not caricatured.
 
 
-Elliott approved the new style after three tests: Gloomfang Wolf, Oathsworn Captain and Ironroot Pass (`docs/mockups/style-test/`). This guide keeps every new image in that style. Prompts: `docs/18-art-prompts-v2.md`.
+Elliott approved the new style after three tests: Gloomfang Wolf, Oathsworn Captain and Ironroot Pass (`docs/mockups/style-test/`). This guide keeps every new image in that style. Prompts: `docs/archive/18-art-prompts-v2.md`.
 
 ## 0.1 How series progress (Elliott, 18 November 2026)
 - **Characters progress in rank and mastery, not age.** The same person in the prime of life (early twenties to forties, never elderly) in three forms: **Initiate** (finding their place: plain, borrowed or mismatched gear, humble setting), **Sworn** (serving their role: the proper kit and insignia of their order, practised and confident) and **Master** (defining their role: signature gear, a relic or heirloom, a title's regalia, visible mastery, real presence). The path can be rank, reputation, power or calling.
@@ -108,7 +108,7 @@ Characters get a first name followed by what they are: "Brenna, the Deepforge Pr
 **On the card:** the first name is the card's name line in Cinzel; "the Thornwood Pathfinder" sits on a smaller line beneath it, above the type line, so long titles never shrink the name. Board tokens show the first name only; the Codex, log and announcements use the full "Ilyra, the Thornwood Pathfinder".
 
 ## 9. Batch 1 status
-All 13 anchors delivered and staged in `assets/cards-v2/` as full 1536 × 1024 art, with the three style tests; each card's crop centre is in `assets/cards-v2/crops.json`. Contact sheet: `docs/mockups/style-test/batch1-crops.jpg`. The game keeps using `assets/cards/` until every batch is in.
+All 13 anchors delivered and staged as full 1536 × 1024 art (since replaced: the game's art is `assets/cards-v3/`, crop centres in `assets/cards-v3/crops.json`). Contact sheet: `docs/mockups/style-test/batch1-crops.jpg`. The game keeps using `assets/cards/` until every batch is in.
 
 ## 10. In the game (stage A, 18 November 2026)
 Every image in the game is now the final art: `tools/artcrops.py` cuts the card crops into `assets/cards/` from `assets/cards-v3/`, `tools/uiart.py` builds `assets/ui/` from `assets/ui-v3/`, and `tools/buildcards.mjs` records each card's `artFull`, `cardX` and (for Locations) `tileX`/`tileY` in `docs/cards.json`. The names in section 8 (with the renames in section 0.1) are in the card data.

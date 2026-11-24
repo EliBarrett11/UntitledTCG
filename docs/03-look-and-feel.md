@@ -101,7 +101,7 @@ Each has a `.png` screenshot. `reference-geometry.py` holds the exact shapes, si
   - Changed stats: green or red.
 - **Mini (200 px) and Chip** follow the same language. Mini shows the art, cost, name, stat tabs and one trigger or mode line. Chip is a round art crop.
 
-**Superseded:** the S4 design (below), card design v2, and the painted-frame approach (v3, `docs/11-card-frame-prompts.md`, parked as a possible later upgrade).
+**Superseded:** the S4 design (below), card design v2, and the painted-frame approach (v3, `docs/archive/11-card-frame-prompts.md`, parked as a possible later upgrade).
 
 **Readings from stage C (the v4 rebuild): approved by Elliott, 16 November 2026.**
 1. **The panel line follows each card's text.** The mockups set it by hand for each card. The game works it out from the amount of text: 250–318 px down for creatures, 236–300 px for the other card types. Long text never crowds the tabs, and short text keeps the art tall. Against the mockups it moves at most a few pixels.
@@ -516,7 +516,7 @@ Built to `docs/17-art-style-guide.md` (sections 0, 0.1, 2, 3 and 8), `docs/19-ar
 
 ## 17. Readings from stage E (the effects test): approved as the baseline for the rebuild, 23 November 2026
 
-Built to `docs/22-stage-e-prompt.md`, `docs/20-vfx-style-guide.md` and the texture kit in `assets/vfx/` (`docs/21`). Only the three test moments changed: every other effect is exactly as it was. No rule changed. The old effects are kept: `?fx=old` plays them, for the side-by-side clips.
+Built to `docs/archive/22-stage-e-prompt.md`, `docs/20-vfx-style-guide.md` and the texture kit in `assets/vfx/` (`docs/21`). Only the three test moments changed: every other effect is exactly as it was. No rule changed. The old effects are kept: `?fx=old` plays them, for the side-by-side clips.
 
 1. **The renderer** (`src/ui/vfx/gl.js`, still WebGL2 by hand, no libraries). A particle now carries 48 floats (12 vec4s, up from 8). The new ones:
    - **Erosion:** a threshold rising from `from` to `to`, eased in (a quadratic) from `start`, a share of its life. A pixel stays while its noise is above the threshold.
@@ -625,7 +625,7 @@ Built to `docs/22-stage-e-prompt.md`, `docs/20-vfx-style-guide.md` and the textu
 
 ## 18. Readings from stage R (the rules update): approved by Elliott, 23 November 2026
 
-Built to `docs/24-stage-r-prompt.md`. Rule readings are in the rulebook's section 13 (22–28); these are the look.
+Built to `docs/archive/24-stage-r-prompt.md`. Rule readings are in the rulebook's section 13 (22–28); these are the look.
 
 1. **The board at 8 lanes:**
    - lanes are 191.5 px wide (170 with 9), and cards on the board grow from 164 × 230 to **180 × 252**;
@@ -662,7 +662,7 @@ Built to `docs/24-stage-r-prompt.md`. Rule readings are in the rulebook's sectio
 
 ## 19. Readings from stage L (the Card Library, deck building and choosing decks): approved by Elliott, 23 November 2026
 
-Built to `docs/25-stage-l-prompt.md`. No rule changed. The rulebook's section 4 now says each player plays a deck of their own, with "The first deck" as the default (the prompt's decision). These are the readings.
+Built to `docs/archive/25-stage-l-prompt.md`. No rule changed. The rulebook's section 4 now says each player plays a deck of their own, with "The first deck" as the default (the prompt's decision). These are the readings.
 
 1. **The Card Library** is a screen of its own (`?screen=library` opens it directly). It has a header (Back, search, sort), the filters on the left, the cards in the middle and your decks on the right. A card's page is the Codex's page, opened over the right-hand panel as in a match. Its trail says "THE LIBRARY", and its footer drops "the match carries on".
 2. **A series is one entry,** drawn as its first form at its starting Level (its Level in Round 1). A filter matches the series if *any* of its forms does: Elowen is shown under "On Summon" because her Prime form has a Prime: On Summon, though her first form has none. The page shows the three forms, an "Every Level" table (each Level's Attack and Health, the Prime row with its +1/+1 "★ Prime: 5 / 6"), and each form's text.

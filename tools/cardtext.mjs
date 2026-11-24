@@ -9,7 +9,7 @@
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -24,7 +24,7 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
 page.on('response', (r) => { if (r.status() >= 400) errors.push(`HTTP ${r.status()}: ${r.url()}`); });
-await page.goto(`http://127.0.0.1:${server.address().port}/?sheet=all`, { waitUntil: 'networkidle' });
+await page.goto(withDev(`http://127.0.0.1:${server.address().port}/?sheet=all`), { waitUntil: 'networkidle' });
 await page.waitForSelector('body[data-done="true"]');
 await page.evaluate(() => document.fonts.ready);
 

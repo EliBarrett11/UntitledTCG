@@ -11,7 +11,7 @@
 import { createRequire } from 'node:module';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 import { defineCards } from '../src/engine/cards.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
 
@@ -76,7 +76,7 @@ async function run([w, h]) {
   const centre = async (sel) => { const b = await p.locator(sel).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
 
   try {
-    await p.goto(`${base}?title=1`, { waitUntil: 'networkidle' });
+    await p.goto(withDev(`${base}?title=1`), { waitUntil: 'networkidle' });
     await p.waitForSelector('[data-act="library"]');
     await click('[data-act="library"]', 'Card Library (title)');
     await p.waitForSelector('[data-region="library"]');

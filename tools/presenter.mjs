@@ -9,7 +9,7 @@
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
 let chromium;
@@ -66,7 +66,7 @@ for (const run of RUNS) {
     };
     requestAnimationFrame(frame);
   });
-  await page.goto(`http://127.0.0.1:${server.address().port}/?seed=${SEED}&autoplay=1&pace=120&${run.query}`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`http://127.0.0.1:${server.address().port}/?seed=${SEED}&autoplay=1&pace=120&${run.query}`), { waitUntil: 'networkidle' });
   const problems = [];
   let checks = 0;
   let skips = 0;

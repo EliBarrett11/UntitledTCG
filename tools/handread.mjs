@@ -51,7 +51,7 @@ export async function measureHand(page) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const require = createRequire(import.meta.url);
   const { chromium } = require('playwright');
-  const { staticServer } = await import('./serve.mjs');
+  const { staticServer, withDev } = await import('./serve.mjs');
   const root = join(dirname(fileURLToPath(import.meta.url)), '..');
   const server = staticServer(root);
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
@@ -61,7 +61,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   for (const [w, h] of [[1920, 1080], [1366, 768], [1280, 720]]) {
     for (const n of [7, 8, 9, 10]) {
       const page = await browser.newPage({ viewport: { width: w, height: h } });
-      await page.goto(`${base}${query}&hand=${n}`, { waitUntil: 'networkidle' });
+      await page.goto(withDev(`${base}${query}&hand=${n}`), { waitUntil: 'networkidle' });
       await page.evaluate(() => document.fonts.ready);
       await page.mouse.move(5, 5);
       await page.waitForTimeout(700);

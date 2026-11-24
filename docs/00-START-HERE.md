@@ -6,11 +6,28 @@ This pack holds everything a fresh Claude needs to rebuild Elliott's card game i
 
 **Read in this order:**
 1. **00-START-HERE.md** (this file): the brief, the decisions, the vocabulary, how we work.
-2. **01-rulebook.md**: the complete rules of a match.
-3. **02-card-types.md**: the seven card types and the first deck.
-4. **03-look-and-feel.md**: the art style, the board, the cards and the animation.
-5. **04-build-plan.md**: the tech rules and the build stages.
-6. **05-reference-code-map.md**: only for the coding session, when it reads the old game's code. It maps the old code's names to the new ones.
+2. **01-rulebook.md**: the complete rules of a match (the source of truth; its open questions are at the bottom).
+3. **02-card-types.md**: the seven card types and the first deck. The cards themselves are in **cards.json**.
+4. **03-look-and-feel.md**: the art style, the board, the cards and the animation, with every look reading.
+5. **04-build-plan.md**: the tech rules and the build stages; **build-log.md** has how to run the checks and every stage's log.
+6. **05-reference-code-map.md**: only for the coding session, when it reads the old game's code.
+
+**The current docs** (stage X1, 24 November 2026; superseded docs are in `archive/`):
+
+| Doc | What it holds |
+|---|---|
+| 12-prime-summons.md | Prime Summons and the stat curve |
+| 14-sound-prompts.md | Sound (parked) |
+| 15-v5-players-experience.md, 16-next-rules-and-art.md | Player-experience and rules decisions behind stages V5 and R |
+| 17-art-style-guide.md, 19-art-prompts-v3.md | The art style and the card art prompts |
+| 20-vfx-style-guide.md, 21-vfx-texture-prompts.md | The effects style and the painted kit's first textures |
+| 23-card-design-principles.md | How cards are designed |
+| 26–33 | New Cards Batch 1 (sets 1–4) and their art prompts |
+| 35-fixes-after-stage-n.md | Knives in the Dark, Chill's Frozen, six textures |
+| 37-vfx-rebuild-plan.md, 38-stage-x-prompts.md, 39-vfx-final-textures.md | The effects and animation rebuild (stages X1–X3) and the complete painted kit |
+| vfx-template/ | The approved quality bar: a working Firebolt (open `vfx-template/index.html` on the local server) |
+| shots/ | The current key screens (the checks' full output stays local, out of git) |
+| balance/, mockups/ | Simulation reports and approved mockups |
 
 ---
 

@@ -115,7 +115,7 @@ export function typeLine(c) {
 }
 
 // The accent colour: a Character's Class, a Monster, an Action's Class (or none), an Event, Item, Location
-// or Campaign (docs/06-first-deck-draft.md section 1).
+// or Campaign (docs/archive/06-first-deck-draft.md section 1).
 const CLASS_ACCENT = { Fighter: '#9b2226', Wizard: '#3a5ea8', Rogue: '#3f7d3a', Cleric: '#c9a64a', Ranger: '#c06a24', Bard: '#b8862a', Artificer: '#a8662a' };
 const TYPE_ACCENT = { Monster: '#b8521c', Action: '#8a8f96', Event: '#7a3b70', Item: '#9a6a3a', Location: '#3f8a7d', Campaign: '#6d4aa0' };
 export function accentOf(c) {

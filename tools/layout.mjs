@@ -10,7 +10,7 @@ import { createRequire } from 'node:module';
 import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 import { measureHand } from './handread.mjs';
 import { defineCards } from '../src/engine/cards.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
@@ -370,7 +370,7 @@ for (const [w, h] of SIZES) {
     page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
     page.on('requestfailed', (r) => errors.push(`request failed: ${r.url()}`));
     page.on('response', (r) => { if (r.status() >= 400) errors.push(`HTTP ${r.status()}: ${r.url()}`); });
-    await page.goto(`${url}${sc.query}`, { waitUntil: 'networkidle' });
+    await page.goto(withDev(`${url}${sc.query}`), { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
     if (sc.steps) await sc.steps(page);
     const problems = [];
@@ -421,15 +421,15 @@ for (const [w, h] of SIZES) {
 // Screenshots for the report: the contact sheet (every card at Full size), the foil cards, the hand.
 {
   const page = await browser.newPage({ viewport: { width: 2600, height: 1000 }, deviceScaleFactor: 1 });
-  await page.goto(`${url}?sheet=full`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${url}?sheet=full`), { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: join(shotDir, `${STAGE}-contact-sheet.png`), fullPage: true });
-  await page.goto(`${url}?sheet=foil`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${url}?sheet=foil`), { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(1200);
   await page.screenshot({ path: join(shotDir, `${STAGE}-foil.png`), clip: { x: 0, y: 0, width: 1260, height: 620 } });
   await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto(`${url}?seed=${SEED}&scene=mid&pace=100000`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${url}?seed=${SEED}&scene=mid&pace=100000`), { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: join(shotDir, `${STAGE}-hand.png`), clip: { x: 300, y: 740, width: 920, height: 340 } });
   await page.close();
@@ -442,7 +442,7 @@ for (const [w, h] of SIZES) {
   const errors = [];
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
-  await page.goto(`${url}?debug=1&seed=3`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${url}?debug=1&seed=3`), { waitUntil: 'networkidle' });
   try { await page.waitForSelector('body[data-done="true"]', { timeout: 180000 }); } catch { errors.push('the debug match did not finish'); }
   const status = await page.textContent('#debug-status').catch(() => '');
   const lines = await page.evaluate(() => document.getElementById('debug-log')?.textContent.split('\n').length ?? 0);

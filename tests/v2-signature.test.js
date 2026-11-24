@@ -1,6 +1,6 @@
 // Stage V2: signature moments. Every card in the first deck resolves to its own effect (each series' attack,
 // each Action mode, each Event's touch, each Item), the cinematics finish, skip cleanly and have short
-// low-motion versions, and the new moments keep to the proposed budget (docs/10-feel-and-vfx.md section 5.10).
+// low-motion versions, and the new moments keep to the proposed budget (docs/archive/10-feel-and-vfx.md section 5.10).
 import { test, run, assert } from './helpers.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
 import { EFFECTS, BUDGET, BUDGET_SLACK, CINEMATICS, attackEffectFor, attackVars, effectFor, eventFlags, reactFlags, heldEffectFor, cinematicFor, longestRun } from '../src/ui/vfx/library.js';

@@ -10,6 +10,7 @@
 // For testing without the cloud server, ?peerserver=host:port uses a local
 // PeerServer instead (e.g. `npx peer --port 9000`).
 
+import { gameParams } from '../ui/devparams.js';
 import { iceServers } from './ice.js';
 import { roomCode, peerId } from './protocol.js';
 
@@ -30,7 +31,7 @@ function loadPeerJs() {
 
 async function peerOptions() {
   const options = { config: { iceServers: await iceServers() }, debug: 1 };
-  const local = new URLSearchParams(location.search).get('peerserver');
+  const local = gameParams(location.search).get('peerserver');
   if (local) {
     const [host, port] = local.split(':');
     Object.assign(options, { host, port: Number(port) || 9000, path: '/', secure: false });

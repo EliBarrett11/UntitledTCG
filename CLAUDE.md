@@ -24,5 +24,5 @@ A browser card game of Elliott's, played against an AI opponent, in an original 
 1. The game is playable in the browser.
 2. Tests in `tests/` for the new rules; all tests pass.
 3. Layout and real-input checks pass at 1920×1080, 1366×768 and 1280×720; no text is cut off or overlapping.
-4. Committed and pushed to `main`, with a README build-log entry.
+4. Committed and pushed to `main`, with an entry in `docs/build-log.md`.
 5. Report: what changed, results, screenshots, differences from the prompt, readings needing approval, and the play link.

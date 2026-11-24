@@ -195,7 +195,7 @@ Numbers come from the rules in section 3; the build may move a stat by 1 between
 
 ## 7. Art needed
 
-17 new illustrations, prompts in `docs/13-prime-art-prompts.md`. Existing art is reused where the forms line up; the rest show Art Pending until they arrive.
+17 new illustrations, prompts in `docs/archive/13-prime-art-prompts.md`. Existing art is reused where the forms line up; the rest show Art Pending until they arrive.
 
 ## 8. Decided (16 November 2026)
 

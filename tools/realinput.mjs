@@ -8,7 +8,7 @@
 import { createRequire } from 'node:module';
 import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
@@ -56,7 +56,7 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
   page.on('response', (r) => { if (r.status() >= 400) errors.push(`HTTP ${r.status()}: ${r.url()}`); });
   // (Stage G: was the browser's own menu let through on a right-click?)
   await page.addInitScript(() => { window.addEventListener('contextmenu', (e) => { if (!e.defaultPrevented) window.__browserMenu = (window.__browserMenu ?? 0) + 1; }); });
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.goto(withDev(url), { waitUntil: 'networkidle' });
   const pick = rng(SEED * 31 + w);
   let clicks = 0;
   const counts = {};

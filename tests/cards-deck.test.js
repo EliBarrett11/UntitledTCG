@@ -40,7 +40,7 @@ test('cards.json is valid: approved keywords and triggers only, known ops and ta
 
 test('every card id and art path matches the art prompts (docs/07, 13, and New Cards Batch 1\'s 27, 29, 31, 33)', () => {
   const read = (f) => readFileSync(new URL(`../docs/${f}`, import.meta.url), 'utf8');
-  const doc = ['07-art-prompts.md', '13-prime-art-prompts.md'].map(read).join('\n');
+  const doc = ['archive/07-art-prompts.md', 'archive/13-prime-art-prompts.md'].map(read).join('\n');
   const listed = [...doc.matchAll(/`assets\/cards\/([a-z0-9-]+)\.jpg`/g)].map((m) => m[1]);
   // (Stage N: the batch docs name each image "→ `id`". Set 4's Night Raid Event is now Knives in the
   // Dark (docs/35, stage N2), with its own art prompt; the Action keeps night-raid.)

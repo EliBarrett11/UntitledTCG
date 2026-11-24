@@ -1,5 +1,5 @@
 // The effects library (stages V1 and V2): every moment is data, a timeline of steps, so a new Class, Kind or card
-// gets its effect by adding an entry here, never new engine code. The storyboard is docs/10-feel-and-vfx.md
+// gets its effect by adding an entry here, never new engine code. The storyboard is docs/archive/10-feel-and-vfx.md
 // sections 3 (V1) and 5 (V2: signature moments); timings are ms at normal speed (the speed setting scales them).
 //
 // A step: { at, op, ...params, if }. Ops (run by runner.js):
@@ -25,7 +25,7 @@ import { signatureEffects } from './signature.js';
 import { stageEffects } from './stageE.js';
 import { hitstopMs } from './shaping.js';
 
-// The timing budget at normal speed (docs/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
+// The timing budget at normal speed (docs/archive/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
 // V2 (section 5.10, proposed): the Ashen Wyrm's arrival 3.5 s, a Campaign Creature 3 s, the Last Battle 3 s,
 // a Location placed 1 s (gone 0.8 s), and about 0.6 s per dominated Location at Dusk.
 export const BUDGET = { attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800, prime: 900, primeLow: 500,
@@ -561,7 +561,7 @@ Object.assign(EFFECTS, {
   ] },
 });
 
-// Every presenter beat has an effect (docs/10-feel-and-vfx.md section 3). Some are chosen per card below.
+// Every presenter beat has an effect (docs/archive/10-feel-and-vfx.md section 3). Some are chosen per card below.
 export const BEAT_EFFECTS = {
   summon: 'summon', legendary: 'legendary', attack: 'attack.martial', riposte: 'riposte', armour: 'armour', defeat: 'defeat', returned: 'returned',
   effect: 'effect.damage', trigger: 'trigger', renown: 'renown', prime: 'prime.summon', gold: 'gold.gain', strat: 'strat.seal', stratResolve: 'strat.resolve', react: 'react',

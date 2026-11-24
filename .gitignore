@@ -1,6 +1,5 @@
-tools/clips/raw/
-tools/clips/raw-f/
-tools/clips/raw-v5/
+# Check output stays local (stage X1): the checks write here; docs/shots/ keeps the current key screens.
+tools/screenshots/
+tools/clips/
 tmp-v2/
 tmp-ui/
-tools/clips/raw-e/

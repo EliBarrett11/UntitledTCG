@@ -13,7 +13,7 @@ import { hitstopMs } from '../src/ui/vfx/shaping.js';
 const root = new URL('..', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
 const manifest = JSON.parse(read('assets/vfx/manifest.json')).textures;
-const kitIds = new Set([...read('docs/08-vfx-prompts.md').matchAll(/### \d+\. `([a-z0-9-]+)`/g)].map((m) => m[1]));
+const kitIds = new Set([...read('docs/archive/08-vfx-prompts.md').matchAll(/### \d+\. `([a-z0-9-]+)`/g)].map((m) => m[1]));
 // (Stage N2: docs/35's six new kit textures join them.)
 const kit21 = new Set([...read('docs/21-vfx-texture-prompts.md').match(/vfx-[a-z-]+/g), ...read('docs/35-fixes-after-stage-n.md').match(/vfx-[a-z-]+/g)]);
 defineCards(CARDS);
@@ -77,7 +77,7 @@ test('every presenter beat type has an effect, and every card effect resolves', 
   }
 });
 
-test('durations keep to the timing budget (docs/10-feel-and-vfx.md section 2)', () => {
+test('durations keep to the timing budget (docs/archive/10-feel-and-vfx.md section 2)', () => {
   for (const [id, def] of Object.entries(EFFECTS)) {
     if (!def.budget) continue;
     const limit = BUDGET[def.budget] * (1 + BUDGET_SLACK);
@@ -90,7 +90,7 @@ test('every texture an effect names is a kit id; those not delivered yet are dra
   const used = new Set();
   for (const id of Object.keys(EFFECTS)) for (const t of texturesOf(id)) used.add(t);
   // (Stage E: the effects kit of docs/21, vfx-*, joins docs/08's.)
-  for (const t of used) assert.ok(kitIds.has(t) || (/^vfx-/.test(t) && kit21.has(t)), `${t} is not in docs/08-vfx-prompts.md or docs/21-vfx-texture-prompts.md`);
+  for (const t of used) assert.ok(kitIds.has(t) || (/^vfx-/.test(t) && kit21.has(t)), `${t} is not in docs/archive/08-vfx-prompts.md or docs/21-vfx-texture-prompts.md`);
   const missing = [...used].filter((t) => !manifest[t]);
   // The kit is complete for every effect in the library (any texture still to come is drawn in code).
   assert.deepEqual(missing, []);

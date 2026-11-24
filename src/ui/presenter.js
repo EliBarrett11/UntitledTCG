@@ -11,6 +11,7 @@ import { accentOf, esc, HUMAN, AI, artOf, tintOf, foe, foes } from './text.js';
 import { handLayout, LANE_W, HAND, tileArt } from './view.js';
 import { hasGuard, mightOf } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
+import { gameParams } from './devparams.js';
 import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS, arrivalEffectFor, placedEffectFor } from './vfx/library.js';
 import { OLD_OF } from './vfx/stageE.js';
 
@@ -314,7 +315,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     }
   }
   // (Stage E: ?fx=old plays the effects the three test moments replace, for the side-by-side clips.)
-  const fxOld = typeof location !== 'undefined' && new URLSearchParams(location.search).get('fx') === 'old';
+  const fxOld = typeof location !== 'undefined' && gameParams(location.search).get('fx') === 'old';
   const fxRun = (ctx, id0, env) => {
     const id = fxOld ? OLD_OF[id0] ?? id0 : id0;
     try { recordLayering(id, env); } catch { /* (a check aid only) */ }

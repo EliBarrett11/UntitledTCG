@@ -14,3 +14,6 @@ export function staticServer(dir) {
     try { res.writeHead(200, { 'Content-Type': TYPES[extname(file)] || 'application/octet-stream' }).end(await readFile(file)); } catch { res.writeHead(404).end(); }
   });
 }
+
+// Stage X1: the game's dev scenes and aids need ?dev; every check's page address goes through this.
+export const withDev = (u) => (/[?&]dev(=|&|$)/.test(u) ? u : u.includes('?') ? u.replace('?', '?dev&') : `${u}${u.endsWith('/') ? '' : '/'}?dev`);

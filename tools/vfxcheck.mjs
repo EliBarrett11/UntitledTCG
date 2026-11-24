@@ -12,14 +12,14 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
-import { staticServer } from './serve.mjs';
+import { staticServer, withDev } from './serve.mjs';
 
 const require = createRequire(import.meta.url);
 let chromium;
 try { ({ chromium } = require('playwright')); } catch { console.error('Playwright is not available, so the effects check cannot run.'); process.exit(2); }
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(readFileSync(join(root, 'assets/vfx/manifest.json'), 'utf8')).textures;
-// The storyboard's effects (docs/10-feel-and-vfx.md section 3) that a real match must play.
+// The storyboard's effects (docs/archive/10-feel-and-vfx.md section 3) that a real match must play.
 // V1 (section 3) and V2 (section 5): each series' attack, the Actions' modes, Events, Locations, Dawn and Dusk, the
 // Quest and the cinematics. Stage E's rebuilt moments stand in for the ones they replace (defeat, the Firebolts).
 const STORYBOARD = ['attack.oathsworn', 'attack.ironhide', 'attack.spire', 'attack.hollowfoot', 'attack.deepforge', 'attack.thornwood', 'attack.beast', 'attack.barrow',
@@ -41,7 +41,7 @@ async function match(browser, query, { actions = 400, route = null, label }) {
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
   page.on('console', (m) => { if ((m.type() === 'error' || m.type() === 'warning') && !noise(m.text()) && !/Failed to load resource/.test(m.text())) errors.push(`console: ${m.text()}`); });
   if (route) await page.route('**/assets/vfx/*.webp', route);
-  await page.goto(`${base}${query}`, { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${base}${query}`), { waitUntil: 'networkidle' });
   const seen = new Set();
   const problems = [];
   let lastV = '';

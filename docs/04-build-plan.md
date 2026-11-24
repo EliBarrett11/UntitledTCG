@@ -36,7 +36,7 @@ Every stage must:
 2. Come with Node tests of the rules it adds (`node tests/<name>.test.js`), and keep every existing test passing.
 3. Pass the **layout check** at 1920×1080, 1366×768 and 1280×720 (nothing clipped, covered or off-screen) and a **real-input** browser check with no page errors.
 4. Pass the **neat-text** card test once cards exist.
-5. Be committed and pushed to `main`, with an entry in the README build log.
+5. Be committed and pushed to `main`, with an entry in `docs/build-log.md`.
 6. End with a report:
    - what changed;
    - test and check results;
@@ -91,7 +91,7 @@ A browser card game of Elliott's, played against an AI opponent, in an original 
 1. The game is playable in the browser.
 2. Tests in `tests/` for the new rules; all tests pass.
 3. Layout and real-input checks pass at 1920×1080, 1366×768 and 1280×720; no text is cut off or overlapping.
-4. Committed and pushed to `main`, with a README build-log entry.
+4. Committed and pushed to `main`, with an entry in `docs/build-log.md`.
 5. Report: what changed, results, screenshots, differences from the prompt, readings needing approval, and the play link.
 ```
 
@@ -101,7 +101,7 @@ After S5, the focus is the **final concept of how the game looks, sounds and pla
 
 | Stage | Contents |
 |---|---|
-| **V1: The effects layer** | A WebGL effects layer over the board (no libraries): GPU particles, sprites and flipbooks, ribbons and trails, bloom, distortion, hit-stop and screen shake scaled by damage, a 2D fallback. Effects are data-driven timelines. Uses the VFX kit in `assets/vfx/` (docs/08-vfx-prompts.md) as textures arrive. |
+| **V1: The effects layer** | A WebGL effects layer over the board (no libraries): GPU particles, sprites and flipbooks, ribbons and trails, bloom, distortion, hit-stop and screen shake scaled by damage, a 2D fallback. Effects are data-driven timelines. Uses the VFX kit in `assets/vfx/` (docs/archive/08-vfx-prompts.md) as textures arrive. |
 | **V2: Signature moments** | An attack per Class and Kind; an animation for every Action, Event and Item; short cinematics for the Ashen Wyrm, Aldric and the Last Battle. |
 | **V3: Presentation** | Card back, war table, painted map, Warlord banners; the title screen, match setup and the victory or defeat screen with match stats. |
 | **V4: Sound** | **Parked** (Elliott, 16 November 2026: gameplay and visuals first). In scope (Elliott, 14 November 2026). Impacts, card handling, coins, UI, ambience and music that rises for the Last Battle. Prompts: docs/14-sound-prompts.md. |
