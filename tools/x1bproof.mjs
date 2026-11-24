@@ -28,10 +28,14 @@ const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const want = (n) => !only.length || only.includes(n) || Object.entries(MOMENTS).some(([g, l]) => only.includes(g) && l.includes(n));
 const log = (...a) => console.log(...a);
 const ff = (a) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...a]);
-// The moments with no hit, caught at their peak instead.
-// (Each with when its peak comes, in ms from its first effect, or [ms, the effect to wait for]: the fizzle plays
-// after the React card is revealed.)
-const NO_HIT = new Map([['x1-summon-light', 500], ['x1-summon-mid', 500], ['prime', 500], ['x1-choose', 500], ['x1-rally', 500], ['x1-draw', 500], ['x1-fizzle', [400, 'fizzle']]]);
+// Each moment's own effect (body.dataset.effect): its frame is taken at the first hit inside that effect, or, if the
+// effect has none, at its peak (500 ms in). An attack, named by none, takes the first hit of all (fallback: 2.5 s in).
+// The defeats and Undying play after the attack that causes them; the fizzle after the React card is revealed.
+const TARGET = {
+  'x1-defeat': 'defeat', 'x1-defeat-stone': 'defeat', 'x1-defeat-undead': 'defeat', 'x1-defeat-treant': 'defeat', 'x1-defeat-ice': 'defeat',
+  'x1-undying': 'kw.undying', 'x1-summon-light': 'summon.light', 'x1-summon-mid': 'summon', 'x1-summon-heavy': 'summon.heavy',
+  prime: 'e.prime', 'x1-choose': 'mode.chosen', 'x1-rally': 'trigger.rally', 'x1-draw': 'draw', 'x1-fizzle': 'fizzle',
+};
 const AFTER = 200; const LATER = 800; const K = 20; const FREEZE = 1e9;
 
 const sv = staticServer(root); await new Promise((r) => sv.listen(0, '127.0.0.1', r));
@@ -71,27 +75,31 @@ async function moment(name) {
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return !v || (v.standIns.length === 0 && v.ready >= 60); }, null, { timeout: 180000, polling: 250 }).catch(() => {});
   await page.waitForTimeout(600);
   // Catch the instant in the page itself: the first hit-stop (or, failing one, the first effect + 500 ms).
-  await page.evaluate(({ after, later, hit, peakAt, peakId }) => {
+  await page.evaluate(({ after, later, id }) => {
     const b = document.body; const i0 = b.dataset.impactSeq ?? '0'; const e0 = b.dataset.effectSeq ?? '0';
-    window.__proof = { phase: 0, kind: null, t0: null };
+    window.__proof = { phase: 0, kind: null, t0: null, seenIds: [] };
     const arm = (kind, delay) => {
       if (window.__proof.kind) return;
       window.__proof.kind = kind; window.__proof.t0 = performance.now();
       setTimeout(() => { window.__slowMo(1e9); window.__proof.phase = 1; window.__proof.alive = window.__match.vfx()?.alive ?? 0; }, delay);
       window.__proof.next = () => { window.__proof.phase = 2; setTimeout(() => { window.__slowMo(1e9); window.__proof.phase = 3; window.__proof.alive2 = window.__match.vfx()?.alive ?? 0; }, later - delay); };
     };
+    let started = false; let fallback = 0;
     new MutationObserver(() => {
-      if ((b.dataset.impactSeq ?? '0') !== i0) arm('impact', after);
+      if ((b.dataset.impactSeq ?? '0') === i0) return;
+      if (id && (!started || b.dataset.effect !== id)) return;
+      arm('impact', after);
     }).observe(b, { attributes: true, attributeFilter: ['data-impact-seq'] });
-    // (No hit: the peak, 500 ms in; a moment expected to hit that hasn't by 1.2 s is caught then instead.)
-    let seen = false;
     new MutationObserver(() => {
-      if (seen || (b.dataset.effectSeq ?? '0') === e0) return;
-      if (peakId && b.dataset.effect !== peakId) return;
-      seen = true;
-      setTimeout(() => arm('peak', 0), hit ? 1200 : peakAt);
+      if ((b.dataset.effectSeq ?? '0') === e0) return;
+      window.__proof.seenIds.push(b.dataset.effect);
+      if (id ? started || b.dataset.effect !== id : false) return;
+      started = true;
+      // (An attack's fallback restarts with each effect: an earlier trigger can run long before the attack.)
+      clearTimeout(fallback);
+      fallback = setTimeout(() => arm('peak', 0), id ? 500 : 2500);
     }).observe(b, { attributes: true, attributeFilter: ['data-effect-seq'] });
-  }, { after: AFTER, later: LATER, hit: !NO_HIT.has(name), peakAt: [NO_HIT.get(name)].flat()[0] ?? 500, peakId: [NO_HIT.get(name)].flat()[1] ?? null });
+  }, { after: AFTER, later: LATER, id: TARGET[name] ?? null });
   await slow.set(K);
   page.evaluate((n) => window.__match.fxDemo(n), name).catch((e) => { if (!/closed/.test(e.message)) errors.push(e.message); });
   const waitPhase = async (p) => { const t = Date.now() + 400000; while (Date.now() < t) { if ((await page.evaluate(() => window.__proof.phase).catch(() => -1)) >= p) return true; if (page.isClosed()) return false; await new Promise((r) => setTimeout(r, 40)); } return false; };
@@ -110,7 +118,7 @@ async function moment(name) {
       if (process.env.PROOF_DEBUG) log(JSON.stringify(await page.evaluate(() => window.__match.vfxApi.debugState())));
     }
   }
-  const info = await page.evaluate(() => ({ q: window.__match.vfx()?.qualityName, kind: window.__proof.kind, alive: window.__proof.alive, alive2: window.__proof.alive2 }));
+  const info = await page.evaluate(() => ({ ids: window.__proof.seenIds.join(','), q: window.__match.vfx()?.qualityName, kind: window.__proof.kind, alive: window.__proof.alive, alive2: window.__proof.alive2 }));
   await ctx.close();
   return { ...info, shots, errors };
 }
@@ -129,7 +137,7 @@ for (const list of Object.values(MOMENTS)) for (const name of list) {
   ff(['-i', join(raw, 'template-impact.png'), '-i', r.shots.impact, '-i', join(raw, 'template-later.png'), '-i', r.shots.later, '-filter_complex',
     `[0]${label('Template Firebolt · impact')}[a];[1]${label(`${name} · ${at} · ${r.alive} particles`)}[b];[2]${label(`Template · +600 ms`)}[c];[3]${label(`${name} · +600 ms`)}[d];[a][b]hstack[t];[c][d]hstack[u];[t][u]vstack`,
     '-q:v', '3', join(out, `x1b-${name}-proof.jpg`)]);
-  log(`${name} [${r.q}]: ${r.kind}, ${r.alive} particles at ${at}, ${r.alive2} at +600 ms${r.errors.length ? `  errors: ${r.errors.join(' | ')}` : ''}`);
+  log(`${name} [${r.q}] (${r.ids}): ${r.kind}, ${r.alive} particles at ${at}, ${r.alive2} at +600 ms${r.errors.length ? `  errors: ${r.errors.join(' | ')}` : ''}`);
   await writeFile(join(out, 'x1b-proof-counts.json'), JSON.stringify(counts, null, 1));
 }
 await browser.close(); sv.close();
