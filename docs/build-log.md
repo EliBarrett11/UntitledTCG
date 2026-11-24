@@ -730,3 +730,78 @@ Built from `docs/38-stage-x-prompts.md` (stage X1), with the plan in `docs/37-vf
   - 60 first-deck AI matches and 300 random-deck matches finish with no crash, illegal state or stall.
   - The checks found two things on the way: a cancelled drag's card now flies home before it goes (the real-input check waits for it), and the effects check counts the rebuilt defeat moment.
 - **Readings for Elliott's approval:** `docs/03-look-and-feel.md` section 22.
+
+### X1b: The X1 moments brought up to the template (24 November 2026)
+Built from `docs/40-stage-x1b-prompt.md`, against the approved bar, `docs/vfx-template/`.
+- **The template's techniques, ported into the renderer** (`src/ui/vfx/gl.js`, `index.js`, `boardfx.js`, `runner.js`):
+  - erosion on large-blob noise with a thin bright edge;
+  - the template's mono recolouring (brightness × the element's colour, so a bright texture stays coloured);
+  - the board dip with a soft hole;
+  - light pools that brighten the board and cards beneath them (the template's c × (1 + 0.9 L)), drawn on a colour-dodge light canvas;
+  - the board itself rippling and hazing under a hit (an SVG filter on the map's art);
+  - embers on a flow field, sparks stretched under gravity;
+  - smoke that burns away, scorch and crack marks;
+  - the struck card's lift, recoil and flash;
+  - the damage number's pop and gradient;
+  - the template's camera shake.
+- **Never a blow-out:**
+  - additive light rolls off smoothly near full brightness, keeping its hue;
+  - after the first 80 ms, the light added over a struck or newly summoned card is capped (opaque smoke over it keeps its colour);
+  - the bloom is half what it was.
+- **One impact recipe by weight** (`impact()` in `src/ui/vfx/core.js`, with the numbers in `TIMING` in `shaping.js`), at docs/40's minimums:
+
+  | | Light | Medium | Heavy | Legendary |
+  |---|---|---|---|---|
+  | Hit-stop (ms) | 50 | 75 | 110 | 140 |
+  | Shake (px) | 8 | 15 | 24 | 32 |
+  | Ripple radius (px) | 400 | 620 | 900 | 1300 |
+  | Embers | 80 | 250 | 400 | 600 |
+  | Sparks | 15 | 45 | 70 | 100 |
+  | Element shapes | 8 | 20 | 28 | 40 |
+  | Smoke | 4 | 9 | 14 | 22 |
+  | Marks | crack | scorch or crack | both | both, larger |
+
+  Each element keeps its own textures and colours.
+- **All 28 X1 moments and Martial rebuilt on it.** Martial's lunge sheds a trail, as the template's bolt does. Fizzle, Choose one, Rally and Draw are fuller. Summons keep their dust and lose the impact's smoke. The React reveal's flare no longer blows out.
+- **Proof** (`tools/x1bproof.mjs`, local in `tools/clips/x1b/`):
+  - for every moment, a 3840×2160 frame: the template's Firebolt on the left, the moment on the right, at impact (top) and +600 ms (bottom), each at 1920×1080;
+  - "impact" is 200 ms after the moment's first hit-stop: past the hit-stop and the first 80 ms of white-hot light. A moment with no hit is caught at its peak, 500 ms in.
+  - Each was looked at and fixed where it fell short, over several passes:
+    - white blow-outs (Arcane, Stormwing, the summons, the React flare);
+    - a thin tail at +600 ms (a third, slower burst and denser smoulder);
+    - smoke that read pale;
+    - a black box the cap left over smoke;
+    - thin small moments.
+  - **Particles alive at impact or peak** (the template's Firebolt: 756 at impact, 422 at +600 ms; most of its extra is its bolt trail and card cast):
+
+    | Moment | At impact | +600 ms | Moment | At impact | +600 ms |
+    |---|---|---|---|---|---|
+    | Martial | 488 | 425 | Fizzle (peak) | 160 | 46 |
+    | Arcane | 575 | 401 | Defeat (peak) | 425 | 238 |
+    | Ranger | 430 | 377 | Defeat, stone (peak) | 476 | 185 |
+    | Rogue | 428 | 371 | Defeat, undead (peak) | 444 | 228 |
+    | Beast | 343 | 377 | Defeat, treant (peak) | 479 | 258 |
+    | Undead | 583 | 401 | Defeat, ice (peak) | 360 | 280 |
+    | Wyrm | 763 | 654 | Undying (peak) | 530 | 201 |
+    | Soaring | 492 | 384 | Summon, light (peak) | 111 | 75 |
+    | Stormwing | 484 | 374 | Summon, mid (peak) | 322 | 243 |
+    | Hitting back | 489 | 537 | Summon, heavy | 524 | 422 |
+    | Riposte | 498 | 425 | Prime | 550 | 467 |
+    | Armour | 497 | 411 | Choose one (peak) | 183 | 51 |
+    | Guard | 350 | 357 | Rally (peak) | 212 | 81 |
+    | Warlord hit | 490 | 427 | Draw (peak) | 102 | 0 |
+- **Clips** (`tools/x1clips.mjs` with `CLIPS_STAGE=x1b CLIPS_BEFORE=8b11bc5`, local in `tools/clips/x1b/`):
+  - every moment before (X1, as approved) and after, side by side;
+  - a 12-frame strip;
+  - low motion;
+  - a contact video per group.
+  - Each runs 0.3–1.4 s longer than X1's (the Mid summon and Prime about 2.4 s longer). The blocking part keeps its length; the tail now runs on behind the next action.
+- **Frame times** (`tools/x1perf.mjs`, SwiftShader software WebGL, at the top quality step):
+  - every moment averages 382–570 ms a frame (worst 483–767 ms), against X1's 340–450 ms;
+  - Martial is 464 ms (X1: 343 ms), about 35% heavier, from the denser recipe and the light canvas;
+  - automatic quality settled on the top step;
+  - a 60 fps verdict needs a real GPU (`?fps=1`).
+- **Dev aids** (only with `?dev`):
+  - `__match.vfxApi.debugState()` (the particles alive by texture, the lights);
+  - `?fxskip=id,…` (drops textures, to find which layer does what).
+- **Readings for Elliott's approval:** `docs/03-look-and-feel.md` section 23.
