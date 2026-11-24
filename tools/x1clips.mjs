@@ -22,10 +22,12 @@ import { MOMENTS } from './x1moments.mjs';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const out = join(root, 'tools', 'clips', 'x1');
+// (Stage X1b: CLIPS_STAGE=x1b CLIPS_BEFORE=<commit> make the same clips of a later stage against another before.)
+const STAGE = process.env.CLIPS_STAGE ?? 'x1';
+const out = join(root, 'tools', 'clips', STAGE);
 const raw = join(out, 'raw');
 await mkdir(raw, { recursive: true });
-export const BEFORE = 'd97f9db';
+export const BEFORE = process.env.CLIPS_BEFORE ?? 'd97f9db';
 const args = process.argv.slice(2);
 const newOnly = args.includes('--new-only');
 // (--contact-only: only join the clips already made into each group's contact video.)
@@ -92,25 +94,25 @@ for (const [group, list] of Object.entries(MOMENTS)) {
     const tmp = {}; const len = {};
     for (const k of ['old', 'new', 'low']) if (rec[k]) { tmp[k] = join(raw, `${name}-${k}.webm`); len[k] = cut(rec[k], tmp[k]); }
     if (tmp.new) {
-      ff(['-i', tmp.new, '-vf', `fps=${(12 / len.new).toFixed(4)},scale=480:-1,tile=6x2`, '-frames:v', '1', join(out, `x1-${name}-strip.png`)]);
+      ff(['-i', tmp.new, '-vf', `fps=${(12 / len.new).toFixed(4)},scale=480:-1,tile=6x2`, '-frames:v', '1', join(out, `${STAGE}-${name}-strip.png`)]);
       if (tmp.old) {
         ff(['-i', tmp.old, '-i', tmp.new, '-filter_complex', '[0]scale=960:540,tpad=stop_mode=clone:stop_duration=6[a];[1]scale=960:540,tpad=stop_mode=clone:stop_duration=6[b];[a][b]hstack=inputs=2,fps=60[v]',
-          '-map', '[v]', '-t', Math.max(len.old, len.new).toFixed(2), '-c:v', 'libvpx-vp9', '-b:v', '3M', '-row-mt', '1', join(out, `x1-${name}-before-vs-after.webm`)]);
-      } else ff(['-i', tmp.new, '-c:v', 'copy', join(out, `x1-${name}.webm`)]);
+          '-map', '[v]', '-t', Math.max(len.old, len.new).toFixed(2), '-c:v', 'libvpx-vp9', '-b:v', '3M', '-row-mt', '1', join(out, `${STAGE}-${name}-before-vs-after.webm`)]);
+      } else ff(['-i', tmp.new, '-c:v', 'copy', join(out, `${STAGE}-${name}.webm`)]);
     }
-    if (tmp.low) ff(['-i', tmp.low, '-c:v', 'copy', join(out, `x1-${name}-low.webm`)]);
+    if (tmp.low) ff(['-i', tmp.low, '-c:v', 'copy', join(out, `${STAGE}-${name}-low.webm`)]);
     summary.push({ group, name, ok: !!tmp.new, s: len.new?.toFixed(2) });
     log(`  ${tmp.new ? `${len.new.toFixed(2)} s` : 'FAILED'}${tmp.old ? ` (before ${len.old.toFixed(2)} s)` : ''}`);
   }
 }
 // One contact video per group: the before-vs-after clips one after another.
 for (const group of Object.keys(MOMENTS)) {
-  const files = MOMENTS[group].map((n) => join(out, newOnly ? `x1-${n}.webm` : `x1-${n}-before-vs-after.webm`)).filter(existsSync);
+  const files = MOMENTS[group].map((n) => join(out, newOnly ? `${STAGE}-${n}.webm` : `${STAGE}-${n}-before-vs-after.webm`)).filter(existsSync);
   if (!files.length || (only.length && !only.includes(group))) continue;
   const list = join(raw, `${group}.txt`);
   (await import('node:fs')).writeFileSync(list, files.map((f) => `file '${f}'`).join('\n'));
-  ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', join(out, `x1-${group}-contact.webm`)]);
-  log(`saved x1-${group}-contact.webm (${files.length} moments)`);
+  ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', join(out, `${STAGE}-${group}-contact.webm`)]);
+  log(`saved ${STAGE}-${group}-contact.webm (${files.length} moments)`);
 }
 await browser.close();
 NEW.sv.close(); OLD?.sv.close();

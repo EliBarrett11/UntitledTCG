@@ -407,8 +407,9 @@ export function coreEffects() {
   E['mode.chosen'] = { duration: 900, stageE: true, steps: [
     { at: 0, op: 'dip', on: 'dst', radius: 320, peak: 0.22, attack: 120, hold: 400, decay: 500 },
     { at: 0, op: 'light', on: 'dst', palette: 'holy', tone: 'mid', radius: 300, peak: 0.3, attack: 80, hold: 300, decay: 400 },
-    { at: 0, op: 'burst', tex: 'vfx-rune-glyphs', on: 'dst', area: 'card', n: 6, speed: [30, 80], angle: 'up', spread: 60, life: [700, 1000], size: [40, 60], gravity: -40, spin: [-60, 60], alpha: 1, ...burn(0.55, 'vfx-noise-cells'), ...P('holy', 0.6) },
-    { at: 0, op: 'burst', tex: 'fx-dot', on: 'dst', n: 90, area: [70, 100], speed: [40, 260], angle: 'up', spread: 120, life: [800, 1600], size: [3, 9], scaleEnd: 0.2, gravity: -100, drag: 2.4, curl: 140, alpha: 1, tint: '#fffbe6', tint1: '#d8892c', tintK: 1 },
+    { at: 0, op: 'burst', tex: 'vfx-rune-glyphs', on: 'dst', area: 'card', n: 12, speed: [30, 80], angle: 'up', spread: 60, life: [700, 1000], size: [40, 60], gravity: -40, spin: [-60, 60], alpha: 1, ...burn(0.55, 'vfx-noise-cells'), ...P('holy', 0.6) },
+    { at: 0, op: 'sprite', tex: 'vfx-arcane-glyphring', on: 'dst', mark: true, dy: 96, size: 260, flat: 0.42, spin: 30, life: 900, alpha: 0.9, ...burn(0.45, 'vfx-noise-cells'), ...P('holy', 0.9) },
+    { at: 0, op: 'burst', tex: 'fx-dot', on: 'dst', n: 170, area: [70, 100], speed: [40, 260], angle: 'up', spread: 120, life: [800, 1600], size: [3, 9], scaleEnd: 0.2, gravity: -100, drag: 2.4, curl: 140, alpha: 1, tint: '#fffbe6', tint1: '#d8892c', tintK: 1 },
     { at: 0, op: 'call', fn: 'tag', wait: true },
   ] };
 
@@ -417,7 +418,7 @@ export function coreEffects() {
     { at: 0, op: 'light', on: 'src', palette: 'holy', tone: 'mid', radius: 300, peak: 0.32, attack: 60, hold: 160, decay: 400 },
     { at: 0, op: 'sprite', tex: 'vfx-wind-gust', on: 'src', sizeK: 1.8, scale: [0.6, 1.1], curve: 'out', life: 500, alpha: 0.8, ...burn(0.3, 'vfx-noise-wisps', { flow: 0.2 }), ...P('holy', 0.3) },
     { at: 80, op: 'ribbon', tex: 'vfx-light-flare', from: 'src', to: 'dst', bend: 70, width: 50, travel: 340, lag: 220, alpha: 1, erodeTail: 0.5, palette: 'holy', tint: 'gold', tintK: 0.5,
-      motes: { tex: 'fx-dot', rate: 160, speed: [10, 60], life: [400, 900], size: [4, 10], curl: 90, tint: '#fffbe6', tint1: '#d8892c', tintK: 1 } },
+      motes: { tex: 'fx-dot', rate: 320, speed: [10, 60], life: [400, 900], size: [4, 10], curl: 90, tint: '#fffbe6', tint1: '#d8892c', tintK: 1 } },
     ...shift(impact('holy', 'light', { hold: 'tag', mark: 'none', debris: false, smoulder: false, burst: false }).filter((s) => !['hitstop', 'shake', 'pushin', 'flash', 'protect'].includes(s.op) && !(s.op === 'dom' && s.name === 'knock') && s.tex !== 'fx-soft'), 400),
     { at: 400, op: 'sprite', tex: 'vfx-rage-aura', on: 'dst', sizeK: 1.4, scale: [0.7, 1.05], curve: 'out', life: 520, alpha: 0.8, ...burn(0.4, 'vfx-noise-wisps'), ...P('holy', 0.8) },
   ] };
@@ -426,8 +427,8 @@ export function coreEffects() {
   // A card drawn: a breath of light and motes at the Draw Pile as the card lifts off it (the flight is the motion system's).
   E.draw = { duration: 650, stageE: true, steps: [
     { at: 0, op: 'light', on: 'drawPile', palette: 'holy', tone: 'mid', radius: 200, peak: 0.28, attack: 60, hold: 120, decay: 400 },
-    { at: 0, op: 'burst', tex: 'fx-dot', on: 'drawPile', n: 40, area: [30, 40], speed: [30, 160], angle: 'up', spread: 90, life: [600, 1200], size: [3, 8], scaleEnd: 0.2, gravity: -80, drag: 2.2, curl: 100, alpha: 1, tint: '#fffbe6', tint1: '#d8892c', tintK: 1 },
-    { at: 0, op: 'burst', tex: 'vfx-holy-motes', on: 'drawPile', n: 6, speed: [20, 60], angle: 'up', spread: 80, life: [500, 700], size: [8, 14], alpha: 0.8, ...burn(0.5, 'vfx-noise-cells'), ...P('holy', 0.5) },
+    { at: 0, op: 'burst', tex: 'fx-dot', on: 'drawPile', n: 90, area: [30, 40], speed: [30, 160], angle: 'up', spread: 90, life: [600, 1200], size: [3, 8], scaleEnd: 0.2, gravity: -80, drag: 2.2, curl: 100, alpha: 1, tint: '#fffbe6', tint1: '#d8892c', tintK: 1 },
+    { at: 0, op: 'burst', tex: 'vfx-holy-motes', on: 'drawPile', n: 14, speed: [20, 60], angle: 'up', spread: 80, life: [500, 700], size: [8, 14], alpha: 0.8, ...burn(0.5, 'vfx-noise-cells'), ...P('holy', 0.5) },
     { at: 0, op: 'call', fn: 'fly', wait: true },
   ] };
 
