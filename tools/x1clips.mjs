@@ -28,6 +28,8 @@ await mkdir(raw, { recursive: true });
 export const BEFORE = 'd97f9db';
 const args = process.argv.slice(2);
 const newOnly = args.includes('--new-only');
+// (--contact-only: only join the clips already made into each group's contact video.)
+const contactOnly = args.includes('--contact-only');
 const only = args.filter((a) => !a.startsWith('--'));
 const want = (n) => !only.length || only.includes(n) || Object.entries(MOMENTS).some(([g, l]) => only.includes(g) && l.includes(n));
 const log = (...a) => console.log(...a);
@@ -36,7 +38,7 @@ const K = 10;
 
 // The "before" tree.
 const beforeDir = join(root, '..', `utcg-before-${BEFORE}`);
-if (!newOnly) {
+if (!newOnly && !contactOnly) {
   if (!existsSync(beforeDir)) execFileSync('git', ['-C', root, 'worktree', 'add', '--detach', beforeDir, BEFORE], { stdio: 'ignore' });
   await copyFile(join(root, 'src', 'ui', 'fxdemo.js'), join(beforeDir, 'src', 'ui', 'fxdemo.js'));
 }
@@ -84,7 +86,7 @@ const cut = (r, dest) => { ff(['-i', r.file, '-vf', `trim=start=${r.from.toFixed
 const summary = [];
 for (const [group, list] of Object.entries(MOMENTS)) {
   for (const name of list) {
-    if (!want(name)) continue;
+    if (!want(name) || contactOnly) continue;
     log(`${name}:`);
     const rec = { new: await record(name, 'new'), low: await record(name, 'new', true), old: newOnly ? null : await record(name, 'old') };
     const tmp = {}; const len = {};
