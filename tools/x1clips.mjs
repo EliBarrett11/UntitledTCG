@@ -17,6 +17,7 @@ import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { staticServer, withDev } from './serve.mjs';
 import { slowMo } from './slowmo.mjs';
+import { MOMENTS } from './x1moments.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
@@ -25,12 +26,6 @@ const out = join(root, 'tools', 'clips', 'x1');
 const raw = join(out, 'raw');
 await mkdir(raw, { recursive: true });
 export const BEFORE = 'd97f9db';
-export const MOMENTS = {
-  combat: ['attack', 'x1-arcane', 'x1-ranger', 'x1-rogue', 'x1-beast', 'x1-undead', 'x1-wyrm', 'x1-soaring', 'x1-stormwing', 'x1-hitback', 'x1-riposte', 'x1-armour', 'x1-guard', 'x1-warlord', 'x1-fizzle'],
-  defeat: ['x1-defeat', 'x1-defeat-stone', 'x1-defeat-undead', 'x1-defeat-treant', 'x1-defeat-ice', 'x1-undying'],
-  summon: ['x1-summon-light', 'x1-summon-mid', 'x1-summon-heavy', 'prime', 'x1-choose', 'x1-rally'],
-  cards: ['x1-draw'],
-};
 const args = process.argv.slice(2);
 const newOnly = args.includes('--new-only');
 const only = args.filter((a) => !a.startsWith('--'));

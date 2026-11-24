@@ -10,6 +10,8 @@
 //   emit        particles over time: rate, dur, along a path (from → to) or around an anchor (ring: [r0, r1])
 //   ribbon      a ribbon of light from → to (bend, width, travel, lag), with optional motes along it
 //   projectile  a texture flying from → to (dur, arc, align), with an optional trail
+//   bolt        (stage X1) a projectile along an eased curve (dur, bend, lift, ease): layered head sprites riding the
+//               path, a trail and sparks shed behind it, and a light that rides with it (head, trail, sparks, light)
 //   beam        a texture stretched from → to (life, h)
 //   wave        a distortion shockwave; heat: a heat shimmer
 //   shake       screen shake (px scaled by damage); hitstop: a brief freeze (ms scaled by damage); flash: bloom

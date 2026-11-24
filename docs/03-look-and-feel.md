@@ -746,3 +746,27 @@ Built to `docs/archive/25-stage-l-prompt.md`. No rule changed. The rulebook's se
 7. **The Drowned Reach at Dusk:** a surge over each creature it damages, then the hit.
 8. **Forked lightning** (`vfx-lightning-fork`): Chain Lightning forks from your hand to each creature it hits (all three modes); the Skyreach Stormwing's Soaring strike carries a fork as it lands, and its On Summon damage forks too; only Grusha's last form, the Stormcaller, throws red lightning at Dusk (the Bonecaster and the Shaman keep the plain pulse); Stormbreak Crags strikes two forks across its lanes as it's placed (its passive doesn't replay it).
 9. **Knives in the Dark** uses its new art, cut at the delivered centre (cardX 800); the Night Raid Event's old picture is retired.
+
+## 22. Readings from stage X1 (the effects and animation rebuild, part 1): needing Elliott's approval
+
+1. **One timing table, four weights** (`src/ui/vfx/shaping.js`): light, medium, heavy and legendary set every hit-stop (2, 3, 4 and 6 frames), shake (1, 2, 3 and 5 px), push-in (none, 1%, 2%, 3.5%) and card flight (its wind-up, lift, landing squash and settle).
+2. **The card-motion system** (`src/ui/motion.js`): every card that moves winds up against its travel, flies a curve that tilts into the turn, casts a shadow that grows with its height, and lands with a squash and settle. Draws fly from the Draw Pile into their place in the fan, one after another; a mulligan's cards fly to the Discard Pile; summons arc from the hand by the card's weight; thrown Items shed the kit's sparks.
+3. **The hand:** the hover lift rises with a small overshoot; a dragged card leans into its movement and rights itself; a card dropped where it can't go, or a drag cancelled, flies home along a short arc; a card that can't be played shakes and shows a red edge.
+4. **Spent and Active** tip over with weight (a slight overshoot); the **Ready rim** is painted light: a warm rim that breathes, with embers drifting through it.
+5. **Attacks by kind** (the template's language: anticipation, release, impact, secondary, settle):
+   - Arcane: an orb charges inside a turning glyph ring; the bolt flies a curve, slow off the mark and fast in, trailing arcane shards and a light that rides with it.
+   - Ranger: the painted arrow with speed streaks; feathers and splinters on the hit.
+   - Rogue: three throwing knives in a fan; a puff of shadow.
+   - Beast: a lunge with streaks, then the painted claw rake.
+   - Undead: a veil of ghostlight; bone shards.
+   - Dragon: the painted fire breath, tongues streaming along it; a heavy fire hit and a scorch.
+   - Soaring: a gust lifts it, it arcs high on the wind (feathers, streaks), the Stormwing's strike forking lightning.
+   - Martial stays stage E's.
+   - Every impact: a white-hot instant of light, the element's light spreading over the board, the impact star, a shockwave with refraction, sparks that streak and fall, embers on a flow field, debris, smoke that burns away, and a crack or scorch left on the map.
+6. **The first deck's eight series keep their own V2 attack signatures** (Garrick's stage E steel, Gorran's, the Spire's, the Hollowfoot's, the Deepforge's, the Thornwood's, the Barrow's, the Stonehide's) until stage X2 rebuilds each as a signature. The rebuilt kind moments above play for every other creature (the new cards).
+7. **Hitting back** is a short crescent across the attacker with a small painted hit. **Riposte**: two crossed crescents flash on the defender's Attack, then the counter-cut lands. **Armour**: steel plates scatter off the Health tab under a shield sigil. **A guard** braces (lifts) as its sigil flares on its Health tab.
+8. **Damage and heal numbers** are drawn as the template draws them: heavy Cinzel, a painted gradient (white-gold to ember red, or white-green to leaf green), a dark stroke and a glow in their colour, popping with a spring.
+9. **Defeats by kind:** stage E's burn, plus stone (an earth burst and debris, a shake), ghostlight (bone shards with the rising veil), leaves (Treants) and ice (Elementals: frost, then shards). **Undying:** a veil of ghostlight rises over it, flames and embers, and it lifts back up.
+10. **Summons by weight:** Light is a soft touch; Mid adds dust and a ring; Heavy adds an earth burst, hit-stop, shake and a push-in, and leaves a crack. The token appears only once the card has landed. A **"choose one"** summon inks its chosen mode beside the creature. **Rally** carries gold light on a gust from the creature just summoned to each one it Rallies.
+11. **A fizzle:** the light dies where it would have landed, a puff of smoke burns away, and "fizzled" inks in.
+12. **Loading:** the title loads only its own art; a painted loading bar ("Preparing the war table…") shows over the board if a match starts before its art is in.

@@ -688,3 +688,33 @@ Built from `docs/archive/36-stage-n2-prompt.md`, with everything in `docs/35-fix
 - **Results:** all 47 test files pass; neat text (804 renders) and card contrast (lowest 4.87:1) pass; layout passes at 1920×1080, 1366×768 and 1280×720 (248 scenes); realinput, libinput, presenter, nshots, n2shots, online2 and vfxcheck pass; 60 first-deck AI matches and 300 random-deck matches finish with no crash, illegal state or stall (59 of 60 deck cards played; Smuggler's Run never as an Order). Found on the way: stage N's new keywords had glossary entries but no hover tips (fixed).
 - **Readings for Elliott's approval:** rules in `docs/01-rulebook.md` (51–53); the look in `docs/03-look-and-feel.md` section 21.
 
+
+### X1: The effects and animation rebuild, part 1 (24 November 2026)
+Built from `docs/38-stage-x-prompts.md` (stage X1), with the plan in `docs/37-vfx-rebuild-plan.md`, the complete painted kit (`docs/39`) and the approved quality bar, `docs/vfx-template/`.
+- **Cleanup and lock-in:**
+  - check output out of git: `tools/screenshots/` and `tools/clips/` are ignored and stay local, and `docs/shots/` keeps 15 key screens of the current version;
+  - `assets/cards-v2/` removed (the style guide points at `assets/cards-v3/`);
+  - the per-stage tools removed (`compare`, `fcompare`, `gcompare`, `hcompare`, `pcompare`, `v3compare`, `v5compare`, `v3clip`, `v5clips`, `fclips`, `s5shots`, `nshots`, and stage N2's `n2shots`, `n2fx` and the V1 `clips`);
+  - superseded docs moved to `docs/archive/` (06–11, 13, 18, 22, 24, 25, 34, 36), with a current index in `docs/00-START-HERE.md`;
+  - the dev scenes and aids only with `?dev` (`src/ui/devparams.js`; the checks add it through `tools/serve.mjs`'s `withDev`);
+  - the README is a page for players; this build log moved here.
+  - The old kit's textures are all still used by the first deck's V2 signatures; they go as X2 rebuilds each.
+- **The site's size:** SITE_SIZE.
+- **Loading** (`src/ui/loader.js`, `tools/loadmetrics.mjs`): LOAD_NUMBERS.
+- **The renderer, finished:**
+  - Frost, Venom, Water and Storm join the eight palettes;
+  - particles ride a flow field and streak along their flight;
+  - a projectile's head rides an eased curve on the GPU (slow off the mark, fast in), with a light riding with it;
+  - ribbons follow any path of points and burn away along noise at the tail;
+  - one timing table by four weights (light, medium, heavy, legendary) for hit-stop, shake, push-in and card motion.
+- **The card-motion system** (`src/ui/motion.js`): every card flight winds up, curves, casts a shadow, lands with a squash and settles: draws, the mulligan, summons, thrown Items, cards to the piles; the hand's hover, drag lean, flying home and refusal; Spent and Active with weight, and the Ready rim as painted light.
+- **The core moments rebuilt** (`src/ui/vfx/core.js`, painted kit only):
+  - attacks by kind: Martial (stage E), Arcane, Ranger, Rogue, Beast, Undead, Dragon and Soaring;
+  - hitting back, Riposte, Armour, a guard bracing, the Warlord hit and a fizzle;
+  - the damage and heal numbers as the template draws them;
+  - defeats by kind (stage E's burn, stone, ghostlight, leaves, ice) and Undying;
+  - summons by weight, the chosen mode inked, and Rally.
+- **Clips** (`tools/x1clips.mjs`, local in `tools/clips/x1/`): every moment before and after, a frame strip, low motion, and a contact video per group.
+- **Frame times** (`tools/x1perf.mjs`): PERF_NUMBERS.
+- **Results:** RESULTS.
+- **Readings for Elliott's approval:** `docs/03-look-and-feel.md` section 22.
