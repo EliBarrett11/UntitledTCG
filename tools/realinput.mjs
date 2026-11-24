@@ -169,6 +169,8 @@ async function playOne(browser, url, [w, h], log, { skipRate = 0.2 } = {}) {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(80);
       await noPreview('after Escape');
+      // (Stage X1: the ghost flies home along the card-motion system's short arc first, then goes.)
+      await page.waitForFunction(() => !document.querySelector('.drag-ghost'), null, { timeout: 2500 }).catch(() => {});
       if (await count('.drag-ghost')) throw new Error('the drag ghost stayed after Escape');
       await page.mouse.up();
       counts['drag cancelled'] = (counts['drag cancelled'] ?? 0) + 1;
