@@ -276,6 +276,8 @@ body.low-motion .slot-card { transition: none; }
 /* --- V1: the effects layer ---------------------------------------------------------------------------------- */
 /* The WebGL canvas covers the stage (its buffer follows the stage's size on screen); numbers stay above it. */
 #vfx { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 88; }
+/* Stage X1b: the light pools, brightening the board and cards beneath (colour dodge), just under the effects. */
+#vfx-light { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 88; mix-blend-mode: color-dodge; }
 /* A defeated card burns away from the centre. */
 @property --burn { syntax: '<percentage>'; inherits: false; initial-value: -15%; }
 .burning { -webkit-mask-image: linear-gradient(to top, transparent var(--burn), #000 calc(var(--burn) + 7%)); mask-image: linear-gradient(to top, transparent var(--burn), #000 calc(var(--burn) + 7%)); }

@@ -22,15 +22,15 @@ const W_K = { light: 0.75, medium: 1, heavy: 1.2, legendary: 1.5 };
 // an impact, its embers (hot → cooled), the mark it leaves, how much heat haze, its secondary smoke.
 export const ELEMENT = {
   fire: { burst: 'vfx-fire-burst', shape: 'vfx-fire-tongues', shapeSeq: true, ember: ['#fff2b8', '#ff3a08'], mark: 'scorch', heat: 3.5, smoke: '#52484c', light: '#ff8a2a' },
-  arcane: { burst: 'vfx-arcane-glyphring', burstK: 0.9, shape: 'vfx-arcane-shards', ember: ['#eafcff', '#5a2ad0'], mark: 'crack', heat: 1.4, smoke: '#3d3d61', light: '#4a8cff' },
-  steel: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-speed-streaks', shapeH: 0.22, ember: ['#fffbe8', '#ff8a2a'], mark: 'crack', heat: 1.2, smoke: '#524c46', light: '#ffd25a' },
-  earth: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-debris', shapeSolid: true, ember: ['#ffe8c0', '#b0502a'], mark: 'crack', heat: 1, smoke: '#5d4c3b', light: '#e08a4a' },
-  ghostlight: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-bone-shards', shapeSolid: true, ember: ['#eafff8', '#1f8a7a'], mark: 'crack', heat: 1.6, smoke: '#324845', light: '#2fd8b8' },
-  storm: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-speed-streaks', shapeH: 0.22, ember: ['#ffffff', '#4a4ad8'], mark: 'crack', heat: 1.2, smoke: '#3d3d52', light: '#9fd4ff' },
-  holy: { burst: 'vfx-prime-burst', burstK: 0.4, shape: 'vfx-holy-motes', ember: ['#fffbe6', '#d8892c'], mark: 'crack', heat: 1.2, smoke: '#5d523d', light: '#f2c14a' },
-  frost: { burst: 'vfx-frost-crust', burstK: 0.4, shape: 'vfx-ice-shards', ember: ['#f6feff', '#3a6ad0'], mark: 'crack', heat: 1, smoke: '#526877', light: '#7fd8ff' },
-  nature: { burst: 'vfx-heal-bloom', burstK: 0.5, shape: 'vfx-leaves', shapeSolid: true, ember: ['#f4ffd0', '#2f8a40'], mark: 'crack', heat: 1, smoke: '#3d5236', light: '#7fe05a' },
-  shadow: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-shadow-wisps', shapeSolid: true, ember: ['#e6dcf0', '#4a2a6a'], mark: 'crack', heat: 1, smoke: '#27202e', light: '#7a4ad0' },
+  arcane: { burst: 'vfx-fire-burst', burstK: 0.95, orb: 'vfx-arcane-orb', shape: 'vfx-arcane-shards', ember: ['#a2caff', '#5a2ad0'], mark: 'crack', heat: 1.4, smoke: '#3d3d61', light: '#4a8cff' },
+  steel: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-speed-streaks', shapeH: 0.22, ember: ['#ffe9a8', '#ff8a2a'], mark: 'crack', heat: 1.2, smoke: '#524c46', light: '#ffd25a' },
+  earth: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-debris', shapeSolid: true, ember: ['#f1be8b', '#b0502a'], mark: 'crack', heat: 1, smoke: '#5d4c3b', light: '#e08a4a' },
+  ghostlight: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-bone-shards', shapeSolid: true, ember: ['#96eddb', '#1f8a7a'], mark: 'crack', heat: 1.6, smoke: '#324845', light: '#2fd8b8' },
+  storm: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-speed-streaks', shapeH: 0.22, ember: ['#d4ecff', '#4a4ad8'], mark: 'crack', heat: 1.2, smoke: '#3d3d52', light: '#9fd4ff' },
+  holy: { burst: 'vfx-prime-burst', burstK: 0.4, shape: 'vfx-holy-motes', ember: ['#f9e1a0', '#d8892c'], mark: 'crack', heat: 1.2, smoke: '#5d523d', light: '#f2c14a' },
+  frost: { burst: 'vfx-frost-crust', burstK: 0.4, shape: 'vfx-ice-shards', ember: ['#c0edff', '#3a6ad0'], mark: 'crack', heat: 1, smoke: '#526877', light: '#7fd8ff' },
+  nature: { burst: 'vfx-heal-bloom', burstK: 0.5, shape: 'vfx-leaves', shapeSolid: true, ember: ['#bff19b', '#2f8a40'], mark: 'crack', heat: 1, smoke: '#3d5236', light: '#7fe05a' },
+  shadow: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-shadow-wisps', shapeSolid: true, ember: ['#b59ae2', '#4a2a6a'], mark: 'crack', heat: 1, smoke: '#27202e', light: '#7a4ad0' },
 };
 
 // The impact, by element and weight, at the template's density (docs/40 section 2). opts: on (anchor), each (every
@@ -56,14 +56,15 @@ export function impact(element, weight = 'medium', o = {}) {
     { at: 0, op: 'wave', ...at, radius: D.ripple, strength: D.rippleS, dur: 560 + (k - 1) * 300, width: 40 },
     { at: 0, op: 'heat', ...at, radius: 260 * k, strength: E.heat, dur: 1700 },
     { at: 0, op: 'protect', ...at, after: 80, dur: 1700 },
-    // The template's dip: the board darkens round the moment until it settles, a soft hole left round the target.
-    { at: 0, op: 'dip', on: on === 'centre' ? 'dst' : on, radius: 480 * k, peak: 0.4, attack: 90, hold: 1000 * k, decay: 700 },
+    // The template's dip: the board darkens round the moment until it settles (the template's hole is round the caster;
+    // here a small one round the target, so the impact's light stands out against darker ground).
+    { at: 0, op: 'dip', on: on === 'centre' ? 'dst' : on, radius: 240 * k, peak: 0.46, attack: 90, hold: 1000 * k, decay: 700 },
     // The star, the shockwave, two bursts.
-    { at: 0, op: 'sprite', tex: 'vfx-impact-star', ...at, size: 520 * k, scale: [0.17, 1], curve: 'out', rot: 'random', life: 300, alpha: 0.75, ...burn(0.2, 'vfx-noise-cells'), ...P(pal, 0.25) },
-    { at: 0, op: 'sprite', tex: 'vfx-shockwave', ...at, size: 820 * k, scale: [0.15, 1], curve: 'out', life: 520, alpha: 0.75, ...burn(0.15, 'vfx-noise-cells'), ...P(pal, 0.45) },
+    { at: 0, op: 'sprite', tex: 'vfx-impact-star', ...at, size: 520 * k, scale: [0.17, 1], curve: 'out', rot: 'random', life: 300, alpha: 0.75, ...burn(0.2, 'vfx-noise-cells'), ...P(pal, 0.55) },
+    { at: 0, op: 'sprite', tex: 'vfx-shockwave', ...at, size: 820 * k, scale: [0.15, 1], curve: 'out', life: 520, alpha: 0.55, ...burn(0.15, 'vfx-noise-cells'), ...P(pal, 0.9) },
     // Radiating element shapes, sparks under gravity, the long ember tail on a flow field.
     { at: 0, op: 'burst', tex: E.shape, ...at, n: D.shapes, speed: [320 * k, 760 * k], spread: 360, drag: 5, align: !E.shapeSolid, size: E.shapeSolid ? [26 * k, 46 * k] : [140 * k, 200 * k], h: E.shapeH ? 30 * k : undefined, scaleEnd: E.shapeSolid ? 1 : 0.25, life: [380, 560],
-      ...(E.shapeSeq ? { seq: { start: 0, count: 16, fps: 24 } } : {}), spin: E.shapeSolid ? [-500, 500] : 0, gravity: E.shapeSolid ? 900 : 0, alpha: 0.95, ...burn(0.2, 'vfx-noise-embers'), ...P(pal, E.shapeSolid ? 0.25 : 0.4) },
+      ...(E.shapeSeq ? { seq: { start: 0, count: 16, fps: 24 } } : {}), spin: E.shapeSolid ? [-500, 500] : 0, gravity: E.shapeSolid ? 900 : 0, alpha: 0.85, ...burn(0.2, 'vfx-noise-embers'), ...P(pal, E.shapeSolid ? 0.25 : 0.85) },
     { at: 0, op: 'burst', tex: 'vfx-sparks', ...at, n: D.sparks, speed: [450 * k, 1300 * k], angle: 'up', spread: 300, life: [400, 800], size: [26, 52], gravity: 1500, drag: 1.6, align: true, stretch: 0.0016, alpha: 1.05, ...P(pal, 0.35) },
     { at: 0, op: 'burst', tex: 'fx-dot', ...at, n: D.embers, area: [20, 20], speed: [80 * k, 900 * k], spread: 360, life: [900, 2400], size: [4, 13], scaleEnd: 0.15, gravity: -140, drag: 2.8, curl: 180, stretch: 0.02, alpha: 1, fadeOut: 0.5, tint: E.ember[0], tint1: E.ember[1], tintK: 1 },
     { at: 0, op: 'dom', name: 'knock', el: 'dst', dur: 900 },
@@ -82,7 +83,7 @@ export function impact(element, weight = 'medium', o = {}) {
   if (o.debris !== false) steps.push({ at: 0, op: 'burst', tex: o.debris ?? 'vfx-debris', ...at, n: Math.round(14 * k), speed: [300, 700], angle: 'up', spread: 180, life: [700, 1000], size: [22, 46], gravity: 1800, drag: 0.6, spin: [-570, 570], alpha: 0.95, ...burn(0.55, 'vfx-noise-cells') });
   if (o.smoulder !== false) {
     steps.push({ at: 140, op: 'emit', tex: 'fx-dot', ...at, area: 'card', rate: 160, dur: 1080, speed: [60, 140], angle: 'up', spread: 30, life: [500, 900], size: [4, 9], scaleEnd: 0.2, gravity: -60, drag: 1, curl: 90, alpha: 1, tint: E.ember[0], tint1: E.ember[1], tintK: 1 });
-    if (E.shapeSeq) steps.push({ at: 140, op: 'emit', tex: E.shape, ...at, area: 'card', rate: 10, dur: 1000, speed: [40, 90], angle: 'up', spread: 20, life: [420, 420], size: [60, 100], scaleEnd: 0.3, seq: { start: 0, count: 16, fps: 24 }, alpha: 0.8, ...burn(0.2, 'vfx-noise-embers'), ...P(pal, 0.4) });
+    if (!E.shapeSolid && E.shape !== 'vfx-speed-streaks') steps.push({ at: 140, op: 'emit', tex: E.shape, ...at, area: 'card', rate: 10, dur: 1000, speed: [40, 90], angle: 'up', spread: 20, life: [420, 420], size: [60, 100], scaleEnd: 0.3, seq: { start: 0, count: 16, fps: 24 }, alpha: 0.8, ...burn(0.2, 'vfx-noise-embers'), ...P(pal, 0.4) });
   }
   // Settle: the mark left on the map, then eroding away (light: a crack; heavy and up: both).
   const mark = o.mark ?? (weight === 'light' ? 'crack' : weight === 'medium' ? E.mark : 'both');
@@ -100,11 +101,11 @@ function boltLayers(element, { size = 1, head = [] } = {}) {
     head: [
       { tex: 'fx-glow', size: 110 * size, align: false, alpha: 1, tint: '#fff6e8', tintK: 0.3 },
       { tex: 'fx-soft', size: 300 * size, align: false, alpha: 0.7, tint: E.light, tintK: 1 },
-      { tex: E.burst === 'vfx-arcane-glyphring' ? 'vfx-arcane-orb' : E.burst, size: 170 * size, align: false, spin: 520, alpha: 0.85, ...P(element, E.burstK ?? 0.85) },
+      { tex: E.orb ?? E.burst, size: 170 * size, align: false, spin: 520, alpha: 0.85, ...P(element, E.burstK ?? 0.85) },
       ...head,
     ],
     trail: { tex: E.shape, rate: 120, speed: [60, 180], life: [260, 420], size: E.shapeSolid ? [16, 30] : [110 * size, 160 * size], h: E.shapeH ? 26 * size : undefined, scaleEnd: 0.28, align: !E.shapeSolid,
-      ...(E.shapeSeq ? { seq: { start: 0, count: 16, fps: 24 } } : {}), alpha: 0.9, ...burn(0.15, 'vfx-noise-embers', { edge: 0.12 }), ...P(element, E.shapeSolid ? 0.3 : 0.45) },
+      ...(E.shapeSeq ? { seq: { start: 0, count: 16, fps: 24 } } : {}), alpha: 0.85, ...burn(0.15, 'vfx-noise-embers', { edge: 0.12 }), ...P(element, E.shapeSolid ? 0.3 : 0.85) },
     sparks: { tex: 'fx-dot', rate: 520, speed: [80, 360], spread: 130, life: [400, 1000], size: [5, 13], scaleEnd: 0.12, gravity: -90, drag: 2.2, curl: 140, stretch: 0.03, alpha: 1, tint: E.ember[0], tint1: E.ember[1], tintK: 1 },
     light: { col: E.light, radius: 340 * size, peak: 0.55 },
   };
@@ -160,7 +161,7 @@ export function coreEffects() {
       ...boltLayers('arcane', { head: [{ tex: 'vfx-arcane-lance', size: 240, h: 70, alpha: 0.85, ...P('arcane', 0.3), texScroll: [-2, 0] }] }) },
     { at: 420, op: 'beam', tex: 'vfx-lightning-fork', from: 'src', to: 'dst', life: 360, h: 160, alpha: 1.5, flicker: true, if: 'lightning' },
     ...shift(impact('arcane', 'medium'), 850),
-    { at: 850, op: 'sprite', tex: 'vfx-arcane-glyphring', on: 'dst', size: 300, scale: [0.4, 1.3], curve: 'out', spin: -120, life: 560, alpha: 0.75, ...burn(0.3, 'vfx-noise-cells'), ...P('arcane', 0.9) },
+    { at: 850, op: 'sprite', tex: 'vfx-arcane-glyphring', on: 'dst', size: 300, scale: [0.4, 1.3], curve: 'out', spin: -120, life: 560, alpha: 0.45, ...burn(0.3, 'vfx-noise-cells'), ...P('arcane', 0.9) },
     BACK(1150),
   ] };
 

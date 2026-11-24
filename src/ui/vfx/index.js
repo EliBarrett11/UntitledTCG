@@ -21,6 +21,8 @@ const STAGE_H = 1080;
 export function createVfx(stage, { settings, params }) {
   const off = params?.get('webgl') === '0';
   const missing = new Set((params?.get('vfxmissing') ?? '').split(',').filter(Boolean));
+  // (Dev: ?fxskip=id,id drops those textures, to find which layer does what.)
+  const fxSkip = new Set((params?.get('fxskip') ?? '').split(',').filter(Boolean));
   const canvas = document.createElement('canvas');
   canvas.id = 'vfx';
   canvas.setAttribute('aria-hidden', 'true');
@@ -60,8 +62,34 @@ export function createVfx(stage, { settings, params }) {
         adapt();
       },
       alive: () => performance.now() < shakeUntil || !!push,
+      // (Stage X1b: the lights brighten the board under them, as the template's do: c × (1 + 0.9 L).)
+      drawn: (list) => drawLights(list),
     },
   });
+  // Stage X1b: the light canvas. Colour dodge over the board and cards gives base / (1 − s), which is
+  // base × (1 + a) for s = a / (1 + a): the template's light pools brightening what is beneath them rather than
+  // washing it with white. Low resolution (the pools are soft); under the effects canvas.
+  const lightCanvas = document.createElement('canvas');
+  lightCanvas.id = 'vfx-light'; lightCanvas.width = 480; lightCanvas.height = 270; lightCanvas.setAttribute('aria-hidden', 'true');
+  const lg = lightCanvas.getContext('2d');
+  let lightsShown = false;
+  function drawLights(list) {
+    if (!lg || (!list.length && !lightsShown)) return;
+    const q = 480 / STAGE_W;
+    lg.globalCompositeOperation = 'source-over';
+    lg.clearRect(0, 0, 480, 270);
+    lg.globalCompositeOperation = 'lighter';
+    for (const L of list) {
+      const a = Math.min(4, L.k * 0.9);
+      const s = a / (1 + a);
+      const c = L.col.map((v) => Math.round(255 * Math.min(1, v * s)));
+      const g = lg.createRadialGradient(L.x * q, L.y * q, 0, L.x * q, L.y * q, L.r * q);
+      for (const st of [0, 0.25, 0.5, 0.75, 1]) g.addColorStop(st, `rgba(${c[0]},${c[1]},${c[2]},${((1 - st) ** 2).toFixed(4)})`);
+      lg.fillStyle = g;
+      lg.fillRect((L.x - L.r) * q, (L.y - L.r) * q, L.r * 2 * q, L.r * 2 * q);
+    }
+    lightsShown = list.length > 0;
+  }
   const state = { manifest: {}, loading: new Map(), ready: new Set(), pending: new Map() };
   const board = createBoardFx(stage);
   // (Stage E: the cards on the board, in stage px, cut out of board marks so a mark lies under them.)
@@ -186,7 +214,7 @@ export function createVfx(stage, { settings, params }) {
     // After each redraw of the stage: put the canvas and the ambient layer back in it.
     attach(s) {
       const fx = stage.querySelector('#fx');
-      if (r) { if (fx) stage.insertBefore(canvas, fx); else stage.appendChild(canvas); }
+      if (r) { if (fx) stage.insertBefore(canvas, fx); else stage.appendChild(canvas); stage.insertBefore(lightCanvas, canvas); }
       ambient.attach(stage, s, { lowMotion: !!settings().lowMotion });
       if (r && !canvas.width) resize();
       if (r) r.lowMotion = !!settings().lowMotion;
@@ -196,7 +224,7 @@ export function createVfx(stage, { settings, params }) {
     preload() { if (!preloading) preloading = preload(); return preloading; },
     // A painted texture's file, for CSS masks (null if it is missing).
     textureUrl: (id) => (state.manifest[id] && !missing.has(id) ? state.manifest[id].file : null),
-    spawn: (...a) => r.spawn(...a), ribbon: (...a) => r.ribbon(...a), wave: (o) => r.wave(o), shimmer: (o) => r.shimmer(o), flash: (k, d) => r.flash(k, d),
+    spawn: (...a) => (fxSkip.has(a[0]) ? undefined : r.spawn(...a)), ribbon: (...a) => r.ribbon(...a), wave: (o) => r.wave(o), shimmer: (o) => r.shimmer(o), flash: (k, d) => r.flash(k, d),
     emitter: (e) => r.emitter(e), kill: (g) => r.kill(g), release: (g) => r.release(g), freeze: (ms) => r.freeze(ms),
     frameAspect: (id, f) => r.frameAspect(id, f), frameCount: (id) => r.frameCount(id),
     // Stage E: a light on the board, a board mark's cut-outs, and the push-in (none of them in low motion's list of

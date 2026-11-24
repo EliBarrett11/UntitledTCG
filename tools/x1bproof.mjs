@@ -64,7 +64,7 @@ async function moment(name) {
   const page = await ctx.newPage();
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
   const slow = await slowMo(ctx, page, 1);
-  await page.goto(withDev(`${base}?seed=10&scene=mid&pace=100000&timer=off&speed=normal&lowmotion=0&vfxquality=0`), { waitUntil: 'networkidle' });
+  await page.goto(withDev(`${base}?seed=10&scene=mid&pace=100000&timer=off&speed=normal&lowmotion=0&vfxquality=0${process.env.FXSKIP ? `&fxskip=${process.env.FXSKIP}` : ''}`), { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return !v || (v.standIns.length === 0 && v.ready >= 60); }, null, { timeout: 180000, polling: 250 }).catch(() => {});
   await page.waitForTimeout(600);
@@ -93,7 +93,7 @@ async function moment(name) {
     await slow.cdp.send('Animation.setPlaybackRate', { playbackRate: 0 });
     await page.waitForTimeout(500);
     shots.impact = join(raw, `${name}-impact.png`); await page.screenshot({ path: shots.impact });
-    if (process.env.PROOF_DEBUG) { log(JSON.stringify(await page.evaluate(() => window.__match.vfxApi.debugState()))); log(JSON.stringify(await page.evaluate(() => [...document.querySelectorAll('.slot-card')].map((e) => { const r = e.getBoundingClientRect(); return [e.textContent.slice(0, 20), Math.round(r.x), Math.round(r.y), Math.round(r.width)]; })))); await page.addStyleTag({ content: 'canvas{visibility:hidden!important}', }).then((h) => h); await page.screenshot({ path: join(raw, `${name}-impact-nogl.png`) }); await page.evaluate(() => { const s = [...document.querySelectorAll('style')].pop(); s.remove(); }); }
+    if (process.env.PROOF_DEBUG) { log(JSON.stringify(await page.evaluate(() => window.__match.vfxApi.debugState()))); log(JSON.stringify(await page.evaluate(() => [...document.querySelectorAll('.slot-card')].map((e) => { const r = e.getBoundingClientRect(); return [e.textContent.slice(0, 20), Math.round(r.x), Math.round(r.y), Math.round(r.width)]; })))); for (const sel of ['#vfx', '#vfx-light']) { await page.addStyleTag({ content: `${sel}{visibility:hidden!important}` }); await page.waitForTimeout(300); await page.screenshot({ path: join(raw, `${name}-impact-no${sel.slice(1)}.png`) }); await page.evaluate(() => { const s = [...document.querySelectorAll('style')].pop(); s.remove(); }); } }
     await slow.cdp.send('Animation.setPlaybackRate', { playbackRate: 1 / K });
     await page.evaluate((k) => { window.__slowMo(k); window.__proof.next(); }, K);
     if (await waitPhase(3)) {

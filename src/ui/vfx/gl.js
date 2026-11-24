@@ -164,8 +164,16 @@ void main() {
   float l = max(t.r, max(t.g, t.b));
   vec3 base = t.rgb;
   if (vS.w >= 0.0) {
-    vec3 pc = palette(vS.w, uLight > 0.5 ? l : l / max(t.a, 0.0001));
-    base = mix(base, pc * (uLight > 0.5 ? l : t.a), vT.z);
+    if (uLight > 0.5) {
+      // (Stage X1b, the template's mono recolouring: brightness times the element's saturated colour, so a bright
+      // texture stays coloured instead of ramping to white; only the very hottest part warms toward the core.)
+      int pi = int(vS.w) * 3;
+      vec3 pc = l * uPal[pi + 1] * 1.25 + pow(l, 6.0) * 0.35 * uPal[pi];
+      base = mix(base, pc, vT.z);
+    } else {
+      vec3 pc = palette(vS.w, l / max(t.a, 0.0001));
+      base = mix(base, pc * t.a, vT.z);
+    }
   }
   // Erosion with a thin bright edge in the palette's core colour (white-gold without a palette).
   float keep = 1.0; float edge = 0.0;
@@ -295,11 +303,18 @@ void main() {
     if (L.w == 0.0) continue;
     float f = 1.0 - smoothstep(0.0, L.z, length(p - L.xy));
     f *= f;
-    if (L.w > 0.0) lit += uLightC[i] * L.w * f; else { dim += -L.w * f; lit += uLightC[i] * -L.w * f * 0.25; }
+    // (Stage X1b: as the template's, a light mostly brightens the board beneath it, c × (1 + 0.9 L), drawn by the
+    // effects layer's colour-dodge light canvas; only its small added part, + 0.12 L, is drawn here.)
+    if (L.w > 0.0) lit += uLightC[i] * L.w * f * 0.12; else { dim += -L.w * f; lit += uLightC[i] * -L.w * f * 0.25; }
   }
   // (Stage X1b, the template's dip: the board darkens round the moment, a soft hole left around its source.)
   if (uDip.w > 0.0) { float hole = 1.0 - smoothstep(uDip.z * 0.4, uDip.z, length(p - uDip.xy)); dim += uDip.w * (1.0 - hole * 0.75); }
   vec3 add = s.rgb + b + lit;
+  // (Stage X1b: never a white blob. Additive layers pile up past 1 in the HDR buffer and every channel clips to
+  // white, whatever its hue. Above 0.8 the brightest channel rolls off smoothly toward 1, all three scaled together,
+  // so the element's colour holds.)
+  float m = max(add.r, max(add.g, add.b));
+  if (m > 0.8) add *= (0.8 + 0.2 * (1.0 - exp(-(m - 0.8) / 0.2))) / m;
   // (Stage X1b: never a blow-out: over a struck card, once its first instant has passed, the added light is softly capped.)
   for (int i = 0; i < 4; i++) {
     vec4 r = uProt[i];
@@ -571,6 +586,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   function setPalettes(list) { palData = new Float32Array(36 * 3); list.slice(0, 12).forEach((pal, i) => pal.forEach((c, j) => palData.set(c, (i * 3 + j) * 3))); }
 
   // --- Stage X1b: the board dip, struck cards' protection, and a count of particles alive ------------------------
+  const lightList = [];   // stage X1b: the lights drawn this frame, for the light canvas
   let dipState = null;   // { x, y, r, peak, attack, hold, decay, t0 }
   function dip(d) { dipState = { ...d, t0: now() + (d.delay ?? 0) }; wake(); }
   const dipEnd = () => (dipState ? dipState.t0 + (dipState.attack ?? 200) + (dipState.hold ?? 300) + (dipState.decay ?? 400) : 0);
@@ -654,7 +670,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   let raf = 0;
   let running = false;
   let lowMotion = false;
-  let bloomBase = 0.9;
+  let bloomBase = 0.45;   // (stage X1b: half, nearer the template, which has no bloom)
   let frames = 0;
   const frameTimes = [];
   let lastFrame = 0;
@@ -703,9 +719,11 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     if (frozenAt === null) tickEmitters(t);
     const alive = aliveAt(t);
     render(t);
+    onFrame?.drawn?.(lightList);
     frames += 1;
     if (alive) { raf = requestAnimationFrame(frame); return; }
     running = false;
+    onFrame?.drawn?.([]);
     // Nothing left: clear once and stop.
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, W, H);
@@ -822,7 +840,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     gl.uniform1i(C.u.uScene, 0);
     gl.uniform1i(C.u.uBloom, 1);
     const fk = flashK > 0 ? flashK * Math.max(0, 1 - (t - flashT0) / flashDur) : 0;
-    gl.uniform1f(C.u.uBloomK, useBloom ? bloomBase + fk * 2.2 : 0);
+    gl.uniform1f(C.u.uBloomK, useBloom ? bloomBase + fk * 1.4 : 0);
     gl.uniform1f(C.u.uTime, t);
     const wv = new Float32Array(16); const ww = new Float32Array(4);
     for (let i = waves.length - 1; i >= 0; i--) if (waves[i].t0 + waves[i].dur < t) waves.splice(i, 1);
@@ -837,7 +855,8 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     if (heat && !lowMotion && t < heat.t0 + heat.dur) { const k = (t - heat.t0) / heat.dur; gl.uniform4f(C.u.uHeat, heat.x, heat.y, heat.radius, heat.strength * Math.sin(Math.PI * k)); } else gl.uniform4f(C.u.uHeat, 0, 0, 0, 0);
     for (let i = lights.length - 1; i >= 0; i--) if (lightEnd(lights[i]) < t) lights.splice(i, 1);
     const lv = new Float32Array(MAX_LIGHTS * 4); const lc = new Float32Array(MAX_LIGHTS * 3);
-    lights.forEach((L, i) => { const [lx, ly] = lightPos(L, t); lv.set([lx, ly, L.radius ?? 200, lightCurve(L, t)], i * 4); lc.set(L.col ?? [1, 0.85, 0.6], i * 3); });
+    lightList.length = 0;
+    lights.forEach((L, i) => { const [lx, ly] = lightPos(L, t); const k = lightCurve(L, t); lv.set([lx, ly, L.radius ?? 200, k], i * 4); lc.set(L.col ?? [1, 0.85, 0.6], i * 3); if (k > 0) lightList.push({ x: lx, y: ly, r: L.radius ?? 200, k, col: L.col ?? [1, 0.85, 0.6] }); });
     gl.uniform4fv(C.u.uLight, lv);
     gl.uniform3fv(C.u.uLightC, lc);
     if (dipState && t < dipEnd()) gl.uniform4f(C.u.uDip, dipState.x, dipState.y, dipState.r ?? 420, lightCurve({ ...dipState, peak: dipState.peak ?? 0.35 }, t)); else gl.uniform4f(C.u.uDip, 0, 0, 0, 0);
@@ -861,7 +880,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   return {
     gl, now, freeze, upload, has: (id) => textures.has(id), poolAlive: (id, t) => (pools.get(id)?.deathAt ?? 0) > t, isReal: (id) => !!textures.get(id)?.real, blendOf: (id) => textures.get(id)?.blend,
     spawn, ribbon, wave, shimmer, flash, emitter, kill, release, resize, clear, frameAspect, frameCount,
-    light, setOccluders, setPalettes, dip, protect, aliveCount, debugState: () => ({ t: now(), prots: prots.map((p) => ({ ...p })), dip: dipState }), marksAlive: () => marksAlive(now()), lightCount: () => lights.length, NOISE,
+    light, setOccluders, setPalettes, dip, protect, aliveCount, debugState: () => { const t = now(); const by = {}; for (const [id, pl] of pools) { let n = 0; for (let i = 0; i < pl.cap; i++) { const o = i * FLOATS; const b = pl.data[o + 7]; if (b <= t && b + pl.data[o + 8] > t) n += 1; } if (n) by[id] = n; } return { t, by, ribbons: ribbons.filter((r) => t >= r.t0 && t <= r.end).map((r) => r.id), lights: lightList.map((l) => [Math.round(l.r), +l.k.toFixed(2)]) }; }, marksAlive: () => marksAlive(now()), lightCount: () => lights.length, NOISE,
     set lowMotion(v) { lowMotion = !!v; }, set bloom(v) { bloomBase = v; },
     get running() { return running; }, get frames() { return frames; }, frameTimes, wake,
     get size() { return { w: W, h: H }; },
