@@ -770,3 +770,42 @@ Built to `docs/archive/25-stage-l-prompt.md`. No rule changed. The rulebook's se
 10. **Summons by weight:** Light is a soft touch; Mid adds dust and a ring; Heavy adds an earth burst, hit-stop, shake and a push-in, and leaves a crack. The token appears only once the card has landed. A **"choose one"** summon inks its chosen mode beside the creature. **Rally** carries gold light on a gust from the creature just summoned to each one it Rallies.
 11. **A fizzle:** the light dies where it would have landed, a puff of smoke burns away, and "fizzled" inks in.
 12. **Loading:** the title loads only its own art; a painted loading bar ("Preparing the war table…") shows over the board if a match starts before its art is in.
+
+## 23. Readings from stage X1b (the X1 moments brought up to the template): needing Elliott's approval
+
+1. **One impact recipe by weight** (`src/ui/vfx/core.js`, `impact()`; the numbers in `src/ui/vfx/shaping.js`, `TIMING.impact`), at docs/40's minimums. Every hit has:
+   - a hit-stop of 50, 75, 110 or 140 ms;
+   - a camera shake of 8, 15, 24 or 32 px on the template's two sines;
+   - a push-in toward the hit;
+   - a board ripple of 400, 620, 900 or 1300 px, and heat haze;
+   - a white-hot instant of light, then the element's light pool;
+   - the impact star, the shockwave, and three bursts (the third slower, so the struck card still burns at +600 ms);
+   - radiating element shapes (8, 20, 28 or 40), sparks under gravity (15, 45, 70 or 100), and embers on a flow field for 1–2.5 s (80, 250, 400 or 600);
+   - debris, smoke that burns away (4, 9, 14 or 22 puffs), the struck card smouldering;
+   - a crack (light), a scorch or crack (medium), or both (heavy; larger at legendary).
+2. **Each element keeps its own textures and colour:**
+   - fire: tongues and a scorch;
+   - arcane: shards, with a glyph ring on the hit;
+   - steel: speed streaks and gold sparks;
+   - earth: debris;
+   - ghostlight: bone shards;
+   - storm: a saturated blue;
+   - holy: motes;
+   - frost: ice shards;
+   - nature: leaves;
+   - shadow: wisps.
+3. **The board dips** while a moment plays: it darkens everywhere but a small soft hole round the struck card, as the template's does round its caster, so the impact's light stands out. It settles back about 1.8 s after the hit.
+4. **Light pools brighten what is under them** (the board and cards, by up to double) rather than washing white over them: the template's c × (1 + 0.9 L).
+5. **Never a blow-out:**
+   - Additive light rolls off smoothly as it nears full brightness, keeping its hue rather than clipping to white.
+   - After the first 80 ms, the light over a struck (or newly summoned) card is capped so its art stays readable.
+   - The glow round bright effects (bloom) is half what it was.
+   - Recolouring follows the template's: brightness × the element's colour, so a bright texture stays coloured.
+6. **The struck card** lifts off the board, recoils along the blow in a dying wobble and flashes white for 260 ms (the template's). The damage number pops past full size and settles, in a white-gold to ember gradient (the template's).
+7. **Lengths:** each moment blocks play for 1.2–2 s as before. Its tail (embers, smoke, marks and the board's light) runs on behind the next action. The Ashen Wyrm, the one legendary hit, keeps the heaviest recipe.
+8. **Martial** keeps stage E's lunge and crescent, now on the shared impact. The lunge sheds embers and speed streaks along its line, where the template's bolt has its trail.
+9. **Summons:**
+   - The landing takes the holy impact without its smoke, so the new creature isn't hidden; the dust burst does that work.
+   - A **Fizzle** is a dark puff: smoke, shadow wisps and fading motes, with the light dying on the attacker.
+   - **Choose one**, **Rally** and **Draw** are fuller (more motes, a glyph ring under a chosen mode).
+10. **The React reveal's flare** was blowing out to a white blob; it's softer and takes the React colour.
