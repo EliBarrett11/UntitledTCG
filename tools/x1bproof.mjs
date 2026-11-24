@@ -28,6 +28,8 @@ const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const want = (n) => !only.length || only.includes(n) || Object.entries(MOMENTS).some(([g, l]) => only.includes(g) && l.includes(n));
 const log = (...a) => console.log(...a);
 const ff = (a) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...a]);
+// The moments with no hit, caught at their peak instead.
+const NO_HIT = new Set(['x1-summon-light', 'x1-summon-mid', 'prime', 'x1-choose', 'x1-rally', 'x1-draw']);
 const AFTER = 200; const LATER = 800; const K = 20; const FREEZE = 1e9;
 
 const sv = staticServer(root); await new Promise((r) => sv.listen(0, '127.0.0.1', r));
@@ -67,7 +69,7 @@ async function moment(name) {
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return !v || (v.standIns.length === 0 && v.ready >= 60); }, null, { timeout: 180000, polling: 250 }).catch(() => {});
   await page.waitForTimeout(600);
   // Catch the instant in the page itself: the first hit-stop (or, failing one, the first effect + 500 ms).
-  await page.evaluate(({ after, later }) => {
+  await page.evaluate(({ after, later, hit }) => {
     const b = document.body; const i0 = b.dataset.impactSeq ?? '0'; const e0 = b.dataset.effectSeq ?? '0';
     window.__proof = { phase: 0, kind: null, t0: null };
     const arm = (kind, delay) => {
@@ -79,10 +81,10 @@ async function moment(name) {
     new MutationObserver(() => {
       if ((b.dataset.impactSeq ?? '0') !== i0) arm('impact', after);
     }).observe(b, { attributes: true, attributeFilter: ['data-impact-seq'] });
-    new MutationObserver(() => {
+    if (!hit) new MutationObserver(() => {
       if ((b.dataset.effectSeq ?? '0') !== e0) setTimeout(() => arm('peak', 0), 500);
     }).observe(b, { attributes: true, attributeFilter: ['data-effect-seq'] });
-  }, { after: AFTER, later: LATER });
+  }, { after: AFTER, later: LATER, hit: !NO_HIT.has(name) });
   await slow.set(K);
   page.evaluate((n) => window.__match.fxDemo(n), name).catch((e) => { if (!/closed/.test(e.message)) errors.push(e.message); });
   const waitPhase = async (p) => { const t = Date.now() + 400000; while (Date.now() < t) { if ((await page.evaluate(() => window.__proof.phase)) >= p) return true; await new Promise((r) => setTimeout(r, 40)); } return false; };
