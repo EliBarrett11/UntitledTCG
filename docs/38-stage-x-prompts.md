@@ -63,6 +63,8 @@ Use the new textures from docs/37 section 5 once they're in `assets/vfx/` (the d
 
 ## Stage X2: every keyword, card and system
 
+**Run after X1b** (`docs/40-stage-x1b-prompt.md`), and build every X2 moment to X1b's impact recipe and density from the start.
+
 - **Keywords and triggers:** every one in docs/37 section 3 gets its own moment and, where it lasts, a board marker drawn as painted light (Frozen's frost crust, Frenzy's rage aura, Undying's mark, Armour, Ward, Shield).
 - **Signatures for every card:** each Action at React, Adapt and Strat; each Event's Release and Favour; each Item bought, held and consumed; each Campaign's Order, Quest steps and completion. That covers all 60 deck cards, new ones included.
 - **The two Legendaries' arrivals** with their Locations: the biggest moments in the game, at the legendary weight.
