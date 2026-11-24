@@ -37,12 +37,13 @@ test('every new Action mode, Event, Item and Campaign Order resolves each of its
   }
   // (Two cards called Night Raid: the name keeps the Action's own signature effects.)
   assert.equal(cardByName('Night Raid').id, 'night-raid');
-  assert.equal(effectFor('spend', 'Night Raid', 'adapt'), 'nightraid.adapt');
+  assert.equal(effectFor('spend', 'Night Raid', 'adapt'), 'card.night-raid.adapt');
 });
 
 test('the keyword cues exist, use painted textures in their palettes, and keep within the budgets', () => {
-  const cues = { 'kw.venom': ['poison-mist', 'renown'], 'kw.chill': ['vfx-frost-crust', 'renown'], 'kw.undying': ['vfx-ghost-veil', 'defeatX'], 'kw.frenzy': ['vfx-rage-aura', 'renown'], 'kw.tinker': ['metal-sparks-atlas', 'renown'],
-    'trigger.dusk': ['rune-circle', 'renown'], 'trigger.dawn': ['rune-circle', 'renown'] };
+  // (Stage X2: each in the painted kit, the keyword's own texture.)
+  const cues = { 'kw.venom': ['vfx-venom-drips', 'renown'], 'kw.chill': ['vfx-frost-crust', 'renown'], 'kw.undying': ['vfx-ghost-veil', 'defeatX'], 'kw.frenzy': ['vfx-rage-aura', 'renown'], 'kw.tinker': ['vfx-gears', 'renown'],
+    'kw.thaw': ['vfx-ice-shards', 'renown'], 'trigger.dusk': ['vfx-arcane-glyphring', 'renown'], 'trigger.dawn': ['vfx-holy-rays', 'renown'] };
   for (const [id, [tex, budget]] of Object.entries(cues)) {
     assert.ok(EFFECTS[id], id);
     assert.ok(texturesOf(id).has(tex), `${id} uses ${tex}`);
@@ -51,10 +52,10 @@ test('the keyword cues exist, use painted textures in their palettes, and keep w
     assert.ok(flatten(id).some((s) => s.op === 'call'), `${id} lands its result`);
   }
   // Venom drips green and ends Spent; Undying lifts the card back up; Chill frosts in icy blue.
-  assert.ok(flatten('kw.venom').some((s) => s.op === 'burst' && s.gravity > 0 && s.tex === 'vfx-venom-drips'));
+  assert.ok(flatten('kw.venom').some((s) => (s.op === 'burst' || s.op === 'emit') && s.gravity > 0 && s.tex === 'vfx-venom-drips'));
   assert.ok(texturesOf('kw.chill').has('vfx-ice-shards'));
   assert.ok(flatten('kw.undying').some((s) => s.op === 'dom' && s.name === 'lift'));
-  assert.ok(flatten('kw.chill').every((s) => !s.tint || s.tint === '#bfefff'));
+  assert.ok(flatten('kw.chill').every((s) => (!s.tint || s.tint === '#bfefff') && (!s.palette || s.palette === 'frost')));
   // The Frenzy glow while damaged (on the board token).
   assert.match(readFileSync('src/ui/cards.css', 'utf8'), /\.card\.frenzied \{[^}]*drop-shadow/);
 });
@@ -72,8 +73,8 @@ test('stage N2: the six painted textures are in their cues, and the cards that u
     assert.ok(longestRun(id) <= within(budget), `${id}: ${longestRun(id)} ms (${budget}: ${within(budget)})`);
   }
   assert.ok(flatten('lightning.red').some((s) => s.tex === 'vfx-lightning-fork' && /^#ff/.test(s.tint)), 'Grusha\'s lightning is red');
-  assert.equal(effectFor('damage', 'Chain Lightning', 'react'), 'lightning.chain');
-  assert.equal(effectFor('damage', 'Chain Lightning', 'adapt'), 'lightning.chain');
+  // (Stage X2: Chain Lightning's own signature at each size, forked lightning in each.)
+  for (const m of ['react', 'adapt', 'strat']) { assert.equal(effectFor('damage', 'Chain Lightning', m), `card.chain-lightning.${m}`); assert.ok(texturesOf(`card.chain-lightning.${m}`).has('vfx-lightning-fork')); }
   assert.equal(effectFor('damage', 'Grusha, the Redmaw Stormcaller'), 'lightning.red');
   assert.equal(effectFor('damage', 'Grusha, the Redmaw Shaman'), 'effect.damage', 'only the Stormcaller');
   assert.equal(effectFor('damage', 'Skyreach Stormwing'), 'lightning.chain');

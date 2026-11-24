@@ -51,19 +51,21 @@ test('every Action resolves each of its modes to its own effect; every React has
   assert.equal(effectFor('damage', 'Firebolt', 'react'), 'e.firebolt.react');
   assert.equal(effectFor('damage', 'Firebolt', 'adapt'), 'e.firebolt');
   assert.equal(effectFor('damage', 'Firebolt', 'strat'), 'e.firebolt.strat');
-  assert.equal(effectFor('tempAttack', 'Parry', 'adapt'), 'parry.adapt');
-  assert.equal(effectFor('spend', 'Night Raid', 'adapt'), 'nightraid.adapt');
-  assert.equal(effectFor('spend', 'Night Raid', 'strat'), 'nightraid.strat');
-  assert.equal(effectFor('heal', 'Mending Prayer', 'strat'), 'mending.strat');
-  assert.ok(EFFECTS.react.steps.some((s) => s.tex === 'react-flare' && !s.if), 'every React opens with a flare');
+  // (Stage X2: each Action's own signature at each size, card.<id>.<mode>.)
+  assert.equal(effectFor('tempAttack', 'Parry', 'adapt'), 'card.parry.adapt');
+  assert.equal(effectFor('spend', 'Night Raid', 'adapt'), 'card.night-raid.adapt');
+  assert.equal(effectFor('spend', 'Night Raid', 'strat'), 'card.night-raid.strat');
+  assert.equal(effectFor('heal', 'Mending Prayer', 'strat'), 'card.mending-prayer.strat');
+  assert.ok(EFFECTS.react.steps.some((s) => s.tex === 'vfx-light-flare' && !s.if), 'every React opens with a flare');
 });
 
 test('every Event has the candle, the burning Released cards, the Favour laurel and its own touch', () => {
   const events = defs.filter((d) => d.cardType === 'Event');
   assert.equal(events.length, 3);
   const steps = EFFECTS.event.steps;
-  for (const tex of ['candle-flame', 'burning-card-edge']) assert.ok(steps.some((s) => s.tex === tex), tex);
-  assert.ok(steps.some((s) => s.tex === 'laurel-of-light' && s.if === 'favour'));
+  // (Stage X2: in the painted kit: a flame on the candle, the Released cards' burning edge, the Favour's laurel.)
+  for (const tex of ['vfx-fire-tongues', 'vfx-burn-edge']) assert.ok(steps.some((s) => s.tex === tex), tex);
+  assert.ok(steps.some((s) => s.tex === 'vfx-laurel-wreath' && s.if === 'favour'));
   for (const d of events) {
     const flags = Object.entries(eventFlags(d.name)).filter(([, v]) => v).map(([k]) => k);
     assert.equal(flags.length, 1, `${d.name} has one touch`);
@@ -76,8 +78,8 @@ test('every Item resolves: Held ones equip with their own flash, Consumed ones k
     if (d.kind === 'Held') { assert.ok(EFFECTS[heldEffectFor(d.name)], d.name); continue; }
     for (const o of d.ops) assert.ok(EFFECTS[effectFor(o.op, d.name, 'item')], `${d.name}: ${o.op}`);
   }
-  assert.equal(effectFor('damage', 'Flask of Wildfire', 'item'), 'item.wildfire');
-  assert.equal(effectFor('activate', 'Draught of Vigour', 'item'), 'item.draught');
+  assert.equal(effectFor('damage', 'Flask of Wildfire', 'item'), 'card.flask-of-wildfire.consumed');
+  assert.equal(effectFor('activate', 'Draught of Vigour', 'item'), 'card.draught-of-vigour.consumed');
 });
 
 test('the cinematics: each has a full and a short low-motion version, and keeps to its budget', () => {
