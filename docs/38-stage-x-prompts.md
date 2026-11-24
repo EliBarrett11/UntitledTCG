@@ -65,6 +65,11 @@ Use the new textures from docs/37 section 5 once they're in `assets/vfx/` (the d
 
 **Run after X1b** (`docs/40-stage-x1b-prompt.md`), and build every X2 moment to X1b's impact recipe and density from the start.
 
+**Fixes from the X1b review (do these first in X2):**
+- **Every element must look like itself, not like fire.** X1b's shared recipe uses the fire burst (recoloured) as the body of every impact, so the Beast bite reads as an orange fireball and its tail as rising flames. Give each element its own body and tail from its own textures: Beast (claw rake, fur, dust, blood-red sparks, no flame tongues), Undead (bone shards, ghostlight, cold smoke), Steel (slash, sparks, armour plates), Arcane (orb, shards, glyphs), Nature (vines, leaves, petals), Frost (ice shards, frost crust), Venom (drips), Water (splash, surge), Storm (lightning, rain), Earth (earth burst, debris), Holy (rays, motes, laurel), Fire keeps the template. Proof: one frame per element side by side, and they must be told apart at a glance with the colour removed.
+- **The damage number must never sit on top of a card's text** (in the Beast proof it covers "Armour 1"). Pop it above the card's art, at the template's size.
+
+
 - **Keywords and triggers:** every one in docs/37 section 3 gets its own moment and, where it lasts, a board marker drawn as painted light (Frozen's frost crust, Frenzy's rage aura, Undying's mark, Armour, Ward, Shield).
 - **Signatures for every card:** each Action at React, Adapt and Strat; each Event's Release and Favour; each Item bought, held and consumed; each Campaign's Order, Quest steps and completion. That covers all 60 deck cards, new ones included.
 - **The two Legendaries' arrivals** with their Locations: the biggest moments in the game, at the legendary weight.
