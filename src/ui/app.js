@@ -25,15 +25,10 @@ import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch 
 import { createLibrary } from './library.js';
 import { createDeckStore, chosenDecks, FIRST_ID } from './deckstore.js';
 import { cardCount, listToIds } from '../engine/decks.js';
+import { createLoader, showLoadingBar } from './loader.js';
+import { ART as CARD_ART } from '../data/art.js';
 
-// The presentation art (V3), fetched and decoded before it's first shown.
-const ART = [...['war-table', 'campaign-map', 'campaign-map-scorched', 'title-key-art', 'victory-backdrop', 'card-back'].map((n) => `assets/ui/${n}.jpg`), ...['banner-crimson', 'banner-blue'].map((n) => `assets/ui/${n}.png`)];
-let artReady = null;
-export function preloadArt() {
-  if (!artReady) artReady = Promise.all(ART.map((src) => { const img = new Image(); img.src = src; return img.decode().catch(() => null); }));
-  return artReady;
-}
-
+// The presentation art: stage X1's loader (src/ui/loader.js) fetches the title's own art first and the rest after.
 defineCards(CARDS);
 
 const STAGE_W = 1920;
@@ -159,6 +154,9 @@ export function startApp(params) {
   let skips = 0;
   // The effects layer (stage V1); without WebGL it is off and the S5 animations play.
   const vfx = createVfx(stage, { settings: () => settings, params });
+  // (Stage X1: the background loader; a card image is known when its file exists, so Art Pending cards aren't fetched.)
+  const loader = createLoader({ known: (u) => !u.startsWith('assets/cards/') || CARD_ART.has(u), vfx });
+  const deckIdsNow = () => { const c = chosenDecks(decks); return [...c.you, ...c.ai]; };
   document.body.dataset.vfx = vfx.on ? 'webgl' : '2d';
   if (params.get('fps') === '1') import('./vfx/fps.js').then((m) => m.startFpsOverlay(vfx));
   const presenter = createPresenter(stage, {
@@ -191,6 +189,10 @@ export function startApp(params) {
     // (Stage L: the decks chosen on match setup, for you and for the AI; "The first deck" until you choose.)
     const chosen = chosenDecks(decks);
     s = createGame(seed, { decks: { [HUMAN]: chosen.you, [AI]: chosen.ai } });
+    // (Stage X1: if the board's art or either deck's cards aren't in yet, the painted loading bar shows over it.)
+    const need = loader.essentials([...chosen.you, ...chosen.ai]);
+    // (The checks, with ?dev, skip the bar unless they ask for it with &loadbar: their scenes are drawn at once.)
+    if (!loader.ready(need)) { loader.decks([...chosen.you, ...chosen.ai]); if (!params.has('dev') || params.has('loadbar')) showLoadingBar(document.body, loader, need); }
     rng = makeRng(seed * 7919);
     ui = freshUi();
     vfx.clear();
@@ -850,6 +852,7 @@ export function startApp(params) {
     renderNet();
     if (screen === 'library') { stage.style.translate = ''; return library.draw(); }
     if (library.isActive()) library.close();
+    if (screen === 'setup') loader.decks(deckIdsNow());
     if (screen === 'setup') {
       ui.decks = setupDecks();
       if (online.active()) online.sendDeck();
@@ -1643,8 +1646,9 @@ export function startApp(params) {
     // it in the builder; &libdeck=first opens a saved deck; &libfilter=group:value,... sets filters; &libpage=<card key>
     // opens a card's page; &libfrom=setup|lobby sets where Back goes.)
     library.open({ from: params.get('libfrom') ?? 'title', code: params.get('libcode'), deckId: params.get('libdeck'), filters: params.get('libfilter'), page: params.get('libpage') });
-  } else Promise.race([preloadArt(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
-  preloadArt();
+  } else Promise.race([loader.title(), new Promise((r) => setTimeout(r, 2500))]).then(() => draw());
+  // (Stage X1: everything else loads in the background once the first screen is up.)
+  setTimeout(() => loader.start(deckIdsNow()), 250);
   // Dev hooks for the checks (they read; they never change the match).
   // (Stage E dev aid: stage one of the three test moments and play it through the presenter, for tools/eclips.mjs.
   // Resolves once it has played; returns what it played, or an error.)
@@ -1670,7 +1674,7 @@ export function startApp(params) {
     return { played };
   }
   // (The checks' hook, fxdemo included: only with ?dev.)
-  if (params.has('dev')) window.__match = { get seed() { return seed; }, get screen() { return screen; }, state: () => s, fxDemo, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
+  if (params.has('dev')) window.__match = { loader: () => loader.stats(), get seed() { return seed; }, get screen() { return screen; }, state: () => s, fxDemo, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
 }
 
 export { esc };

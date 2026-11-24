@@ -105,6 +105,7 @@ export function createVfx(stage, { settings, params }) {
   }
 
   // Preload every texture the library uses, a few at a time, after the page has settled.
+  let preloading = null;
   async function preload() {
     state.manifest = await loadManifest(base);
     if (!r) return;
@@ -165,7 +166,7 @@ export function createVfx(stage, { settings, params }) {
     // (Stage E: the noise textures' code-drawn stand-ins are there from the start, so erosion always has noise.)
     for (const id of r.NOISE) standIn(id);
     window.addEventListener('resize', resize);
-    setTimeout(() => { preload(); }, 600);
+    // (Stage X1: the kit no longer preloads on its own: src/ui/loader.js asks once the title's and the match's art is in.)
     // Swap in textures that arrived while their stand-ins were in use.
     setInterval(() => { if (state.pending.size) swapReady(); }, 250);
   } else loadManifest(base).then((m) => { state.manifest = m; });
@@ -186,6 +187,8 @@ export function createVfx(stage, { settings, params }) {
       if (r) r.lowMotion = !!settings().lowMotion;
     },
     texture,
+    // Stage X1: preload the whole kit (once), a few at a time.
+    preload() { if (!preloading) preloading = preload(); return preloading; },
     // A painted texture's file, for CSS masks (null if it is missing).
     textureUrl: (id) => (state.manifest[id] && !missing.has(id) ? state.manifest[id].file : null),
     spawn: (...a) => r.spawn(...a), ribbon: (...a) => r.ribbon(...a), wave: (o) => r.wave(o), shimmer: (o) => r.shimmer(o), flash: (k, d) => r.flash(k, d),
