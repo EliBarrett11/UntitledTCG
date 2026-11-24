@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firebolt: the effects quality template</title>
+<style>
+@font-face { font-family: Cinzel; src: url(../../assets/fonts/cinzel-latin.woff2) format('woff2'); font-weight: 400 900; }
+@font-face { font-family: Alegreya; src: url(../../assets/fonts/alegreya-sans-latin-500-normal.woff2) format('woff2'); }
+html, body { margin: 0; height: 100%; background: #0c0907; color: #f1e4c8; font-family: Alegreya, system-ui, sans-serif; overflow: hidden; }
+#stage { position: absolute; inset: 56px 0 92px 0; display: flex; align-items: center; justify-content: center; }
+#wrap { position: relative; }
+#wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#bar { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; display: flex; align-items: center; gap: 18px; padding: 0 22px; box-sizing: border-box;
+  background: linear-gradient(#1a130e, #120d0a); border-top: 1px solid #4a3622; }
+.group { display: flex; gap: 8px; align-items: center; }
+.label { font-family: Cinzel; font-size: 11px; letter-spacing: .14em; color: #b89a6a; text-transform: uppercase; margin-right: 4px; }
+button { font-family: Cinzel; font-size: 13px; letter-spacing: .06em; color: #f1e4c8; background: #2a1f16; border: 1px solid #6a4e30; border-radius: 6px; padding: 9px 14px; cursor: pointer; }
+button:hover { border-color: #d9a85a; }
+button.on { background: linear-gradient(#d9a85a, #a8742e); color: #1a120a; border-color: #f1c87a; }
+button.play { font-size: 14px; padding: 11px 16px; }
+button.play small { display: block; font-family: Alegreya; font-size: 11px; letter-spacing: 0; opacity: .8; margin-top: 2px; text-transform: none; }
+#layers { margin-left: auto; display: flex; gap: 6px; }
+#layers span { font-family: Cinzel; font-size: 11px; letter-spacing: .08em; padding: 6px 9px; border-radius: 4px; border: 1px solid #3a2a1c; color: #7a6248; transition: all .12s; }
+#layers span.on { color: #1a120a; background: #f0b860; border-color: #ffd890; box-shadow: 0 0 14px #ff9a3a88; }
+#title { position: absolute; top: 8px; left: 18px; z-index: 5; pointer-events: none; }
+#title h1 { margin: 0; font-family: Cinzel; font-weight: 600; font-size: 18px; letter-spacing: .12em; color: #f6dcae; text-shadow: 0 2px 8px #000; }
+#title p { margin: 3px 0 0; font-size: 12.5px; color: #d8c4a0; text-shadow: 0 1px 6px #000; max-width: 560px; }
+#fps { position: absolute; top: 14px; right: 18px; font-size: 11px; color: #a08868; z-index: 5; text-shadow: 0 1px 4px #000; }
+#loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: Cinzel; letter-spacing: .2em; color: #d9a85a; z-index: 9; background: #0c0907; }
+</style>
+</head>
+<body>
+<div id="title"><h1>Firebolt · the quality template</h1><p>The real board, the game's own painted textures. Three sizes of one spell, each built in five layers. Press a version to play it.</p></div>
+<div id="fps"></div>
+<div id="stage"><div id="wrap"><canvas id="gl"></canvas><canvas id="ui"></canvas></div></div>
+<div id="loading">Loading the painted textures…</div>
+<div id="bar">
+  <div class="group">
+    <button class="play" data-v="react">React · Ember Snap<small>1 Energy, quick and sharp</small></button>
+    <button class="play" data-v="adapt">Adapt · Firebolt<small>2 Energy, the template</small></button>
+    <button class="play" data-v="strat">Strat · Inferno<small>3 Energy, a whole Location</small></button>
+  </div>
+  <div class="group"><span class="label">Speed</span>
+    <button data-speed="1" class="on">1×</button><button data-speed="0.5">½×</button><button data-speed="0.2">⅕×</button></div>
+  <div class="group"><button id="loop">Loop</button><button id="low">Low motion</button></div>
+  <div id="layers"><span>Anticipation</span><span>Release</span><span>Impact</span><span>Secondary</span><span>Settle</span></div>
+</div>
+<script>
+'use strict';
+// ---------------------------------------------------------------- setup
+const W = 1920, H = 1080;
+const glc = document.getElementById('gl'), uic = document.getElementById('ui'), wrap = document.getElementById('wrap');
+const gl = glc.getContext('webgl2', { premultipliedAlpha: true, alpha: false, antialias: false });
+const ui = uic.getContext('2d');
+let DPR = Math.min(devicePixelRatio || 1, 1.5);
+function fit() {
+  const sw = innerWidth, sh = innerHeight - 148, s = Math.min(sw / W, sh / H);
+  wrap.style.width = (W * s) + 'px'; wrap.style.height = (H * s) + 'px';
+  glc.width = Math.round(W * s * DPR); glc.height = Math.round(H * s * DPR);
+  uic.width = glc.width; uic.height = glc.height;
+}
+addEventListener('resize', fit); fit();
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+const easeIn = (t) => t * t;
+const easeBack = (t) => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+const smooth = (t) => t * t * (3 - 2 * t);
+
+// ---------------------------------------------------------------- shaders
+function sh(type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s); return s; }
+function prog(vs, fs) { const p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw gl.getProgramInfoLog(p); return p; }
+
+const CAM_GLSL = `uniform vec2 uShake; uniform float uZoom; uniform vec2 uZC;
+vec2 toClip(vec2 w){ vec2 p = (w - uZC) * uZoom + uZC + uShake; return vec2(p.x/960.0-1.0, 1.0-p.y/540.0); }`;
+
+// Background: the board, with ripples (shockwave refraction), heat haze, the dip and light pools.
+const bgProg = prog(`#version 300 es
+in vec2 aP; out vec2 vW; ${CAM_GLSL}
+void main(){ vW = aP; gl_Position = vec4(toClip(aP), 0.0, 1.0); }`,
+`#version 300 es
+precision highp float; in vec2 vW; out vec4 o;
+uniform sampler2D uBg; uniform sampler2D uNoise; uniform float uT; uniform float uDip;
+uniform vec4 uRip[4]; uniform vec4 uHaze[3]; uniform vec4 uL[10]; uniform vec3 uLC[10]; uniform vec4 uDipC;
+void main(){
+  vec2 w = vW;
+  for(int i=0;i<4;i++){ vec4 r=uRip[i]; if(r.w<=0.0) continue; vec2 d=w-r.xy; float l=length(d)+1e-3; float b=exp(-pow((l-r.z)/(36.0+r.z*0.08),2.0)); w -= d/l*b*r.w; }
+  for(int i=0;i<3;i++){ vec4 h=uHaze[i]; if(h.w<=0.0) continue; float f=1.0-smoothstep(h.z*0.3,h.z,length(w-h.xy));
+    vec2 n = texture(uNoise, w/420.0 + vec2(0.0, -uT*0.35)).rg - 0.5; w += n*h.w*f*2.0; }
+  vec3 c = texture(uBg, w/vec2(1920.0,1080.0)).rgb;
+  // the dip darkens everywhere except a soft hole around the caster
+  float hole = 1.0 - smoothstep(uDipC.z*0.4, uDipC.z, length(vW-uDipC.xy));
+  c *= 1.0 - uDip*(1.0-hole*0.7);
+  vec3 add = vec3(0.0);
+  for(int i=0;i<10;i++){ vec4 L=uL[i]; if(L.w<=0.0) continue; float f=1.0-smoothstep(0.0,L.z,length(vW-L.xy)); f*=f; add += uLC[i]*L.w*f; }
+  c = c*(1.0+add*0.9) + add*0.12;
+  o = vec4(c,1.0);
+}`);
+
+// Sprites: textured quads that burn away along painted noise with a glowing edge.
+const spProg = prog(`#version 300 es
+in vec2 aP; in vec2 aUV; in vec2 aL; in vec4 aC; in vec4 aE; in vec3 aEC; in vec3 aN;
+out vec2 vUV; out vec2 vL; out vec4 vC; out vec4 vE; out vec3 vEC; out vec3 vN; ${CAM_GLSL}
+void main(){ vUV=aUV; vL=aL; vC=aC; vE=aE; vEC=aEC; vN=aN; gl_Position=vec4(toClip(aP),0.0,1.0); }`,
+`#version 300 es
+precision highp float;
+in vec2 vUV; in vec2 vL; in vec4 vC; in vec4 vE; in vec3 vEC; in vec3 vN; out vec4 o;
+uniform sampler2D uTex; uniform sampler2D uNoise;
+// vE: x = erosion threshold, y = edge width, z = flash (adds white), w = noise scale
+void main(){
+  vec4 t = texture(uTex, vUV);             // premultiplied
+  float n = texture(uNoise, vL*vE.w + vN.xy).r;
+  // mono: recolour by brightness (vN.z), so one texture serves any element
+  float lum = max(t.r, max(t.g, t.b)); t.rgb = mix(t.rgb, vec3(lum), vN.z);
+  float e = vE.x;
+  float m = smoothstep(e-0.015, e+0.015, n);
+  float band = e > 0.0 ? m*(1.0 - smoothstep(e+vE.y*0.4, e+vE.y, n)) : 0.0;
+  vec3 rgb = t.rgb*vC.rgb*m + vEC*band*t.a*1.6 + vec3(vE.z)*t.a*m;
+  o = vec4(rgb, t.a*m) * vC.a;
+}`);
+
+// ---------------------------------------------------------------- textures
+const TEX = {};
+function upload(img, repeat) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  const wr = repeat ? gl.REPEAT : gl.CLAMP_TO_EDGE;
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wr); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wr);
+  return t;
+}
+function loadImg(src) { return new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; }); }
+function makeGlow(size, stops) { // procedural soft glow
+  const c = document.createElement('canvas'); c.width = c.height = size; const x = c.getContext('2d');
+  const g = x.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+  stops.forEach(([o, col]) => g.addColorStop(o, col)); x.fillStyle = g; x.fillRect(0, 0, size, size); return c;
+}
+async function loadAll() {
+  const man = await (await fetch('tex/manifest.json')).json();
+  await Promise.all(Object.entries(man).map(async ([id, e]) => {
+    const img = await loadImg(e.file);
+    const frames = (e.frames || []).map(f => [f.x / img.width, f.y / img.height, (f.x + f.w) / img.width, (f.y + f.h) / img.height, f.w / f.h]);
+    TEX[id] = { t: upload(img, e.blend === 'noise'), frames, aspect: img.width / img.height };
+  }));
+  const bg = await loadImg('board.jpg'); TEX.bg = { t: upload(bg, false), frames: [], aspect: 1920/1080 };
+  const card = await loadImg('firebolt-card.png'); TEX.card = { t: upload(card, false), frames: [], aspect: card.width / card.height };
+  TEX.glow = { t: upload(makeGlow(256, [[0,'rgba(255,255,255,1)'],[0.18,'rgba(255,240,200,0.85)'],[0.45,'rgba(255,170,80,0.35)'],[1,'rgba(255,120,40,0)']]), false), frames: [], aspect: 1 };
+  TEX.dot = { t: upload(makeGlow(64, [[0,'rgba(255,255,255,1)'],[0.25,'rgba(255,255,255,0.9)'],[0.55,'rgba(255,255,255,0.25)'],[1,'rgba(255,255,255,0)']]), false), frames: [], aspect: 1 };
+  TEX.soft = { t: upload(makeGlow(256, [[0,'rgba(255,255,255,0.9)'],[0.5,'rgba(255,255,255,0.35)'],[1,'rgba(255,255,255,0)']]), false), frames: [], aspect: 1 };
+  await document.fonts.load('700 40px Cinzel');
+}
+
+// ---------------------------------------------------------------- geometry buffers
+const FLOATS = 2 + 2 + 2 + 4 + 4 + 3 + 3; // pos, uv, local, color, ero(x,edge,flash,noiseScale), edgeColor, noiseOffset
+const MAXQ = 12000;
+const vbuf = new Float32Array(MAXQ * 6 * FLOATS);
+const spVao = gl.createVertexArray(), spBuf = gl.createBuffer();
+gl.bindVertexArray(spVao); gl.bindBuffer(gl.ARRAY_BUFFER, spBuf); gl.bufferData(gl.ARRAY_BUFFER, vbuf.byteLength, gl.DYNAMIC_DRAW);
+{ let off = 0; for (const [name, n] of [['aP',2],['aUV',2],['aL',2],['aC',4],['aE',4],['aEC',3],['aN',3]]) { const loc = gl.getAttribLocation(spProg, name); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, n, gl.FLOAT, false, FLOATS*4, off); off += n*4; } }
+const bgVao = gl.createVertexArray(), bgBuf = gl.createBuffer();
+gl.bindVertexArray(bgVao); gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-40,-40, 1960,-40, -40,1120, -40,1120, 1960,-40, 1960,1120]), gl.STATIC_DRAW);
+{ const loc = gl.getAttribLocation(bgProg, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 8, 0); }
+
+// ---------------------------------------------------------------- the world
+let particles = [];      // everything that lives and dies
+let lights = [];         // {x,y,r,i,col,life,age,curve}
+let ripples = [];        // {x,y,age,life,r0,r1,s}
+let hazes = [];          // {x,y,r,s,age,life}
+let texts = [];          // damage numbers
+let tasks = [];          // timeline
+let simT = 0, hitstop = 0, speed = 1, low = false, loop = false, current = null;
+const cam = { shake: 0, shakeDecay: 0, zoom: 1, zc: [960, 540], kick: [0, 0] };
+let dip = { v: 0, target: 0, rate: 4, c: [1166, 720, 360] };
+const token = { on: false };   // the struck creature lifted off the board
+let layerIdx = -1;
+
+const TARGETS = { mire: { x: 1078, y: 265, rect: [987, 140, 1170, 390] }, wyvern: { x: 893, y: 265, rect: [802, 140, 985, 390] } };
+const LOC_STORM = { x: 1171, y: 262, w: 740, h: 260 };
+const HAND = [1166, 935];
+
+// Particle defaults. Every field can be a number or set per spawn.
+function P(o) {
+  const p = Object.assign({ tex: 'dot', frame: -1, x: 0, y: 0, vx: 0, vy: 0, ax: 0, ay: 0, drag: 0, rot: 0, vrot: 0, align: null,
+    size: 40, size1: null, sizeEase: easeOut, w: 0, aspect: 0, stretch: 0, life: 600, age: 0, fadeIn: 0.05, fadeOut: 0.3, alpha: 1,
+    col: [1, 1, 1], col1: null, add: true, ero0: -1, eroIn: 0, edge: 0.08, edgeCol: [1, 0.6, 0.2], flash: 0,
+    noff: [Math.random(), Math.random()], curl: 0, nscale: 0.5, fps: 0, layer: 'fx', follow: null, anchorY: 0.5 }, o);
+  if (p.frame === 'rand') { const fr = TEX[p.tex].frames; p.frame = (Math.random() * fr.length) | 0; }
+  particles.push(p); return p;
+}
+function L(o) { const l = Object.assign({ x: 0, y: 0, r: 300, i: 1, col: [1, 0.55, 0.2], life: 600, age: 0, attack: 0.1, hold: 0, follow: null }, o); lights.push(l); return l; }
+function at(t, fn) { tasks.push({ t: simT + t, fn }); }
+function shake(a) { if (!low) cam.shake = Math.max(cam.shake, a); }
+function stop(ms) { if (!low) hitstop = Math.max(hitstop, ms); }
+function layer(i) { layerIdx = i; document.querySelectorAll('#layers span').forEach((s, k) => s.classList.toggle('on', k === i)); }
+function punch(x, y, amt, dur) { if (low) return; cam.zc = [x, y]; cam.punch = { amt, dur, age: 0 }; }
+function ripple(x, y, r1, s, life) { if (!low) ripples.push({ x, y, age: 0, life, r1, s }); }
+function haze(x, y, r, s, life) { if (!low) hazes.push({ x, y, r, s, age: 0, life }); }
+function number(x, y, text, col) { texts.push({ x, y, text, col, age: 0, life: 1500 }); }
+const n = (k) => Math.round(k * (low ? 0.3 : 1));
+
+// curl-ish flow: smooth pseudo-random field
+function flow(x, y, t) { return [Math.sin(y * 0.011 + t * 1.7) + Math.sin((x + y) * 0.007 - t), Math.cos(x * 0.012 - t * 1.3) + Math.cos((x - y) * 0.006 + t)]; }
+
+// ---------------------------------------------------------------- the moments
+function reset() { particles = []; lights = []; ripples = []; hazes = []; texts = []; tasks = []; simT = 0; hitstop = 0; cam.shake = 0; cam.punch = null; cam.zoom = 1; dip.v = 0; dip.target = 0; token.on = false; layer(-1); }
+
+// The card rising from hand and burning into the spell.
+function castCard({ x = 1166, y = 700, rise = 380, burnAt = 420, burnDur = 260, scale = 1, ring = true, convergence = true, quick = false }) {
+  const card = P({ tex: 'card', add: false, x: HAND[0], y: HAND[1], size: 300 * scale * 0.82, life: burnAt + burnDur + 60, fadeIn: 0.02, fadeOut: 0, edge: 0.05, edgeCol: [1, 0.62, 0.18], nscale: 0.32, layer: 'card' });
+  card.update = (p) => {
+    const t = clamp(p.age / rise); const e = easeBack(t);
+    p.x = lerp(HAND[0], x, e); p.y = lerp(HAND[1], y, e); p.rot = lerp(0.12, 0, e);
+    p.size = 300 * scale * lerp(0.82, 1, e);
+    const ch = clamp((p.age - burnAt + 140) / 200); p.col = [lerp(1, 0.6, ch), lerp(1, 0.45, ch), lerp(1, 0.36, ch)];
+    if (p.age > burnAt) { const b = clamp((p.age - burnAt) / burnDur); p.eroFixed = lerp(0.0, 1.05, easeIn(b)); p.x += rand(-2, 2); }
+    p.flash = Math.max(0, 0.35 - p.age / 400) + (p.age > burnAt - 160 && p.age < burnAt ? clamp((p.age - burnAt + 160) / 160) * 0.18 : 0);
+  };
+  // the card's rim of light as it rises
+  const rim = P({ tex: 'soft', x, y, size: 420 * scale, life: burnAt + burnDur, col: [1, 0.55, 0.2], alpha: 0.55, fadeIn: 0.2, fadeOut: 0.3, layer: 'under' });
+  rim.update = (p) => { p.x = card.x; p.y = card.y; };
+  dip.c = [x, y, 420]; dip.target = quick ? 0.18 : 0.38;
+  L({ x, y, r: 360 * scale, i: 1.1, life: burnAt + burnDur + 200, attack: 0.4, col: [1, 0.55, 0.2] });
+  if (ring) {
+    const r = P({ tex: 'vfx-fire-ring', x, y, size: 160, size1: 520 * scale, life: burnAt + burnDur + 120, vrot: 0.9, eroIn: 0.25, ero0: 0.7, edge: 0.1, col: [1, 0.9, 0.8], alpha: 0.95, layer: 'under' });
+    r.update = (p) => { p.x = card.x; p.y = card.y; };
+    const r2 = P({ tex: 'vfx-fire-ring', x, y, size: 120, size1: 380 * scale, life: burnAt + burnDur, vrot: -1.4, eroIn: 0.3, ero0: 0.6, alpha: 0.6, col: [1, 0.7, 0.5], layer: 'under' });
+    r2.update = (p) => { p.x = card.x; p.y = card.y; };
+  }
+  if (convergence) {
+    // embers spiral in towards the card
+    for (let k = 0; k < (burnAt / 16); k++) at(k * 16, () => {
+      for (let j = 0; j < n(5); j++) {
+        const a = rand(0, Math.PI * 2), d = rand(220, 420) * scale;
+        const sx = card.x + Math.cos(a) * d, sy = card.y + Math.sin(a) * d;
+        const life = rand(320, 480);
+        const pp = P({ tex: 'dot', x: sx, y: sy, size: rand(6, 14), size1: 4, life, col: [1, rand(0.75, 0.95), 0.5], col1: [1, 0.4, 0.1], fadeIn: 0.25, fadeOut: 0.2, stretch: 0.015 });
+        pp.update = (p) => { const t = easeIn(p.age / p.life); const aa = a + t * 2.2; const dd = d * (1 - t);
+          const nx = card.x + Math.cos(aa) * dd, ny = card.y + Math.sin(aa) * dd; p.vx = (nx - p.x) * 60; p.vy = (ny - p.y) * 60; p.x = nx; p.y = ny; };
+      }
+    });
+    // flame tongues licking up the card's edges
+    for (let k = 0; k < 10; k++) at(burnAt - 260 + k * 30, () => {
+      const side = k % 2 ? -1 : 1;
+      const f = P({ tex: 'vfx-fire-tongues', frame: 'rand', x: card.x + side * rand(60, 105) * scale, y: card.y + rand(-80, 120) * scale, size: rand(70, 120) * scale, size1: 30, life: 380, vy: -160, ero0: 0.3, alpha: 0.9 });
+    });
+  }
+  // the burn: embers torn off the card as it erodes
+  at(burnAt, () => {
+    for (let k = 0; k < burnDur / 16; k++) at(k * 16, () => {
+      for (let j = 0; j < n(10); j++) P({ tex: 'dot', x: card.x + rand(-100, 100) * scale, y: card.y + rand(-140, 140) * scale * (1 - k * 16 / burnDur), vx: rand(-80, 80), vy: rand(-260, -60),
+        size: rand(5, 12), size1: 2, life: rand(500, 1100), col: [1, 0.85, 0.5], col1: [1, 0.3, 0.05], curl: 120, drag: 1.2, stretch: 0.02 });
+      if (k % 3 === 0) P({ tex: 'vfx-ash', frame: 'rand', add: false, x: card.x + rand(-90, 90) * scale, y: card.y + rand(-120, 120) * scale, vx: rand(-40, 40), vy: rand(-120, -40), vrot: rand(-3, 3),
+        size: rand(14, 26), life: rand(700, 1200), col: [0.25, 0.2, 0.2], alpha: 0.9, ero0: 0.4, curl: 80, drag: 1 });
+    });
+  });
+  return card;
+}
+
+// A bolt of fire flying along a curve. Returns when it lands via onHit.
+function bolt({ from, to, ctrl, dur = 420, scale = 1, onHit }) {
+  let prev = from.slice();
+  const pos = (t) => { const u = 1 - t; return [u*u*from[0] + 2*u*t*ctrl[0] + t*t*to[0], u*u*from[1] + 2*u*t*ctrl[1] + t*t*to[1]]; };
+  const head = { x: from[0], y: from[1], dx: 0, dy: -1 };
+  // the head: a white core, a hot glow, a spinning burst and flame tongues streaming back
+  const core = P({ tex: 'glow', x: from[0], y: from[1], size: 110 * scale, life: dur + 30, fadeIn: 0.15, fadeOut: 0.02, col: [1, 0.95, 0.85] });
+  const halo = P({ tex: 'soft', size: 300 * scale, life: dur + 30, fadeIn: 0.2, fadeOut: 0.02, col: [1, 0.45, 0.12], alpha: 0.7 });
+  const spin = P({ tex: 'vfx-fire-burst', size: 170 * scale, life: dur + 30, vrot: 9, fadeIn: 0.1, fadeOut: 0.02, alpha: 0.9 });
+  const tongues = [0, 1, 2].map(k => P({ tex: 'vfx-fire-tongues', frame: k * 5, size: (190 - k * 30) * scale, life: dur + 30, fadeIn: 0.1, fadeOut: 0.02, alpha: 0.95, fps: 18 }));
+  const ribbon = P({ tex: 'vfx-fire-trail', size: 360 * scale, life: dur + 30, fadeIn: 0.3, fadeOut: 0.02, alpha: 0.9 });
+  const light = L({ x: from[0], y: from[1], r: 340 * scale, i: 1.3, life: dur + 60, attack: 0.15 });
+  const upd = (p) => { p.x = head.x; p.y = head.y; };
+  core.update = halo.update = spin.update = upd; light.follow = head;
+  tongues.forEach((tg, k) => tg.update = (p) => { p.x = head.x - head.dx * (40 + k * 22) * scale; p.y = head.y - head.dy * (40 + k * 22) * scale; p.rot = Math.atan2(-head.dx, head.dy) + Math.sin(simT / 40 + k) * 0.12; });
+  ribbon.update = (p) => { p.rot = Math.atan2(head.dy, head.dx); p.x = head.x - head.dx * 150 * scale; p.y = head.y - head.dy * 150 * scale; };
+  const t0 = simT;
+  const stepper = { update: () => {} };
+  const tick = () => {
+    const t = clamp((simT - t0) / dur), e = Math.pow(t, 1.55);
+    const [x, y] = pos(e); const dx = x - prev[0], dy = y - prev[1], l = Math.hypot(dx, dy) || 1;
+    head.x = x; head.y = y; head.dx = dx / l; head.dy = dy / l; prev = [x, y];
+    // trail: flame tongues shed backwards, sparks, smoke
+    for (let k = 0; k < n(2); k++) P({ tex: 'vfx-fire-tongues', frame: 'rand', x: x + rand(-10, 10), y: y + rand(-10, 10), vx: -head.dx * rand(60, 180) + rand(-40, 40), vy: -head.dy * rand(60, 180) + rand(-40, 40) - 40,
+      size: rand(110, 160) * scale, size1: 30 * scale, life: rand(260, 420), ero0: 0.15, edge: 0.12, rot: Math.atan2(-head.dx, head.dy) + rand(-0.3, 0.3), col: [1, 0.95, 0.85], col1: [1, 0.45, 0.25], alpha: 0.9 });
+    for (let k = 0; k < n(9); k++) { const s = rand(80, 360); const a = Math.atan2(-head.dy, -head.dx) + rand(-1.1, 1.1);
+      P({ tex: 'dot', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, ay: -90, drag: 2.2, curl: 140, size: rand(5, 13) * scale, size1: 1.5, life: rand(400, 1000), col: [1, 0.92, 0.6], col1: [1, 0.28, 0.04], stretch: 0.03 }); }
+    if (Math.random() < 0.5) P({ tex: 'vfx-smoke-puffs', frame: 'rand', add: false, x: x - head.dx * 60, y: y - head.dy * 60, vx: rand(-20, 20), vy: rand(-50, -20), vrot: rand(-1, 1),
+      size: rand(60, 90) * scale, size1: rand(150, 220) * scale, life: rand(700, 1100), col: [0.5, 0.42, 0.44], alpha: 0.35, ero0: 0.3, edge: 0.06, nscale: 0.35, edgeCol: [0.9, 0.45, 0.15], curl: 50, layer: 'smoke' });
+    if (t >= 1) { tasks = tasks.filter(x => x !== tk); onHit && onHit(x, y); return; }
+    tk.t = simT + 1; tasks.push(tk);
+  };
+  const tk = { t: simT, fn: tick }; tasks.push(tk);
+}
+
+// The impact on a creature.
+function impact(x, y, { scale = 1, target = null, dmg = null, heavy = false, mini = false } = {}) {
+  if (mini) { // a bolt landing as part of a bigger moment: light, no camera, no flash
+    L({ x, y, r: 300, i: 1.2, life: 400, attack: 0.05 });
+    P({ tex: 'vfx-fire-burst', x, y, size: 80, size1: 260, life: 420, rot: rand(0, 6), ero0: 0.15, alpha: 0.7 });
+    for (let k = 0; k < n(60); k++) { const a = rand(0, Math.PI * 2), sp = rand(100, 600);
+      P({ tex: 'dot', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, ay: -100, drag: 3, curl: 120, size: rand(4, 10), size1: 1, life: rand(500, 1200), col: [1, 0.9, 0.6], col1: [1, 0.25, 0.04], stretch: 0.02 }); }
+    return;
+  }
+  stop(heavy ? 110 : 75);
+  shake(heavy ? 24 : 15);
+  punch(x, y, heavy ? 0.035 : 0.022, heavy ? 1100 : 850);
+  ripple(x, y, heavy ? 900 : 620, heavy ? 26 : 18, heavy ? 700 : 560);
+  haze(x, y, 260 * scale, 3.5, 1700);
+  // flash
+  P({ tex: 'soft', x: 960, y: 540, size: 2600, life: 160, fadeIn: 0, fadeOut: 1, alpha: heavy ? 0.32 : 0.22, col: [1, 0.85, 0.7], layer: 'top' });
+  L({ x, y, r: 220 * scale, i: 3.2, life: 180, attack: 0.02, col: [1, 0.95, 0.85] });
+  L({ x, y, r: 620 * scale, i: 2.0, life: 1100, attack: 0.04, col: [1, 0.5, 0.15] });
+  // the star, the ring, two bursts
+  P({ tex: 'vfx-impact-star', x, y, size: 90, size1: 520 * scale, life: 300, rot: rand(0, 6), ero0: 0.2, edge: 0.1, sizeEase: (t) => 1 - Math.pow(1 - t, 5), layer: 'top' });
+  P({ tex: 'vfx-shockwave', x, y, size: 120, size1: 820 * scale, life: 520, ero0: 0.15, edge: 0.1, alpha: 0.9, edgeCol: [1, 0.7, 0.3] });
+  P({ tex: 'vfx-fire-burst', x, y, size: 200, size1: 640 * scale, life: 820, rot: rand(0, 6), vrot: 0.6, ero0: 0.18, edge: 0.12, edgeCol: [1, 0.85, 0.4] });
+  at(60, () => P({ tex: 'vfx-fire-burst', x: x + rand(-20, 20), y: y + rand(-20, 20), size: 120, size1: 420 * scale, life: 700, rot: rand(0, 6), vrot: -1, ero0: 0.12, edge: 0.14, alpha: 0.85, col: [1, 0.75, 0.55] }));
+  // flame tongues radiating out
+  for (let k = 0; k < n(20); k++) { const a = (k / 20) * Math.PI * 2 + rand(-0.15, 0.15), s = rand(320, 760) * scale;
+    P({ tex: 'vfx-fire-tongues', frame: 'rand', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, drag: 5, align: 'vel', size: rand(140, 200) * scale, size1: 40, life: rand(380, 560), ero0: 0.2, edge: 0.12 }); }
+  // painted sparks with gravity, stretched along their flight
+  for (let k = 0; k < n(46); k++) { const a = rand(0, Math.PI * 2), s = rand(450, 1300) * scale;
+    P({ tex: 'vfx-sparks', frame: 'rand', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 250, ay: 1500, drag: 1.6, align: 'vel', size: rand(26, 52), size1: 10, life: rand(400, 800), stretch: 0.0016, col: [1, 0.9, 0.7] }); }
+  // embers: the long tail of the moment
+  for (let k = 0; k < n(260); k++) { const a = rand(0, Math.PI * 2), s = rand(80, 900) * scale;
+    P({ tex: 'dot', x: x + rand(-20, 20), y: y + rand(-20, 20), vx: Math.cos(a) * s, vy: Math.sin(a) * s, ay: -140, drag: rand(2, 3.5), curl: 180,
+      size: rand(4, 13), size1: 1, life: rand(900, 2400), col: [1, 0.95, 0.7], col1: [1, 0.25, 0.04], stretch: 0.02, fadeOut: 0.5 }); }
+  // debris knocked loose
+  for (let k = 0; k < n(14); k++) { const a = rand(-Math.PI, 0), s = rand(300, 700);
+    P({ tex: 'vfx-debris', frame: 'rand', add: false, x, y: y + 30, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 200, ay: 1800, drag: 0.6, vrot: rand(-10, 10),
+      size: rand(22, 46), life: rand(700, 1000), col: [0.55, 0.42, 0.36], ero0: 0.55, edge: 0.1, edgeCol: [1, 0.5, 0.1], layer: 'smoke' }); }
+  // secondary: smoke rolls up and burns away, the target smoulders
+  at(140, () => { layer(3);
+    for (let k = 0; k < n(9); k++) P({ tex: 'vfx-smoke-puffs', frame: 'rand', add: false, x: x + rand(-60, 60) * scale, y: y + rand(-30, 40), vx: rand(-40, 40), vy: rand(-110, -50), vrot: rand(-0.8, 0.8), drag: 0.6,
+      size: rand(110, 160) * scale, size1: rand(300, 420) * scale, life: rand(1400, 2100), col: [0.5, 0.42, 0.44], alpha: 0.42, ero0: 0.35, edge: 0.06, nscale: 0.35, edgeCol: [0.9, 0.45, 0.15], curl: 60, layer: 'smoke' });
+    for (let k = 0; k < 60; k++) at(k * 18, () => { if (!target) return; const r = target.rect;
+      for (let j = 0; j < n(3); j++) P({ tex: 'dot', x: rand(r[0] + 10, r[2] - 10), y: rand(r[1] + 20, r[3] - 10), vy: rand(-140, -60), vx: rand(-20, 20), curl: 90, drag: 1,
+        size: rand(4, 9), size1: 1, life: rand(500, 900), col: [1, 0.8, 0.4], col1: [1, 0.25, 0.05] });
+      if (k % 6 === 0) P({ tex: 'vfx-fire-tongues', frame: 'rand', x: rand(r[0] + 20, r[2] - 20), y: r[3] - rand(0, 70), vy: -70, size: rand(60, 100), size1: 20, life: 420, ero0: 0.2, alpha: 0.85 * (1 - k / 60) });
+    });
+  });
+  // the scorch left on the map, then eroding away
+  P({ tex: 'vfx-scorch-mark', add: false, x, y: y + 10, size: 360 * scale, life: 3200, fadeIn: 0.03, fadeOut: 0, ero0: 0.55, edge: 0.07, edgeCol: [1, 0.45, 0.1], col: [0.9, 0.85, 0.8], alpha: 0.95, layer: 'mark' });
+  P({ tex: 'vfx-crack', x, y: y + 20, size: 300 * scale, life: 2200, fadeIn: 0.05, ero0: 0.4, edge: 0.1, col: [1, 0.55, 0.2], alpha: 0.9, layer: 'mark' });
+  if (target) {
+    token.on = true; token.r = target.rect; token.flash = 1; token.knock = 18; token.age = 0; token.dir = [0, -1];
+    target.hp && null;
+  }
+  if (dmg != null) at(40, () => number(x, y - 40, dmg));
+}
+
+function settle(after) { at(after, () => { layer(4); dip.target = 0; }); }
+
+const VERSIONS = {
+  adapt() {
+    layer(0);
+    const card = castCard({ scale: 1 });
+    at(650, () => { layer(1); shake(4);
+      bolt({ from: [card.x, card.y - 40], to: [TARGETS.mire.x, TARGETS.mire.y], ctrl: [1420, 520], dur: 430,
+        onHit: (x, y) => { layer(2); impact(x, y, { target: TARGETS.mire, dmg: '−3' }); settle(1300); } }); });
+    return 3600;
+  },
+  react() {
+    layer(0);
+    const card = castCard({ x: 1210, y: 760, rise: 170, burnAt: 190, burnDur: 140, scale: 0.8, ring: false, convergence: false, quick: true });
+    at(260, () => { layer(1);
+      bolt({ from: [card.x, card.y - 30], to: [TARGETS.mire.x, TARGETS.mire.y], ctrl: [1250, 480], dur: 260, scale: 0.75,
+        onHit: (x, y) => { layer(2); impact(x, y, { scale: 0.7, target: TARGETS.mire, dmg: '−1' }); settle(700); } }); });
+    return 2300;
+  },
+  strat() {
+    layer(0);
+    const card = castCard({ scale: 1.1, burnAt: 620, burnDur: 300, rise: 420 });
+    dip.target = 0.45;
+    // a glyph ring draws itself on the ground under the whole enemy Location
+    const g = P({ tex: 'vfx-arcane-glyphring', x: LOC_STORM.x, y: LOC_STORM.y + 20, size: 820, life: 2600, eroIn: 0.25, ero0: 0.75, edge: 0.1, col: [1.25, 0.62, 0.22], mono: 1, alpha: 0.95, vrot: 0.25, sy: 0.42, layer: 'mark', edgeCol: [1, 0.8, 0.4] });
+    L({ x: LOC_STORM.x, y: LOC_STORM.y, r: 700, i: 0.7, life: 1500, attack: 0.5, col: [1, 0.35, 0.08] });
+    at(300, () => { for (let k = 0; k < 40; k++) at(k * 20, () => { for (let j = 0; j < n(4); j++) {
+      const x = rand(LOC_STORM.x - 360, LOC_STORM.x + 360), y = LOC_STORM.y + rand(40, 120);
+      P({ tex: 'dot', x, y, vy: rand(-220, -90), curl: 70, size: rand(5, 11), size1: 1, life: rand(500, 900), col: [1, 0.75, 0.4], col1: [1, 0.2, 0.05] }); } }); });
+    at(900, () => { layer(1); shake(6);
+      const tgts = [[LOC_STORM.x - 160, LOC_STORM.y], [LOC_STORM.x, LOC_STORM.y - 20], [LOC_STORM.x + 160, LOC_STORM.y]];
+      const ctrls = [[1000, 560], [1500, 640], [1700, 480]];
+      tgts.forEach((tg, k) => at(k * 110, () => bolt({ from: [card.x, card.y - 40], to: tg, ctrl: ctrls[k], dur: 480 - k * 40, scale: 0.85,
+        onHit: (x, y) => { if (k < 2) { impact(x, y, { mini: true }); return; } layer(2); inferno(); } })));
+    });
+    return 5200;
+  },
+};
+
+// The Strat's payoff: a firestorm erupting across the Location.
+function inferno() {
+  const { x, y } = LOC_STORM;
+  stop(120); shake(30); punch(x, y, 0.04, 1400); ripple(x, y, 1300, 30, 900);
+  haze(x, y, 600, 4.5, 2600);
+  P({ tex: 'soft', x: 960, y: 540, size: 2600, life: 220, fadeIn: 0, fadeOut: 1, alpha: 0.28, col: [1, 0.8, 0.6], layer: 'top' });
+  L({ x, y, r: 700, i: 1.3, life: 1800, attack: 0.04, col: [1, 0.45, 0.12] });
+  L({ x, y, r: 300, i: 3.5, life: 220, attack: 0.02, col: [1, 0.95, 0.85] });
+  P({ tex: 'vfx-impact-star', x, y, size: 150, size1: 640, life: 300, ero0: 0.15, alpha: 0.75, layer: 'top', sizeEase: (t) => 1 - Math.pow(1 - t, 5) });
+  P({ tex: 'vfx-fire-ring', x, y: y + 30, size: 200, size1: 960, sy: 0.42, life: 1300, ero0: 0.35, edge: 0.12, vrot: 0.5, alpha: 0.7, layer: 'mark' });
+  P({ tex: 'vfx-shockwave', x, y: y + 20, size: 200, size1: 1150, sy: 0.45, life: 700, ero0: 0.2 });
+  // columns of fire erupting along the Location, left to right
+  for (let k = 0; k < 9; k++) at(k * 45, () => {
+    const cx = x - 340 + k * 85;
+    for (let j = 0; j < n(2); j++) P({ tex: 'vfx-fire-tongues', frame: 'rand', x: cx + rand(-25, 25), y: y + 125, vy: -rand(20, 60), size: rand(170, 230), size1: rand(200, 260), anchorY: 1, life: rand(700, 1000), ero0: 0.35, edge: 0.12, alpha: 0.75 });
+    for (let j = 0; j < n(30); j++) { const a = rand(-Math.PI * 0.85, -Math.PI * 0.15), s = rand(300, 1100);
+      P({ tex: 'dot', x: cx, y: y + 100, vx: Math.cos(a) * s, vy: Math.sin(a) * s, ay: -60, drag: 2.4, curl: 200, size: rand(5, 14), size1: 1, life: rand(900, 2200), col: [1, 0.95, 0.7], col1: [1, 0.25, 0.03], stretch: 0.02 }); }
+    for (let j = 0; j < n(6); j++) { const a = rand(-Math.PI, 0), s = rand(500, 1200);
+      P({ tex: 'vfx-sparks', frame: 'rand', x: cx, y: y + 80, vx: Math.cos(a) * s, vy: Math.sin(a) * s, ay: 1500, drag: 1.4, align: 'vel', size: rand(30, 55), size1: 10, life: rand(500, 800), stretch: 0.0016 }); }
+    P({ tex: 'vfx-fire-burst', x: cx, y: y + 60, size: 100, size1: 240, life: 600, rot: rand(0, 6), ero0: 0.2, alpha: 0.6 });
+  });
+  // both creatures caught: flashes, numbers, scorch under each
+  [TARGETS.wyvern, TARGETS.mire].forEach((t, k) => at(120 + k * 90, () => {
+    P({ tex: 'vfx-scorch-mark', add: false, x: t.x, y: t.y + 10, size: 340, life: 3600, ero0: 0.6, edge: 0.07, edgeCol: [1, 0.45, 0.1], col: [0.9, 0.85, 0.8], layer: 'mark' });
+    number(t.x, t.y - 40, '−2');
+    flashes.push({ r: t.rect, age: 0 });
+  }));
+  // a rolling wall of smoke, then embers drifting down
+  at(250, () => { layer(3);
+    for (let k = 0; k < n(13); k++) P({ tex: 'vfx-smoke-puffs', frame: 'rand', add: false, x: x + rand(-380, 380), y: y + rand(-20, 80), vx: rand(-30, 30), vy: rand(-120, -50), vrot: rand(-0.8, 0.8), drag: 0.5,
+      size: rand(130, 190), size1: rand(320, 480), life: rand(1600, 2400), col: [0.48, 0.4, 0.42], alpha: 0.34, ero0: 0.32, edge: 0.06, nscale: 0.35, edgeCol: [0.9, 0.45, 0.12], curl: 60, layer: 'smoke' });
+    for (let k = 0; k < 90; k++) at(k * 20, () => { for (let j = 0; j < n(1); j++) P({ tex: 'vfx-fire-tongues', frame: 'rand', x: x + rand(-350, 350), y: y + rand(90, 125), vy: -rand(50, 110), size: rand(60, 110), size1: 20, anchorY: 1, life: rand(400, 650), ero0: 0.25, alpha: 0.75 * (1 - k / 90) }); });
+  });
+  settle(2000);
+}
+const flashes = [];
+
+// ---------------------------------------------------------------- simulation
+function update(dt) {
+  if (hitstop > 0) { hitstop -= dt; dt = 0; }
+  simT += dt;
+  // timeline
+  if (dt > 0) { const due = tasks.filter(t => t.t <= simT); tasks = tasks.filter(t => t.t > simT); due.sort((a, b) => a.t - b.t).forEach(t => t.fn()); }
+  const s = dt / 1000;
+  for (const p of particles) {
+    p.age += dt;
+    if (p.update) p.update(p);
+    if (p.curl) { const f = flow(p.x, p.y, simT / 1000); p.vx += f[0] * p.curl * s; p.vy += f[1] * p.curl * s; }
+    const ml = low ? 0.25 : 1;
+    p.vx += p.ax * s; p.vy += p.ay * s;
+    if (p.drag) { const k = Math.exp(-p.drag * s); p.vx *= k; p.vy *= k; }
+    p.x += p.vx * s * ml; p.y += p.vy * s * ml; p.rot += p.vrot * s;
+  }
+  particles = particles.filter(p => p.age < p.life);
+  lights = lights.filter(l => (l.age += dt) < l.life);
+  ripples = ripples.filter(r => (r.age += dt) < r.life);
+  hazes = hazes.filter(h => (h.age += dt) < h.life);
+  texts = texts.filter(t => (t.age += dt) < t.life);
+  for (let i = flashes.length - 1; i >= 0; i--) if ((flashes[i].age += dt) > 400) flashes.splice(i, 1);
+  // dip and camera
+  dip.v += (dip.target - dip.v) * (1 - Math.exp(-dip.rate * s));
+  cam.shake *= Math.exp(-7.5 * s);
+  if (cam.punch) { const P_ = cam.punch; P_.age += dt; const t = P_.age / P_.dur; cam.zoom = 1 + P_.amt * (t < 0.12 ? easeOut(t / 0.12) : 1 - smooth(clamp((t - 0.12) / 0.88))); if (t >= 1) { cam.punch = null; cam.zoom = 1; } }
+  if (token.on) { token.age += dt; token.flash = Math.max(0, 1 - token.age / 260); token.knock = 18 * Math.exp(-token.age / 90) * Math.cos(token.age / 40); if (token.age > 900) token.on = false; }
+}
+
+// ---------------------------------------------------------------- drawing
+let qn = 0, curTex = null, curAdd = null, quadMono = 0;
+function flush() {
+  if (!qn) return;
+  gl.bindBuffer(gl.ARRAY_BUFFER, spBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, vbuf, 0, qn * 6 * FLOATS);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, TEX[curTex].t);
+  if (curAdd) gl.blendFunc(gl.ONE, gl.ONE); else gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.drawArrays(gl.TRIANGLES, 0, qn * 6); qn = 0;
+}
+function quad(tex, add, cx, cy, w, h, rot, uv, col, a, ero, edge, flash, nscale, edgeCol, noff, anchorY = 0.5) {
+  if (tex !== curTex || add !== curAdd || qn >= MAXQ) { flush(); curTex = tex; curAdd = add; }
+  const c = Math.cos(rot), s = Math.sin(rot);
+  const ox = -w / 2, oy = -h * anchorY;
+  const corners = [[ox, oy, 0, 0], [ox + w, oy, 1, 0], [ox, oy + h, 0, 1], [ox, oy + h, 0, 1], [ox + w, oy, 1, 0], [ox + w, oy + h, 1, 1]];
+  let o = qn * 6 * FLOATS;
+  for (const [x, y, lu, lv] of corners) {
+    vbuf[o++] = cx + x * c - y * s; vbuf[o++] = cy + x * s + y * c;
+    vbuf[o++] = lerp(uv[0], uv[2], lu); vbuf[o++] = lerp(uv[1], uv[3], lv);
+    vbuf[o++] = lu; vbuf[o++] = lv;
+    vbuf[o++] = col[0]; vbuf[o++] = col[1]; vbuf[o++] = col[2]; vbuf[o++] = a;
+    vbuf[o++] = ero; vbuf[o++] = edge; vbuf[o++] = flash; vbuf[o++] = nscale;
+    vbuf[o++] = edgeCol[0]; vbuf[o++] = edgeCol[1]; vbuf[o++] = edgeCol[2];
+    vbuf[o++] = noff[0]; vbuf[o++] = noff[1]; vbuf[o++] = quadMono;
+  }
+  qn++;
+}
+const FULL = [0, 0, 1, 1];
+function drawParticle(p) {
+  const T = TEX[p.tex]; if (!T) return;
+  const t = clamp(p.age / p.life);
+  let a = p.alpha * (p.fadeIn > 0 ? clamp(t / p.fadeIn) : 1) * (p.fadeOut > 0 ? clamp((1 - t) / p.fadeOut) : 1);
+  if (a <= 0.003) return;
+  const size = p.size1 != null ? lerp(p.size, p.size1, p.sizeEase(t)) : p.size;
+  const uv = p.frame >= 0 && T.frames.length ? T.frames[(p.fps ? (p.frame + Math.floor(p.age / 1000 * p.fps)) % T.frames.length : p.frame)] : FULL;
+  const aspect = uv === FULL ? T.aspect : uv[4];
+  let w = aspect >= 1 ? size : size * aspect, h = aspect >= 1 ? size / aspect : size;
+  if (p.sy) h *= p.sy;
+  let rot = p.rot;
+  const sp = Math.hypot(p.vx, p.vy);
+  if (p.align === 'vel' && sp > 1) rot = Math.atan2(p.vx, -p.vy);
+  if (p.stretch && sp > 1) { const k = 1 + sp * p.stretch; if (p.tex === 'dot') { rot = Math.atan2(p.vx, -p.vy); h *= Math.min(k, 6); w /= Math.min(Math.sqrt(k), 2); } else h *= Math.min(k, 3); }
+  // erosion: rises from p.ero0 (share of life) to past 1; eroIn reveals at the start
+  let ero = -0.1;
+  if (p.eroFixed != null) ero = p.eroFixed;
+  else {
+    if (p.ero0 >= 0 && t > p.ero0) ero = lerp(-0.05, 1.08, easeIn((t - p.ero0) / (1 - p.ero0)));
+    if (p.eroIn > 0 && t < p.eroIn) ero = Math.max(ero, lerp(1.0, -0.05, easeOut(t / p.eroIn)));
+  }
+  let col = p.col; if (p.col1) col = [lerp(p.col[0], p.col1[0], t), lerp(p.col[1], p.col1[1], t), lerp(p.col[2], p.col1[2], t)];
+  quadMono = p.mono || 0;
+  quad(p.tex, p.add, p.x, p.y, w, h, rot, uv, col, a, ero, p.edge, p.flash || 0, p.nscale, p.edgeCol, p.noff, p.anchorY);
+  quadMono = 0;
+}
+
+let lastShake = [0, 0];
+function render() {
+  gl.viewport(0, 0, glc.width, glc.height);
+  const sx = cam.shake * (Math.sin(simT * 0.093) + Math.sin(simT * 0.157) * 0.6) * 0.62;
+  const sy = cam.shake * (Math.cos(simT * 0.081) + Math.sin(simT * 0.131) * 0.6) * 0.62;
+  const setCam = (p) => { gl.uniform2f(gl.getUniformLocation(p, 'uShake'), sx, sy); gl.uniform1f(gl.getUniformLocation(p, 'uZoom'), cam.zoom); gl.uniform2f(gl.getUniformLocation(p, 'uZC'), cam.zc[0], cam.zc[1]); };
+  // board
+  gl.disable(gl.BLEND);
+  gl.useProgram(bgProg); setCam(bgProg); gl.bindVertexArray(bgVao);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, TEX.bg.t); gl.uniform1i(gl.getUniformLocation(bgProg, 'uBg'), 0);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, TEX['vfx-noise-wisps'].t); gl.uniform1i(gl.getUniformLocation(bgProg, 'uNoise'), 1);
+  gl.uniform1f(gl.getUniformLocation(bgProg, 'uT'), simT / 1000);
+  gl.uniform1f(gl.getUniformLocation(bgProg, 'uDip'), dip.v);
+  gl.uniform4f(gl.getUniformLocation(bgProg, 'uDipC'), dip.c[0], dip.c[1], dip.c[2], 0);
+  const rip = new Float32Array(16); ripples.slice(0, 4).forEach((r, i) => { const t = r.age / r.life; rip.set([r.x, r.y, r.r1 * easeOut(t), r.s * (1 - t) * (1 - t)], i * 4); });
+  gl.uniform4fv(gl.getUniformLocation(bgProg, 'uRip'), rip);
+  const hz = new Float32Array(12); hazes.slice(0, 3).forEach((h, i) => { const t = h.age / h.life; hz.set([h.x, h.y, h.r, h.s * (1 - t)], i * 4); });
+  gl.uniform4fv(gl.getUniformLocation(bgProg, 'uHaze'), hz);
+  const lp = new Float32Array(40), lc = new Float32Array(30);
+  lights.slice(0, 10).forEach((l, i) => { const t = l.age / l.life; const k = t < l.attack ? easeOut(t / l.attack) : 1 - easeOut((t - l.attack) / (1 - l.attack));
+    const x = l.follow ? l.follow.x : l.x, y = l.follow ? l.follow.y : l.y; lp.set([x, y, l.r, l.i * k], i * 4); lc.set(l.col, i * 3); });
+  gl.uniform4fv(gl.getUniformLocation(bgProg, 'uL'), lp); gl.uniform3fv(gl.getUniformLocation(bgProg, 'uLC'), lc);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  // sprites, in layers
+  gl.enable(gl.BLEND);
+  gl.useProgram(spProg); setCam(spProg); gl.bindVertexArray(spVao);
+  gl.uniform1i(gl.getUniformLocation(spProg, 'uTex'), 0);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, TEX['vfx-noise-brush'].t); gl.uniform1i(gl.getUniformLocation(spProg, 'uNoise'), 1);
+  curTex = null; curAdd = null;
+  const by = (lay) => particles.filter(p => p.layer === lay);
+  by('mark').forEach(drawParticle);
+  // the struck creature, lifted off the board so it can recoil and flash
+  if (token.on) { const r = token.r; const w = r[2] - r[0], h = r[3] - r[1];
+    quad('bg', false, (r[0] + r[2]) / 2, (r[1] + r[3]) / 2 + token.knock * -0.6, w * 1.015, h * 1.015, token.knock * 0.002, [r[0] / 1920, r[1] / 1080, r[2] / 1920, r[3] / 1080], [1, 1, 1], 1, -0.1, 0, token.flash * 0.42, 1, [0, 0, 0], [0, 0]); }
+  for (const f of flashes) { const r = f.r; const k = 1 - f.age / 400;
+    quad('bg', false, (r[0] + r[2]) / 2, (r[1] + r[3]) / 2 - Math.sin(f.age / 30) * 10 * k, (r[2] - r[0]) * 1.015, (r[3] - r[1]) * 1.015, 0, [r[0] / 1920, r[1] / 1080, r[2] / 1920, r[3] / 1080], [1, 1, 1], 1, -0.1, 0, k * 0.42, 1, [0, 0, 0], [0, 0]); }
+  by('under').forEach(drawParticle);
+  by('card').forEach(drawParticle);
+  by('smoke').forEach(drawParticle);
+  by('fx').forEach(drawParticle);
+  by('top').forEach(drawParticle);
+  flush();
+  // UI layer: damage numbers
+  const k = uic.width / W; ui.setTransform(k, 0, 0, k, 0, 0); ui.clearRect(0, 0, W, H);
+  ui.save(); ui.translate(sx + (cam.zc[0] * (1 - cam.zoom)), sy + (cam.zc[1] * (1 - cam.zoom))); ui.scale(cam.zoom, cam.zoom);
+  for (const t of texts) {
+    const u = t.age / t.life; const pop = u < 0.12 ? easeBack(u / 0.12) * 1.25 : 1.25 - 0.25 * smooth(clamp((u - 0.12) / 0.2));
+    const y = t.y - 60 * easeOut(clamp((u - 0.15) / 0.85)); const a = 1 - smooth(clamp((u - 0.7) / 0.3));
+    ui.globalAlpha = a; ui.font = `900 ${Math.round(74 * pop)}px Cinzel`; ui.textAlign = 'center'; ui.textBaseline = 'middle';
+    ui.lineWidth = 10; ui.strokeStyle = 'rgba(20,6,2,0.9)'; ui.strokeText(t.text, t.x, y);
+    const g = ui.createLinearGradient(0, y - 40, 0, y + 40); g.addColorStop(0, '#fff6d8'); g.addColorStop(0.45, '#ffb347'); g.addColorStop(1, '#e8401c');
+    ui.fillStyle = g; ui.shadowColor = 'rgba(255,120,30,0.9)'; ui.shadowBlur = 24; ui.fillText(t.text, t.x, y); ui.shadowBlur = 0;
+  }
+  ui.restore(); ui.globalAlpha = 1;
+}
+
+// ---------------------------------------------------------------- loop and controls
+let last = performance.now(), endAt = 0, frames = 0, fpsT = 0;
+function frame(now) {
+  let dt = Math.min(50, now - last); last = now;
+  frames++; fpsT += dt; if (fpsT > 500) { document.getElementById('fps').textContent = Math.round(frames * 1000 / fpsT) + ' fps · ' + particles.length + ' particles'; frames = 0; fpsT = 0; }
+  update(dt * speed);
+  render();
+  if (current && loop && simT > endAt) play(current);
+  requestAnimationFrame(frame);
+}
+function play(v) { reset(); current = v; endAt = VERSIONS[v](); document.querySelectorAll('[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+document.querySelectorAll('[data-v]').forEach(b => b.onclick = () => play(b.dataset.v));
+document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => { speed = +b.dataset.speed; document.querySelectorAll('[data-speed]').forEach(x => x.classList.toggle('on', x === b)); });
+document.getElementById('loop').onclick = (e) => { loop = !loop; e.target.classList.toggle('on', loop); };
+document.getElementById('low').onclick = (e) => { low = !low; e.target.classList.toggle('on', low); };
+addEventListener('keydown', (e) => { if (e.key === '1') play('react'); if (e.key === '2') play('adapt'); if (e.key === '3') play('strat'); if (e.key === ' ' && current) { e.preventDefault(); play(current); } });
+
+loadAll().then(() => { document.getElementById('loading').remove(); requestAnimationFrame(frame);
+  const q = new URLSearchParams(location.search); const v = q.get('v'); if (v) { if (q.get('speed')) speed = +q.get('speed'); play(v); } })
+  .catch(e => { document.getElementById('loading').textContent = 'Could not load: ' + e; console.error(e); });
+// for frame capture: window.__seek(v, ms) plays a version and advances the simulation in fixed steps
+window.__seek = (v, ms) => { play(v); for (let t = 0; t < ms; t += 16) update(16); render(); return particles.length; };
+</script>
+</body>
+</html>
