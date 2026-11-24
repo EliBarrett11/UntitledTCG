@@ -76,6 +76,15 @@ export function stageDemo(s0, name, ME, THEM) {
   // Stage N2: the moments that use docs/35's six new textures (tools/n2fx.mjs takes a frame of each).
   if (name.startsWith('n2-')) return stageN2(s, name, ME, THEM, { me, them, lane, foeAt });
   if (name.startsWith('x1-')) return stageX1(s, name, ME, THEM, { me, them, lane, foeAt });
+  // Stage X2: one hit per element (the X1b review's proof that each looks like itself).
+  if (name.startsWith('x2-el-')) {
+    s.locations = [];
+    CARD_STYLE['stonewatch-bulwark'] = { ...CARD_STYLE['stonewatch-bulwark'], attack: `proof.element.${name.slice(6)}` };
+    me.row[lane] = at(s, 'stonewatch-bulwark', 5, 'atk');
+    const foe = { ...foeAt(lane, 'stonehide-basilisk', 9), spent: true };
+    them.row[lane] = foe;
+    return { s, steps: [attackOn(ME, THEM, lane, foe)] };
+  }
   return { s, steps: [] };
 }
 

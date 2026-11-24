@@ -1,9 +1,9 @@
 // The board, drawn from the game state and the UI's own state (what's selected, what's highlighted).
 // It only draws: every action goes through src/ui/app.js, legalActions and applyAction.
 import { RULES, dominanceRenown } from '../engine/rules.js';
-import { isReady, locationAt, lanesOf, lanesHere, creaturesOf, actor, mightIn, mightOf, dominantIn, allLanes, boosted, primeNextRound } from '../engine/game.js';
+import { isReady, locationAt, lanesOf, lanesHere, creaturesOf, actor, mightIn, mightOf, dominantIn, allLanes, boosted, primeNextRound, hasKeyword } from '../engine/game.js';
 import { enemyBand, youPanel, energyPanel, column, fullLog } from './hud.js';
-import { renderCard, cardBack, STAR_PATH, renderWideToken, TOKEN_W, TOKEN_H } from './cards.js';
+import { renderCard, cardBack, STAR_PATH, renderWideToken, TOKEN_W, TOKEN_H, undyingReady } from './cards.js';
 import { energyHtml } from './text.js';
 import { esc, displayLine, tintOf, HUMAN, AI, artOf, defText, foe, foes, ONLINE } from './text.js';
 import { endScreen } from './screens.js';
@@ -123,11 +123,21 @@ function row(s, who, ui) {
       const cls = [c.spent ? 'spent' : '', c.frozen ? 'frozen' : '', ready ? 'ready' : '', cpick ? 'target' : '', ui.attacker === lane && who === HUMAN ? 'selected' : '', ui.picks?.attacker?.[lane] && who === HUMAN ? 'can-attack' : ''].filter(Boolean).join(' ');
       // (Stage N2: a Frozen creature shows a frost crust and FROZEN until it thaws.)
       const tag = c.frozen ? '<div class="tag tag-frozen" title="Frozen: Spent, and it stays Spent at the next Dawn, then thaws">FROZEN</div><div class="frost-crust"></div>' : c.spent ? '<div class="tag tag-spent">SPENT</div>' : ready ? '<div class="tag tag-ready">READY</div>' : '';
+      // (Stage X2: what lasts on it is drawn as painted light over the token: a Frenzy's rage aura while it's raging,
+      // Undying's ghostlight veil until it's used, and Armour's plates, Ward's hex and Shield's sigil as small painted
+      // marks at its corners, clear of its text.)
+      const marks = [
+        (c.frenzyAttack ?? 0) > 0 ? '<div class="mk mk-rage"></div>' : '',
+        undyingReady(c) ? '<div class="mk mk-undying"></div>' : '',
+        hasKeyword(c, 'armour') ? '<div class="mk mk-armour" title="Armour"></div>' : '',
+        hasKeyword(c, 'ward') ? '<div class="mk mk-ward" title="Ward"></div>' : '',
+        hasKeyword(c, 'shield') ? '<div class="mk mk-shield" title="Shield"></div>' : '',
+      ].join('');
       // (V5: its Might, shown while the pointer is over its Location's dominance line; none in the Wilds.)
       const mloc = s.lastBattle ? 'lb' : locationAt(s, lane)?.uid;
       const hex = mloc ? `<div class="might-hex ${who === HUMAN ? 'you' : 'them'}" data-mloc="${esc(mloc)}"><span>${mightOf(c)}</span></div>` : '';
       const face = span > 1 ? renderWideToken(c, span * LANE_W - 12, TOKEN_H, { live: true }) : renderCard(c, { size: 'token', live: true });
-      body = `<div class="slot-card ${cls}${span > 1 ? ' wide' : ''}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board"${span > 1 ? ` style="width:${(span * LANE_W - 12).toFixed(1)}px"` : ''}>${tag}${face}${hex}</div>`;
+      body = `<div class="slot-card ${cls}${span > 1 ? ' wide' : ''}" data-who="${who}" data-space="${lane}" data-uid="${esc(c.uid)}" data-hover="board"${span > 1 ? ` style="width:${(span * LANE_W - 12).toFixed(1)}px"` : ''}>${tag}${face}${marks}${hex}</div>`;
     }
     const attrs = cpick ? `data-pick="${esc(cpick)}"` : pick ? `data-pick="${esc(pick)}"` : ui.picks?.attacker?.[lane] && who === HUMAN && c ? 'data-act="attacker"' : '';
     // The preview of choosing this target (on a Location target, once, on its leftmost lane).

@@ -138,6 +138,7 @@ export async function runEffect(ctx, vfx, id, env) {
     const src = box('src', s); const dst = box('dst', s);
     let ang;
     if (s.angle === 'up') ang = -Math.PI / 2;
+    else if (s.angle === 'down') ang = Math.PI / 2;
     else if (s.angle === 'away' || s.angle === 'toward') ang = angleTo(src, dst);
     else if (s.angle === 'from') ang = angleTo(dst, src);
     else ang = rad(s.angle ?? 0);

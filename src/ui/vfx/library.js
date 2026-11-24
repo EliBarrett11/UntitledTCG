@@ -26,6 +26,7 @@ import { CARDS } from '../../data/cards.js';
 import { signatureEffects } from './signature.js';
 import { stageEffects } from './stageE.js';
 import { coreEffects } from './core.js';
+import { x2Effects } from './x2.js';
 import { hitstopMs } from './shaping.js';
 
 // The timing budget at normal speed (docs/archive/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
@@ -568,6 +569,9 @@ Object.assign(EFFECTS, {
 // Stage X1: the core of combat and summoning, rebuilt to the template's standard (core.js), merged last so they
 // replace the old storyboards of the same ids.
 Object.assign(EFFECTS, coreEffects());
+// Stage X2: every storyboard left in the old kit, rebuilt in the painted kit, and every card's own signature (x2.js),
+// merged last.
+Object.assign(EFFECTS, x2Effects());
 
 // Every presenter beat has an effect (docs/archive/10-feel-and-vfx.md section 3). Some are chosen per card below.
 export const BEAT_EFFECTS = {
@@ -678,6 +682,9 @@ export function attackVars(card, rand = Math.random) {
 }
 // The effect for an 'effect' event: by its source card's mode (React, Adapt, Strat), its op, and its style.
 export function effectFor(op, sourceName, kind = null) {
+  // (Stage X2: the card's own signature for the moment first.)
+  const sig = signatureFor(sourceName, MOMENT_OF_KIND[kind]);
+  if (sig) return sig;
   const src = cardByName(sourceName);
   const st = src ? styleOf({ id: src.id, form: src.form }) : {};
   if (kind && st[kind] && ['react', 'adapt', 'strat'].includes(kind)) return st[kind];
@@ -695,6 +702,15 @@ export function effectFor(op, sourceName, kind = null) {
     default: return 'effect.damage';
   }
 }
+// Stage X2: a card's own signature for a moment (card.<id>.<moment>: react, adapt, strat, release, favour, bought, held,
+// consumed, order, step, complete, placed, pulse), if it has one; else null (the generic moment plays).
+export function signatureFor(name, moment) {
+  const src = name ? cardByName(name) : null;
+  const id = src && moment ? `card.${src.id}.${moment}` : null;
+  return id && EFFECTS[id] ? id : null;
+}
+// The moment an effect event's kind is: an Action's mode, an Item used, a Location's passive.
+export const MOMENT_OF_KIND = { react: 'react', adapt: 'adapt', strat: 'strat', item: 'consumed', passive: 'pulse' };
 export function healFlags(sourceName) {
   const src = cardByName(sourceName);
   const h = src ? styleOf({ id: src.id, form: src.form }).heal : null;

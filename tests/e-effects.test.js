@@ -13,7 +13,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const manifest = JSON.parse(readFileSync('assets/vfx/manifest.json', 'utf8')).textures;
 
 test('element palettes: the eight families of docs/20 and stage X1\'s four (frost, venom, water, storm), each core, mid, edge; a brightness maps edge → mid → core', () => {
-  assert.deepEqual(PALETTE_ORDER, ['fire', 'arcane', 'holy', 'shadow', 'nature', 'ghostlight', 'steel', 'earth', 'frost', 'venom', 'water', 'storm']);
+  assert.deepEqual(PALETTE_ORDER, ['fire', 'arcane', 'holy', 'shadow', 'nature', 'ghostlight', 'steel', 'earth', 'frost', 'venom', 'water', 'storm', 'beast']);
   for (const k of PALETTE_ORDER) assert.equal(PALETTES[k].length, 3);
   assert.equal(paletteIndex('steel'), 6);
   assert.equal(paletteIndex(null), -1);

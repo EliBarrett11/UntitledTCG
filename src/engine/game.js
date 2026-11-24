@@ -1284,7 +1284,14 @@ function dawn(s, round) {
     gainGold(s, who, RULES.goldPerDawn, 'Dawn');                           // 5
     for (const { card, space } of creaturesOf(s, who)) {                   // 6
       const n = passiveOps(locationAt(s, space)).filter((o) => o.op === 'dawnHeal').reduce((k, o) => k + o.amount, 0);
-      if (n) { card.currentHealth = Math.min(card.health, card.currentHealth + n); syncFrenzy(s, who, space); }
+      if (n) {
+        const before = card.currentHealth;
+        card.currentHealth = Math.min(card.health, card.currentHealth + n);
+        syncFrenzy(s, who, space);
+        // (Stage X2: a presentation event, so the Location's passive can be seen acting: no rule reads it.)
+        const l = locationAt(s, space);
+        if (card.currentHealth > before) emit(s, 'effect', { who: l.owner, name: l.name, kind: 'passive', op: 'heal', amount: card.currentHealth - before, targets: [{ who, space }], location: l.uid });
+      }
     }
   }
   // 6 (stage N): On Dawn triggers resolve at the healing step, the player with initiative first, then left to right.
@@ -1418,7 +1425,8 @@ function duskAfterArrivals(s) {
   for (const l of [...s.locations]) {
     if (l.roundsLeft == null) continue;
     l.roundsLeft -= 1;
-    if (l.roundsLeft > 0) continue;
+    // (Stage X2: a presentation event, so the countdown can be seen: no rule reads it.)
+    if (l.roundsLeft > 0) { emit(s, 'locationTick', { uid: l.uid, name: l.name, roundsLeft: l.roundsLeft }); continue; }
     s.locations = s.locations.filter((x) => x !== l);
     s.players[l.owner].discard.push(l.card);
     emit(s, 'locationRemoved', { uid: l.uid, name: l.name });

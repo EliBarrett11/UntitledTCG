@@ -14,7 +14,8 @@ import { runEffect } from './vfx/runner.js';
 import { fly, flightFrames, flightMs } from './motion.js';
 import { effectText } from '../engine/wording.js';
 import { gameParams } from './devparams.js';
-import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS, arrivalEffectFor, placedEffectFor } from './vfx/library.js';
+import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS, arrivalEffectFor, placedEffectFor, signatureFor, MOMENT_OF_KIND } from './vfx/library.js';
+import { EFFECTS } from './vfx/library.js';
 import { OLD_OF } from './vfx/stageE.js';
 
 const STAGE_W = 1920;
@@ -94,7 +95,11 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   }
   // A number that rises and fades like ink.
   function ink(ctx, text, at, kind = 'dmg') {
-    const el = add(esc(text), at.cx, at.cy - 10, `ink ink-${kind}`);
+    // (Stage X2, from the X1b review: a damage or heal number never sits on a card's text. It pops over the card's art,
+    // its upper third, and rises from there; the number is about 90 px tall, so its top is half that above the art's middle.)
+    const big = kind === 'dmg' || kind === 'heal';
+    const y = big ? (Number.isFinite(at.y) && Number.isFinite(at.h) ? at.y + at.h * 0.3 - 45 : at.cy - 70) : at.cy - 10;
+    const el = add(esc(text), at.cx, y, `ink ink-${kind}`);
     // (Stage F: damage and healing pop in with a spring, overshoot, settle, then drift up and fade.)
     // (Stage X1b, the template's number: it pops out past full size with a spring (to 1.25 in its first 12%), settles to
     // full size, then rises 60 px and fades over its last 30%; 1.5 s in all.)
@@ -647,13 +652,13 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                   if (tb) setText(tb.querySelector('.tab-h span'), next.players[foe].row[e.target.space]?.currentHealth ?? 0);
                   if (!d) ripple(foe);
                   ink(ctx, `−${e.amount}`, toBox, 'dmg');
-                  if (armour) ink(ctx, `Armour −${armour}`, { cx: toBox.cx, cy: toBox.cy + 44 }, 'info');
+                  if (armour) ink(ctx, `Armour −${armour}`, { cx: toBox.cx, cy: toBox.y + 4 }, 'info');
                 },
                 landBack: () => {
                   const t2 = token(e.who, e.from) ?? q(`[data-ghost="${e.who}:${e.from}"]`);
                   if (t2) setText(t2.querySelector('.tab-h span'), next.players[e.who].row[e.from]?.currentHealth ?? 0);
                   ink(ctx, `−${e.back}`, fromBox, 'dmg');
-                  if (armourBack) ink(ctx, `Armour −${armourBack}`, { cx: fromBox.cx, cy: fromBox.cy + 44 }, 'info');
+                  if (armourBack) ink(ctx, `Armour −${armourBack}`, { cx: fromBox.cx, cy: fromBox.y + 4 }, 'info');
                 },
               },
             });
@@ -681,7 +686,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                   const t2 = lastAttack ? token(lastAttack.who, lastAttack.from) : null;
                   if (t2) setText(t2.querySelector('.tab-h span'), next.players[lastAttack.who].row[lastAttack.from]?.currentHealth ?? 0);
                   ink(ctx, `−${e.amount}`, to, 'dmg');
-                  if (armour) ink(ctx, `Armour −${armour}`, { cx: to.cx, cy: to.cy + 44 }, 'info');
+                  if (armour) ink(ctx, `Armour −${armour}`, { cx: to.cx, cy: to.y + 4 }, 'info');
                 },
               },
             });
@@ -691,9 +696,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
         }
         case 'armour':
           if (merged.has(ei)) break;
-          B('armour', `Armour: ${e.prevented} damage prevented.`, async (ctx) => { await ink(ctx, `Armour −${e.prevented}`, where(e.who, e.space), 'info'); }, async (ctx) => {
+          B('armour', `Armour: ${e.prevented} damage prevented.`, async (ctx) => { await ink(ctx, `Armour −${e.prevented}`, { cx: where(e.who, e.space).cx, cy: where(e.who, e.space).y + 4 }, 'info'); }, async (ctx) => {
             const at = where(e.who, e.space);
-            await fxRun(ctx, 'armour', { anchors: anchors({ dst: at, dstHp: tabAt(e.who, e.space, 'tab-h') }), hooks: { land: () => ink(ctx, `Armour −${e.prevented}`, at, 'info') } });
+            await fxRun(ctx, 'armour', { anchors: anchors({ dst: at, dstHp: tabAt(e.who, e.space, 'tab-h') }), hooks: { land: () => ink(ctx, `Armour −${e.prevented}`, { cx: at.cx, cy: at.y + 4 }, 'info') } });
           });
           break;
         case 'defeated': {
@@ -774,7 +779,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const src = locEl ? box(locEl) : onRow != null ? where(e.who, onRow) : castFrom ?? (e.who === HUMAN ? { ...myHand, w: 200, h: 280 } : { ...foeHand(), w: 200, h: 280 });
             const targets = e.targets.map((t) => ({ box: where(t.who, t.space), el: token(t.who, t.space) }));
             focus = targets[0].box;
-            const id = effectFor(e.op, e.name, e.kind);
+            // (Stage X2: the card's own signature for this moment first: an Action's size, an Item used, a Location's passive.)
+            const id = signatureFor(e.name, MOMENT_OF_KIND[e.kind]) ?? effectFor(e.op, e.name, e.kind);
             const armour = e.targets.reduce((n, t) => n + armourFor(ei, t.who, t.space), 0);
             await fxRun(ctx, id, {
               anchors: anchors({ src, dst: targets[0].box }), els: { dst: targets[0].el }, targets,
@@ -789,7 +795,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                     if (tk && (e.op === 'damage' || e.op === 'heal')) setText(tk.querySelector('.tab-h span'), next.players[t.who].row[t.space]?.currentHealth ?? 0);
                     ink(ctx, e.op === 'damage' ? `−${t.dealt ?? e.amount}` : label(e.op), at, e.op === 'damage' ? 'dmg' : e.op === 'heal' ? 'heal' : 'info');
                     const arm = armourFor(ei, t.who, t.space);
-                    if (arm) ink(ctx, `Armour −${arm}`, { cx: at.cx, cy: at.cy + 44 }, 'info');
+                    if (arm) ink(ctx, `Armour −${arm}`, { cx: at.cx, cy: at.y + 4 }, 'info');
                   }
                 },
                 // One target after another (Night Raid's Strat makes each enemy Spent in turn).
@@ -810,7 +816,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           const name = { summon: 'On Summon', defeat: 'On Defeat', dawn: 'On Dawn', dusk: 'On Dusk', rally: 'Rally', attack: 'On Attack', defend: 'On Defend' }[e.point] ?? 'Trigger';
           // (Stage N: On Dusk and On Dawn pulse in their moment's colour.)
           // (Stage X1: Rally carries gold light on a gust from the creature just summoned to each one it Rallies.)
-          const fx = inCine ? 'trigger.cine' : e.point === 'dusk' ? 'trigger.dusk' : e.point === 'dawn' ? 'trigger.dawn' : e.point === 'rally' ? 'trigger.rally' : 'trigger';
+          // (Stage X2: every trigger point its own moment: On Summon, On Attack, On Defend, On Defeat, On Dawn, On Dusk, Rally.)
+          const fx = inCine ? 'trigger.cine' : EFFECTS[`trigger.${e.point}`] ? `trigger.${e.point}` : 'trigger';
           const rallyFrom = e.point === 'rally' && lastSummon ? { ...lastSummon } : null;
           // (Stage X1: a "choose one" summon shows the mode chosen, its words inked beside the creature.)
           const trig = e.mode != null && c ? (c.triggers ?? [c.trigger]).find((x) => x?.choose) : null;
@@ -845,6 +852,11 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           const c = next.players[e.who].row[e.space];
           B('trigger', e.by === 'dawn' ? `${POSS[e.who]} ${c?.name ?? 'creature'} stays Spent this Round, then thaws.` : `${POSS[e.who]} ${c?.name ?? 'creature'} thaws.`, async (ctx) => {
             await ink(ctx, 'Thawed', where(e.who, e.space), 'info');
+          }, async (ctx) => {
+            // (Stage X2: the frost crust cracks off and its shards fall.)
+            const at = where(e.who, e.space);
+            focus = at;
+            await fxRun(ctx, 'kw.thaw', { anchors: anchors({ dst: at }), els: { dst: token(e.who, e.space) }, hooks: { land: () => ink(ctx, 'Thawed', at, 'info') } });
           });
           break;
         }
@@ -1038,7 +1050,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 },
               },
             };
-            await fxRun(ctx, 'event', env);
+            await fxRun(ctx, signatureFor(e.name, e.favour ? 'favour' : 'release') ?? 'event', env);
             for (const el of env.els.released) el.remove();
             env.cardEl?.remove();
           });
@@ -1063,7 +1075,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             held.gold[e.who] -= price;
             const after = held.gold[e.who];
             if (g) g.lastChild.textContent = String(before);
-            await fxRun(ctx, 'item.bought', {
+            await fxRun(ctx, signatureFor(e.name, 'bought') ?? 'item.bought', {
               anchors: anchors({ gold: g ? box(g) : centre, market: from }), vars: { coins: Math.min(6, price * 2) },
               hooks: {
                 tick: () => { if (g) { g.lastChild.textContent = String(after); if (price) ink(ctx, `−${price} Gold`, box(g), 'gold'); } },
@@ -1090,7 +1102,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             if (!e.target || e.target.none) return;
             const at = where(e.who, e.target.space);
             const info = cardByName(e.name);
-            await fxRun(ctx, heldEffectFor(e.name), { anchors: anchors({ dst: at }), tint: info ? accentOf(info.def) : '#9a6a3a', hooks: { tag: () => tag(ctx, e.name.toUpperCase(), at) } });
+            await fxRun(ctx, signatureFor(e.name, 'held') ?? heldEffectFor(e.name), { anchors: anchors({ dst: at }), tint: info ? accentOf(info.def) : '#9a6a3a', hooks: { tag: () => tag(ctx, e.name.toUpperCase(), at) } });
           });
           break;
         case 'locationPlaced': {
@@ -1127,7 +1139,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               },
             });
             // (Stage N2: Stormbreak Crags strikes its lanes with forked lightning as it's placed.)
-            const placed = placedEffectFor(e.name);
+            const placed = signatureFor(e.name, 'placed') ?? placedEffectFor(e.name);
             if (placed) await fxRun(ctx, placed, { anchors: anchors({ dst: rb, stormL: { ...rb, cx: rb.x, cy: rb.y + rb.h * 0.4 }, stormR: { ...rb, cx: rb.x + rb.w, cy: rb.y + rb.h * 0.45 }, stormL2: { ...rb, cx: rb.x, cy: rb.y + rb.h * 0.7 }, stormR2: { ...rb, cx: rb.x + rb.w, cy: rb.y + rb.h * 0.62 } }) });
           });
           break;
@@ -1136,7 +1148,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           const c = cardIn(prev, e.uid);
           B('card', `${NAME[e.who]} gave ${e.name}'s Campaign Order.`, async (ctx) => { if (c) await slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }); }, async (ctx) => {
             castFrom = anchors().centre;
-            await fxRun(ctx, 'event', { anchors: anchors(), tint: c ? accentOf(c) : '#6d4aa0', hooks: { slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }) : null) } });
+            await fxRun(ctx, signatureFor(e.name, 'order') ?? 'event', { anchors: anchors(), tint: c ? accentOf(c) : '#6d4aa0', hooks: { slide: () => (c ? slide(ctx, renderCard(c, { size: 'mini' }), handPos(e.who, e.uid), centre, { hold: 400 }) : null) } });
           });
           break;
         }
@@ -1148,7 +1160,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const sb = segs ? box(segs) : (qe ? box(qe) : centre);
             const k = Math.min(e.progress, e.need);
             const stamp = { ...sb, cx: sb.x + ((k - 0.5) / e.need) * sb.w, w: 40, h: 40 };
-            await fxRun(ctx, 'quest', { anchors: anchors({ dst: qe ? box(qe) : centre, stamp }), hooks: { pulse: () => pulse(ctx, qe, '#a283dc') } });
+            const qname = [next, prev].map((st) => st.players[e.who].quests?.find((x) => x.uid === e.uid)?.name).find(Boolean);
+            await fxRun(ctx, signatureFor(qname, 'step') ?? 'quest', { anchors: anchors({ dst: qe ? box(qe) : centre, stamp }), hooks: { pulse: () => pulse(ctx, qe, '#a283dc') } });
           });
           break;
         case 'questComplete': {
@@ -1163,7 +1176,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 hooks: { cineOpen: () => cineOpen(qb), pulse: () => pulse(ctx, qe, '#c2a6ee'), fadeIn: () => pulse(ctx, qe, '#c2a6ee') } });
               return;
             }
-            await fxRun(ctx, 'quest', { anchors: anchors({ dst: qb }), flags: { complete: true }, hooks: { pulse: () => Promise.all([pulse(ctx, qe, '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]) } });
+            await fxRun(ctx, signatureFor(e.name, 'complete') ?? 'quest', { anchors: anchors({ dst: qb }), flags: { complete: true }, hooks: { pulse: () => Promise.all([pulse(ctx, qe, '#c2a6ee'), banner(ctx, 'QUEST COMPLETE', e.name)]) } });
           }, aldricNext ? { cine: 'aldric', cineFirst: true } : {});
           if (aldricNext) activeCine = 'aldric';
           break;
@@ -1219,6 +1232,16 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           break;
         }
         // A Location expires at Dusk: it burns away like parchment.
+        // Stage X2: a Location counts down at Dusk: its tile breathes light and its Rounds label ticks.
+        case 'locationTick': {
+          B('location', `${e.name}: ${e.roundsLeft} Round${e.roundsLeft === 1 ? '' : 's'} left.`, async (ctx) => { await ctx.wait(200); }, async (ctx) => {
+            const region = q(`.loc[data-loc="${e.uid}"]`);
+            const lbl = q(`.loc-label[data-loc="${e.uid}"]`);
+            const rb = region ? box(region) : centre;
+            await fxRun(ctx, 'location.tick', { anchors: anchors({ dst: rb, label: lbl ? box(lbl) : rb }), flags: { last: e.roundsLeft === 1 }, hooks: { pulse: () => (lbl ? pulse(ctx, lbl, e.roundsLeft === 1 ? '#ff7a4a' : '#e8c890') : null) } });
+          });
+          break;
+        }
         case 'locationRemoved': {
           const l = prevLoc.get(e.uid);
           B('locationGone', e.own ? `${e.name} is gone with its Legendary: its lanes are the Wilds again.` : `${e.name} expires: its lanes are the Wilds again.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => {
@@ -1249,7 +1272,11 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           B('pass', e.endsPhase ? `${NAME[e.who]} passed: the Battle Phase ends.` : `${NAME[e.who]} passed.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ctx.wait(300) } }); });
           break;
         case 'retained':
-          B('retain', `${NAME[e.who]} Retained a card.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ctx.wait(300) } }); });
+          // (Stage X2: the card kept is marked in the hand: a wax seal and a ribbon of light; Patient's glows gold.)
+          B('retain', `${NAME[e.who]} Retained a card${e.patient ? ' (Patient)' : ''}.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => {
+            const at = handPos(e.who, e.uid);
+            await fxRun(ctx, 'kw.retain', { anchors: anchors({ dst: { ...at, x: at.cx - 70, y: at.cy - 100, w: 140, h: 200 } }), flags: { patient: !!e.patient } });
+          });
           break;
         case 'decline':
           B('decline', `${NAME[e.who]} let it happen.`, async (ctx) => { await ctx.wait(200); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ctx.wait(200) } }); });

@@ -129,8 +129,10 @@ log(`template: ${T.impact} particles at impact, ${T.later} at +600 ms`);
 const counts = existsSync(join(out, 'x1b-proof-counts.json')) ? JSON.parse(await readFile(join(out, 'x1b-proof-counts.json'), 'utf8')) : {};
 counts.template = { impact: T.impact, later: T.later };
 const label = (txt) => `drawtext=text='${txt}':x=24:y=20:fontsize=34:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=10`;
-for (const list of Object.values(MOMENTS)) for (const name of list) {
-  if (!want(name)) continue;
+// (Any names not in the X1 list are taken as given: stage X2's x2-el-<element> proofs.)
+const extra = only.filter((n) => !Object.values(MOMENTS).flat().includes(n) && !MOMENTS[n]);
+for (const name of [...Object.values(MOMENTS).flat(), ...extra]) {
+  if (!want(name) && !extra.includes(name)) continue;
   const r = await moment(name).catch((e) => ({ shots: {}, errors: [e.message.split('\n')[0]] }));
   if (!r.shots.impact || !r.shots.later) { log(`${name}: FAILED ${r.errors.join(' | ')}`); counts[name] = { failed: true }; continue; }
   counts[name] = { kind: r.kind, impact: r.alive, later: r.alive2 };

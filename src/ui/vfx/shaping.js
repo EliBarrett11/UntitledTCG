@@ -18,6 +18,8 @@ export const PALETTES = {
   venom: ['#f2ffb0', '#7fe05a', '#1f6a3a'],
   water: ['#effffe', '#3fd0d8', '#1a4a8a'],
   storm: ['#ffffff', '#5aa8ff', '#5a5ad8'],
+  // Stage X2: Beast, blood and fur (no fire in it).
+  beast: ['#ffd8c0', '#c8322a', '#4a2a1c'],
 };
 export const PALETTE_ORDER = Object.keys(PALETTES);
 export const paletteIndex = (name) => (name == null ? -1 : PALETTE_ORDER.indexOf(name));

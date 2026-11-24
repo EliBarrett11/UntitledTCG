@@ -49,7 +49,7 @@ test('one timing table by weight: light, medium, heavy, legendary', () => {
 });
 
 test('the twelve element palettes, and the curves projectiles travel', () => {
-  assert.deepEqual(Object.keys(PALETTES), ['fire', 'arcane', 'holy', 'shadow', 'nature', 'ghostlight', 'steel', 'earth', 'frost', 'venom', 'water', 'storm']);
+  assert.deepEqual(Object.keys(PALETTES), ['fire', 'arcane', 'holy', 'shadow', 'nature', 'ghostlight', 'steel', 'earth', 'frost', 'venom', 'water', 'storm', 'beast']);
   for (const p of Object.values(PALETTES)) assert.equal(p.length, 3);
   assert.deepEqual(bezier([0, 0], [50, 100], [100, 0], 0), [0, 0]);
   assert.deepEqual(bezier([0, 0], [50, 100], [100, 0], 1), [100, 0]);

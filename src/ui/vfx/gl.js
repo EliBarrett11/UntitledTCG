@@ -116,7 +116,7 @@ uniform sampler2D uN0;
 uniform sampler2D uN1;
 uniform sampler2D uN2;
 uniform sampler2D uN3;
-uniform vec3 uPal[36];
+uniform vec3 uPal[48];
 uniform float uLight;
 uniform vec4 uOcc[${MAX_OCC}];
 uniform int uOccN;
@@ -585,8 +585,8 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   function setOccluders(rects) { occluders = rects.slice(0, MAX_OCC); }
   const marksAlive = (t) => [...pools.values()].some((pl) => pl.mark && pl.deathAt > t);
   // The element palettes, as one uniform array (set once).
-  let palData = new Float32Array(36 * 3);
-  function setPalettes(list) { palData = new Float32Array(36 * 3); list.slice(0, 12).forEach((pal, i) => pal.forEach((c, j) => palData.set(c, (i * 3 + j) * 3))); }
+  let palData = new Float32Array(48 * 3);
+  function setPalettes(list) { palData = new Float32Array(48 * 3); list.slice(0, 16).forEach((pal, i) => pal.forEach((c, j) => palData.set(c, (i * 3 + j) * 3))); }
 
   // --- Stage X1b: the board dip, struck cards' protection, and a count of particles alive ------------------------
   const lightList = [];   // stage X1b: the lights drawn this frame, for the light canvas
