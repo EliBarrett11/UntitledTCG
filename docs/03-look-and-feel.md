@@ -771,7 +771,7 @@ Built to `docs/archive/25-stage-l-prompt.md`. No rule changed. The rulebook's se
 11. **A fizzle:** the light dies where it would have landed, a puff of smoke burns away, and "fizzled" inks in.
 12. **Loading:** the title loads only its own art; a painted loading bar ("Preparing the war table…") shows over the board if a match starts before its art is in.
 
-## 23. Readings from stage X1b (the X1 moments brought up to the template): approved by Elliott, 24 November 2026 (element identity and the number's placement follow in X2)
+## 23. Readings from stage X1b (the X1 moments brought up to the template): needing Elliott's approval
 
 1. **One impact recipe by weight** (`src/ui/vfx/core.js`, `impact()`; the numbers in `src/ui/vfx/shaping.js`, `TIMING.impact`), at docs/40's minimums. Every hit has:
    - a hit-stop of 50, 75, 110 or 140 ms;
