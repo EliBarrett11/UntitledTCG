@@ -411,6 +411,8 @@ const ACTIONS = {
     const back = p.hand.filter((c) => cards.includes(c.uid));
     p.hand = p.hand.filter((c) => !back.includes(c));
     p.discard.push(...back);
+    // (Stage X1: so the cards going back can be shown leaving the hand.)
+    if (back.length) emit(s, 'mulliganed', { who, n: back.length, uids: back.map((c) => c.uid) });
     draw(s, who, back.length);
     p.mulliganed = true;
     log(s, `${NAME[who]} ${back.length ? `mulliganed ${back.length} card${back.length === 1 ? '' : 's'}` : 'kept their hand'}.`);

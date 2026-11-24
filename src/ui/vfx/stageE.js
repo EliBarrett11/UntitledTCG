@@ -136,12 +136,12 @@ export function stageEffects({ GUARD, GOLD }) {
       { at: 400, op: 'shake', weight: 'heavy' },
       { at: 400, op: 'pushin', on: 'dst', k: 0.02, dur: 900 },
       { at: 400, op: 'light', on: 'dst', palette: 'holy', tone: 'mid', radius: 480, peak: 0.3, attack: 40, hold: 200, decay: 600 },
-      { at: 420, op: 'sprite', tex: 'dial-flare', on: 'lvl', size: 120, scale: [0.4, 1.2], curve: 'out', life: 420, fadeOut: 0.4, tint: GOLD, tintK: 0.5, alpha: 1.5 },
+      { at: 420, op: 'sprite', tex: 'vfx-renown-star', on: 'lvl', size: 110, scale: [0.4, 1.2], curve: 'out', life: 420, alpha: 1.3, ...burn(0.4, 'vfx-noise-cells'), ...HOLY },
       // 4. Secondary (480–760): the Renown star blooms over the card; its +1 Renown flies to the Warlord.
       { at: 480, op: 'sprite', tex: 'vfx-renown-star', on: 'dst', dy: -60, size: 140, scale: [0.3, 1.1], curve: 'out', life: 600, alpha: 0.8, ...burn(0.55, 'vfx-noise-cells'), ...HOLY },
-      { at: 560, op: 'ribbon', tex: 'renown-ribbon', from: 'dst', to: 'dial', bend: 110, width: 40, travel: 300, lag: 160, tint: 'gold', tintK: 0.6, alpha: 1.3,
+      { at: 560, op: 'ribbon', tex: 'vfx-light-flare', from: 'dst', to: 'dial', bend: 110, width: 44, travel: 300, lag: 160, tint: 'gold', tintK: 0.6, alpha: 1.3, erodeTail: 0.5, palette: 'holy',
         motes: { tex: 'vfx-holy-motes', rate: 50, speed: [10, 50], life: [300, 480], size: [10, 20], palette: 'holy', paletteK: 0.45 } },
-      { at: 760, op: 'sprite', tex: 'dial-flare', on: 'dial', size: 170, scale: [0.4, 1.1], curve: 'out', life: 320, fadeOut: 0.4, tint: 'gold', tintK: 0.4, alpha: 1.3 },
+      { at: 760, op: 'sprite', tex: 'vfx-renown-star', on: 'dial', size: 150, scale: [0.4, 1.1], curve: 'out', life: 340, alpha: 1.2, ...burn(0.35, 'vfx-noise-cells'), ...HOLY },
       { at: 760, op: 'call', fn: 'tick' },
       // 5. Settle (600–900, and on): motes drift down; the glyph ring erodes away along vfx-noise-cells.
       { at: 600, op: 'burst', tex: 'vfx-holy-motes', on: 'dst', n: 14, area: [130, 170], speed: [10, 40], angle: 90, spread: 40, gravity: 60, life: [700, 1000], size: [8, 18], alpha: 1.1, ...burn(0.6, 'vfx-noise-cells'), ...HOLY },
@@ -151,7 +151,7 @@ export function stageEffects({ GUARD, GOLD }) {
       { at: 0, op: 'light', on: 'dst', palette: 'holy', tone: 'mid', radius: 420, peak: 0.5, attack: 120, hold: 160, decay: 300 },
       { at: 0, op: 'sprite', tex: 'vfx-arcane-glyphring', on: 'dst', mark: true, dy: 96, sizeK: 1.8, flat: 0.42, life: 900, alpha: 1.1, ...burn(0.45, 'vfx-noise-cells'), palette: 'holy', paletteK: 1 },
       { at: 60, op: 'sprite', tex: 'vfx-prime-burst', on: 'dst', sizeK: 1.5, life: 460, alpha: 1.2, ...burn(0.3, 'vfx-noise-cells'), ...HOLY },
-      { at: 60, op: 'sprite', tex: 'dial-flare', on: 'lvl', size: 110, scale: [1, 1], life: 420, fadeIn: 0.3, fadeOut: 0.5, tint: GOLD, tintK: 0.5, alpha: 1.1 },
+      { at: 60, op: 'sprite', tex: 'vfx-renown-star', on: 'lvl', size: 100, scale: [1, 1], life: 420, fadeIn: 0.3, alpha: 1, ...burn(0.5, 'vfx-noise-cells'), ...HOLY },
       { at: 250, op: 'call', fn: 'tick' },
     ] },
   };

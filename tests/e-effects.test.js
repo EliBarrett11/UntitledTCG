@@ -6,13 +6,14 @@ import { test, run, assert } from './helpers.js';
 import { PALETTES, PALETTE_ORDER, paletteAt, paletteIndex, erosionAt, erodePixel, frameAt, TIMING, FRAME_MS, hitstopMs, shakeFor, lightAt, EASE, easeOutBack } from '../src/ui/vfx/shaping.js';
 import { EFFECTS, BUDGET, BUDGET_SLACK, longestRun, texturesOf, attackEffectFor, effectFor } from '../src/ui/vfx/library.js';
 import { OLD_OF } from '../src/ui/vfx/stageE.js';
+import { flatten } from '../src/ui/vfx/runner.js';
 import { CARDS } from '../src/data/cards.js';
 
 const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const manifest = JSON.parse(readFileSync('assets/vfx/manifest.json', 'utf8')).textures;
 
-test('element palettes: the eight families of docs/20, each core, mid, edge; a brightness maps edge → mid → core', () => {
-  assert.deepEqual(PALETTE_ORDER, ['fire', 'arcane', 'holy', 'shadow', 'nature', 'ghostlight', 'steel', 'earth']);
+test('element palettes: the eight families of docs/20 and stage X1\'s four (frost, venom, water, storm), each core, mid, edge; a brightness maps edge → mid → core', () => {
+  assert.deepEqual(PALETTE_ORDER, ['fire', 'arcane', 'holy', 'shadow', 'nature', 'ghostlight', 'steel', 'earth', 'frost', 'venom', 'water', 'storm']);
   for (const k of PALETTE_ORDER) assert.equal(PALETTES[k].length, 3);
   assert.equal(paletteIndex('steel'), 6);
   assert.equal(paletteIndex(null), -1);
@@ -104,7 +105,8 @@ test('the three moments: built from the new kit, within their budgets, and used 
   assert.equal(effectFor('damage', 'Firebolt', 'strat'), 'e.firebolt.strat');
   assert.equal(effectFor('damage', 'Flask of Wildfire'), 'item.wildfire');
   const presenter = readFileSync('src/ui/presenter.js', 'utf8');
-  assert.match(presenter, /fxRun\(ctx, 'e\.defeat', env\)/);
+  assert.match(presenter, /fxRun\(ctx, 'defeat', env\)/);   // (stage X1: 'defeat' plays e.defeat with its variant by kind)
+  assert.ok(flatten('defeat').some((s) => s.tex === 'vfx-ash'), 'the burn is stage E\'s');
   assert.match(presenter, /settings\(\)\.lowMotion \? 'e\.prime\.low' : 'e\.prime'/);
 });
 

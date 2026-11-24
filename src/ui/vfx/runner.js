@@ -3,7 +3,7 @@
 // ribbons, distortion, shake and hit-stop, card motions, and hooks back into the presenter (numbers landing,
 // cards arriving), which always run, even when the beat is skipped.
 import { EFFECTS, GOLD } from './library.js';
-import { paletteIndex, PALETTES, hitstopMs, shakeFor, TIMING } from './shaping.js';
+import { paletteIndex, PALETTES, hitstopMs, shakeFor, pushInFor, TIMING, bezier, bowed, PROJECTILE_EASE } from './shaping.js';
 import { drawNoise } from './textures.js';
 
 let groupSeq = 0;
@@ -98,6 +98,9 @@ export async function runEffect(ctx, vfx, id, env) {
     if (s.palette) { o.palette = paletteIndex(s.palette); o.paletteK = s.paletteK ?? 1; }
     if (s.seq) o.seq = s.seq;
     if (s.mark) o.mark = true;
+    // (Stage X1: a flow field carries it; it streaks along its flight. Neither in low motion.)
+    if (s.curl && !still && !low) { o.curl = s.curl / f; o.curlScale = s.curlScale ?? 1; }
+    if (s.stretch && !still) o.stretch = s.stretch * f;
     return o;
   };
 
@@ -208,7 +211,9 @@ export async function runEffect(ctx, vfx, id, env) {
         if (!a || !b) return;
         const tex = vfx.texture(texOf(s));
         if (!tex) return;
-        const at = vfx.ribbon(tex, { from: { x: a.cx, y: a.cy }, to: { x: b.cx, y: b.cy }, bend: s.bend ?? 0, width: s.width ?? 40, travel: s.travel * f, lag: s.lag * f, col: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0 }, group);
+        const pal = s.palette ? hexRgb(PALETTES[s.palette][0]) : undefined;
+        const pts = s.via ? [{ x: a.cx, y: a.cy }, ...s.via.map((v) => { const bb = box(v, s); return { x: bb.cx, y: bb.cy }; }), { x: b.cx, y: b.cy }] : null;
+        const at = vfx.ribbon(tex, { from: { x: a.cx, y: a.cy }, to: { x: b.cx, y: b.cy }, bend: s.bend ?? 0, width: s.width ?? 40, travel: s.travel * f, lag: s.lag * f, col: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, points: pts, erode: s.erodeTail ?? 0, edgeCol: pal }, group);
         if (s.motes && !low) {
           const m = { ...s.motes };
           vfx.emitter({ rate: m.rate * ps / f, dur: s.travel * f, group, spawn: (k) => { const p = at(k); particle(m, p.x, p.y); } });
@@ -239,6 +244,44 @@ export async function runEffect(ctx, vfx, id, env) {
               const tr = s.trail;
               vfx.emitter({ rate: tr.rate * ps / f, dur: s.dur * f, delay: delay * f, group, spawn: (k) => { const t = k * T; particle({ ...tr, angle: tr.align ? Math.atan2(vy + g * t, vx) * 180 / Math.PI : tr.angle }, x0 + vx * t, y0 + vy * t + 0.5 * g * t * t); } });
             }
+          }
+        });
+        return;
+      }
+      // Stage X1: a projectile along an eased curve (docs/vfx-template's bolt): its head (layered sprites riding the path
+      // on the GPU, aligned to their flight), a trail shed behind it, sparks thrown back, and a light riding with it.
+      // { from, to ('each' or a box), dur, bend, lift, ease, head: [sprite defs], trail: { particle def, rate },
+      //   sparks: { particle def, rate }, light: { palette | col, radius, peak } }. Not in low motion (nothing flies).
+      case 'bolt': {
+        if (still || low) return;
+        const a = box(s.from ?? 'src', s);
+        const dests = s.to === 'each' && env.targets?.length ? env.targets.map((t) => t.box) : [box(s.to ?? 'dst', s)];
+        dests.forEach((b, di) => {
+          if (!a || !b) return;
+          const p0 = [a.cx + (s.dx ?? 0), a.cy + (s.dy ?? 0)]; const p2 = [b.cx, b.cy];
+          const ctrl = bowed(p0, p2, (s.bend ?? 0) * (di % 2 ? -1 : 1), s.lift ?? 0);
+          const ease = s.ease ?? PROJECTILE_EASE;
+          const dur = s.dur * f; const delay = (s.stagger ?? 0) * di * f;
+          const path = { ctrl, to: p2, ease };
+          for (const h of s.head ?? []) {
+            const tex = vfx.texture(texOf(h));
+            if (!tex) continue;
+            const w = h.size ?? 100; const asp = vfx.frameAspect(tex, h.frame ?? 0);
+            vfx.spawn(tex, { x: p0[0], y: p0[1], path, life: dur, w, h: h.h ?? w / asp, rot: rad(h.rotOffset ?? 0), spin: rad(h.spin ?? 0) / f, align: h.align !== false, fadeIn: h.fadeIn ?? 0.12, fadeOut: h.fadeOut ?? 0.96,
+              frame: h.frame ?? 0, col0: col(h), tint: h.tint ? h.tintK ?? 0.6 : 0, delay, ...shaped(h) }, group);
+          }
+          const at = (k) => bezier(p0, ctrl, p2, Math.max(0, Math.min(1, k)) ** ease);
+          const shed = (def) => vfx.emitter({ rate: def.rate * ps / f, dur, delay, group, spawn: (k) => {
+            const [x, y] = at(k); const [x0, y0] = at(Math.max(0, k - 0.03));
+            const back = Math.atan2(y0 - y, x0 - x) * 180 / Math.PI;
+            particle({ ...def, angle: def.angle ?? back, spread: def.spread ?? 70 }, x + (r() - 0.5) * (def.jitter ?? 16), y + (r() - 0.5) * (def.jitter ?? 16));
+          } });
+          if (s.trail) shed(s.trail);
+          if (s.sparks) shed(s.sparks);
+          if (s.light) {
+            const L = s.light; const pal = L.palette ? PALETTES[L.palette] : null;
+            const c = L.col ? hexRgb(colourOf(L.col)) : pal ? hexRgb(pal[1]) : [1, 0.6, 0.25];
+            vfx.light?.({ x: p0[0], y: p0[1], path: { from: p0, ctrl, to: p2, dur, ease }, radius: L.radius ?? 300, col: c, peak: L.peak ?? 0.35, attack: dur * 0.15, hold: dur * 0.85, decay: 120 * f, delay });
           }
         });
         return;
@@ -283,8 +326,8 @@ export async function runEffect(ctx, vfx, id, env) {
       }
       case 'pushin': {
         if (low) return;
-        const k = s.k ?? TIMING.pushIn.heavy;
-        tgts.forEach((tt) => vfx.pushIn?.(k, tt.cx, tt.cy, (s.dur ?? TIMING.pushInMs.heavy) * f));
+        const pw = s.weight ? pushInFor(s.weight) : { k: s.k ?? TIMING.pushIn.heavy, dur: s.dur ?? TIMING.pushInMs.heavy };
+        tgts.forEach((tt) => vfx.pushIn?.(pw.k, tt.cx, tt.cy, pw.dur * f));
         return;
       }
       case 'flash':

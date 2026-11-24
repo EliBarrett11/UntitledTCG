@@ -11,6 +11,8 @@ import { accentOf, esc, HUMAN, AI, artOf, tintOf, foe, foes } from './text.js';
 import { handLayout, LANE_W, HAND, tileArt } from './view.js';
 import { hasGuard, mightOf } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
+import { fly, flightFrames, flightMs } from './motion.js';
+import { effectText } from '../engine/wording.js';
 import { gameParams } from './devparams.js';
 import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS, arrivalEffectFor, placedEffectFor } from './vfx/library.js';
 import { OLD_OF } from './vfx/stageE.js';
@@ -128,47 +130,22 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   }
   // (Stage F: no line is drawn once a target is chosen; the attack or effect animation shows what was targeted.)
   // A card face (or back) sliding from one place to another and settling like card stock on leather.
-  async function slide(ctx, html, from, to, { size = 'mini', hold = 0, scaleTo = 1 } = {}) {
+  async function slide(ctx, html, from, to, { size = 'mini', hold = 0, scaleTo = 1, weight = 'light' } = {}) {
     const w = size === 'mini' ? 200 : size === 'token' ? TOKEN_W : size === 'full' ? 340 : 46;
     const h = size === 'mini' ? 280 : size === 'token' ? TOKEN_H : size === 'full' ? 476 : 64;
     const el = add(html, from.cx - w / 2, from.cy - h / 2, 'ghost');
-    const dx = to.cx - from.cx; const dy = to.cy - from.cy;
-    if (settings().lowMotion) {
-      el.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleTo})`;
-      await ctx.anim(el, [{ opacity: 0 }, { opacity: 1, offset: 0.3 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 500 + hold });
-    } else {
-      // (V5: the same smooth arc as a thrown Item, gentler: a small wind-up, an eased flight, settling as it lands.)
-      await ctx.anim(el, arcFrames(dx, dy, { lift: Math.min(80, Math.hypot(dx, dy) * 0.12), spin: 0, tilt: 3, scale1: scaleTo, fadeIn: true }), { duration: 650, easing: 'linear' });
-      if (hold) await ctx.wait(hold);
-      await ctx.anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 180 });
-    }
+    // (Stage X1: the card-motion system: a wind-up, a curve, its shadow, the landing's squash and settle.)
+    await fly(ctx, el, from, to, { weight, scale1: scaleTo, fadeIn: true, lowMotion: settings().lowMotion, fill: 'forwards' });
+    if (hold) await ctx.wait(hold);
+    await ctx.anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 160 });
     el.remove();
   }
   // V5 (thrown Items): one smooth arc as keyframes, sampled so it never jumps. A short wind-up (it draws back and
   // grows a little), an eased launch along a curve (a quadratic arc lifted by `lift`), turning `spin` degrees, and
   // arriving at full speed's end exactly at the last frame.
-  function arcFrames(dx, dy, { lift = 120, spin = 0, tilt = 0, scale0 = 1, scale1 = 1, wind = 0.16, fadeIn = false } = {}) {
-    const N = 30;
-    const back = { x: -dx * 0.05, y: -dy * 0.05 + 8 };
-    const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - ((-2 * u + 2) ** 3) / 2);   // ease in and out (cubic)
-    const frames = [];
-    for (let i = 0; i <= N; i++) {
-      const t = i / N;
-      let x; let y; let rot; let sc;
-      if (t <= wind) {
-        const k = Math.sin((t / wind) * Math.PI / 2);
-        x = back.x * k; y = back.y * k; rot = -tilt * k - spin * 0.03 * k; sc = scale0 * (1 + 0.06 * k);
-      } else {
-        const u = ease((t - wind) / (1 - wind));
-        const cx = (back.x + dx) / 2; const cy = (back.y + dy) / 2 - lift;   // the arc's control point
-        x = (1 - u) ** 2 * back.x + 2 * (1 - u) * u * cx + u * u * dx;
-        y = (1 - u) ** 2 * back.y + 2 * (1 - u) * u * cy + u * u * dy;
-        rot = (-tilt - spin * 0.03) * (1 - u) + spin * u;
-        sc = scale0 * 1.06 * (1 - u) + scale1 * u;
-      }
-      frames.push({ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scale(${sc.toFixed(3)})`, opacity: fadeIn ? Math.min(1, 0.2 + t * 4) : 1, offset: t });
-    }
-    return frames;
+  // (Stage X1: every card flight is the card-motion system's; this keeps the old helper's name for its callers.)
+  function arcFrames(dx, dy, { lift = 120, spin = 0, tilt = 0, scale0 = 1, scale1 = 1, fadeIn = false, fadeOut = true, weight = 'medium' } = {}) {
+    return flightFrames(dx, dy, { lift, spin, tilt, scale0, scale1, fadeIn, fadeOut, weight });
   }
   // An Item thrown at a creature: the card flies the arc, spinning, with a trail of embers, and is gone the frame it
   // lands (the impact plays from that frame). Low motion: it fades in at the target instead.
@@ -183,15 +160,18 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       return;
     }
     const lift = Math.max(120, Math.hypot(dx, dy) * 0.35);
-    const anim = ctx.anim(el, arcFrames(dx, dy, { lift, spin, tilt: 6, scale0: 0.6, scale1: 0.3 }), { duration: dur, easing: 'linear' });
-    // The trail: embers dropped where the card is, every few frames, fading behind it.
+    const anim = ctx.anim(el, flightFrames(dx, dy, { lift, spin, tilt: 6, scale0: 0.6, scale1: 0.3, fadeOut: true, weight: 'medium' }), { duration: dur, easing: 'linear' });
+    // (Stage X1: its trail is the painted kit's sparks, shed where the card is, falling and burning out.)
     let alive = true;
+    const [tr, tg, tb] = [1, 3, 5].map((i) => parseInt(trail.slice(i, i + 2), 16) / 255);
     const drop = () => {
       if (!alive || !el.isConnected) return;
       const b = box(el);
-      const p = add('', b.cx - 6, b.cy - 6, 'ember trail');
-      p.style.setProperty('--c', trail);
-      ctx.anim(p, [{ opacity: 0.9, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.3) translateY(10px)' }], { duration: 420, easing: 'ease-out' }).then(() => p.remove(), () => p.remove());
+      const tex = vfx?.on ? vfx.texture('vfx-sparks') : null;
+      if (tex) {
+        for (let k = 0; k < 2; k++) vfx.spawn(tex, { x: b.cx + (Math.random() - 0.5) * 30, y: b.cy + (Math.random() - 0.5) * 30, vx: (Math.random() - 0.5) * 120, vy: -40 - Math.random() * 80, gy: 520, drag: 1.6, life: ctx.ms(380 + Math.random() * 260),
+          w: 10 + Math.random() * 10, h: 10 + Math.random() * 10, frame: Math.floor(Math.random() * 16), col0: [tr, tg, tb, 1], tint: 0.55, fadeOut: 0.5, stretch: 0.004 });
+      }
       setTimeout(drop, 28);
     };
     setTimeout(drop, dur * 0.16);
@@ -265,21 +245,14 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
 
   // --- The effects layer (stage V1) ------------------------------------------------------------------------------
   // A card arcing from one place to another (a summon: from the hand to its space), gone as it lands.
-  async function arcIn(ctx, html, from, to, { dur = 300, scaleTo = 0.82 } = {}) {
+  async function arcIn(ctx, html, from, to, { dur = 300, scaleTo = 0.82, weight = 'heavy' } = {}) {
     const w = 200; const h = 280;
     const el = add(html, from.cx - w / 2, from.cy - h / 2, 'ghost');
-    const dx = to.cx - from.cx; const dy = to.cy - from.cy;
-    if (settings().lowMotion) {
-      await ctx.anim(el, [{ opacity: 0, transform: `translate(${dx}px, ${dy}px) scale(${scaleTo})` }, { opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(${scaleTo})` }], { duration: dur });
-    } else {
-      await ctx.anim(el, [
-        { transform: 'translate(0,0) rotate(-4deg) scale(1)', opacity: 0.4 },
-        { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 90}px) rotate(3deg) scale(${(1 + scaleTo) / 2 * 1.06})`, opacity: 1, offset: 0.5 },
-        { transform: `translate(${dx}px, ${dy - 14}px) rotate(0deg) scale(${scaleTo * 1.04})`, opacity: 1 },
-      ], { duration: dur, easing: 'cubic-bezier(.3,.6,.4,1)' });
-    }
+    // (Stage X1: the card-motion system, by weight; it's gone the frame it lands: the token takes its place.)
+    await fly(ctx, el, from, to, { weight, scale1: scaleTo, fadeIn: true, land: false, lowMotion: settings().lowMotion, ms: Math.max(dur, flightMs(Math.hypot(to.cx - from.cx, to.cy - from.cy), weight, { land: false }) * 0.8) });
     el.remove();
   }
+
   // Places shared by many effects.
   function anchors(extra = {}) {
     const el = (x) => (x ? box(x) : null);
@@ -406,24 +379,31 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     const pile = pileEl(who, 1);
     const from = pile ? box(pile) : (who === HUMAN ? { cx: 1215, cy: 1010 } : { cx: 1184, cy: 57 });
     const runs = [];
+    const low = settings().lowMotion;
     if (who === HUMAN) {
+      // (Stage X1: each card lifts off the Draw Pile and flies its curve into its place in the fan, one after another.)
       uids.forEach((u, i) => {
         const el = q(`.hand-card[data-uid="${u}"]`);
         if (!el) return;
         const b = box(el);
         el.style.opacity = '';
-        runs.push(ctx.anim(el, [{ transform: `translate(${from.cx - b.cx}px, ${from.cy - b.cy}px) scale(0.3) rotate(-8deg)`, opacity: 0.3 }, { transform: getComputedStyle(el).transform === 'none' ? 'none' : getComputedStyle(el).transform, opacity: 1 }], { duration: 420, delay: i * 90, fill: 'none', easing: 'cubic-bezier(.2,.7,.2,1)' }));
+        const base = getComputedStyle(el).transform; const fan = base === 'none' ? '' : base;
+        const ox = from.cx - b.cx; const oy = from.cy - b.cy;
+        if (low) { runs.push(ctx.anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: i * 60, fill: 'none' })); return; }
+        const fr = flightFrames(-ox, -oy, { weight: 'light', scale0: 0.32, scale1: 1, tilt: -6 }).map((f) => ({ ...f, transform: `${fan} translate(${ox}px, ${oy}px) ${f.transform}` }));
+        runs.push(ctx.anim(el, fr, { duration: flightMs(Math.hypot(ox, oy), 'light'), delay: i * 90, fill: 'backwards', easing: 'linear' }));
       });
     } else {
       const hand = q('[data-region="enemy-hand"]');
       const to = hand ? box(hand) : foeHand();
       uids.forEach((u, i) => {
         const el = add(cardBack('back-ghost'), from.cx - 23, from.cy - 32, 'ghost');
-        runs.push(ctx.anim(el, [{ transform: 'translate(0,0) scale(1)', opacity: 0.9 }, { transform: `translate(${to.cx - from.cx}px, ${to.cy - from.cy}px) scale(0.8)`, opacity: 0.2 }], { duration: 380, delay: i * 80 }).then(() => el.remove()));
+        runs.push((async () => { await ctx.wait(i * 80); await fly(ctx, el, from, to, { weight: 'light', scale1: 0.8, fadeOut: true, lowMotion: low }); el.remove(); })());
       });
     }
     await Promise.all(runs);
   }
+
 
   // --- The beats for one action ------------------------------------------------------------------------------
   // prev and next are the states before and after; the board shows next. held: numbers shown at their old
@@ -472,6 +452,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     const armourFor = (ei, who, space) => (armourAt.get(ei) ?? []).filter((a) => a.who === who && a.space === space).reduce((n, a) => n + a.prevented, 0);
     // Where a card's effect comes from: the creature, or the card just shown (a React, an Event, a Strat).
     let castFrom = null;
+    let lastSummon = null;
     const pileBox = (who) => (pileEl(who, 3) ? box(pileEl(who, 3)) : centre);
     // A dominance's Renown is shown with it (the banner, then the ribbon): that renown event is merged in.
     const mergedRenown = new Set();
@@ -480,6 +461,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       switch (e.type) {
         case 'summoned': {
           const card = next.players[e.who].row[e.space] ?? cardIn(prev, e.uid);
+          lastSummon = { who: e.who, space: e.space };
           B('summon', `${NAME[e.who]} summoned ${e.name} (Level ${e.level})${e.active ? ': Ambush, it arrives Active' : ''}.`, async (ctx) => {
             const t = token(e.who, e.space);
             if (t) t.style.opacity = '0';
@@ -508,11 +490,13 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const lane = cell(e.who, e.space);
             const lb = lane ? box(lane) : focus;
             const av = attackVars(card);
-            await fxRun(ctx, 'summon', {
+            // (Stage X1: the summon by the card's weight: Light, Mid, Heavy; the card's flight is the motion system's.)
+            const sw = card?.series === 'Heavy' ? 'heavy' : card?.series === 'Light' ? 'light' : 'medium';
+            await fxRun(ctx, sw === 'heavy' ? 'summon.heavy' : sw === 'light' ? 'summon.light' : 'summon', {
               anchors: anchors({ src: from, dst: focus, laneA: { ...lb, cy: 170 }, laneB: { ...lb, cy: 730 } }), els: { dst: t }, tint: card ? accentOf(card) : '#c7a15a',
-              flags: { heavy: card?.series === 'Heavy', ambush: !!(e.active && card?.keywords?.ambush), gust: av.flags.gust },
+              flags: { heavy: sw === 'heavy', ambush: !!(e.active && card?.keywords?.ambush), gust: av.flags.gust },
               hooks: {
-                arcIn: () => (card ? arcIn(ctx, renderCard(card, { size: 'mini' }), from, focus, { dur: 300 }) : null),
+                arcIn: () => (card ? arcIn(ctx, renderCard(card, { size: 'mini' }), from, focus, { dur: 300, weight: sw }) : null),
                 arrive: () => { if (t) t.style.opacity = ''; },
               },
             });
@@ -653,7 +637,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 dstHp: d ? tabAt(foe, e.target.space, 'tab-h') : undefined, dstAtk: d ? tabAt(foe, e.target.space, 'tab-a') : undefined }), els: { src: ab, dst: tb ?? toEl },
               tint: colour, tint2: d ? accentOf(d) : colour, amount: e.amount,
               flags: { ...av.flags, back: !!e.back, armour: armour > 0, armourBack: armourBack > 0, guard: !!(d && hasGuard(d, guardKind)) },
-              vars: { ...av.vars, slash2: d ? attackVars(d).vars.slash2 : 'slash-arc', guardSigil: guardKind === 'Shield' ? 'shield-sigil' : 'ward-sigil' },
+              vars: { ...av.vars, slash2: d ? attackVars(d).vars.slash2 : 'slash-arc', guardSigil: guardKind === 'Shield' ? 'vfx-shield-sigil' : 'vfx-ward-hex' },
               hooks: {
                 land: () => {
                   if (tb) setText(tb.querySelector('.tab-h span'), next.players[foe].row[e.target.space]?.currentHealth ?? 0);
@@ -739,7 +723,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 },
               },
             };
-            await fxRun(ctx, 'e.defeat', env);
+            // (Stage X1: stage E's burn, with its variant by kind: stone, ghostlight, leaves or ice.)
+            await fxRun(ctx, 'defeat', env);
             burnt(env.els.ghost ?? q(`[data-ghost="${e.who}:${e.space}"]`));
           });
           break;
@@ -820,11 +805,18 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           const c = e.point === 'defeat' ? prevCard(e.who, e.space) : next.players[e.who].row[e.space] ?? prevCard(e.who, e.space);
           const name = { summon: 'On Summon', defeat: 'On Defeat', dawn: 'On Dawn', dusk: 'On Dusk', rally: 'Rally', attack: 'On Attack', defend: 'On Defend' }[e.point] ?? 'Trigger';
           // (Stage N: On Dusk and On Dawn pulse in their moment's colour.)
-          const fx = inCine ? 'trigger.cine' : e.point === 'dusk' ? 'trigger.dusk' : e.point === 'dawn' ? 'trigger.dawn' : 'trigger';
-          B('trigger', `${POSS[e.who]} ${c?.name ?? 'creature'}: ${name}.`, async (ctx) => { await tag(ctx, name.toUpperCase(), where(e.who, e.space)); }, async (ctx) => {
+          // (Stage X1: Rally carries gold light on a gust from the creature just summoned to each one it Rallies.)
+          const fx = inCine ? 'trigger.cine' : e.point === 'dusk' ? 'trigger.dusk' : e.point === 'dawn' ? 'trigger.dawn' : e.point === 'rally' ? 'trigger.rally' : 'trigger';
+          const rallyFrom = e.point === 'rally' && lastSummon ? { ...lastSummon } : null;
+          // (Stage X1: a "choose one" summon shows the mode chosen, its words inked beside the creature.)
+          const trig = e.mode != null && c ? (c.triggers ?? [c.trigger]).find((x) => x?.choose) : null;
+          const modeWords = trig ? (e.mode === 'both' ? 'BOTH' : (() => { try { return effectText(trig.choose[e.mode].ops, trig.choose[e.mode].target); } catch { return `CHOICE ${e.mode + 1}`; } })()) : null;
+          B('trigger', `${POSS[e.who]} ${c?.name ?? 'creature'}: ${name}${modeWords ? ` (${modeWords})` : ''}.`, async (ctx) => { await tag(ctx, name.toUpperCase(), where(e.who, e.space)); }, async (ctx) => {
             const at = where(e.who, e.space);
             focus = at;
-            await fxRun(ctx, fx, { anchors: anchors({ dst: at }), tint: c ? accentOf(c) : '#c7a15a', hooks: { tag: () => tag(ctx, name.toUpperCase(), at) } });
+            const src = rallyFrom ? where(rallyFrom.who, rallyFrom.space) : at;
+            await fxRun(ctx, fx, { anchors: anchors({ src, dst: at }), tint: c ? accentOf(c) : '#c7a15a', hooks: { tag: () => tag(ctx, name.toUpperCase(), at) } });
+            if (modeWords) await fxRun(ctx, 'mode.chosen', { anchors: anchors({ dst: at }), hooks: { tag: () => ink(ctx, modeWords.length > 46 ? `${modeWords.slice(0, 44)}…` : modeWords, { cx: at.cx, cy: at.y - 6 }, 'mode') } });
           });
           break;
         }
@@ -1173,6 +1165,35 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           break;
         }
         // Cards drawn (by an Event, an Order, a trigger, or at Dawn) fly from the Draw Pile.
+        // Stage X1: a mulligan's cards leave the hand: each flies from its place in the fan to the Discard Pile.
+        case 'mulliganed': {
+          B('draw', `${NAME[e.who]} ${e.who === HUMAN ? 'put' : 'puts'} back ${e.n} card${e.n === 1 ? '' : 's'}.`, async (ctx) => { await ctx.wait(120); }, async (ctx) => {
+            const pile = pileEl(e.who, 2);
+            const to = pile ? box(pile) : centre;
+            const low = settings().lowMotion;
+            const runs = [];
+            if (e.who === HUMAN) {
+              const hand = prev.players[HUMAN].hand;
+              const lay = handLayout(hand.length);
+              e.uids.forEach((u, i) => {
+                const k = hand.findIndex((c) => c.uid === u);
+                const c = hand[k];
+                if (!c || !lay[k]) return;
+                const from = { cx: lay[k].cx, cy: (HAND.y ?? 800) + 140 };
+                const el = add(renderCard(c, { size: 'mini' }), from.cx - 100, from.cy - 140, 'ghost');
+                runs.push((async () => { await ctx.wait(i * 70); await fly(ctx, el, from, to, { weight: 'light', scale1: 0.3, fadeOut: true, lowMotion: low }); el.remove(); })());
+              });
+            } else {
+              const from = foeHand();
+              for (let i = 0; i < e.n; i++) {
+                const el = add(cardBack('back-ghost'), from.cx - 23, from.cy - 32, 'ghost');
+                runs.push((async () => { await ctx.wait(i * 70); await fly(ctx, el, from, to, { weight: 'light', scale1: 0.8, fadeOut: true, lowMotion: low }); el.remove(); })());
+              }
+            }
+            await Promise.all(runs);
+          });
+          break;
+        }
         case 'drew': {
           const n = e.uids.length;
           B('draw', `${NAME[e.who]} ${e.who === HUMAN ? 'draw' : 'draws'} ${n} card${n === 1 ? '' : 's'}${e.name ? ` (${e.name})` : ''}.`, async () => {
@@ -1218,7 +1239,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           break;
         }
         case 'fizzled':
-          B('fizzle', `${e.what} fizzled.`, async (ctx) => { await ink(ctx, 'fizzled', focus, 'info'); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ink(ctx, 'fizzled', focus, 'info') } }); });
+          B('fizzle', `${e.what} fizzled.`, async (ctx) => { await ink(ctx, 'fizzled', focus, 'info'); }, async (ctx) => { await fxRun(ctx, 'fizzle', { anchors: anchors({ dst: focus }), hooks: { wait: () => ink(ctx, 'fizzled', focus, 'info') } }); });
           break;
         case 'pass':
           B('pass', e.endsPhase ? `${NAME[e.who]} passed: the Battle Phase ends.` : `${NAME[e.who]} passed.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => { await fxRun(ctx, 'quiet', { anchors: anchors(), hooks: { wait: () => ctx.wait(300) } }); });

@@ -65,6 +65,8 @@ export function redactEvents(events, seat, after = null) {
       return { ...e, uids: Array.from({ length: n }, (_, i) => handUid(foe, Math.max(0, size - n + i))) };
     }
     if (e.type === 'retained') return { ...e, uid: null };
+    // (Stage X1: which of the other player's cards went back in their mulligan isn't shown; how many is.)
+    if (e.type === 'mulliganed') return { ...e, uids: [] };
     return e;
   });
 }

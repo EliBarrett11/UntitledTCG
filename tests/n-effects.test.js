@@ -19,7 +19,7 @@ test('every new creature has an attack effect; Skyreach (Soaring) arcs over the 
   for (const d of fresh.filter((x) => x.campaignCreature)) assert.ok(EFFECTS[attackEffectFor(d.campaignCreature)], d.campaignCreature.id);
   assert.equal(attackEffectFor({ id: 'skyreach-wyvern', form: 'skyreach-wyvernling' }), 'attack.soaring');
   assert.equal(attackEffectFor({ id: 'x', keywords: { soaring: true }, attackKind: 'Arcane' }), 'attack.soaring');
-  assert.ok(flatten('attack.soaring').some((s) => s.op === 'projectile' && s.arc >= 400), 'a high arc');
+  assert.ok(flatten('attack.soaring').some((s) => s.op === 'bolt' && s.lift >= 400), 'a high arc (stage X1: a bolt on the wind)');
   assert.ok(longestRun('attack.soaring') <= lim('attack'));
 });
 
@@ -40,7 +40,7 @@ test('every new Action mode, Event, Item and Campaign Order resolves each of its
 });
 
 test('the keyword cues exist, use painted textures in their palettes, and keep within the budgets', () => {
-  const cues = { 'kw.venom': ['poison-mist', 'renown'], 'kw.chill': ['vfx-frost-crust', 'renown'], 'kw.undying': ['spirit-rise', 'defeat'], 'kw.frenzy': ['vfx-rage-aura', 'renown'], 'kw.tinker': ['metal-sparks-atlas', 'renown'],
+  const cues = { 'kw.venom': ['poison-mist', 'renown'], 'kw.chill': ['vfx-frost-crust', 'renown'], 'kw.undying': ['vfx-ghost-veil', 'defeat'], 'kw.frenzy': ['vfx-rage-aura', 'renown'], 'kw.tinker': ['metal-sparks-atlas', 'renown'],
     'trigger.dusk': ['rune-circle', 'renown'], 'trigger.dawn': ['rune-circle', 'renown'] };
   for (const [id, [tex, budget]] of Object.entries(cues)) {
     assert.ok(EFFECTS[id], id);

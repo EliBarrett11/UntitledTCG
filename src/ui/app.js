@@ -10,6 +10,7 @@ import { makeRng } from '../engine/random.js';
 import { render, fitLabels, primeNextTab, ROW_Y } from './view.js';
 import { fitMarket } from './hud.js';
 import { renderCard, seriesLine, TOKEN_H } from './cards.js';
+import { HAND as HAND_MOTION, fly } from './motion.js';
 import { displayLine, HUMAN, AI, esc, foe, foes, setSeat, protectionText } from './text.js';
 import { createPresenter } from './presenter.js';
 import { createVfx } from './vfx/index.js';
@@ -742,7 +743,7 @@ export function startApp(params) {
     // Stage P: a creature whose Prime is next Round says so on its Retain choice.
     const primeNext = card.stage === 'rising' && card.primeRound === s.round + 1;
     add('Retain', `1 Energy · keep it through Dusk${primeNext ? ' · Prime next Round' : ''}`, (a) => a.type === 'retain');
-    if (!groups.length) return toast(`${card.name} can't be played now.`);
+    if (!groups.length) { refuseCard(uid); return toast(`${card.name} can't be played now.`); }
     ui.handSel = uid;
     if (groups.length === 1) { choose(groups[0].list, `${groups[0].label} ${card.name}`); return; }
     const i = s.players[HUMAN].hand.indexOf(card);
@@ -1559,10 +1560,32 @@ export function startApp(params) {
     hideTip();
     refreshEnergy();
   }
+  // Stage X1: a card that can't be played refuses: a firm shake that dies away, and a red edge for a moment.
+  function refuseCard(uid) {
+    const el = stage.querySelector(`.hand-card[data-uid="${uid}"]`);
+    if (!el || settings.lowMotion) return;
+    el.classList.add('refused');
+    el.querySelector('.card')?.animate(HAND_MOTION.refuse(), { duration: 380, easing: 'ease-out' });
+    setTimeout(() => el.classList.remove('refused'), 520);
+  }
+  // Stage X1: a dragged card that isn't played flies home to its place in the hand (the card-motion system), then goes.
+  function ghostHome(d) {
+    const g = d?.ghost;
+    if (!g) return;
+    const home = d.kind === 'hand' ? stage.querySelector(`.hand-card[data-uid="${d.uid}"]`) : stage.querySelector(`[data-cell="${HUMAN}:${d.lane}"]`);
+    if (!home || settings.lowMotion) { g.remove(); return; }
+    const k = stage.getBoundingClientRect().width / STAGE_W || 1;
+    const gb = g.getBoundingClientRect(); const hb = home.getBoundingClientRect();
+    const from = { cx: (gb.left + gb.width / 2) / k, cy: (gb.top + gb.height / 2) / k };
+    const to = { cx: (hb.left + hb.width / 2) / k, cy: (hb.top + hb.height / 2) / k };
+    g.style.transition = 'none';
+    g.classList.add('going-home');
+    fly(null, g, from, to, { weight: 'light', scale0: 1, scale1: 0.92, shadow: true, fill: 'forwards' }).then(() => g.remove());
+  }
   // A drag is cancelled by Escape or a cancelled pointer: the card goes back, nothing is played.
   function cancelDrag() {
     if (!drag) return;
-    drag.ghost?.remove();
+    ghostHome(drag);
     stage.querySelectorAll('.drop-ok, .drop-hover').forEach((x) => x.classList.remove('drop-ok', 'drop-hover'));
     clearProtect();
     if (drag.active) { suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); }
@@ -1589,8 +1612,13 @@ export function startApp(params) {
       hidePreview();
     }
     const p = toStage(e.clientX, e.clientY);
+    // (Stage X1: the card leans into its movement and rights itself as it slows: weight in the hand.)
+    const vx = drag.px == null ? 0 : p.x - drag.px;
+    drag.lean = (drag.lean ?? 0) * 0.8 + Math.max(-14, Math.min(14, vx * 0.6)) * 0.2;
+    drag.px = p.x;
     drag.ghost.style.left = `${p.x}px`;
     drag.ghost.style.top = `${p.y}px`;
+    drag.ghost.style.setProperty('--lean', `${drag.lean.toFixed(2)}deg`);
     const k = keyAt(e.clientX, e.clientY);
     stage.querySelectorAll('.drop-hover').forEach((x) => x.classList.remove('drop-hover'));
     if (k && (drag.keys.has(k) || (drag.keys.has('map') && k.startsWith('cell:')))) elFor(k)?.classList.add('drop-hover');
@@ -1602,12 +1630,13 @@ export function startApp(params) {
     if (!d.active) return;
     suppressClick = true;
     setTimeout(() => { suppressClick = false; }, 0);
-    d.ghost?.remove();
     stage.querySelectorAll('.drop-ok, .drop-hover').forEach((x) => x.classList.remove('drop-ok', 'drop-hover'));
     clearProtect();
     const k = keyAt(e.clientX, e.clientY);
     const list = d.cands.filter((a) => { const ks = dropKeys(a); return ks.includes(k) || (ks.includes('map') && (k === 'map' || k?.startsWith('cell:'))); });
-    if (!list.length) return toast('It can\'t be played there.');
+    // (Stage X1: refused, the card flies home; dropped where it can go, it lands there and the play's own moment follows.)
+    if (!list.length) { ghostHome(d); if (d.kind === 'hand') refuseCard(d.uid); return toast('It can\'t be played there.'); }
+    d.ghost?.remove();
     if (d.kind === 'attacker') { ui.attacker = d.lane; return choose(list, `Attack with ${s.players[HUMAN].row[d.lane].name}`); }
     ui.handSel = d.uid;
     return openHand(d.uid, list);

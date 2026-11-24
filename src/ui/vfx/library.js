@@ -23,12 +23,13 @@
 import { CARDS } from '../../data/cards.js';
 import { signatureEffects } from './signature.js';
 import { stageEffects } from './stageE.js';
+import { coreEffects } from './core.js';
 import { hitstopMs } from './shaping.js';
 
 // The timing budget at normal speed (docs/archive/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
 // V2 (section 5.10, proposed): the Ashen Wyrm's arrival 3.5 s, a Campaign Creature 3 s, the Last Battle 3 s,
 // a Location placed 1 s (gone 0.8 s), and about 0.6 s per dominated Location at Dusk.
-export const BUDGET = { attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800, prime: 900, primeLow: 500,
+export const BUDGET = { attack: 1250, summon: 750, summonHeavy: 820, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800, prime: 900, primeLow: 500,
   wyrm: 3500, location: 1000, locationGone: 800, dominance: 600 };
 export const BUDGET_SLACK = 0.12;
 export const GOLD = '#f2c46a';
@@ -560,6 +561,9 @@ Object.assign(EFFECTS, {
     { at: 0, op: 'shake', px: [2, 2], dur: 180 },
   ] },
 });
+// Stage X1: the core of combat and summoning, rebuilt to the template's standard (core.js), merged last so they
+// replace the old storyboards of the same ids.
+Object.assign(EFFECTS, coreEffects());
 
 // Every presenter beat has an effect (docs/archive/10-feel-and-vfx.md section 3). Some are chosen per card below.
 export const BEAT_EFFECTS = {
@@ -664,6 +668,7 @@ export function attackVars(card, rand = Math.random) {
   return {
     vars: { slash, slash2: kind === 'Beast' ? 'claw-rake' : 'slash-arc', burst: 'arcane-vortex', bolt: 'arcane-bolt' },
     flags: { heavy: !!heavy, final, tier, orb: spire && tier >= 1, lightning: spire && tier >= 2, undead: kind === 'Undead', beast: kind === 'Beast', stone: st.defeat === 'stone', storm: !!st.storm,
+      treant: kind === 'Treant', ice: kind === 'Elemental',
       gust: !!st.summonGust && card?.form === st.summonGust },
   };
 }
@@ -719,10 +724,10 @@ export function texturesOf(id, seen = new Set()) {
   const out = new Set();
   if (!def || seen.has(id)) return out;
   seen.add(id);
-  const vars = ['slash-arc', 'cleave-arc', 'claw-rake', 'bite-snap', 'arcane-vortex', 'arcane-bolt', 'fire-burst', 'spectral-wail', 'soul-wisp', 'impact-flash', 'shield-sigil', 'ward-sigil'];
+  const vars = ['slash-arc', 'cleave-arc', 'claw-rake', 'bite-snap', 'arcane-vortex', 'arcane-bolt', 'fire-burst', 'spectral-wail', 'soul-wisp', 'impact-flash', 'shield-sigil', 'ward-sigil', 'vfx-shield-sigil', 'vfx-ward-hex'];
   for (const s of def.steps) {
     if (s.op === 'use') { for (const t of texturesOf(s.id, seen)) out.add(t); continue; }
-    for (const t of [s.tex, s.trail?.tex, s.motes?.tex]) if (t) (t.startsWith('$') ? vars : [t]).forEach((x) => out.add(x));
+    for (const t of [s.tex, s.trail?.tex, s.motes?.tex, s.sparks?.tex, ...(s.head ?? []).map((h) => h.tex)]) if (t) (t.startsWith('$') ? vars : [t]).forEach((x) => out.add(x));
   }
   return out;
 }

@@ -15,9 +15,9 @@ const read = (p) => readFileSync(new URL(p, root), 'utf8');
 const manifest = JSON.parse(read('assets/vfx/manifest.json')).textures;
 const kitIds = new Set([...read('docs/archive/08-vfx-prompts.md').matchAll(/### \d+\. `([a-z0-9-]+)`/g)].map((m) => m[1]));
 // (Stage N2: docs/35's six new kit textures join them.)
-const kit21 = new Set([...read('docs/21-vfx-texture-prompts.md').match(/vfx-[a-z-]+/g), ...read('docs/35-fixes-after-stage-n.md').match(/vfx-[a-z-]+/g)]);
+const kit21 = new Set([...read('docs/21-vfx-texture-prompts.md').match(/vfx-[a-z-]+/g), ...read('docs/35-fixes-after-stage-n.md').match(/vfx-[a-z-]+/g), ...read('docs/37-vfx-rebuild-plan.md').match(/vfx-[a-z-]+/g), ...read('docs/39-vfx-final-textures.md').match(/vfx-[a-z-]+/g)]);
 defineCards(CARDS);
-const OPS = new Set(['sprite', 'burst', 'emit', 'ribbon', 'projectile', 'beam', 'wave', 'heat', 'shake', 'hitstop', 'flash', 'dom', 'call', 'use', 'light', 'pushin']);   // (stage E: light and pushin)
+const OPS = new Set(['bolt', 'sprite', 'burst', 'emit', 'ribbon', 'projectile', 'beam', 'wave', 'heat', 'shake', 'hitstop', 'flash', 'dom', 'call', 'use', 'light', 'pushin']);   // (stage E: light and pushin)
 
 test('every creature in the first deck (each form) and the Campaign Creature resolves to an attack effect', () => {
   const ids = new Set(FIRST_DECK);

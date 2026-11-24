@@ -19,7 +19,7 @@
 
 const STAGE_W = 1920;
 const STAGE_H = 1080;
-const FLOATS = 48;   // per particle: 12 vec4s (stage E added 4)
+const FLOATS = 56;   // per particle: 14 vec4s (stage E added 4, stage X1 2)
 const NOISE = ['vfx-noise-brush', 'vfx-noise-cells', 'vfx-noise-embers', 'vfx-noise-wisps'];
 const MAX_LIGHTS = 8;
 const MAX_OCC = 24;
@@ -38,6 +38,8 @@ layout(location=9) in vec4 a8;   // erosion from, to, start (share of life), edg
 layout(location=10) in vec4 a9;  // noise index (-1 none), noise scale, noise scroll u, v (per s)
 layout(location=11) in vec4 a10; // flow, texture scroll u, v (per s), palette index (-1 none)
 layout(location=12) in vec4 a11; // sheet start, count (0: fixed), fps (negative: once), palette strength
+layout(location=13) in vec4 a12; // stage X1: curl strength (px/s), curl scale, path ease exponent (0: no path), stretch
+layout(location=14) in vec4 a13; // stage X1: path control point (x, y), path end (x, y)
 uniform float uTime;
 uniform vec4 uFrames[32];
 out vec2 vUv;
@@ -56,13 +58,29 @@ void main() {
   if (t < 0.0 || k >= 1.0) { gl_Position = vec4(3.0, 3.0, 3.0, 1.0); vUv = vec2(0.0); vCol = vec4(0.0); vTint = 0.0; vLocal = vec2(0.0); vFrame = vec4(0.0); vE = vec4(0.0); vS = vec4(0.0); vT = vec4(0.0); vPos = vec2(0.0); return; }
   vec2 v0 = a0.zw; vec2 g = a1.xy; float d = a1.z;
   vec2 pos; vec2 vel;
-  if (d > 0.001) { float e = exp(-d * t); pos = a0.xy + (v0 - g / d) * (1.0 - e) / d + g * t / d; vel = (v0 - g / d) * e + g / d; }
+  if (a12.z > 0.0) {
+    // (Stage X1: a path: a quadratic curve from the start through the control point to the end, eased by a power, so
+    // a projectile winds up slowly and arrives fast, as the template's bolt does.)
+    float u = pow(clamp(k, 0.0, 1.0), a12.z); float iu = 1.0 - u;
+    pos = iu * iu * a0.xy + 2.0 * iu * u * a13.xy + u * u * a13.zw;
+    vec2 du = 2.0 * iu * (a13.xy - a0.xy) + 2.0 * u * (a13.zw - a13.xy);
+    vel = du * a12.z * pow(max(k, 0.001), a12.z - 1.0) / life;
+  } else if (d > 0.001) { float e = exp(-d * t); pos = a0.xy + (v0 - g / d) * (1.0 - e) / d + g * t / d; vel = (v0 - g / d) * e + g / d; }
   else { pos = a0.xy + v0 * t + 0.5 * g * t * t; vel = v0 + g * t; }
+  // (Stage X1: a flow field: the particle is carried along a smooth swirl, for long ember tails.)
+  if (a12.x > 0.0) {
+    vec2 q = a0.xy * a12.y;
+    vec2 f = vec2(sin(q.y * 0.011 + t * 1.7) + sin((q.x + q.y) * 0.007 - t), cos(q.x * 0.012 - t * 1.3) + cos((q.x - q.y) * 0.006 + t));
+    pos += f * a12.x * t * (0.6 + 0.4 * t);
+    vel += f * a12.x;
+  }
   float curve = a7.z < 0.5 ? k : (a7.z < 1.5 ? 1.0 - (1.0 - k) * (1.0 - k) : (k < 0.15 ? k / 0.15 * 1.15 : 1.15 - 0.15 * (k - 0.15) / 0.85));
   float s = a7.z > 1.5 ? curve * a2.w : mix(1.0, a2.w, curve);
   float rot = a3.x + a3.y * t;
   if (a7.x > 0.5 && length(vel) > 1.0) rot = atan(vel.y, vel.x) + a3.x;
   vec2 c = corner * vec2(a2.y, a2.z) * s;
+  // (Stage X1: stretched along its flight: sparks and embers streak.)
+  if (a12.w > 0.0 && length(vel) > 1.0) { float st = min(1.0 + length(vel) * a12.w, 6.0); c.x *= st; c.y /= min(sqrt(st), 2.0); rot = atan(vel.y, vel.x); }
   float cs = cos(rot); float sn = sin(rot);
   c = vec2(c.x * cs - c.y * sn, c.x * sn + c.y * cs);
   vec2 p = pos + c;
@@ -98,7 +116,7 @@ uniform sampler2D uN0;
 uniform sampler2D uN1;
 uniform sampler2D uN2;
 uniform sampler2D uN3;
-uniform vec3 uPal[24];
+uniform vec3 uPal[36];
 uniform float uLight;
 uniform vec4 uOcc[${MAX_OCC}];
 uniform int uOccN;
@@ -184,10 +202,14 @@ void main() {
 const RIBBON_FS = `#version 300 es
 precision highp float;
 uniform sampler2D uTex;
+uniform sampler2D uNoise;
 uniform vec4 uCol;
 uniform float uHead;
 uniform float uTail;
 uniform float uTint;
+uniform float uErode;   // stage X1: how far into its length the tail erodes (0: a clean edge)
+uniform vec3 uEdgeC;
+uniform float uTime;
 in vec2 vUv;
 in float vS;
 out vec4 o;
@@ -197,8 +219,18 @@ void main() {
   float l = max(t.r, max(t.g, t.b));
   vec3 hue = uCol.rgb / max(0.0001, max(uCol.r, max(uCol.g, uCol.b)));
   vec3 tinted = l * hue + pow(l, 4.0) * 0.6 * (1.0 - hue);
-  float edge = smoothstep(0.0, 0.08, vUv.x) ;
-  o = vec4(mix(t.rgb, tinted, uTint) * uCol.a * edge, 0.0);
+  float edge = smoothstep(0.0, 0.08, vUv.x);
+  vec3 c = mix(t.rgb, tinted, uTint);
+  // (Stage X1: the tail burns away along painted noise with a bright edge, never a plain fade.)
+  if (uErode > 0.0) {
+    float n = texture(uNoise, vec2(vS * 3.0 - uTime * 0.0004, vUv.y * 0.7)).r;
+    float th = 1.0 - smoothstep(0.0, uErode, vUv.x);
+    float keep = smoothstep(th, th + 0.04, n);
+    float band = keep * (1.0 - smoothstep(th + 0.05, th + 0.12, n)) * step(0.001, th);
+    c = c * keep + uEdgeC * band * l * 1.4;
+    edge = 1.0;
+  }
+  o = vec4(c * uCol.a * edge, 0.0);
 }`;
 
 const QUAD_VS = `#version 300 es
@@ -410,6 +442,9 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     const sq = p.seq && tx && tx.frames.length > 1 ? p.seq : null;
     d[o + 44] = sq ? Math.min(31, sq.start ?? 0) : 0; d[o + 45] = sq ? Math.min(32 - (sq.start ?? 0), sq.count ?? tx.frames.length) : 0;
     d[o + 46] = sq ? (sq.fps ?? 24) * (sq.once ? -1 : 1) : 0; d[o + 47] = p.paletteK ?? 1;
+    // (Stage X1: curl, a path and stretch.)
+    d[o + 48] = p.curl ?? 0; d[o + 49] = p.curlScale ?? 1; d[o + 50] = p.path ? p.path.ease ?? 1 : 0; d[o + 51] = p.stretch ?? 0;
+    d[o + 52] = p.path ? p.path.ctrl[0] : 0; d[o + 53] = p.path ? p.path.ctrl[1] : 0; d[o + 54] = p.path ? p.path.to[0] : 0; d[o + 55] = p.path ? p.path.to[1] : 0;
     pl.dirtyFrom = Math.min(pl.dirtyFrom, i); pl.dirtyTo = Math.max(pl.dirtyTo, i);
     pl.deathAt = Math.max(pl.deathAt, t + p.life);
     if (group != null) { if (!pl.groups.has(group)) pl.groups.set(group, []); pl.groups.get(group).push(i); }
@@ -424,19 +459,31 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   const ribbons = [];
   // A ribbon along a quadratic curve from a to b (bend: how far the middle bows, in px). It draws from tail
   // to head over `travel` ms, then the tail catches up over `lag` ms.
-  function ribbon(id, { from, to, bend = 0, width = 40, travel = 500, lag = 300, col = [1, 1, 1, 1], tint = 0, delay = 0 }, group) {
+  // (Stage X1: or along any path of points, `points` [{x, y}, ...], smoothed; `erode` makes its tail burn away.)
+  function ribbon(id, { from, to, bend = 0, width = 40, travel = 500, lag = 300, col = [1, 1, 1, 1], tint = 0, delay = 0, points = null, erode = 0, edgeCol = [1, 0.85, 0.55] }, group) {
     const N = 40;
-    const mx = (from.x + to.x) / 2; const my = (from.y + to.y) / 2;
-    const dx = to.x - from.x; const dy = to.y - from.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len; const ny = dx / len;
-    const cx = mx + nx * bend; const cy = my + ny * bend;
     const pts = [];
-    for (let i = 0; i <= N; i++) {
-      const s = i / N;
-      const x = (1 - s) * (1 - s) * from.x + 2 * (1 - s) * s * cx + s * s * to.x;
-      const y = (1 - s) * (1 - s) * from.y + 2 * (1 - s) * s * cy + s * s * to.y;
-      pts.push([x, y, s]);
+    if (points && points.length >= 2) {
+      // A Catmull-Rom spline through the points.
+      const P = points;
+      for (let i = 0; i <= N; i++) {
+        const s = i / N; const f = s * (P.length - 1); const j = Math.min(P.length - 2, Math.floor(f)); const u = f - j;
+        const p0 = P[Math.max(0, j - 1)]; const p1 = P[j]; const p2 = P[j + 1]; const p3 = P[Math.min(P.length - 1, j + 2)];
+        const cr = (a, b, c2, d2) => 0.5 * ((2 * b) + (-a + c2) * u + (2 * a - 5 * b + 4 * c2 - d2) * u * u + (-a + 3 * b - 3 * c2 + d2) * u * u * u);
+        pts.push([cr(p0.x, p1.x, p2.x, p3.x), cr(p0.y, p1.y, p2.y, p3.y), s]);
+      }
+    } else {
+      const mx = (from.x + to.x) / 2; const my = (from.y + to.y) / 2;
+      const dx = to.x - from.x; const dy = to.y - from.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len; const ny = dx / len;
+      const cx = mx + nx * bend; const cy = my + ny * bend;
+      for (let i = 0; i <= N; i++) {
+        const s = i / N;
+        const x = (1 - s) * (1 - s) * from.x + 2 * (1 - s) * s * cx + s * s * to.x;
+        const y = (1 - s) * (1 - s) * from.y + 2 * (1 - s) * s * cy + s * s * to.y;
+        pts.push([x, y, s]);
+      }
     }
     const verts = new Float32Array((N + 1) * 2 * 4);
     for (let i = 0; i <= N; i++) {
@@ -456,7 +503,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
     gl.bindVertexArray(null);
     const t0 = now() + delay;
-    const r = { id, vao, buf, count: (N + 1) * 2, t0, travel, lag, col, tint, end: t0 + travel + lag, group };
+    const r = { id, vao, buf, count: (N + 1) * 2, t0, travel, lag, col, tint, end: t0 + travel + lag, group, erode, edgeCol };
     ribbons.push(r);
     wake();
     // Where the head is at time t (for motes that follow it).
@@ -490,14 +537,22 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     const k = (e - a - h) / Math.max(1, dcy);
     return k >= 1 ? 0 : pk * (1 - (1 - (1 - k) ** 3));
   };
+  // (Stage X1: a light can ride a path, as a projectile's head does: { from, ctrl, to, dur, ease }.)
+  const lightPos = (L, t) => {
+    const P = L.path;
+    if (!P) return [L.x, L.y];
+    const k = Math.max(0, Math.min(1, (t - L.t0) / Math.max(1, P.dur)));
+    const u = k ** (P.ease ?? 1); const iu = 1 - u;
+    return [iu * iu * P.from[0] + 2 * iu * u * P.ctrl[0] + u * u * P.to[0], iu * iu * P.from[1] + 2 * iu * u * P.ctrl[1] + u * u * P.to[1]];
+  };
   const lightEnd = (L) => L.t0 + (L.attack ?? 60) + (L.hold ?? 80) + (L.decay ?? 400);
   // The cards' boxes (stage px), cut out of board marks; kept up to date by the effects layer while marks show.
   let occluders = [];
   function setOccluders(rects) { occluders = rects.slice(0, MAX_OCC); }
   const marksAlive = (t) => [...pools.values()].some((pl) => pl.mark && pl.deathAt > t);
   // The element palettes, as one uniform array (set once).
-  let palData = new Float32Array(24 * 3);
-  function setPalettes(list) { palData = new Float32Array(24 * 3); list.slice(0, 8).forEach((pal, i) => pal.forEach((c, j) => palData.set(c, (i * 3 + j) * 3))); }
+  let palData = new Float32Array(36 * 3);
+  function setPalettes(list) { palData = new Float32Array(36 * 3); list.slice(0, 12).forEach((pal, i) => pal.forEach((c, j) => palData.set(c, (i * 3 + j) * 3))); }
 
   // --- Bloom flash -----------------------------------------------------------------------------------------------
   let flashK = 0; let flashT0 = 0; let flashDur = 1;
@@ -682,6 +737,9 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     const R = progs.ribbon;
     gl.useProgram(R.p);
     gl.uniform1i(R.u.uTex, 0);
+    gl.uniform1i(R.u.uNoise, 1);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, textures.get('vfx-noise-wisps')?.tex ?? null); gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1f(R.u.uTime, t);
     blendLight();
     for (const r of ribbons) {
       if (t < r.t0 || t > r.end) continue;
@@ -695,6 +753,8 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
       gl.uniform1f(R.u.uTail, tail);
       gl.uniform4f(R.u.uCol, r.col[0], r.col[1], r.col[2], r.col[3] * fade);
       gl.uniform1f(R.u.uTint, r.tint);
+      gl.uniform1f(R.u.uErode, r.erode ?? 0);
+      gl.uniform3f(R.u.uEdgeC, ...(r.edgeCol ?? [1, 0.85, 0.55]));
       gl.bindTexture(gl.TEXTURE_2D, tx.tex);
       gl.bindVertexArray(r.vao);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, r.count);
@@ -747,7 +807,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     if (heat && !lowMotion && t < heat.t0 + heat.dur) { const k = (t - heat.t0) / heat.dur; gl.uniform4f(C.u.uHeat, heat.x, heat.y, heat.radius, heat.strength * Math.sin(Math.PI * k)); } else gl.uniform4f(C.u.uHeat, 0, 0, 0, 0);
     for (let i = lights.length - 1; i >= 0; i--) if (lightEnd(lights[i]) < t) lights.splice(i, 1);
     const lv = new Float32Array(MAX_LIGHTS * 4); const lc = new Float32Array(MAX_LIGHTS * 3);
-    lights.forEach((L, i) => { lv.set([L.x, L.y, L.radius ?? 200, lightCurve(L, t)], i * 4); lc.set(L.col ?? [1, 0.85, 0.6], i * 3); });
+    lights.forEach((L, i) => { const [lx, ly] = lightPos(L, t); lv.set([lx, ly, L.radius ?? 200, lightCurve(L, t)], i * 4); lc.set(L.col ?? [1, 0.85, 0.6], i * 3); });
     gl.uniform4fv(C.u.uLight, lv);
     gl.uniform3fv(C.u.uLightC, lc);
     gl.drawArrays(gl.TRIANGLES, 0, 6);

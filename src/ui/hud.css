@@ -243,7 +243,8 @@ body.low-motion .turn-plaque.sweep::after { animation: none; display: none; }
 .warlord-badge { left: 110px; top: 116px; bottom: auto; z-index: 40; }
 
 /* --- The hand: the fan scales a little past 8 cards (handLayout in src/ui/view.js) ------------------------------ */
-.hand-card { transform: rotate(var(--r, 0deg)) scale(var(--k, 1)); transition: top .15s, transform .15s; }
+/* Stage X1: the hover lift rises with a small overshoot and settles (weight in the hand), and eases back down. */
+.hand-card { transform: rotate(var(--r, 0deg)) scale(var(--k, 1)); transition: top .26s cubic-bezier(.3, 1.6, .5, 1), transform .26s cubic-bezier(.3, 1.4, .5, 1), filter .2s; }
 .hand-card:hover { --k: 1; }
 body.low-motion .hand-card { transition: top .15s; }
 
