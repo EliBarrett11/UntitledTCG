@@ -804,4 +804,10 @@ Built from `docs/40-stage-x1b-prompt.md`, against the approved bar, `docs/vfx-te
 - **Dev aids** (only with `?dev`):
   - `__match.vfxApi.debugState()` (the particles alive by texture, the lights);
   - `?fxskip=id,…` (drops textures, to find which layer does what).
+- **Results:**
+  - all 51 test files pass;
+  - neat text (804 renders) and card contrast (lowest 4.87:1) pass;
+  - layout passes at 1920×1080, 1366×768 and 1280×720;
+  - realinput, libinput, presenter, online2 and vfxcheck pass;
+  - 60 first-deck AI matches and 300 random-deck matches finish with no crash, illegal state or stall.
 - **Readings for Elliott's approval:** `docs/03-look-and-feel.md` section 23.
