@@ -12,7 +12,8 @@ const first = new Set(FIRST_DECK);
 const fresh = CARDS.filter((d) => !first.has(d.id) && !d.legendaryOf);
 const lim = (b) => BUDGET[b] * (1 + BUDGET_SLACK);
 const manifest = JSON.parse(readFileSync('assets/vfx/manifest.json', 'utf8'));
-const known = new Set(Object.keys(manifest.textures ?? manifest));
+// (Stage X1b: light drawn in code, fx-*, counts with the painted kit.)
+const known = new Set([...Object.keys(manifest.textures ?? manifest), 'fx-dot', 'fx-glow', 'fx-soft']);
 
 test('every new creature has an attack effect; Skyreach (Soaring) arcs over the guard', () => {
   for (const d of fresh.filter((x) => x.forms)) for (const f of d.forms) assert.ok(EFFECTS[attackEffectFor({ id: d.id, form: f.id, cardType: d.cardType, traits: d.traits, attackKind: d.attackKind, series: d.series, keywords: f.keywords })], f.id);
@@ -20,7 +21,7 @@ test('every new creature has an attack effect; Skyreach (Soaring) arcs over the 
   assert.equal(attackEffectFor({ id: 'skyreach-wyvern', form: 'skyreach-wyvernling' }), 'attack.soaring');
   assert.equal(attackEffectFor({ id: 'x', keywords: { soaring: true }, attackKind: 'Arcane' }), 'attack.soaring');
   assert.ok(flatten('attack.soaring').some((s) => s.op === 'bolt' && s.lift >= 400), 'a high arc (stage X1: a bolt on the wind)');
-  assert.ok(longestRun('attack.soaring') <= lim('attack'));
+  assert.ok(longestRun('attack.soaring') <= lim('attackX'));
 });
 
 test('every new Action mode, Event, Item and Campaign Order resolves each of its ops to an effect', () => {
@@ -40,7 +41,7 @@ test('every new Action mode, Event, Item and Campaign Order resolves each of its
 });
 
 test('the keyword cues exist, use painted textures in their palettes, and keep within the budgets', () => {
-  const cues = { 'kw.venom': ['poison-mist', 'renown'], 'kw.chill': ['vfx-frost-crust', 'renown'], 'kw.undying': ['vfx-ghost-veil', 'defeat'], 'kw.frenzy': ['vfx-rage-aura', 'renown'], 'kw.tinker': ['metal-sparks-atlas', 'renown'],
+  const cues = { 'kw.venom': ['poison-mist', 'renown'], 'kw.chill': ['vfx-frost-crust', 'renown'], 'kw.undying': ['vfx-ghost-veil', 'defeatX'], 'kw.frenzy': ['vfx-rage-aura', 'renown'], 'kw.tinker': ['metal-sparks-atlas', 'renown'],
     'trigger.dusk': ['rune-circle', 'renown'], 'trigger.dawn': ['rune-circle', 'renown'] };
   for (const [id, [tex, budget]] of Object.entries(cues)) {
     assert.ok(EFFECTS[id], id);

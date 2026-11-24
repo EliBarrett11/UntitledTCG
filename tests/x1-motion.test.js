@@ -43,7 +43,7 @@ test('one timing table by weight: light, medium, heavy, legendary', () => {
   const order = WEIGHTS.map(hitstopMs);
   for (let i = 1; i < order.length; i++) assert.ok(order[i] > order[i - 1]);
   assert.ok(shakeFor('legendary').px > shakeFor('heavy').px);
-  assert.ok(pushInFor('legendary').k > pushInFor('heavy').k && pushInFor('light').k === 0);
+  assert.ok(pushInFor('legendary').k > pushInFor('heavy').k && pushInFor('heavy').k > pushInFor('light').k);
   assert.equal(hitstopMs('nonsense'), hitstopMs('medium'), 'an unknown weight reads as medium');
   assert.ok(TIMING.card.heavy.squash > TIMING.card.light.squash);
 });

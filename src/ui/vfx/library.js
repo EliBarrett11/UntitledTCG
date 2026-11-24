@@ -31,7 +31,9 @@ import { hitstopMs } from './shaping.js';
 // The timing budget at normal speed (docs/archive/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
 // V2 (section 5.10, proposed): the Ashen Wyrm's arrival 3.5 s, a Campaign Creature 3 s, the Last Battle 3 s,
 // a Location placed 1 s (gone 0.8 s), and about 0.6 s per dominated Location at Dusk.
-export const BUDGET = { attack: 1250, summon: 750, summonHeavy: 820, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800, prime: 900, primeLow: 500,
+// (Stage X1b: the rebuilt moments block a little longer, docs/40 section 3: about 1.2 s light to 2 s heavy, their tails
+// running on behind the next action.)
+export const BUDGET = { attackX: 1700, summonX: 1400, summonHeavy: 1800, defeatX: 1700, primeX: 1700, attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800, prime: 900, primeLow: 500,
   wyrm: 3500, location: 1000, locationGone: 800, dominance: 600 };
 export const BUDGET_SLACK = 0.12;
 export const GOLD = '#f2c46a';

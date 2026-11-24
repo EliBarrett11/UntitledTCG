@@ -156,7 +156,7 @@ export async function runEffect(ctx, vfx, id, env) {
     vfx.spawn(tex, {
       x, y, vx, vy, gx, gy, drag, life, w: size, h: s.h ?? size / asp, scaleEnd: s.scaleEnd ?? 1,
       rot: s.align ? 0 : r() * Math.PI * 2, spin: still ? 0 : rad(pick(s.spin ?? 0, r)) / f, fadeIn: s.fadeIn ?? 0.05, fadeOut: extra.home ? 0.75 : s.fadeOut ?? 0.5,
-      frame: s.seq ? s.seq.start ?? 0 : frame, col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, align: !!s.align && !still, delay: (extra.delay ?? 0) * f, ...shaped(s),
+      frame: s.seq ? s.seq.start ?? 0 : frame, col0: col(s), col1: s.tint1 ? [...hexRgb(colourOf(s.tint1)), s.alpha ?? 1] : undefined, tint: s.tint ? s.tintK ?? 0.6 : 0, align: !!s.align && !still, delay: (extra.delay ?? 0) * f, ...shaped(s),
     }, group);
   }
   const areaPoint = (s, at) => {
@@ -302,13 +302,25 @@ export async function runEffect(ctx, vfx, id, env) {
         });
         return;
       }
+      // (Stage X1b: the ripple and the heat bend the board itself too, as the template's do.)
       case 'wave':
         if (low) return;
-        tgts.forEach((t) => vfx.wave({ x: t.cx, y: t.cy, radius: s.radius, strength: s.strength, dur: s.dur * f, width: s.width ?? 28 }));
+        tgts.forEach((t) => { vfx.wave({ x: t.cx, y: t.cy, radius: s.radius, strength: s.strength, dur: s.dur * f, width: s.width ?? 28 }); vfx.boardRipple?.({ x: t.cx, y: t.cy, r1: s.radius, s: s.strength, life: s.dur * f }); });
         return;
       case 'heat':
         if (low) return;
-        tgts.forEach((t) => vfx.shimmer({ x: t.cx, y: t.cy, radius: s.radius, strength: s.strength, dur: s.dur * f }));
+        tgts.forEach((t) => { vfx.shimmer({ x: t.cx, y: t.cy, radius: s.radius, strength: s.strength, dur: s.dur * f }); vfx.boardHaze?.({ x: t.cx, y: t.cy, r: s.radius, s: s.strength, life: s.dur * f }); });
+        return;
+      // Stage X1b: the template's dip: the board darkens round the moment, a soft hole left at its source (kept in low
+      // motion: it's light).
+      case 'dip': {
+        const tt = tgts[0];
+        if (tt) vfx.dip?.({ x: tt.cx, y: tt.cy, r: s.radius ?? 420, peak: s.peak ?? 0.35, attack: (s.attack ?? 220) * f, hold: (s.hold ?? 400) * f, decay: (s.decay ?? 500) * f });
+        return;
+      }
+      // Stage X1b: a struck card's art stays readable: after the first instant, the light over it is capped.
+      case 'protect':
+        tgts.forEach((tt) => vfx.protect?.({ x: tt.x ?? tt.cx - (tt.w ?? 160) / 2, y: tt.y ?? tt.cy - (tt.h ?? 230) / 2, w: tt.w ?? 160, h: tt.h ?? 230, delay: (s.after ?? 80) * f, dur: (s.dur ?? 1400) * f }));
         return;
       case 'shake': {
         if (low) return;
@@ -335,6 +347,8 @@ export async function runEffect(ctx, vfx, id, env) {
         vfx.flash(scaled(s.k), s.dur * f);
         return;
       case 'hitstop': {
+        // (Stage X1b: each impact is marked, for the checks that catch its frame.)
+        if (typeof document !== 'undefined') document.body.dataset.impactSeq = String(Number(document.body.dataset.impactSeq ?? 0) + 1);
         if (low || ctx.skipping) return;
         const ms = s.weight ? hitstopMs(s.weight) : scaled(s.ms);
         vfx.freeze(ctx.ms(ms));
@@ -502,10 +516,20 @@ function domMotion(ctx, s, env, box, low) {
     case 'lift':
       return ctx.anim(el, [{ transform: 'translateY(0)' }, { transform: 'translateY(-8px) rotate(-1.5deg)', offset: 0.35 }, { transform: 'translateY(0)' }], { duration: d, fill: 'none' });
     // The target recoils about 6 px away from the attacker, and flashes.
+    // (Stage X1b, the template's struck card: lifted off the board, knocked back along the blow in a dying wobble
+    // (18 px · e^(−t/90) · cos(t/40)), flashing white for its first 260 ms, then settling.)
     case 'knock': {
       const l = Math.hypot(dx, dy) || 1;
-      const kx = (dx / l) * 6; const ky = (dy / l) * 6;
-      return ctx.anim(el, [{ transform: 'translate(0,0)', filter: 'brightness(1)' }, { transform: `translate(${kx}px, ${ky}px)`, filter: 'brightness(1.8)', offset: 0.2 }, { transform: `translate(${kx * 0.4}px, ${ky * 0.4}px)`, offset: 0.55 }, { transform: 'translate(0,0)', filter: 'brightness(1)' }], { duration: d, fill: 'none' });
+      const ux = dx / l; const uy = dy / l;
+      const T = Math.max(d, 700); const N = 24; const fr = [];
+      for (let i = 0; i <= N; i++) {
+        const t = (i / N) * T;
+        const kk = 18 * Math.exp(-t / 90) * Math.cos(t / 40);
+        const lift = 1 + 0.03 * Math.exp(-t / 260);
+        const fl = Math.max(0, 1 - t / 260) * 0.42;
+        fr.push({ transform: `translate(${(ux * kk * 0.5).toFixed(2)}px, ${(uy * kk * 0.5 - kk * 0.6 * 0.4).toFixed(2)}px) rotate(${(kk * 0.11).toFixed(2)}deg) scale(${lift.toFixed(3)})`, filter: `brightness(${(1 + fl * 1.6).toFixed(3)}) drop-shadow(0 ${(6 + 10 * Math.exp(-t / 260)).toFixed(1)}px 10px rgba(0,0,0,0.55))`, offset: i / N });
+      }
+      return ctx.anim(el, fr, { duration: T, fill: 'none', easing: 'linear' });
     }
     // A quick hop (the Knifemaster).
     case 'hop':

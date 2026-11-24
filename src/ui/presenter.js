@@ -96,16 +96,20 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   function ink(ctx, text, at, kind = 'dmg') {
     const el = add(esc(text), at.cx, at.cy - 10, `ink ink-${kind}`);
     // (Stage F: damage and healing pop in with a spring, overshoot, settle, then drift up and fade.)
+    // (Stage X1b, the template's number: it pops out past full size with a spring (to 1.25 in its first 12%), settles to
+    // full size, then rises 60 px and fades over its last 30%; 1.5 s in all.)
     if ((kind === 'dmg' || kind === 'heal') && !settings().lowMotion) {
-      return ctx.anim(el, [
-        { opacity: 0, transform: 'translate(-50%, 6px) scale(0.35)' },
-        { opacity: 1, transform: 'translate(-50%, -14px) scale(1.42)', offset: 0.12, easing: 'cubic-bezier(.2,.9,.3,1)' },
-        { opacity: 1, transform: 'translate(-50%, -18px) scale(0.9)', offset: 0.24 },
-        { opacity: 1, transform: 'translate(-50%, -20px) scale(1.06)', offset: 0.34 },
-        { opacity: 1, transform: 'translate(-50%, -22px) scale(1)', offset: 0.44 },
-        { opacity: 1, transform: 'translate(-50%, -38px) scale(1)', offset: 0.78, easing: 'ease-in' },
-        { opacity: 0, transform: 'translate(-50%, -56px) scale(0.96)' },
-      ], { duration: 1150 });
+      const back = (t) => { const c = 1.9; return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2; };
+      const sm = (t) => t * t * (3 - 2 * t);
+      const N = 30; const fr = [];
+      for (let i = 0; i <= N; i++) {
+        const u = i / N;
+        const pop = u < 0.12 ? back(u / 0.12) * 1.25 : 1.25 - 0.25 * sm(Math.min(1, (u - 0.12) / 0.2));
+        const rise = 60 * (1 - (1 - Math.max(0, Math.min(1, (u - 0.15) / 0.85))) ** 3);
+        const a = 1 - sm(Math.max(0, Math.min(1, (u - 0.7) / 0.3)));
+        fr.push({ opacity: Math.min(1, u * 30) * a, transform: `translate(-50%, ${(-rise).toFixed(1)}px) scale(${Math.max(0.01, pop).toFixed(3)})`, offset: u });
+      }
+      return ctx.anim(el, fr, { duration: 1500, easing: 'linear' });
     }
     return ctx.anim(el, [{ opacity: 0, transform: 'translate(-50%, 0) scale(0.8)' }, { opacity: 1, transform: 'translate(-50%, -18px) scale(1.15)', offset: 0.2 }, { opacity: 1, transform: 'translate(-50%, -36px) scale(1)', offset: 0.7 }, { opacity: 0, transform: 'translate(-50%, -54px) scale(1)' }], { duration: 1100 });
   }

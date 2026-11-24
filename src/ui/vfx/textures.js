@@ -209,3 +209,21 @@ export function loadImage(entry, { base = '', max = 512 } = {}) {
     img.src = `${base}${entry.file}`;
   });
 }
+
+// Stage X1b (docs/vfx-template's makeGlow): light drawn in code, not painted: a soft ember dot (fx-dot), a hot glow
+// with a white core (fx-glow) and a wide soft pool (fx-soft). White, so any palette or colour tints them.
+const CODE_LIGHT = {
+  'fx-dot': [64, [[0, 'rgba(255,255,255,1)'], [0.25, 'rgba(255,255,255,0.9)'], [0.55, 'rgba(255,255,255,0.25)'], [1, 'rgba(255,255,255,0)']]],
+  'fx-glow': [256, [[0, 'rgba(255,255,255,1)'], [0.18, 'rgba(255,248,232,0.85)'], [0.45, 'rgba(255,230,200,0.35)'], [1, 'rgba(255,220,180,0)']]],
+  'fx-soft': [256, [[0, 'rgba(255,255,255,0.9)'], [0.5, 'rgba(255,255,255,0.35)'], [1, 'rgba(255,255,255,0)']]],
+};
+export const isCodeLight = (id) => Object.hasOwn(CODE_LIGHT, id);
+export function drawCodeLight(id) {
+  const [size, stops] = CODE_LIGHT[id];
+  const cv = document.createElement('canvas'); cv.width = cv.height = size;
+  const g = cv.getContext('2d');
+  const gr = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  for (const [o, c] of stops) gr.addColorStop(o, c);
+  g.fillStyle = gr; g.fillRect(0, 0, size, size);
+  return { canvas: cv, w: size, h: size };
+}

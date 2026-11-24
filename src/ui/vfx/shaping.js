@@ -66,11 +66,20 @@ export const TIMING = {
   release: [80, 200],
   secondary: [200, 400],
   settle: [300, 800],
-  hitstopFrames: { light: 2, medium: 3, heavy: 4, legendary: 6 },
-  shakePx: { light: 1, medium: 2, heavy: 3, legendary: 5 },
-  shakeMs: { light: 140, medium: 200, heavy: 280, legendary: 420 },
-  pushIn: { light: 0, medium: 0.01, heavy: 0.02, legendary: 0.035 },
-  pushInMs: { light: 0, medium: 650, heavy: 900, legendary: 1300 },
+  // (Stage X1b: the template's numbers, docs/40's table: Firebolt is medium.)
+  hitstopMs: { light: 50, medium: 75, heavy: 110, legendary: 140 },
+  hitstopFrames: { light: 3, medium: 4.5, heavy: 6.6, legendary: 8.4 },
+  shakePx: { light: 8, medium: 15, heavy: 24, legendary: 32 },
+  shakeMs: { light: 320, medium: 420, heavy: 560, legendary: 720 },
+  pushIn: { light: 0.012, medium: 0.022, heavy: 0.035, legendary: 0.045 },
+  pushInMs: { light: 600, medium: 850, heavy: 1100, legendary: 1400 },
+  // The impact recipe's density by weight (docs/40 section 2): ripple radius, embers, sparks, radiating shapes, smoke.
+  impact: {
+    light: { ripple: 400, rippleS: 12, embers: 80, sparks: 15, shapes: 8, smoke: 4 },
+    medium: { ripple: 620, rippleS: 18, embers: 250, sparks: 45, shapes: 20, smoke: 9 },
+    heavy: { ripple: 900, rippleS: 26, embers: 400, sparks: 70, shapes: 28, smoke: 14 },
+    legendary: { ripple: 1300, rippleS: 30, embers: 600, sparks: 100, shapes: 40, smoke: 22 },
+  },
   // Card motion (motion.js): the wind-up's share of the flight and how far it pulls back (px), the lift at the top of
   // the arc (px), the landing's squash (scale) and its settle (ms), and the flight time (ms) for a 1000 px trip.
   card: {
@@ -81,7 +90,8 @@ export const TIMING = {
   },
 };
 const W = (weight) => (WEIGHTS.includes(weight) ? weight : 'medium');
-export const hitstopMs = (weight) => Math.round(TIMING.hitstopFrames[W(weight)] * FRAME_MS);
+export const hitstopMs = (weight) => TIMING.hitstopMs[W(weight)];
+export const impactFor = (weight) => TIMING.impact[W(weight)];
 export const shakeFor = (weight) => ({ px: TIMING.shakePx[W(weight)], dur: TIMING.shakeMs[W(weight)] });
 export const pushInFor = (weight) => ({ k: TIMING.pushIn[W(weight)], dur: TIMING.pushInMs[W(weight)] });
 export const cardMotionFor = (weight) => TIMING.card[W(weight)];

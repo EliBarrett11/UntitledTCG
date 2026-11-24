@@ -264,6 +264,9 @@ uniform vec4 uHeat;       // x, y, radius, strength
 uniform float uTime;
 uniform vec4 uLight[${MAX_LIGHTS}];   // x, y, radius, intensity (negative dims)
 uniform vec3 uLightC[${MAX_LIGHTS}];
+uniform vec4 uDip;        // stage X1b: the board dims everywhere but a soft hole round the moment: x, y, hole radius, strength
+uniform vec4 uProt[4];    // stage X1b: struck cards (x, y, w, h): the light over them is capped so their art stays readable
+uniform float uProtK[4];
 in vec2 vUv;
 out vec4 o;
 void main() {
@@ -294,7 +297,19 @@ void main() {
     f *= f;
     if (L.w > 0.0) lit += uLightC[i] * L.w * f; else { dim += -L.w * f; lit += uLightC[i] * -L.w * f * 0.25; }
   }
-  o = vec4(s.rgb + b + lit, min(1.0, s.a + dim * (1.0 - s.a)));
+  // (Stage X1b, the template's dip: the board darkens round the moment, a soft hole left around its source.)
+  if (uDip.w > 0.0) { float hole = 1.0 - smoothstep(uDip.z * 0.4, uDip.z, length(p - uDip.xy)); dim += uDip.w * (1.0 - hole * 0.75); }
+  vec3 add = s.rgb + b + lit;
+  // (Stage X1b: never a blow-out: over a struck card, once its first instant has passed, the added light is softly capped.)
+  for (int i = 0; i < 4; i++) {
+    vec4 r = uProt[i];
+    if (uProtK[i] <= 0.0) continue;
+    vec2 q = (p - r.xy) / max(r.zw, vec2(1.0));
+    float inside = step(0.0, q.x) * step(q.x, 1.0) * step(0.0, q.y) * step(q.y, 1.0);
+    vec3 capped = add / (1.0 + add * 2.2) * 0.85;
+    add = mix(add, min(add, capped), inside * uProtK[i]);
+  }
+  o = vec4(add, min(1.0, s.a + dim * (1.0 - s.a)));
 }`;
 
 function compile(gl, vs, fs) {
@@ -554,6 +569,18 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   let palData = new Float32Array(36 * 3);
   function setPalettes(list) { palData = new Float32Array(36 * 3); list.slice(0, 12).forEach((pal, i) => pal.forEach((c, j) => palData.set(c, (i * 3 + j) * 3))); }
 
+  // --- Stage X1b: the board dip, struck cards' protection, and a count of particles alive ------------------------
+  let dipState = null;   // { x, y, r, peak, attack, hold, decay, t0 }
+  function dip(d) { dipState = { ...d, t0: now() + (d.delay ?? 0) }; wake(); }
+  const dipEnd = () => (dipState ? dipState.t0 + (dipState.attack ?? 200) + (dipState.hold ?? 300) + (dipState.decay ?? 400) : 0);
+  const prots = [];      // { x, y, w, h, t0, dur }
+  function protect(pr) { prots.push({ ...pr, t0: now() + (pr.delay ?? 80) }); if (prots.length > 4) prots.shift(); wake(); }
+  function aliveCount(t = now()) {
+    let n = 0;
+    for (const pl of pools.values()) { if (pl.deathAt <= t) continue; for (let i = 0; i < pl.cap; i++) { const o = i * FLOATS; const b = pl.data[o + 7]; if (b <= t && b + pl.data[o + 8] > t) n += 1; } }
+    return n;
+  }
+
   // --- Bloom flash -----------------------------------------------------------------------------------------------
   let flashK = 0; let flashT0 = 0; let flashDur = 1;
   function flash(k = 1, dur = 200) { flashK = k; flashT0 = now(); flashDur = dur; wake(); }
@@ -638,6 +665,8 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     if (waves.some((w) => w.t0 + w.dur > t)) return true;
     if (heat && heat.t0 + heat.dur > t) return true;
     if (lights.some((L) => lightEnd(L) > t)) return true;
+    if (dipState && dipEnd() > t) return true;
+    if (prots.some((pr) => pr.t0 + pr.dur > t)) return true;
     if (onFrame?.alive?.()) return true;
     return false;
   }
@@ -810,6 +839,12 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
     lights.forEach((L, i) => { const [lx, ly] = lightPos(L, t); lv.set([lx, ly, L.radius ?? 200, lightCurve(L, t)], i * 4); lc.set(L.col ?? [1, 0.85, 0.6], i * 3); });
     gl.uniform4fv(C.u.uLight, lv);
     gl.uniform3fv(C.u.uLightC, lc);
+    if (dipState && t < dipEnd()) gl.uniform4f(C.u.uDip, dipState.x, dipState.y, dipState.r ?? 420, lightCurve({ ...dipState, peak: dipState.peak ?? 0.35 }, t)); else gl.uniform4f(C.u.uDip, 0, 0, 0, 0);
+    const pv = new Float32Array(16); const pk = new Float32Array(4);
+    for (let i = prots.length - 1; i >= 0; i--) if (prots[i].t0 + prots[i].dur < t) prots.splice(i, 1);
+    prots.forEach((pr, i) => { pv.set([pr.x, pr.y, pr.w, pr.h], i * 4); const e = t - pr.t0; pk[i] = e < 0 ? 0 : Math.min(1, e / 60) * Math.min(1, (pr.t0 + pr.dur - t) / 200); });
+    gl.uniform4fv(C.u.uProt, pv);
+    gl.uniform1fv(C.u.uProtK, pk);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     gl.bindVertexArray(null);
   }
@@ -817,7 +852,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   // Clears everything at once (a new match).
   function clear() {
     for (const pl of pools.values()) { pl.data.fill(0); pl.deathAt = 0; pl.dirtyFrom = 0; pl.dirtyTo = pl.cap - 1; pl.groups.clear(); }
-    emitters.length = 0; waves.length = 0; heat = null; lights.length = 0;
+    emitters.length = 0; waves.length = 0; heat = null; lights.length = 0; dipState = null; prots.length = 0;
     for (const r of ribbons) r.end = 0;
     wake();
   }
@@ -825,7 +860,7 @@ export function createRenderer(canvas, { onFrame, options = {} } = {}) {
   return {
     gl, now, freeze, upload, has: (id) => textures.has(id), poolAlive: (id, t) => (pools.get(id)?.deathAt ?? 0) > t, isReal: (id) => !!textures.get(id)?.real, blendOf: (id) => textures.get(id)?.blend,
     spawn, ribbon, wave, shimmer, flash, emitter, kill, release, resize, clear, frameAspect, frameCount,
-    light, setOccluders, setPalettes, marksAlive: () => marksAlive(now()), lightCount: () => lights.length, NOISE,
+    light, setOccluders, setPalettes, dip, protect, aliveCount, marksAlive: () => marksAlive(now()), lightCount: () => lights.length, NOISE,
     set lowMotion(v) { lowMotion = !!v; }, set bloom(v) { bloomBase = v; },
     get running() { return running; }, get frames() { return frames; }, frameTimes, wake,
     get size() { return { w: W, h: H }; },

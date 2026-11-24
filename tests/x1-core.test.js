@@ -17,6 +17,7 @@ test('every rebuilt moment uses the painted kit only (vfx-*), and every texture 
     assert.ok(EFFECTS[id], id);
     for (const t of texOf(id)) {
       if (t.startsWith('$')) continue;
+      if (/^fx-(dot|glow|soft)$/.test(t)) continue;   // (light drawn in code, as the template draws it)
       assert.ok(t.startsWith('vfx-'), `${id} uses the old-kit texture ${t}`);
       assert.ok(manifest[t], `${id}: ${t} is in assets/vfx`);
     }
@@ -27,7 +28,7 @@ test('attacks: every kind has its own moment, with the five layers, its hit-stop
   const kinds = { 'attack.martial': 'e.attack.steel', 'attack.arcane': 'bolt', 'attack.ranger': 'bolt', 'attack.rogue': 'bolt', 'attack.beast': 'vfx-claw-rake', 'attack.undead': 'bolt', 'attack.wyrm': 'vfx-fire-breath', 'attack.soaring': 'bolt' };
   for (const [id, mark] of Object.entries(kinds)) {
     const steps = all(id);
-    assert.ok(steps.length && longestRun(id) <= BUDGET.attack * (1 + BUDGET_SLACK), `${id} within the attack budget`);
+    assert.ok(steps.length && longestRun(id) <= BUDGET.attackX * (1 + BUDGET_SLACK), `${id} within the attack budget`);
     assert.ok(steps.some((s) => s.op === 'hitstop' && s.weight), `${id}: hit-stop by weight`);
     assert.ok(steps.some((s) => s.op === 'shake' && s.weight), `${id}: shake by weight`);
     assert.ok(steps.some((s) => s.op === 'call' && s.fn === 'land'), `${id}: the number lands`);
@@ -54,7 +55,7 @@ test('defeats by kind, Undying, summons by weight, and the smaller moments', () 
   assert.ok(d({ stone: 1 }).includes('vfx-earth-burst') && d({ undead: 1 }).includes('vfx-bone-shards') && d({ treant: 1 }).includes('vfx-leaves') && d({ ice: 1 }).includes('vfx-ice-shards'));
   assert.ok(!d({}).includes('vfx-leaves'), 'the plain burn has no variant');
   assert.ok(attackVars({ id: 'mossback-ancient', traits: { kind: 'Treant' } }).flags.treant && attackVars({ id: 'rime-elemental', traits: { kind: 'Elemental' } }).flags.ice);
-  for (const [id, b] of [['summon.light', 'summon'], ['summon', 'summon'], ['summon.heavy', 'summonHeavy']]) {
+  for (const [id, b] of [['summon.light', 'summonX'], ['summon', 'summonX'], ['summon.heavy', 'summonHeavy']]) {
     assert.ok(longestRun(id) <= BUDGET[b] * (1 + BUDGET_SLACK), id);
     assert.ok(flatten(id).some((s) => s.op === 'call' && s.fn === 'arcIn' && s.wait), `${id}: the card lands before the token shows`);
   }

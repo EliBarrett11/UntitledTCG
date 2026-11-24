@@ -56,14 +56,11 @@ test('sheet frames: a fixed frame, played in order (looping), or once (held on t
   assert.match(gl, /float th = a8\.x \+ \(a8\.y - a8\.x\) \* ke \* ke;/);
 });
 
-test('one timing table: hit-stop in frames, shake in px, the push-in and the easing set (docs/20 section 5)', () => {
-  assert.equal(TIMING.hitstopFrames.light, 2);
-  assert.equal(TIMING.hitstopFrames.medium, 3);
-  assert.equal(TIMING.hitstopFrames.heavy, 4);
-  assert.equal(hitstopMs('medium'), Math.round(3 * FRAME_MS));
-  assert.deepEqual(shakeFor('light').px, 1);
-  assert.deepEqual(shakeFor('heavy').px, 3);
-  assert.equal(TIMING.pushIn.heavy, 0.02);
+test('one timing table: hit-stop, shake in px, the push-in and the easing set (docs/20 section 5; stage X1b: docs/40 section 2)', () => {
+  assert.deepEqual([hitstopMs('light'), hitstopMs('medium'), hitstopMs('heavy'), hitstopMs('legendary')], [50, 75, 110, 140]);
+  assert.ok(Math.abs(TIMING.hitstopFrames.medium * FRAME_MS - 75) < 1);
+  assert.deepEqual([shakeFor('light').px, shakeFor('medium').px, shakeFor('heavy').px, shakeFor('legendary').px], [8, 15, 24, 32]);
+  assert.equal(TIMING.pushIn.heavy, 0.035);
   assert.ok(EASE.anticipate && EASE.snap && EASE.settle);
   assert.ok(easeOutBack(0.7) > 1, 'the release overshoots slightly');
   assert.ok(near(easeOutBack(1), 1));

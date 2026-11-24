@@ -9,7 +9,8 @@
 // Dev aids: ?webgl=0 (the 2D fallback), ?vfxmissing=a,b (treat those textures as missing),
 // ?vfxquality=N (hold quality step N; 0 is full), ?fps=1 (the frame-rate overlay, see fps.js).
 import { createRenderer } from './gl.js';
-import { loadManifest, loadImage, drawStandIn } from './textures.js';
+import { loadManifest, loadImage, drawStandIn, isCodeLight, drawCodeLight } from './textures.js';
+import { createBoardFx } from './boardfx.js';
 import { EFFECTS, texturesOf } from './library.js';
 import { createAmbient } from './ambient.js';
 import { PALETTE_ORDER, paletteRgb } from './shaping.js';
@@ -38,7 +39,8 @@ export function createVfx(stage, { settings, params }) {
         if (t < shakeUntil && !settings().lowMotion) {
           const k = 1 - (t - shakeT0) / (shakeUntil - shakeT0);
           const a = shakePx * k * k;
-          sx = (Math.random() * 2 - 1) * a; sy = (Math.random() * 2 - 1) * a;
+          // (Stage X1b: the template's camera shake: two sines on each axis, decaying, not random jitter.)
+          sx = a * (Math.sin(t * 0.093) + Math.sin(t * 0.157) * 0.6) * 0.62; sy = a * (Math.cos(t * 0.081) + Math.sin(t * 0.131) * 0.6) * 0.62;
         }
         // The push-in: eases in to its zoom over the first 40% of its time, holds, then eases back out.
         let z = 0; let px = 0; let py = 0;
@@ -61,6 +63,7 @@ export function createVfx(stage, { settings, params }) {
     },
   });
   const state = { manifest: {}, loading: new Map(), ready: new Set(), pending: new Map() };
+  const board = createBoardFx(stage);
   // (Stage E: the cards on the board, in stage px, cut out of board marks so a mark lies under them.)
   function occluders() {
     const sr = stage.getBoundingClientRect(); const k = sr.width / STAGE_W || 1;
@@ -76,6 +79,8 @@ export function createVfx(stage, { settings, params }) {
   }
   function request(id) {
     if (!r || !id) return;
+    // (Stage X1b: light drawn in code is ready at once.)
+    if (isCodeLight(id)) { if (!r.has(id)) { const c = drawCodeLight(id); r.upload(id, c.canvas, { blend: 'light', w: c.w, h: c.h, real: true }); state.ready.add(id); } return; }
     if (!r.has(id)) standIn(id);
     const entry = state.manifest[id];
     if (!entry || missing.has(id) || state.loading.has(id)) return;
@@ -197,6 +202,12 @@ export function createVfx(stage, { settings, params }) {
     // Stage E: a light on the board, a board mark's cut-outs, and the push-in (none of them in low motion's list of
     // things removed: a light and a mark stay; the push-in goes).
     light: (L) => r.light(L),
+    // Stage X1b: the board dip, a struck card's protection from blow-out, and ripple and heat haze on the board itself.
+    dip: (d) => { if (r) r.dip(d); },
+    protect: (pr) => { if (r) r.protect(pr); },
+    boardRipple: (o) => { if (!settings().lowMotion) board.ripple(o); },
+    boardHaze: (o) => { if (!settings().lowMotion) board.haze(o); },
+    alive: () => (r ? r.aliveCount() : 0),
     pushIn(k, x, y, dur) { if (settings().lowMotion || !k || !r) return; push = { k, x, y, t0: performance.now(), dur }; r.wake(); },
     refreshOccluders() { if (r) r.setOccluders(occluders()); },
     shake(px, dur) { if (settings().lowMotion || !px) return; shakeT0 = performance.now(); shakeUntil = shakeT0 + dur; shakePx = Math.max(px, shakeUntil > shakeT0 ? shakePx : 0); r.wake(); },
@@ -204,7 +215,7 @@ export function createVfx(stage, { settings, params }) {
     resize,
     clear() { if (r) r.clear(); },
     // For the checks and the performance tool.
-    stats: () => (r ? { frames: r.frames, frameTimes: [...r.frameTimes], quality: step, qualityName: STEPS[step].name, running: r.running, size: r.size, ready: state.ready.size, standIns: [...state.loading.keys()].filter((k) => !state.ready.has(k)) } : null),
+    stats: () => (r ? { alive: r.aliveCount(), frames: r.frames, frameTimes: [...r.frameTimes], quality: step, qualityName: STEPS[step].name, running: r.running, size: r.size, ready: state.ready.size, standIns: [...state.loading.keys()].filter((k) => !state.ready.has(k)) } : null),
     resetStats() { if (r) r.frameTimes.length = 0; },
     ready: () => state.ready,
   };

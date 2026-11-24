@@ -17,7 +17,7 @@ const kitIds = new Set([...read('docs/archive/08-vfx-prompts.md').matchAll(/### 
 // (Stage N2: docs/35's six new kit textures join them.)
 const kit21 = new Set([...read('docs/21-vfx-texture-prompts.md').match(/vfx-[a-z-]+/g), ...read('docs/35-fixes-after-stage-n.md').match(/vfx-[a-z-]+/g), ...read('docs/37-vfx-rebuild-plan.md').match(/vfx-[a-z-]+/g), ...read('docs/39-vfx-final-textures.md').match(/vfx-[a-z-]+/g)]);
 defineCards(CARDS);
-const OPS = new Set(['bolt', 'sprite', 'burst', 'emit', 'ribbon', 'projectile', 'beam', 'wave', 'heat', 'shake', 'hitstop', 'flash', 'dom', 'call', 'use', 'light', 'pushin']);   // (stage E: light and pushin)
+const OPS = new Set(['dip', 'protect', 'bolt', 'sprite', 'burst', 'emit', 'ribbon', 'projectile', 'beam', 'wave', 'heat', 'shake', 'hitstop', 'flash', 'dom', 'call', 'use', 'light', 'pushin']);   // (stage E: light and pushin)
 
 test('every creature in the first deck (each form) and the Campaign Creature resolves to an attack effect', () => {
   const ids = new Set(FIRST_DECK);
@@ -90,8 +90,9 @@ test('every texture an effect names is a kit id; those not delivered yet are dra
   const used = new Set();
   for (const id of Object.keys(EFFECTS)) for (const t of texturesOf(id)) used.add(t);
   // (Stage E: the effects kit of docs/21, vfx-*, joins docs/08's.)
-  for (const t of used) assert.ok(kitIds.has(t) || (/^vfx-/.test(t) && kit21.has(t)), `${t} is not in docs/archive/08-vfx-prompts.md or docs/21-vfx-texture-prompts.md`);
-  const missing = [...used].filter((t) => !manifest[t]);
+  // (Stage X1b: and light drawn in code, fx-dot, fx-glow and fx-soft, as the template draws it.)
+  for (const t of used) assert.ok(kitIds.has(t) || (/^vfx-/.test(t) && kit21.has(t)) || /^fx-(dot|glow|soft)$/.test(t), `${t} is not in docs/archive/08-vfx-prompts.md or docs/21-vfx-texture-prompts.md`);
+  const missing = [...used].filter((t) => !manifest[t] && !/^fx-(dot|glow|soft)$/.test(t));
   // The kit is complete for every effect in the library (any texture still to come is drawn in code).
   assert.deepEqual(missing, []);
 });
