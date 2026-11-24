@@ -322,8 +322,11 @@ void main() {
     vec2 q = (p - r.xy) / max(r.zw, vec2(1.0));
     float inside = step(0.0, q.x) * step(q.x, 1.0) * step(0.0, q.y) * step(q.y, 1.0);
     // (A compressor whose strength rises with k: blending toward a capped value would leak an HDR white through.)
+    // (Only the light above the pixel's opacity is capped: opaque smoke over a card keeps its colour.)
     float k = inside * uProtK[i];
-    add = add / (1.0 + add * 3.0 * k) * mix(1.0, 0.75, k);
+    vec3 base = min(add, vec3(s.a));
+    vec3 ex = add - base;
+    add = base + ex / (1.0 + ex * 3.0 * k) * mix(1.0, 0.75, k);
   }
   o = vec4(add, min(1.0, s.a + dim * (1.0 - s.a)));
 }`;

@@ -116,6 +116,7 @@ async function moment(name) {
       await page.waitForTimeout(500);
       shots.later = join(raw, `${name}-later.png`); await page.screenshot({ path: shots.later });
       if (process.env.PROOF_DEBUG) log(JSON.stringify(await page.evaluate(() => window.__match.vfxApi.debugState())));
+      if (process.env.PROOF_DEBUG) for (const sel of ['#vfx', '#vfx-light']) { await page.addStyleTag({ content: `${sel}{visibility:hidden!important}` }); await page.waitForTimeout(300); await page.screenshot({ path: join(raw, `${name}-later-no${sel.slice(1)}.png`) }); await page.evaluate(() => { const s = [...document.querySelectorAll('style')].pop(); s.remove(); }); }
     }
   }
   const info = await page.evaluate(() => ({ ids: window.__proof.seenIds.join(','), q: window.__match.vfx()?.qualityName, kind: window.__proof.kind, alive: window.__proof.alive, alive2: window.__proof.alive2 }));

@@ -27,7 +27,7 @@ export const ELEMENT = {
   earth: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-debris', shapeSolid: true, ember: ['#f1be8b', '#b0502a'], mark: 'crack', heat: 1, smoke: '#5d4c3b', light: '#e08a4a' },
   ghostlight: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-bone-shards', shapeSolid: true, ember: ['#96eddb', '#1f8a7a'], mark: 'crack', heat: 1.6, smoke: '#324845', light: '#2fd8b8' },
   storm: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-speed-streaks', shapeH: 0.22, ember: ['#d4ecff', '#4a4ad8'], mark: 'crack', heat: 1.2, smoke: '#3d3d52', light: '#9fd4ff' },
-  holy: { burst: 'vfx-prime-burst', burstK: 0.4, shape: 'vfx-holy-motes', ember: ['#f9e1a0', '#d8892c'], mark: 'crack', heat: 1.2, smoke: '#5d523d', light: '#f2c14a' },
+  holy: { burst: 'vfx-prime-burst', burstK: 0.85, shape: 'vfx-holy-motes', ember: ['#f9e1a0', '#d8892c'], mark: 'crack', heat: 1.2, smoke: '#5d523d', light: '#f2c14a' },
   frost: { burst: 'vfx-frost-crust', burstK: 0.4, shape: 'vfx-ice-shards', ember: ['#c0edff', '#3a6ad0'], mark: 'crack', heat: 1, smoke: '#526877', light: '#7fd8ff' },
   nature: { burst: 'vfx-heal-bloom', burstK: 0.5, shape: 'vfx-leaves', shapeSolid: true, ember: ['#bff19b', '#2f8a40'], mark: 'crack', heat: 1, smoke: '#3d5236', light: '#7fe05a' },
   shadow: { burst: 'vfx-fire-burst', burstK: 0.95, shape: 'vfx-shadow-wisps', shapeSolid: true, ember: ['#b59ae2', '#4a2a6a'], mark: 'crack', heat: 1, smoke: '#27202e', light: '#7a4ad0' },
@@ -74,7 +74,7 @@ export function impact(element, weight = 'medium', o = {}) {
     { at: 0, op: 'sprite', tex: 'vfx-shield-sigil', on: 'dstHp', size: 130, scale: [1.5, 1], curve: 'out', life: 460, alpha: 1.05, ...burn(0.4, 'vfx-noise-cells'), ...P('steel', 0.4), if: 'armour' },
     // Secondary (from 140 ms): smoke rolls up and burns away; the target smoulders.
     { at: 140, op: 'burst', tex: 'vfx-smoke-puffs', ...at, n: D.smoke, area: [60 * k, 30], speed: [40, 110], angle: 'up', spread: 60, life: [1400, 2100], size: [125 * k, 180 * k], scaleEnd: 2.7, gravity: -30, drag: 0.6, spin: [-46, 46], curl: 60, alpha: 0.62,
-      ...burn(0.35, 'vfx-noise-wisps', { flow: 0.15, scroll: [0, -0.3], noiseScale: 0.35 }), tint: E.smoke, tintK: 1 },
+      ...burn(0.35, 'vfx-noise-wisps', { flow: 0.15, scroll: [0, -0.3], noiseScale: 0.35, edge: 0.04 }), tint: E.smoke, tintK: 1 },
   ];
   if (o.burst !== false) {
     steps.push({ at: 0, op: 'sprite', tex: E.burst, ...at, size: 640 * k, scale: [0.31, 1], curve: 'out', rot: 'random', spin: 34, life: 820, alpha: 1, ...burn(0.18, 'vfx-noise-embers', { flow: 0.2 }), ...P(pal, E.burstK ?? 0.85) });
@@ -356,7 +356,7 @@ export function coreEffects() {
   const summon = (weight) => {
     const heavy = weight === 'heavy'; const k = W_K[weight];
     const land = impact('holy', weight, { hold: null, mark: heavy ? 'both' : 'crack', debris: heavy ? 'vfx-debris' : false, smoulder: false })
-      .filter((s) => !(s.op === 'dom' && s.name === 'knock') && !(s.op === 'hitstop' && !heavy) && s.op !== 'protect');
+      .filter((s) => !(s.op === 'dom' && s.name === 'knock') && !(s.op === 'hitstop' && !heavy) && s.tex !== 'vfx-smoke-puffs');   // (the new creature isn't hidden in smoke: its dust burst does that work)
     return { budget: heavy ? 'summonHeavy' : 'summonX', duration: heavy ? 1800 : 1400, stageE: true, steps: [
       { at: 0, op: 'dip', on: 'dst', radius: 380 * k, peak: 0.28, attack: 160, hold: 400, decay: 600 },
       { at: 0, op: 'light', on: 'dst', palette: 'holy', tone: 'edge', radius: 340 * k, peak: -0.2, attack: 120, hold: 120, decay: 260 },
@@ -387,7 +387,7 @@ export function coreEffects() {
     { at: 200, op: 'sprite', tex: 'vfx-arcane-glyphring', on: 'dst', mark: true, dy: 96, size: 300, flat: 0.42, spin: 20, life: 1100, alpha: 1.2, ...burn(0.55, 'vfx-noise-cells'), ...P('holy', 1) },
     { at: 200, op: 'dom', name: 'slam', el: 'dst', dur: 200 },
     { at: 220, op: 'sprite', tex: 'vfx-holy-rays', on: 'dst', dy: -50, size: 420, scale: [0.6, 1.1], curve: 'out', life: 760, fadeIn: 0.15, alpha: 0.5, ...burn(0.5, 'vfx-noise-wisps', { flow: 0.1 }), ...P('holy', 0.25) },
-    ...shift(impact('holy', 'heavy', { hold: null, mark: 'crack', debris: false, smoulder: false }).filter((s) => !(s.op === 'dom' && s.name === 'knock') && s.op !== 'protect'), 400),
+    ...shift(impact('holy', 'heavy', { hold: null, mark: 'crack', debris: false, smoulder: false }).filter((s) => !(s.op === 'dom' && s.name === 'knock')), 400),
     { at: 420, op: 'sprite', tex: 'vfx-renown-star', on: 'lvl', size: 110, scale: [0.4, 1.2], curve: 'out', life: 460, alpha: 1.2, ...burn(0.4, 'vfx-noise-cells'), ...P('holy', 0.25) },
     { at: 480, op: 'sprite', tex: 'vfx-renown-star', on: 'dst', dy: -60, size: 150, scale: [0.3, 1.1], curve: 'out', life: 700, alpha: 0.8, ...burn(0.55, 'vfx-noise-cells'), ...P('holy', 0.25) },
     { at: 560, op: 'ribbon', tex: 'vfx-light-flare', from: 'dst', to: 'dial', bend: 110, width: 46, travel: 320, lag: 180, tint: 'gold', tintK: 0.6, alpha: 1.3, erodeTail: 0.5, palette: 'holy',
