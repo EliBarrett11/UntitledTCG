@@ -17,7 +17,7 @@ export const PALETTES = {
   frost: ['#f4feff', '#7fd8ff', '#3a6ad0'],
   venom: ['#f2ffb0', '#7fe05a', '#1f6a3a'],
   water: ['#effffe', '#3fd0d8', '#1a4a8a'],
-  storm: ['#ffffff', '#9fd4ff', '#5a5ad8'],
+  storm: ['#ffffff', '#5aa8ff', '#5a5ad8'],
 };
 export const PALETTE_ORDER = Object.keys(PALETTES);
 export const paletteIndex = (name) => (name == null ? -1 : PALETTE_ORDER.indexOf(name));

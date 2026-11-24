@@ -78,12 +78,14 @@ export function impact(element, weight = 'medium', o = {}) {
   ];
   if (o.burst !== false) {
     steps.push({ at: 0, op: 'sprite', tex: E.burst, ...at, size: 640 * k, scale: [0.31, 1], curve: 'out', rot: 'random', spin: 34, life: 820, alpha: 1, ...burn(0.18, 'vfx-noise-embers', { flow: 0.2 }), ...P(pal, E.burstK ?? 0.85) });
+    // (A third, slower body: it keeps the impact's mass on the target through the +600 ms the template still burns.)
+    steps.push({ at: 120, op: 'sprite', tex: E.burst, ...at, size: 520 * k, scale: [0.45, 1], curve: 'out', rot: 'random', spin: 22, life: 1250, alpha: 0.6, ...burn(0.12, 'vfx-noise-wisps', { flow: 0.3 }), ...P(pal, E.burstK ?? 0.85) });
     steps.push({ at: 60, op: 'sprite', tex: E.burst, ...at, size: 420 * k, scale: [0.29, 1], curve: 'out', rot: 'random', spin: -57, life: 700, alpha: 0.85, ...burn(0.12, 'vfx-noise-embers', { flow: 0.2 }), ...P(pal, E.burstK ?? 0.85) });
   }
   if (o.debris !== false) steps.push({ at: 0, op: 'burst', tex: o.debris ?? 'vfx-debris', ...at, n: Math.round(14 * k), speed: [300, 700], angle: 'up', spread: 180, life: [700, 1000], size: [22, 46], gravity: 1800, drag: 0.6, spin: [-570, 570], alpha: 0.95, ...burn(0.55, 'vfx-noise-cells') });
   if (o.smoulder !== false) {
     steps.push({ at: 140, op: 'emit', tex: 'fx-dot', ...at, area: 'card', rate: 160, dur: 1080, speed: [60, 140], angle: 'up', spread: 30, life: [500, 900], size: [4, 9], scaleEnd: 0.2, gravity: -60, drag: 1, curl: 90, alpha: 1, tint: E.ember[0], tint1: E.ember[1], tintK: 1 });
-    if (!E.shapeSolid && E.shape !== 'vfx-speed-streaks') steps.push({ at: 140, op: 'emit', tex: E.shape, ...at, area: 'card', rate: 10, dur: 1000, speed: [40, 90], angle: 'up', spread: 20, life: [420, 420], size: [60, 100], scaleEnd: 0.3, ...(E.shapeSeq ? { seq: { start: 0, count: 16, fps: 24 } } : {}), alpha: 0.8, ...burn(0.2, 'vfx-noise-embers'), ...P(pal, 0.4) });
+    if (!E.shapeSolid && E.shape !== 'vfx-speed-streaks') steps.push({ at: 140, op: 'emit', tex: E.shape, ...at, area: 'card', rate: 18, dur: 1100, speed: [40, 90], angle: 'up', spread: 20, life: [420, 420], size: [60, 100], scaleEnd: 0.3, ...(E.shapeSeq ? { seq: { start: 0, count: 16, fps: 24 } } : {}), alpha: 0.8, ...burn(0.2, 'vfx-noise-embers'), ...P(pal, 0.4) });
   }
   // Settle: the mark left on the map, then eroding away (light: a crack; heavy and up: both).
   const mark = o.mark ?? (weight === 'light' ? 'crack' : weight === 'medium' ? E.mark : 'both');
@@ -280,8 +282,10 @@ export function coreEffects() {
   E.fizzle = { duration: 800, stageE: true, steps: [
     { at: 0, op: 'dip', on: 'dst', radius: 300, peak: 0.25, attack: 120, hold: 300, decay: 500 },
     { at: 0, op: 'light', on: 'dst', palette: 'shadow', tone: 'edge', radius: 280, peak: -0.25, attack: 60, hold: 160, decay: 400 },
-    { at: 0, op: 'burst', tex: 'vfx-smoke-puffs', on: 'dst', n: 7, area: [50, 30], speed: [20, 70], angle: 'up', spread: 80, life: [1000, 1500], size: [70, 110], scaleEnd: 2.2, alpha: 0.55, curl: 40, ...burn(0.3, 'vfx-noise-wisps', { flow: 0.2, noiseScale: 0.35 }), tint: '#4a4258', tintK: 0.8 },
-    { at: 0, op: 'burst', tex: 'fx-dot', on: 'dst', n: 70, area: [60, 60], speed: [20, 160], angle: 'up', spread: 160, life: [700, 1600], size: [3, 8], scaleEnd: 0.2, gravity: -80, drag: 2, curl: 120, alpha: 0.9, tint: '#d8ccff', tint1: '#3a2a5a', tintK: 1 },
+    { at: 0, op: 'light', on: 'src', palette: 'shadow', tone: 'core', radius: 260, peak: 0.3, attack: 40, hold: 60, decay: 500 },
+    { at: 0, op: 'burst', tex: 'vfx-smoke-puffs', on: 'dst', n: 12, area: [70, 40], speed: [20, 80], angle: 'up', spread: 90, life: [1200, 1800], size: [90, 140], scaleEnd: 2.4, alpha: 0.65, curl: 50, ...burn(0.3, 'vfx-noise-wisps', { flow: 0.2, noiseScale: 0.35, edge: 0.03 }), tint: '#2e2838', tintK: 1 },
+    { at: 0, op: 'burst', tex: 'vfx-shadow-wisps', on: 'dst', n: 8, speed: [60, 180], angle: 'up', spread: 140, life: [600, 900], size: [40, 70], scaleEnd: 0.4, alpha: 0.8, ...burn(0.3, 'vfx-noise-wisps') },
+    { at: 0, op: 'burst', tex: 'fx-dot', on: 'dst', n: 140, area: [60, 60], speed: [20, 160], angle: 'up', spread: 160, life: [700, 1600], size: [3, 8], scaleEnd: 0.2, gravity: -80, drag: 2, curl: 120, alpha: 0.9, tint: '#d8ccff', tint1: '#3a2a5a', tintK: 1 },
     { at: 0, op: 'call', fn: 'wait', wait: true },
   ] };
 

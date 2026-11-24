@@ -116,7 +116,7 @@ export function signatureEffects({ START, GUARD, SETTLE, GOLD }) {
     // Every React opens with a flare at its card (the card shows in the middle of the table).
     react: { duration: 1100, steps: [
       { at: 0, op: 'call', fn: 'slide', wait: true },
-      { at: 280, op: 'sprite', tex: 'react-flare', on: 'centre', size: 360, scale: [0.4, 1.1], curve: 'out', life: 560, fadeIn: 0.1, fadeOut: 0.5, tint: 'accent', tintK: 0.4, alpha: 1.4 },
+      { at: 280, op: 'sprite', tex: 'react-flare', on: 'centre', size: 360, scale: [0.4, 1.1], curve: 'out', life: 560, fadeIn: 0.1, fadeOut: 0.5, tint: 'accent', tintK: 0.7, alpha: 0.8 },
       { at: 280, op: 'flash', k: [0.4, 0.4], dur: 220 },
       // Parry: a crossed flash and sparks where the blow is turned.
       { at: 520, op: 'sprite', tex: 'riposte-cross', on: 'blow', sizeK: 1.3, scale: [1.5, 1], curve: 'out', life: 520, fadeIn: 0.1, fadeOut: 0.5, tint: 'accent', tintK: 0.5, alpha: 1.4, if: 'parry' },

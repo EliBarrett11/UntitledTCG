@@ -29,7 +29,9 @@ const want = (n) => !only.length || only.includes(n) || Object.entries(MOMENTS).
 const log = (...a) => console.log(...a);
 const ff = (a) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...a]);
 // The moments with no hit, caught at their peak instead.
-const NO_HIT = new Set(['x1-summon-light', 'x1-summon-mid', 'prime', 'x1-choose', 'x1-rally', 'x1-draw']);
+// (Each with when its peak comes, in ms from its first effect, or [ms, the effect to wait for]: the fizzle plays
+// after the React card is revealed.)
+const NO_HIT = new Map([['x1-summon-light', 500], ['x1-summon-mid', 500], ['prime', 500], ['x1-choose', 500], ['x1-rally', 500], ['x1-draw', 500], ['x1-fizzle', [400, 'fizzle']]]);
 const AFTER = 200; const LATER = 800; const K = 20; const FREEZE = 1e9;
 
 const sv = staticServer(root); await new Promise((r) => sv.listen(0, '127.0.0.1', r));
@@ -69,7 +71,7 @@ async function moment(name) {
   await page.waitForFunction(() => { const v = window.__match?.vfx(); return !v || (v.standIns.length === 0 && v.ready >= 60); }, null, { timeout: 180000, polling: 250 }).catch(() => {});
   await page.waitForTimeout(600);
   // Catch the instant in the page itself: the first hit-stop (or, failing one, the first effect + 500 ms).
-  await page.evaluate(({ after, later, hit }) => {
+  await page.evaluate(({ after, later, hit, peakAt, peakId }) => {
     const b = document.body; const i0 = b.dataset.impactSeq ?? '0'; const e0 = b.dataset.effectSeq ?? '0';
     window.__proof = { phase: 0, kind: null, t0: null };
     const arm = (kind, delay) => {
@@ -81,13 +83,18 @@ async function moment(name) {
     new MutationObserver(() => {
       if ((b.dataset.impactSeq ?? '0') !== i0) arm('impact', after);
     }).observe(b, { attributes: true, attributeFilter: ['data-impact-seq'] });
-    if (!hit) new MutationObserver(() => {
-      if ((b.dataset.effectSeq ?? '0') !== e0) setTimeout(() => arm('peak', 0), 500);
+    // (No hit: the peak, 500 ms in; a moment expected to hit that hasn't by 1.2 s is caught then instead.)
+    let seen = false;
+    new MutationObserver(() => {
+      if (seen || (b.dataset.effectSeq ?? '0') === e0) return;
+      if (peakId && b.dataset.effect !== peakId) return;
+      seen = true;
+      setTimeout(() => arm('peak', 0), hit ? 1200 : peakAt);
     }).observe(b, { attributes: true, attributeFilter: ['data-effect-seq'] });
-  }, { after: AFTER, later: LATER, hit: !NO_HIT.has(name) });
+  }, { after: AFTER, later: LATER, hit: !NO_HIT.has(name), peakAt: [NO_HIT.get(name)].flat()[0] ?? 500, peakId: [NO_HIT.get(name)].flat()[1] ?? null });
   await slow.set(K);
   page.evaluate((n) => window.__match.fxDemo(n), name).catch((e) => { if (!/closed/.test(e.message)) errors.push(e.message); });
-  const waitPhase = async (p) => { const t = Date.now() + 400000; while (Date.now() < t) { if ((await page.evaluate(() => window.__proof.phase)) >= p) return true; await new Promise((r) => setTimeout(r, 40)); } return false; };
+  const waitPhase = async (p) => { const t = Date.now() + 400000; while (Date.now() < t) { if ((await page.evaluate(() => window.__proof.phase).catch(() => -1)) >= p) return true; if (page.isClosed()) return false; await new Promise((r) => setTimeout(r, 40)); } return false; };
   const shots = {};
   if (await waitPhase(1)) {
     await slow.cdp.send('Animation.setPlaybackRate', { playbackRate: 0 });
@@ -100,6 +107,7 @@ async function moment(name) {
       await slow.cdp.send('Animation.setPlaybackRate', { playbackRate: 0 });
       await page.waitForTimeout(500);
       shots.later = join(raw, `${name}-later.png`); await page.screenshot({ path: shots.later });
+      if (process.env.PROOF_DEBUG) log(JSON.stringify(await page.evaluate(() => window.__match.vfxApi.debugState())));
     }
   }
   const info = await page.evaluate(() => ({ q: window.__match.vfx()?.qualityName, kind: window.__proof.kind, alive: window.__proof.alive, alive2: window.__proof.alive2 }));
@@ -114,7 +122,7 @@ counts.template = { impact: T.impact, later: T.later };
 const label = (txt) => `drawtext=text='${txt}':x=24:y=20:fontsize=34:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=10`;
 for (const list of Object.values(MOMENTS)) for (const name of list) {
   if (!want(name)) continue;
-  const r = await moment(name);
+  const r = await moment(name).catch((e) => ({ shots: {}, errors: [e.message.split('\n')[0]] }));
   if (!r.shots.impact || !r.shots.later) { log(`${name}: FAILED ${r.errors.join(' | ')}`); counts[name] = { failed: true }; continue; }
   counts[name] = { kind: r.kind, impact: r.alive, later: r.alive2 };
   const at = r.kind === 'impact' ? 'impact' : 'peak';

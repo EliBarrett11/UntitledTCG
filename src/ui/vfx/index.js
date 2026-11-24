@@ -80,7 +80,7 @@ export function createVfx(stage, { settings, params }) {
     lg.clearRect(0, 0, 480, 270);
     lg.globalCompositeOperation = 'lighter';
     for (const L of list) {
-      const a = Math.min(4, L.k * 0.9);
+      const a = Math.min(1, L.k * 0.9);   // (at most double the board's brightness: never a blow-out)
       const s = a / (1 + a);
       const c = L.col.map((v) => Math.round(255 * Math.min(1, v * s)));
       const g = lg.createRadialGradient(L.x * q, L.y * q, 0, L.x * q, L.y * q, L.r * q);
