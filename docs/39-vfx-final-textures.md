@@ -142,3 +142,5 @@ Square 1024 × 1024. A grid of 4 × 4 separate abstract magical glyphs, each mad
 
 No text, letters, symbols that read as letters, borders or watermarks.
 ```
+
+**Delivered 24 November 2026:** all ten are in `assets/vfx/` (checked: `docs/mockups/vfx-batch5.jpg`). Rain streaks are kept full-frame and tileable. **The painted kit is complete** for stages X1–X3.
