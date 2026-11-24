@@ -83,7 +83,7 @@ export function impact(element, weight = 'medium', o = {}) {
   if (o.debris !== false) steps.push({ at: 0, op: 'burst', tex: o.debris ?? 'vfx-debris', ...at, n: Math.round(14 * k), speed: [300, 700], angle: 'up', spread: 180, life: [700, 1000], size: [22, 46], gravity: 1800, drag: 0.6, spin: [-570, 570], alpha: 0.95, ...burn(0.55, 'vfx-noise-cells') });
   if (o.smoulder !== false) {
     steps.push({ at: 140, op: 'emit', tex: 'fx-dot', ...at, area: 'card', rate: 160, dur: 1080, speed: [60, 140], angle: 'up', spread: 30, life: [500, 900], size: [4, 9], scaleEnd: 0.2, gravity: -60, drag: 1, curl: 90, alpha: 1, tint: E.ember[0], tint1: E.ember[1], tintK: 1 });
-    if (!E.shapeSolid && E.shape !== 'vfx-speed-streaks') steps.push({ at: 140, op: 'emit', tex: E.shape, ...at, area: 'card', rate: 10, dur: 1000, speed: [40, 90], angle: 'up', spread: 20, life: [420, 420], size: [60, 100], scaleEnd: 0.3, seq: { start: 0, count: 16, fps: 24 }, alpha: 0.8, ...burn(0.2, 'vfx-noise-embers'), ...P(pal, 0.4) });
+    if (!E.shapeSolid && E.shape !== 'vfx-speed-streaks') steps.push({ at: 140, op: 'emit', tex: E.shape, ...at, area: 'card', rate: 10, dur: 1000, speed: [40, 90], angle: 'up', spread: 20, life: [420, 420], size: [60, 100], scaleEnd: 0.3, ...(E.shapeSeq ? { seq: { start: 0, count: 16, fps: 24 } } : {}), alpha: 0.8, ...burn(0.2, 'vfx-noise-embers'), ...P(pal, 0.4) });
   }
   // Settle: the mark left on the map, then eroding away (light: a crack; heavy and up: both).
   const mark = o.mark ?? (weight === 'light' ? 'crack' : weight === 'medium' ? E.mark : 'both');
