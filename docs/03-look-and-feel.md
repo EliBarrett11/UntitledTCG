@@ -809,3 +809,52 @@ Built to `docs/archive/25-stage-l-prompt.md`. No rule changed. The rulebook's se
    - A **Fizzle** is a dark puff: smoke, shadow wisps and fading motes, with the light dying on the attacker.
    - **Choose one**, **Rally** and **Draw** are fuller (more motes, a glyph ring under a chosen mode).
 10. **The React reveal's flare** was blowing out to a white blob; it's softer and takes the React colour.
+
+## 24. Readings from stage X2 (every keyword, card and system): needing Elliott's approval
+
+1. **Each element looks like itself** (the X1b review): every impact keeps X1b's recipe, but each element brings its own body (three sprites), radiating shapes, falling bits, motes, smoke and tail from its own textures.
+   - Only Fire uses the fire burst and flame tongues (the template).
+   - Beast: claw rakes, fur-dark flecks, dust and blood-red sparks.
+   - Undead (ghostlight): the ghost veil, bone shards, ghostlight flames, cold smoke.
+   - Steel: crossed crescents, armour plates, gold sparks, dust.
+   - Arcane: the orb, a glyph ring, shards; rune glyphs rise after.
+   - Nature: vines, a bloom, leaves and falling petals.
+   - Frost: ice shards and cold mist; ice falls after.
+   - Venom: drips and a green mist. Water: the surge, splashes, rain.
+   - Storm: forked lightning, a storm cloud, rain.
+   - Earth: the earth burst, debris and dust.
+   - Holy: the Prime burst, rays and the laurel; motes rise after.
+   - The shared star and shockwave are small and faint, so each element's own body carries the shape: one frame per element, side by side with the colour removed, tells them apart.
+2. **The damage and heal numbers** pop over the card's art (its upper third), never on its text, at the template's size; "Armour −1" sits at the card's top edge.
+3. **Keywords and triggers each have their own moment:** Venom (drips and green mist), Chill (frost crust, ice shards, mist), the thaw at Dawn (the crust cracks off), Undying, Frenzy (the rage aura and claw rakes), Tinker (gears and sparks), On Summon, On Attack, On Defend, On Defeat, On Dawn, On Dusk, Rally, and On Retain. A card kept in hand (Retain) is sealed in purple light; with Patient, a golden laurel.
+4. **What lasts is painted light on the token:**
+   - Frozen's frost crust (stage N2);
+   - Frenzy's rage aura while it's raging;
+   - Undying's ghostlight veil until it's used;
+   - Armour's plate, Ward's hex and Shield's sigil as small marks at the card's top corners, clear of its text.
+5. **Every card has its own signature for each moment it has**, keyed by card id:
+   - Actions at React (light), Adapt (medium) and Strat (heavy). For example:
+     - Night Raid's shadow-claw, and at Strat a fog of eyes across the Location;
+     - Mending Prayer's bloom, and at Strat a dome of light;
+     - Shield Wall's sigil slamming down;
+     - Glass Veil's target shattering into glass;
+     - Hunter's Snare's vines;
+     - Second Wind's gust and feathers;
+     - Chain Lightning leaping, and at Strat called down from a storm cloud.
+   - Firebolt keeps stage E's approved moments.
+   - **Events:** each Release has its own touch at the centre: Call to Arms' horn of wind, Rumour of Treasure's ink and coins, Desperate Gambit's cracking crystals, War Drums' three beats, Market Day's coins and seal, Knives in the Dark's knives. Each Favour adds the laurel and more.
+   - **Items:** bought (coins to the Market, then the Item's own glint), held (each its own mark on its holder), consumed (each its own use).
+   - **Campaigns:** the Order (a seal and the Campaign's motif at the centre), each Quest step (its seal stamped on the tracker) and completion (a large seal, its motif, the laurel and Renown stars), each in the Campaign's colour.
+   - **Locations:** each its own touch as its tile unrolls; Sunlit Shrine and Mistveil heal visibly at Dawn, the Drowned Reach drowns at Dusk.
+6. **The two Legendaries arrive in their own cinematics** at the legendary weight: the Ashen Wyrm's (with The Ashfall) as before, now in the painted kit, and the Deepmaw rising out of The Drowned Reach (the water darkens and churns, mist and rain, the sea heaves and it breaks through). Each has a one-second version in low motion.
+7. **Locations count down:** at Dusk each tile breathes light and its label ticks, in red on its last Round; an expiring Location burns away along its edge.
+8. **The Market:**
+   - a new Item stocked arrives in a flare of light and coins (a merchant's seal on a restock);
+   - an Item whose Stock ran out burns away from its edges;
+   - buying throws coins to the stall.
+9. **The economy:**
+   - Energy spent sheds cyan shards from the crystal; Exert spent flares from its runes into it;
+   - Gold is painted coins;
+   - Renown is the painted star and a ribbon of gold light to the Warlord's dial.
+10. **The old kit is gone:** 106 textures (23.6 MB) and every storyboard that used them; the ambient candles, dust and fog and the victory screen now use the painted kit too.
+11. **Three presentation events** were added to the engine, so these moments can be seen; no rule reads them: a Location counting down, a Location's Dawn heal, and an Item's Stock running out.
