@@ -177,10 +177,15 @@ void main() {
   }
   // Erosion with a thin bright edge in the palette's core colour (white-gold without a palette).
   float keep = 1.0; float edge = 0.0;
+  // (Stage X2: every sprite fades out over the last few percent of its frame, so a painting that runs to its edges,
+  // drawn large, never shows its rectangle.)
+  vec2 fq = (vUv - vFrame.xy) / max(vFrame.zw, vec2(1e-5));
+  float rim = smoothstep(0.0, 0.07, min(min(fq.x, 1.0 - fq.x), min(fq.y, 1.0 - fq.y)));
   if (vE.x > 0.0) {
     keep = smoothstep(vE.x, vE.x + 0.015, n);
     edge = keep * (1.0 - smoothstep(vE.x + vE.y, vE.x + vE.y + 0.015, n));
   }
+  keep *= rim; edge *= rim;
   vec3 core = vS.w >= 0.0 ? uPal[int(vS.w) * 3] : vec3(1.0, 0.93, 0.75);
   if (uLight > 0.5) {
     vec3 hue = vCol.rgb / max(0.0001, max(vCol.r, max(vCol.g, vCol.b)));

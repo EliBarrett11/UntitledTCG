@@ -82,6 +82,7 @@ export async function runEffect(ctx, vfx, id, env) {
     return s._each && env.targets?.length ? env.targets.map((t) => t.box) : [box(s.on ?? 'dst', s)];
   };
   const colourOf = (t) => (t === 'accent' ? env.tint : t === 'accent2' ? env.tint2 ?? env.tint : t === 'gold' ? GOLD : t === 'side' ? env.sideTint : t);
+  const LEVEL = (s, t) => !!s.level || (typeof t === 'string' ? t : texOf(s)) === 'vfx-fog-bank';
   const texOf = (s, t = s.tex) => (t?.startsWith('$') ? s._vars?.[t.slice(1)] ?? env.vars?.[t.slice(1)] ?? null : t);
   const col = (s) => { const c = s.tint ? hexRgb(colourOf(s.tint)) : [1, 1, 1]; return [...c, s.alpha ?? 1]; };
   const angleTo = (a, b) => Math.atan2(b.cy - a.cy, b.cx - a.cx);
@@ -116,14 +117,14 @@ export async function runEffect(ctx, vfx, id, env) {
     let rot = 0;
     if (s.rot === 'toward') rot = angleTo(src, dst);
     else if (s.rot === 'from') rot = angleTo(dst, src);
-    else if (s.rot === 'random') rot = r() * Math.PI * 2;
+    else if (s.rot === 'random') rot = LEVEL(s, texOf(s)) ? 0 : r() * Math.PI * 2;
     else if (typeof s.rot === 'number') rot = rad(s.rot);
     else if (typeof s.rot === 'string' && s.rot.startsWith('$')) rot = rad(Number(s._vars?.[s.rot.slice(1)] ?? env.vars?.[s.rot.slice(1)] ?? 0));
     rot += rad(s.rotAdd ?? 0);
     const life = s.life * f * (low ? 0.7 : 1);
     vfx.spawn(tex, {
       x: at.cx + (s.dx ?? 0), y: at.cy + (s.dy ?? 0), w: w * s0, h: h * s0, scaleEnd: s1 / s0, curve: s.curve === 'out' ? 1 : 0,
-      rot, spin: still ? 0 : rad(s.spin ?? 0) / f, life, fadeIn: s.fadeIn ?? 0, fadeOut: s.fadeOut ?? 0.6, frame: s.frame ?? 0,
+      rot, spin: still || LEVEL(s) ? 0 : rad(s.spin ?? 0) / f, life, fadeIn: s.fadeIn ?? 0, fadeOut: s.fadeOut ?? 0.6, frame: s.frame ?? 0,
       col0: col(s), tint: s.tint ? s.tintK ?? 0.6 : 0, delay: delay * f, ...shaped(s),
     }, group);
   }
@@ -156,7 +157,8 @@ export async function runEffect(ctx, vfx, id, env) {
     }
     vfx.spawn(tex, {
       x, y, vx, vy, gx, gy, drag, life, w: size, h: s.h ?? size / asp, scaleEnd: s.scaleEnd ?? 1,
-      rot: s.align ? 0 : r() * Math.PI * 2, spin: still ? 0 : rad(pick(s.spin ?? 0, r)) / f, fadeIn: s.fadeIn ?? 0.05, fadeOut: extra.home ? 0.75 : s.fadeOut ?? 0.5,
+      // (Stage X2: mist lies level: a wide bank of fog, turned or spun, reads as streaks across the board.)
+      rot: s.align ? 0 : LEVEL(s, tex) ? (r() - 0.5) * 0.2 : r() * Math.PI * 2, spin: still || LEVEL(s, tex) ? 0 : rad(pick(s.spin ?? 0, r)) / f, fadeIn: s.fadeIn ?? 0.05, fadeOut: extra.home ? 0.75 : s.fadeOut ?? 0.5,
       frame: s.seq ? s.seq.start ?? 0 : frame, col0: col(s), col1: s.tint1 ? [...hexRgb(colourOf(s.tint1)), s.alpha ?? 1] : undefined, tint: s.tint ? s.tintK ?? 0.6 : 0, align: !!s.align && !still, delay: (extra.delay ?? 0) * f, ...shaped(s),
     }, group);
   }
