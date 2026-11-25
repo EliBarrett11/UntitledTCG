@@ -811,3 +811,39 @@ Built from `docs/40-stage-x1b-prompt.md`, against the approved bar, `docs/vfx-te
   - realinput, libinput, presenter, online2 and vfxcheck pass;
   - 60 first-deck AI matches and 300 random-deck matches finish with no crash, illegal state or stall.
 - **Readings for Elliott's approval:** `docs/03-look-and-feel.md` section 23.
+
+### X2: Every keyword, card and system (25 November 2026)
+Built from `docs/38-stage-x-prompts.md` (X2), on X1b's recipe, starting with the X1b review's fixes.
+- **Each element looks like itself** (`ELEMENT` in `src/ui/vfx/core.js`):
+  - every element brings its own body (three sprites), radiating shapes, falling bits, motes, smoke and tail; only Fire uses the template's fire burst and flame tongues;
+  - Beast is claw rakes, fur, dust and blood-red sparks with no flames, and Undead, Steel, Arcane, Nature, Frost, Venom, Water, Storm, Earth and Holy each have their own;
+  - the shared star and shockwave are now small and faint, so the element's body carries the shape;
+  - the proof, one frame per element side by side, in colour and with the colour removed: `tools/clips/x2/x2-elements-colour.jpg` and `x2-elements-greyscale.jpg` (local).
+- **The damage number** pops over the card's art (its upper third) at the template's size, never on its text; "Armour −N" sits at the card's top edge.
+- **Keywords and triggers** each have their own moment (Venom, Chill, the thaw, Undying, Frenzy, Tinker, Retain and Patient, and On Summon, Attack, Defend, Defeat, Dawn, Dusk, Retain). What lasts is painted light on the token: Frozen's crust, Frenzy's rage aura, Undying's veil, and Armour, Ward and Shield as marks at the top corners.
+- **Every card has its own signature** (`cardSignatures()` in `src/ui/vfx/x2.js`, keyed `card.<id>.<moment>`): Actions at React, Adapt and Strat; Events' Release and Favour; Items bought, held and consumed; Campaigns' Order, each Quest step and completion; each Location as it's placed, and the Dawn and Dusk pulses of Sunlit Shrine, Mistveil and the Drowned Reach.
+- **The two Legendaries** arrive in cinematics at legendary weight: the Ashen Wyrm (with The Ashfall), now in the painted kit, and the Deepmaw rising out of The Drowned Reach. Each has a short low-motion version.
+- **Locations** unroll in their own way, pulse, count down at Dusk (red on the last Round) and burn away when they expire.
+- **The Market:** a restock, buying and an Item's Stock running out. **The economy:** Energy and Exert spent, Gold coins, and Renown's star and ribbon to the dial.
+- **The old kit is gone:**
+  - 106 textures (23.6 MB) and every storyboard that used them;
+  - the ambient layer and the victory screen use the painted kit;
+  - `tests/x2-systems.test.js` fails if any old-kit id is referenced anywhere in `src/` or `assets/vfx/manifest.json`.
+- **The renderer:**
+  - up to 16 palettes;
+  - the cap over a card limits only light above the card's own brightness;
+  - every sprite fades at its frame edge, so no square edges show;
+  - mist lies level and doesn't spin.
+- **Engine:** three presentation events, which no rule reads: a Location counting down, a Location's Dawn heal, and an Item's Stock running out.
+CLIPSTBD
+- **Results:**
+  - all 52 test files pass;
+  - neat text and card contrast pass;
+  - layout passes at 1920×1080, 1366×768 and 1280×720;
+  - realinput, libinput, presenter, online2 and vfxcheck pass;
+  - 60 first-deck AI matches and 300 random-deck matches finish with no crash, illegal state or stall.
+- **Site size:** 226.5 MB in git (the effects kit is 15.8 MB).
+- **Differences from the prompt:**
+  - the clips play each moment on a live board through a dev showcase (`fxdemo.js`), not in a staged match;
+  - there are no separate low-motion clips this stage.
+- **Readings for Elliott's approval:** `docs/03-look-and-feel.md` section 24.
