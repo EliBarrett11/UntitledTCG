@@ -810,7 +810,7 @@ Built to `docs/archive/25-stage-l-prompt.md`. No rule changed. The rulebook's se
    - **Choose one**, **Rally** and **Draw** are fuller (more motes, a glyph ring under a chosen mode).
 10. **The React reveal's flare** was blowing out to a white blob; it's softer and takes the React colour.
 
-## 24. Readings from stage X2 (every keyword, card and system): needing Elliott's approval
+## 24. Readings from stage X2 (every keyword, card and system): approved by Elliott, 25 November 2026
 
 1. **Each element looks like itself** (the X1b review): every impact keeps X1b's recipe, but each element brings its own body (three sprites), radiating shapes, falling bits, motes, smoke and tail from its own textures.
    - Only Fire uses the fire burst and flame tongues (the template).

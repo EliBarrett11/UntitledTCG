@@ -86,6 +86,14 @@ Use the new textures from docs/37 section 5 once they're in `assets/vfx/` (the d
 
 ## Stage X3: the Round, the match and the screens
 
+
+**Fixes from Elliott's play-test of X2 (25 November 2026), do these first in X3:**
+- **A Location leaving the board must be one smooth transition.** Today, when a Location expires (or a Legendary's Location goes with its Legendary), the visuals glitch: the tile and the board under it jump between states. Make it a single continuous moment: the tile burns away along painted noise from its edges inward while the Wilds' map art is already showing underneath (no flash of empty board, no snap of the lane labels, the dominance line or the creatures' passive badges), and the lanes settle into the Wilds at the end. Same for the Last Battle sweeping Locations away.
+- **A Legendary keeps its 3-lane size through its defeat.** Today the Wyrm (and the Deepmaw) shrinks to one lane before its defeat plays. The defeat must play on the full wide token at its own size and place, scaled for a legendary weight (a bigger burn, a longer tail), and its Location's removal follows on from it as one sequence.
+- Record both as before-and-after clips and strips, and check them frame by frame for any jump, flash or resize.
+- Also: tidy the small gold glint that appears at the struck card's corner in every element's impact, and record low-motion clips again.
+
+
 - **The Round:**
   - Round start;
   - Dawn: light sweeping the map, creatures readying, Dawn healing;
