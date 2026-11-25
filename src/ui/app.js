@@ -110,8 +110,7 @@ export function startApp(params) {
   watchPanels(stage, { lowMotion: () => !!settings.lowMotion });
   let subMarks = [];
   let chrMarks = [];
-  const stageBox = (el) => { const k = stage.getBoundingClientRect().width / STAGE_W; const sr = stage.getBoundingClientRect(); const r = el.getBoundingClientRect(); return { x: (r.left - sr.left) / k, y: (r.top - sr.top) / k, w: r.width / k, h: r.height / k }; };
-  const subs = createSubtitles({ settings: () => settings, onMarks: (m) => { subMarks = m; applyMarks(); }, tabs: () => [...stage.querySelectorAll('.hand-card .prime-tab')], boxOf: stageBox });
+  const subs = createSubtitles({ settings: () => settings, onMarks: (m) => { subMarks = m; applyMarks(); }, tabs: () => [...stage.querySelectorAll('.hand-card .prime-tab')], boxOf: (el) => stageBox(stage, el) });
   // The outlines: the subtitle's cards (while its line shows) and a hovered Chronicle entry's.
   function applyMarks() {
     for (const el of stage.querySelectorAll('.sub-mark, .chr-mark')) el.classList.remove('sub-mark', 'chr-mark');
@@ -604,7 +603,7 @@ export function startApp(params) {
     // (Stage X3: the turn passes: once drawn, a slim ribbon of light runs from the plaque to whose turn it is.)
     if (lastActor && who !== lastActor && s.phase === 'battle') setTimeout(() => {
       const pl = stage.querySelector('[data-region="turn-plaque"]'); const lord = stage.querySelector(`[data-region="warlord-${who}"]`);
-      if (pl && lord) { const a = stageBox(pl); const b = stageBox(lord); presenter.flourish('turn', { anchors: { plaque: { ...a, cx: a.x + 20, cy: a.y + a.h / 2 }, lordTo: { ...b, cx: b.x + b.w / 2, cy: b.y + b.h / 2 } } }); }
+      if (pl && lord) { const a = stageBox(stage, pl); const b = stageBox(stage, lord); presenter.flourish('turn', { anchors: { plaque: { ...a, cx: a.x + 20, cy: a.y + a.h / 2 }, lordTo: { ...b, cx: b.x + b.w / 2, cy: b.y + b.h / 2 } } }); }
     }, 0);
     lastActor = who;
     if (online.active()) {
