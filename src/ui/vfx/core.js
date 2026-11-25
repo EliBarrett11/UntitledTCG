@@ -91,7 +91,7 @@ export function impact(element, weight = 'medium', o = {}) {
     // The star and the shockwave (every element, recoloured; kept small and faint so the element's own body carries the
     // silhouette: the X1b review's proof is that each element is told apart with the colour removed).
     { at: 0, op: 'sprite', tex: 'vfx-impact-star', ...at, size: 380 * k, scale: [0.17, 1], curve: 'out', rot: 'random', life: 240, alpha: 0.5, ...burn(0.2, 'vfx-noise-cells'), ...P(pal, 0.55) },
-    { at: 0, op: 'sprite', tex: 'vfx-shockwave', ...at, size: 640 * k, scale: [0.15, 1], curve: 'out', life: 420, alpha: 0.28, ...burn(0.15, 'vfx-noise-cells'), ...P(pal, 0.9) },
+    { at: 0, op: 'sprite', tex: 'vfx-shockwave', ...at, size: 560 * k, scale: [0.15, 1], curve: 'out', life: 320, alpha: 0.12, ...burn(0.15, 'vfx-noise-cells'), ...P(pal, 0.9) },
     // The element's radiating shapes.
     { at: 0, op: 'burst', tex: E.shape.tex, ...at, n: D.shapes, speed: [320 * k, 760 * k], spread: 360, drag: 5, align: !solidShape,
       size: E.shape.size ? E.shape.size.map((v) => v * k) : solidShape ? [26 * k, 46 * k] : [140 * k, 200 * k], h: E.shape.h ? 30 * k : undefined, scaleEnd: solidShape ? 1 : 0.25, life: [380, 560],
