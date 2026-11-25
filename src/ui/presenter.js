@@ -1442,11 +1442,12 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const ini = next.initiative; const was = prev.initiative;
             const lordBox = (w) => (warlordEl(w) ? box(warlordEl(w)) : centre);
             const rnd = q('.round-n');
+            // (The Round's own moment first, so Dawn is the moment named while they play together.)
             await Promise.all([
-              fxRun(ctx, 'dawn', { anchors: anchors(), lists: { pips: boxesOf(`[data-region="energy-${HUMAN}"] .en-crys`), exerts: recovered ? exerts.slice(-recovered) : [], readied },
-                hooks: { banner: () => banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'), sweep: () => mapSweep(ctx, 'dawn'), ready: () => readyAll(ctx) } }),
               fxRun(ctx, 'round.start', { anchors: anchors({ round: rnd ? box(rnd) : centre, lordFrom: lordBox(was), lordTo: lordBox(ini) }), flags: { swap: ini !== was },
                 hooks: { number: () => (rnd ? pulse(ctx, rnd, '#ffd89a') : null) } }),
+              fxRun(ctx, 'dawn', { anchors: anchors(), lists: { pips: boxesOf(`[data-region="energy-${HUMAN}"] .en-crys`), exerts: recovered ? exerts.slice(-recovered) : [], readied },
+                hooks: { banner: () => banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'), sweep: () => mapSweep(ctx, 'dawn'), ready: () => readyAll(ctx) } }),
             ]);
           });
           break;
