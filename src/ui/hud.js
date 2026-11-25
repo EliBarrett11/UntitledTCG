@@ -3,6 +3,7 @@
 // hand, your Energy and piles right of it; and the right-hand column's command panel, Market and last actions.
 // They only draw: every action goes through src/ui/app.js. Every region name the presenter and the checks aim at is
 // kept (warlord-…, quest-…, piles-…, energy-…, your-gold, enemy-hand, turn-plaque, column).
+import { chronicleHtml } from './chronicle.js';
 import { RULES } from '../engine/rules.js';
 import { actor } from '../engine/game.js';
 import { cardDef, campaignCreatureOf } from '../engine/cards.js';
@@ -138,7 +139,7 @@ export function energyPanel(s, ui) {
 
 // --- The right-hand column ------------------------------------------------------------------------------------------
 export function column(s, ui) {
-  return `<div class="column" data-region="column">${commandPanel(s, ui)}${marketPanel(s, ui)}${logTicker(ui)}</div>`;
+  return `<div class="column" data-region="column">${commandPanel(s, ui)}${marketPanel(s, ui)}${chronicleHtml(ui)}</div>`;
 }
 
 function commandPanel(s, ui) {
@@ -197,13 +198,6 @@ function codexAttrs(c) {
 }
 const logLine = (l, cls, px) => { const c = chipCardFor(l); return `<div class="log-line ${cls}">${c ? `<span class="log-chip" ${codexAttrs(c)}>${chipFor(c, px)}</span>` : ''}<span>${energyHtml(esc(l))}</span></div>`; };
 
-function logTicker(ui) {
-  const last = ui.log.slice(-2).reverse();
-  return `<div class="hud log-panel" data-region="log">
-    <div class="log-head"><span class="cap">LAST ACTIONS</span><button type="button" class="log-open" data-act="log">FULL LOG ▸</button></div>
-    ${last.map((l, i) => logLine(l, i === 0 ? 'latest' : 'before', 20)).join('')}
-  </div>`;
-}
 
 // The full log, in a panel over the board's right side (Esc, the button or a click outside closes it).
 export function fullLog(ui) {

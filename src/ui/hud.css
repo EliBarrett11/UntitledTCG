@@ -251,3 +251,60 @@ body.low-motion .hand-card { transition: top .15s; }
 /* The React moment lifts a Warlord above its dimming: its copy keeps the panel's slab behind it. */
 .rx-lift.warlord > .warlord { width: max-content; background: linear-gradient(180deg, rgba(50,32,18,.97), rgba(36,22,12,.97)); box-shadow: 0 0 0 2px rgba(226,190,120,.5); }
 .rx-lift.warlord > .hc-warlord { height: 100px; border-radius: 12px; }
+
+/* --- Stage X3: event text out of the battlefield's way ------------------------------------------------------------ */
+/* The subtitle line: one quiet line in the band between the battlefield and the hand (y 773–790, x 336–1270), on a soft
+   dark backing; gold for a big moment. Under the hand: a card you lift covers it. Low motion: a fade only. */
+#subtitle-layer { position: absolute; inset: 0; pointer-events: none; z-index: 15; }
+.subtitle { position: absolute; transform: translateX(-50%); height: 17px; box-sizing: border-box; padding: 0 14px; border-radius: 9px; display: flex; align-items: center;
+  background: rgba(12,8,5,.74); box-shadow: 0 0 10px 2px rgba(12,8,5,.45); white-space: nowrap; overflow: hidden;
+  font: 400 14.5px/17px 'Alegreya Sans', 'EB Garamond', Georgia, serif; color: rgba(244,234,210,.92); letter-spacing: .2px;
+  animation: sub-in .32s cubic-bezier(.2,.7,.2,1) both; transition: opacity .26s, transform .26s; }
+.subtitle > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.subtitle.gold { color: #ffd98a; background: rgba(28,16,6,.82); box-shadow: 0 0 0 1px rgba(232,188,98,.55), 0 0 12px 2px rgba(255,190,90,.25); font-weight: 600; letter-spacing: .4px; }
+.subtitle.out { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+@keyframes sub-in { from { opacity: 0; transform: translateX(-50%) translateY(5px); } to { opacity: 1; transform: translateX(-50%); } }
+.subtitle.low { animation: sub-fade .2s linear both; }
+.subtitle.low.out { transform: translateX(-50%); }
+@keyframes sub-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* A "★ PRIME" tab under a line steps aside while it shows (its card keeps its gold glow). */
+.prime-tab { transition: opacity .25s, visibility 0s; }
+.prime-tab.yield { opacity: 0; visibility: hidden; transition: opacity .25s, visibility 0s .25s; }
+
+/* The cards a line names, and a hovered Chronicle entry's: a thin outline (no glow over the art). */
+.slot-card.sub-mark::before, .slot-card.chr-mark::before, .hand-card.sub-mark::after, .hand-card.chr-mark::after { content: ''; position: absolute; inset: -4px; border-radius: 13px; pointer-events: none; z-index: 4;
+  box-shadow: 0 0 0 1.5px rgba(255,232,170,.85), 0 0 6px rgba(255,214,130,.35); }
+.slot-card.chr-mark::before, .hand-card.chr-mark::after { box-shadow: 0 0 0 1.5px rgba(170,214,255,.9), 0 0 6px rgba(140,190,255,.4); }
+.warlord.sub-mark, [data-region^="warlord-"].sub-mark { box-shadow: inset 0 0 0 1.5px rgba(255,232,170,.85); }
+[data-region^="warlord-"].chr-mark { box-shadow: inset 0 0 0 1.5px rgba(170,214,255,.9); }
+
+/* The other player's action, in the turn plaque in place of its line (stage X3). */
+.tp-ann { display: flex; gap: 9px; align-items: center; min-width: 0; margin: 1px 0 0; }
+.tp-ann .an-art { width: 38px; height: 38px; border-radius: 5px; box-shadow: 0 0 0 1.5px rgba(200,215,255,.7); }
+.tp-ann .an-body { min-width: 0; flex: 1; }
+.tp-ann .an-lead { font: 700 9.5px/1.25 Cinzel, serif; letter-spacing: .22em; color: #b9caf2; white-space: nowrap; }
+.turn-plaque.you .tp-ann .an-lead { color: #ffcfb8; }
+.tp-ann .an-name { font: 700 13.5px/1.25 Cinzel, serif; color: #f6e7c7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tp-ann .an-name span { font: 400 12.5px 'EB Garamond', Georgia, serif; color: rgba(246,231,199,.8); }
+.tp-ann .an-line { font-size: 12px; line-height: 1.25; color: rgba(246,231,199,.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.turn-plaque.has-ann .tp-controls { margin-top: 5px; }
+
+/* The Chronicle: the last events, newest on top: a thumbnail, an icon, the side's colour. */
+.log-panel.chronicle { gap: 4px; }
+.chr-rows { display: flex; flex-direction: column; gap: 2px; cursor: pointer; min-height: 0; }
+.chr-row { display: flex; align-items: center; gap: 6px; height: 17px; padding: 0 4px 0 0; border-left: 3px solid transparent; border-radius: 2px; font-size: 12.5px; line-height: 17px; color: rgba(239,228,200,.62); }
+.chr-row.latest { color: #efe4c8; }
+.chr-row.chr-you { border-left-color: #c9473a; }
+.chr-row.chr-them { border-left-color: #5d86d6; }
+.chr-row.chr-none { border-left-color: #c7a15a; }
+.chr-row.gold .chr-text { color: #ffd98a; }
+.chr-row:hover { background: rgba(255,240,210,.07); }
+.chr-thumb { flex: none; width: 17px; height: 17px; border-radius: 3px; background: #2a1d12 center 25% / cover; box-shadow: 0 0 0 1px rgba(199,161,90,.5); }
+.chr-thumb.back { background: url('../../assets/ui/card-back.jpg') center / cover, #3a1410; }
+.chr-thumb.none { background: radial-gradient(circle, rgba(199,161,90,.35), rgba(42,29,18,.9)); }
+.chr-ico { flex: none; width: 13px; height: 13px; display: inline-flex; color: #d9c08a; }
+.chr-ico svg { width: 13px; height: 13px; }
+.ico-attack { color: #ff9a7a; } .ico-defeat { color: #c9b8a8; } .ico-renown { color: #ffd166; } .ico-gold { color: #f0c04a; } .ico-play { color: #a8c8ff; } .ico-pass { color: #c8b89a; }
+.chr-text { min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chr-empty { font-size: 12.5px; color: rgba(239,228,200,.5); }

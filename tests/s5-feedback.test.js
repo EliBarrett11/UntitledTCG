@@ -60,11 +60,11 @@ test('React previews: what the attack does with the React and without it', () =>
 test('settings: defaults when storage is missing or holds nonsense', async () => {
   const { loadSettings } = await import('../src/ui/app.js');
   // (V5 adds "pause after each action", off unless saved as true.)
-  assert.deepEqual(loadSettings(null), { speed: 'normal', lowMotion: false, reactSeconds: 5, pauseAfter: false });
+  assert.deepEqual(loadSettings(null), { speed: 'normal', lowMotion: false, reactSeconds: 5, pauseAfter: false, eventText: 'both' });
   globalThis.localStorage = { getItem: () => '{"speed":"warp","reactSeconds":12,"lowMotion":true,"pauseAfter":true}', setItem() {} };
-  assert.deepEqual(loadSettings(null), { speed: 'normal', lowMotion: true, reactSeconds: 12, pauseAfter: true });
+  assert.deepEqual(loadSettings(null), { speed: 'normal', lowMotion: true, reactSeconds: 12, pauseAfter: true, eventText: 'both' });
   globalThis.localStorage = { getItem: () => { throw new Error('blocked'); } };
-  assert.deepEqual(loadSettings(null), { speed: 'normal', lowMotion: false, reactSeconds: 5, pauseAfter: false });
+  assert.deepEqual(loadSettings(null), { speed: 'normal', lowMotion: false, reactSeconds: 5, pauseAfter: false, eventText: 'both' });
   delete globalThis.localStorage;
 });
 

@@ -80,6 +80,9 @@ function map(s, ui) {
     ${row(s, AI, ui)}${row(s, HUMAN, ui)}
   </div>`;
 }
+// (Stage X3: the map as a state drew it, for the presenter: what leaves the board in an action stays as it was drawn
+// until its own beat takes it away.)
+export const mapHtml = (s) => map(s, {});
 // Stage A: a placed Location's tile, drawn from its full scene (assets/cards-v3/, 1536 × 1024): the image covers the
 // tile's shape (tall for 2 lanes, wide for 3 and 4) and is placed so the card data's tile focus (tileX, tileY, its
 // landmark) sits as near the tile's centre as the image allows. Without a full scene, the card image, centred.
@@ -243,7 +246,6 @@ export function render(s, ui) {
   ${hand(s, ui)}
   ${energyPanel(s, ui)}
   ${ui.prompt ? `<div class="prompt" data-region="prompt">${energyHtml(esc(ui.prompt))}</div>` : ''}
-  ${ui.caption ? `<div class="caption" data-region="caption">${esc(ui.caption)}</div>` : ''}
   ${column(s, ui)}
   ${fullLog(ui)}
   ${menu(ui)}
@@ -269,6 +271,9 @@ export function settingsPanel(ui) {
     <div class="muted small">No shake, tilt, sheen or ribbons; fewer sparks and short fades.</div>
     <div class="label">REACT TIMER</div>
     <div class="set-row">${[5, 8, 12, 20].map((v) => opt('reactSeconds', v, `${v} s`, st.reactSeconds === v)).join('')}</div>
+    <div class="label">EVENT TEXT</div>
+    <div class="set-row">${opt('eventText', 'both', 'Both', (st.eventText ?? 'both') === 'both')}${opt('eventText', 'chronicle', 'Chronicle', st.eventText === 'chronicle')}${opt('eventText', 'off', 'Off', st.eventText === 'off')}</div>
+    <div class="muted small">Both: a line under the board says what just happened, its cards outlined, and the Chronicle keeps the history.</div>
     <button type="button" class="btn" data-act="settings" data-nav>Close</button>
     ${ui.online ? '<button type="button" class="btn leave" data-act="net-leave" data-nav>Leave match</button>' : ''}
   </div>`;

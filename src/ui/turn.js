@@ -73,8 +73,14 @@ export function turnPlaque(s, ui, pace) {
       parts.push(btn('pace-pause', pace.waiting ? '▶ NEXT' : '❚❚', pace.pause || pace.waiting, `title="${pace.waiting ? 'Go on (or press Space)' : 'Pause after each of the enemy\'s actions'}" aria-label="${pace.waiting ? 'Next' : 'Pause after each action'}"`));
     }
     parts.push(btn('replay', '↺ REPLAY', false, `title="Replay the last action" ${pace.canReplay ? '' : 'disabled'}`));
-    controls = `<div class="tp-controls">${parts.join('')}</div>${ONLINE ? '' : '<div class="tp-hint">hold Space to skip ahead</div>'}`;
+    controls = `<div class="tp-controls">${parts.join('')}</div>${ONLINE || ui.announce ? '' : '<div class="tp-hint">hold Space to skip ahead</div>'}`;
   }
+  // (Stage X3: what the other player just did, in the plaque beside their side of the board, in place of the line.)
+  if (ui.announce) return `<div class="turn-plaque ${cls} has-ann" data-region="turn-plaque" data-whose="${mine ? 'you' : who ? 'them' : 'none'}">
+    <div class="tp-head"><span class="tp-title">${title}</span>${doing}</div>
+    ${announcementHtml(ui.announce)}
+    ${controls}
+  </div>`;
   return `<div class="turn-plaque ${cls}" data-region="turn-plaque" data-whose="${mine ? 'you' : who ? 'them' : 'none'}" role="status" aria-live="polite">
     <div class="tp-head"><span class="tp-title">${title}</span>${doing}</div>
     ${line ? `<div class="tp-line">${esc(line)}</div>` : ''}
@@ -149,9 +155,12 @@ export function announcement(prev, next, events, who) {
 }
 export function announcementHtml(a) {
   if (!a) return '';
+  // (Stage X3: a small panel in the turn plaque, never over the board: the card's art, what they did and to what, and
+  // its line; the whole of it on hover.)
   const art = a.back || !a.card ? '<div class="an-art back"></div>' : `<div class="an-art" style="background-image:url('${esc(artOf(a.card) ?? '')}')"></div>`;
   const lead = `${ONLINE ? 'YOUR FRIEND' : 'THE ENEMY'} ${a.verb}`;
-  const x = a.lane === null || a.lane === undefined ? 790 : Math.max(330, Math.min(1250, 24 + (a.lane + 0.5) * LANE_W));
-  return `<div class="announce" data-region="announce" style="left:${x}px" role="status" aria-live="polite">${art}
+  const plainLine = String(a.line ?? '').replace(/<[^>]+>/g, '');
+  const whole = `${lead}: ${a.name ?? ''} ${a.to ?? ''} · ${plainLine}`.replace(/\s+/g, ' ');
+  return `<div class="tp-ann" data-region="announce" data-seq="${a.seq ?? 0}" role="status" aria-live="polite" title="${esc(whole)}">${art}
     <div class="an-body"><div class="an-lead">${esc(lead)}</div>${a.name ? `<div class="an-name">${esc(a.name)} <span>${esc(a.to)}</span></div>` : ''}<div class="an-line">${energyHtml(a.line)}</div></div></div>`;
 }

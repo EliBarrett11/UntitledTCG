@@ -75,6 +75,9 @@ const SCENES = [
   { name: 'v5-turn-you', query: '?seed=10&scene=mid&pace=100000', need: '[data-region="turn-plaque"][data-whose="you"]' },
   { name: 'v5-turn-enemy', query: '?seed=10&scene=enemy&pace=100000', need: '[data-region="turn-plaque"][data-whose="them"]' },
   { name: 'v5-announce', query: '?seed=10&scene=mid&autoplay=1&pace=600&speed=slow&lowmotion=1', steps: async (p) => { await p.waitForSelector('[data-region="announce"]:not(.out)', { timeout: 90000 }); await p.waitForTimeout(150); }, need: '[data-region="announce"]' },
+  // Stage X3: the subtitle line under the board (with its cards outlined), at each size; a gold one.
+  { name: 'x3-subtitle', query: '?seed=10&scene=enemy&pace=1200&speed=fast', steps: async (p) => { await p.waitForFunction(() => document.querySelector('.subtitle:not(.out)') && window.__match.beats().started > 0 && !window.__match.presenting(), null, { timeout: 120000, polling: 100 }); await p.waitForTimeout(300); }, need: '.subtitle' },
+  { name: 'x3-chronicle', query: '?seed=10&scene=enemy&pace=1200&speed=fast', steps: async (p) => { await p.waitForFunction(() => document.querySelectorAll('.chr-row').length >= 1 && window.__match.beats().started > 0 && !window.__match.presenting(), null, { timeout: 180000, polling: 100 }); await hoverTop(p, '.chr-row', 0); await p.waitForTimeout(150); }, need: '.chr-row' },
   { name: 'v5-dom-you', query: '?seed=2&scene=mid&pace=100000', need: '.dom-say.you' },
   { name: 'v5-dom-enemy', query: '?seed=10&scene=mid&pace=100000', need: '.dom-say.them' },
   { name: 'v5-dom-tie', query: '?seed=5&scene=mid&pace=100000', need: '.dom-say.tie' },
@@ -270,7 +273,11 @@ function inspect() {
     ['.my-energy', '.hand-card'], ['.my-energy', '.me-piles .piles'],
     // (Stage R: a protection label never covers a card's name or stats; nor does the band's prompt.)
     ['.protect-label', '.slot-card .cv-name'], ['.protect-label', '.slot-card .tab'], ['.protect-label', '.card-wide .wide-name'], ['.warlord-protect', '.slot-card'], ['.prompt', '.dom-line'],
-    ['.dom-say', '[data-region="map"] .slot-card'], ['.caption', '.dom-line'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
+    ['.dom-say', '[data-region="map"] .slot-card'], ['.caption', '.dom-line'],
+    // (Stage X3: the subtitle line and the other player's announcement never cover the battlefield, a card, a panel or
+    // the plaque's controls; the subtitle lies beneath the effects layer, so an effect always draws over it.)
+    ['.subtitle', '[data-region="map"]'], ['.subtitle', '.hand-card'], ['.subtitle', '.slot-card'], ['.subtitle', '.hud'], ['.subtitle', '.prime-tab:not(.yield)'],
+    ['[data-region="announce"]', '[data-region="map"]'], ['[data-region="announce"]', '.slot-card'], ['[data-region="announce"]', '.tp-controls'], ['[data-region="announce"]', '.tp-head'], ['.lobby-panel', '.title-note'], ['.scr-btn', '.scr-btn'],
     // (Stage L: the Library's panels never meet; in the deck panel, its parts stay apart; on match setup, a deck list
     // and a refusal cover nothing in the middle column.)
     ['.lib-head', '[data-region="lib-filters"]'], ['.lib-head', '[data-region="lib-deck"]'], ['.lib-head', '[data-region="lib-grid"]'], ['[data-region="lib-filters"]', '[data-region="lib-grid"]'],

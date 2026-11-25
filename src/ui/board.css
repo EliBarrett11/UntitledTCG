@@ -374,3 +374,12 @@ body.low-motion .tarrow.draw * { animation: none !important; opacity: 1 !importa
 .lb-edge { position: absolute; right: -10px; top: 50%; width: 26px; height: 26px; translate: 0 -50%; border-radius: 50%;
   background: radial-gradient(circle, #fff6d8 0%, rgba(255, 190, 90, 0.85) 30%, rgba(255, 120, 40, 0) 70%); }
 .lb-text { font-family: 'Cinzel', serif; font-size: 16px; letter-spacing: 0.18em; color: #e9cf9a; text-shadow: 0 2px 6px #000; }
+
+/* Stage X3: what leaves the board leaves it smoothly. A defeated creature's ghost is its slot card as it was drawn (a
+   Legendary at its full width); a held Location (tile, label) stays where it was until its beat burns it away; as the
+   Last Battle begins, the lanes take its look over a moment rather than at once. */
+.ghost-slot { position: absolute; }
+.ghost-slot > .slot-card { margin: 0; }
+.loc-hold { pointer-events: none; }
+.map .lane-num, .map .lane-line, .map .empty-slot { transition: top .9s ease-in-out, color .9s, background-color .9s, border-color .9s, box-shadow .9s; }
+body.low-motion .map .lane-num, body.low-motion .map .lane-line, body.low-motion .map .empty-slot { transition: none; }

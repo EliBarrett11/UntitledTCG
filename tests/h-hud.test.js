@@ -70,7 +70,11 @@ test('the panels from your turn: the band, your Warlord and Quest, Energy, the c
   assert.match(html, /ROUND 4/);
   assert.match(html, /Last Battle at Round 10 or 70 Renown/);
   assert.match(html, /FULL LOG ▸/);
-  assert.match(html, /The enemy placed Ironroot Pass/);
+  // (Stage X3: the last actions are the Chronicle: its entries, newest on top, with an icon and the side's colour.)
+  assert.match(html, /THE CHRONICLE/);
+  const chron = render(s, ui({ picks: { pass: false }, chron: [{ side: 'p2', icon: 'play', text: 'The enemy placed Ironroot Pass over lanes 2–3', card: null, marks: [] }, { side: 'p1', icon: 'attack', text: 'Your Gorran attacks', card: null, marks: [] }] }));
+  assert.match(chron, /chr-row chr-them latest[^>]*>.*ico-play.*The enemy placed Ironroot Pass/s);
+  assert.ok(chron.indexOf('Ironroot Pass over') < chron.indexOf('Your Gorran attacks'));
   assert.match(html, /hud band them(?! active)/);
   assert.match(html, /hud you-panel you active/);
   // (Elliott, 17 November 2026: no red must-attack tag; the hint under Pass says it.)

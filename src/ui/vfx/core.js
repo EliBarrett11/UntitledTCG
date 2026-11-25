@@ -104,8 +104,8 @@ export function impact(element, weight = 'medium', o = {}) {
     { at: 0, op: 'dom', name: 'knock', el: 'dst', dur: 900 },
     { at: 30, op: 'call', fn: o.hold === null ? 'none' : o.hold ?? 'land' },
     // Armour: steel plates scatter off the Health tab under a shield sigil.
-    { at: 0, op: 'burst', tex: 'vfx-armour-plates', on: 'dstHp', n: 6, speed: [160, 380], angle: 'up', spread: 160, life: [480, 680], size: [28, 44], gravity: 1300, drag: 1, spin: [-420, 420], alpha: 1, ...burn(0.55, 'vfx-noise-cells'), if: 'armour' },
-    { at: 0, op: 'sprite', tex: 'vfx-shield-sigil', on: 'dstHp', size: 130, scale: [1.5, 1], curve: 'out', life: 460, alpha: 1.05, ...burn(0.4, 'vfx-noise-cells'), ...P('steel', 0.4), if: 'armour' },
+    // (Stage X3: Armour's own moment plays in its beat, at the card's top edge where "Armour −N" pops; the hit no longer
+    // adds a second sigil and plates at the card's corner, the small gold glint every element's impact had.)
     // Secondary (from 140 ms): the element's smoke (or dust, or mist) rolls up and burns away.
     { at: 140, op: 'burst', tex: E.smoke.tex, ...at, n: D.smoke, area: [60 * k, 30], speed: [40, 110], angle: 'up', spread: 60, life: [1400, 2100], size: [125 * k, 180 * k], scaleEnd: 2.7, gravity: -30, drag: 0.6, spin: [-46, 46], curl: 60, alpha: E.smoke.alpha ?? 0.62,
       ...burn(0.35, 'vfx-noise-wisps', { flow: 0.15, scroll: [0, -0.3], noiseScale: 0.35, edge: 0.04 }), tint: E.smoke.tint, tintK: 1 },
@@ -381,6 +381,36 @@ export function coreEffects() {
     { at: 300, op: 'burst', tex: 'vfx-ice-shards', on: 'card', area: 'card', n: 28, speed: [280, 760], spread: 360, life: [480, 760], size: [18, 38], gravity: 1200, drag: 1.2, spin: [-400, 400], ...burn(0.5, 'vfx-noise-cells'), if: 'ice' },
     { at: 300, op: 'burst', tex: 'fx-dot', on: 'card', n: 120, speed: [80, 600], spread: 360, life: [700, 1600], size: [3, 9], scaleEnd: 0.15, gravity: -60, drag: 2.4, curl: 120, alpha: 1, tint: '#f6feff', tint1: '#3a6ad0', tintK: 1, if: 'ice' },
     { at: 300, op: 'light', on: 'card', palette: 'frost', tone: 'mid', radius: 320, peak: 0.4, attack: 30, hold: 160, decay: 600, if: 'ice' },
+  ] };
+
+  // Stage X3: a Legendary's defeat, on its full 3-lane token at its own place: the same burn at the legendary weight
+  // (a harder hit-stop and shake, a wider dip and light, twice the embers and ash, a slower erosion), then a longer
+  // tail: a second wave of embers and smoke rolling off the whole width, and larger marks.
+  const BIG = (steps) => steps.map((s0) => {
+    const o = { ...s0, at: Math.round(s0.at * 1.3) };
+    if (o.op === 'hitstop') o.weight = 'legendary';
+    if (o.radius) o.radius = Math.round(o.radius * 1.9);
+    if (typeof o.size === 'number') o.size = Math.round(o.size * 1.8); else if (Array.isArray(o.size)) o.size = o.size.map((v) => Math.round(v * 1.35));
+    if (o.sizeK) o.sizeK *= 1.7;
+    if (o.n) o.n = Math.round(o.n * 2.2);
+    if (o.rate) o.rate = Math.round(o.rate * 1.8);
+    if (o.op === 'emit') o.dur = Math.round(o.dur * 1.7);
+    if (o.op === 'dom' && o.name === 'erode') o.dur = 1350;
+    if (o.op === 'heat') o.dur = Math.round(o.dur * 1.6);
+    if (Array.isArray(o.life)) o.life = o.life.map((v) => Math.round(v * 1.35)); else if (typeof o.life === 'number') o.life = Math.round(o.life * 1.35);
+    if (o.hold) o.hold = Math.round(o.hold * 1.6);
+    if (o.decay) o.decay = Math.round(o.decay * 1.4);
+    if (o.peak) o.peak = Math.min(0.6, o.peak * 1.2);
+    return o;
+  });
+  E['defeat.legendary'] = { duration: 2900, stageE: true, steps: [
+    ...BIG(E.defeat.steps.filter((x) => x.op !== 'use')), ...BIG(E['e.defeat'].steps),
+    { at: 140, op: 'shake', weight: 'legendary' },
+    { at: 140, op: 'wave', on: 'card', radius: 1200, strength: 20, dur: 900 },
+    { at: 1100, op: 'emit', tex: 'fx-dot', on: 'card', area: 'card', rate: 420, dur: 1100, speed: [40, 220], angle: 'up', spread: 80, life: [900, 1800], size: [4, 11], scaleEnd: 0.15, gravity: -160, drag: 1, curl: 140, stretch: 0.02, alpha: 0.95, tint: '#fff2b8', tint1: '#ff3008', tintK: 1, if: '!undead' },
+    { at: 1100, op: 'emit', tex: 'fx-dot', on: 'card', area: 'card', rate: 360, dur: 1100, speed: [40, 200], angle: 'up', spread: 80, life: [900, 1800], size: [4, 11], scaleEnd: 0.15, gravity: -160, drag: 1, curl: 140, alpha: 0.95, tint: '#eafff8', tint1: '#1f8a7a', tintK: 1, if: 'undead' },
+    { at: 1250, op: 'burst', tex: 'vfx-smoke-puffs', on: 'card', n: 10, area: 'card', speed: [30, 90], angle: 'up', spread: 60, life: [1800, 2600], size: [150, 210], scaleEnd: 2.4, gravity: -30, drag: 0.6, spin: [-40, 40], curl: 60, alpha: 0.38,
+      ...burn(0.35, 'vfx-noise-wisps', { flow: 0.15, noiseScale: 0.35 }), tint: '#6a5a5c', tintK: 0.8 },
   ] };
 
   // --- Undying: it would fall; ghostlight takes it and stands it up at 1 Health ----------------------------------------

@@ -34,7 +34,7 @@ import { hitstopMs } from './shaping.js';
 // (Stage X1b: the rebuilt moments block a little longer, docs/40 section 3: about 1.2 s light to 2 s heavy, their tails
 // running on behind the next action.)
 export const BUDGET = { attackX: 1700, summonX: 1400, summonHeavy: 1800, defeatX: 1700, primeX: 1700, attack: 1250, summon: 750, defeat: 1000, stratResolve: 2000, legendary: 3000, lastBattle: 3000, renown: 800, prime: 900, primeLow: 500,
-  wyrm: 3500, location: 1000, locationGone: 800, dominance: 600 };
+  wyrm: 3500, location: 1000, locationGone: 1300, dominance: 600 };
 export const BUDGET_SLACK = 0.12;
 export const GOLD = '#f2c46a';
 // The guard's sigil flares on its Health tab as it steps in (stage E's moments use it).

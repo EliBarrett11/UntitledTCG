@@ -21,7 +21,9 @@ import { arrowSvg } from './arrow.js';
 import { titleScreen, setupScreen, openingBanner } from './screens.js';
 import { firstScreen, nextScreen } from './flow.js';
 import { createCodex } from './codex.js';
-import { announcement, announcementHtml, costPreview, energyDisplay } from './turn.js';
+import { announcement, costPreview, energyDisplay } from './turn.js';
+import { chronicleOf } from './chronicle.js';
+import { createSubtitles } from './subtitle.js';
 import { termAtOffset, tipHtml } from './tips.js';
 import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
 import { createLibrary } from './library.js';
@@ -51,6 +53,8 @@ export function loadSettings(params) {
     reactSeconds: [5, 8, 12, 20].includes(saved.reactSeconds) ? saved.reactSeconds : 5,
     // (V5: against the AI, pause after each of its actions until you go on.)
     pauseAfter: saved.pauseAfter === true,
+    // (Stage X3: event text: the subtitle line and the Chronicle, the Chronicle only, or off.)
+    eventText: ['both', 'chronicle', 'off'].includes(saved.eventText) ? saved.eventText : 'both',
   };
   // Dev aids for the checks: ?speed=slow|normal|fast&lowmotion=0|1 (not saved).
   if (params?.has('speed')) out.speed = params.get('speed');
@@ -99,11 +103,22 @@ export function startApp(params) {
   const netLayer = document.createElement('div');
   netLayer.id = 'net-layer';
   document.getElementById('viewport').appendChild(netLayer);
-  // V5: the other player's actions are announced in their own layer over the stage (redraws never touch it).
-  const annLayer = document.createElement('div');
-  annLayer.id = 'announce-layer';
-  document.getElementById('viewport').appendChild(annLayer);
-  let annTimer = null;
+  // Stage X3: the subtitle line, in its own layer over the stage (redraws never touch it), in the band between the
+  // battlefield and the hand; while a line shows, the cards it names are outlined on the board.
+  let subMarks = [];
+  let chrMarks = [];
+  const stageBox = (el) => { const k = stage.getBoundingClientRect().width / STAGE_W; const sr = stage.getBoundingClientRect(); const r = el.getBoundingClientRect(); return { x: (r.left - sr.left) / k, y: (r.top - sr.top) / k, w: r.width / k, h: r.height / k }; };
+  const subs = createSubtitles({ settings: () => settings, onMarks: (m) => { subMarks = m; applyMarks(); }, tabs: () => [...stage.querySelectorAll('.hand-card .prime-tab')], boxOf: stageBox });
+  // The outlines: the subtitle's cards (while its line shows) and a hovered Chronicle entry's.
+  function applyMarks() {
+    for (const el of stage.querySelectorAll('.sub-mark, .chr-mark')) el.classList.remove('sub-mark', 'chr-mark');
+    if (screen !== 'match') return;
+    const find = (m) => (m.warlord ? [stage.querySelector(`[data-region="warlord-${m.warlord}"]`)] : [...stage.querySelectorAll(`[data-region="map"] .slot-card[data-uid="${CSS.escape(m.uid)}"], .hand-card[data-uid="${CSS.escape(m.uid)}"]`)]);
+    if ((settings.eventText ?? 'both') === 'both') for (const m of subMarks) for (const el of find(m)) el?.classList.add('sub-mark');
+    for (const m of chrMarks) for (const el of find(m)) el?.classList.add('chr-mark');
+  }
+  // Gold lines (a Prime, a Legendary, a Quest completing, the Last Battle) wait for their effect to land.
+  let goldWaiting = [];
   let skipHeld = false;       // Space held: skip ahead
   let paceWaiting = false;    // paused after the AI's action, until you go on
   let pausedFor = null;       // (the action that pause was for, once you've gone on)
@@ -164,11 +179,13 @@ export function startApp(params) {
   const presenter = createPresenter(stage, {
     vfx,
     settings: () => settings,
-    onBeat: ({ kind, caption, started, done }) => {
+    onBeat: ({ kind, caption, started, done, gold }) => {
       document.body.dataset.beat = kind ?? '';
       document.body.dataset.beatsStarted = String(started);
       document.body.dataset.beatsDone = String(done);
-      if (kind) { ui.caption = caption; setCaption(caption); }
+      if (kind) ui.caption = caption;
+      // (Stage X3: a big moment's gold line once its effect has landed.)
+      if (!kind && gold && goldWaiting.length) { const x = goldWaiting.shift(); subs.say({ text: x.text, gold: true, marks: x.marks }); }
       // (V5: while Space is held, every beat is skipped.)
       if (kind && skipHeld) setTimeout(() => presenter.skip(), 0);
     },
@@ -446,28 +463,31 @@ export function startApp(params) {
   }
 
   // Show an action: draw the new state, play its beats (a click skips the current one), then go on.
-  // How long an announcement stays (it clears after it's been readable this long, or when you act).
-  const readMs = () => ({ slow: 3200, normal: 2300, fast: 1400 }[settings.speed] ?? 2300);
   // Against the AI: its minimum think time, so its moves never blur together (?pace=ms overrides it, for the checks).
   const thinkMs = () => (params.has('pace') ? pace : ({ slow: 1500, normal: 900, fast: 450 }[settings.speed] ?? 900));
+  // (Stage X3: what the other player just did shows in the turn plaque, beside their side of the board, never over
+  // it; it stays until you act or they act again.)
   function announce(r) {
-    clearTimeout(annTimer);
-    annLayer.innerHTML = '';
+    ui.announce = null;
     if (r.who !== AI || !r.prev) return;
-    const a = announcement(r.prev, r.next, r.events ?? [], AI);
-    if (!a) return;
-    annLayer.innerHTML = announcementHtml(a);
-    document.body.classList.add('announcing');
-    annTimer = setTimeout(clearAnnouncement, readMs());
+    ui.announce = announcement(r.prev, r.next, r.events ?? [], AI) ?? null;
+    if (ui.announce) ui.announce.seq = (ui.announceSeq = (ui.announceSeq ?? 0) + 1);
   }
   function clearAnnouncement() {
-    clearTimeout(annTimer);
-    document.body.classList.remove('announcing');
-    const el = annLayer.firstElementChild;
-    if (!el) return;
-    if (settings.lowMotion) { annLayer.innerHTML = ''; return; }
-    el.classList.add('out');
-    setTimeout(() => { if (annLayer.firstElementChild === el) annLayer.innerHTML = ''; }, 260);
+    if (!ui?.announce) return;
+    ui.announce = null;
+    if (!presenting) draw();
+  }
+  // Stage X3: the Chronicle's entries and the subtitle's line for one action.
+  function chronicle(r) {
+    if (!r.prev || r.replay) return;
+    const ents = chronicleOf(r.prev, r.next, r.events ?? [], r.who ?? null);
+    if (!ents.length) return;
+    ui.chron = [...ents.slice().reverse(), ...(ui.chron ?? [])].slice(0, 40);
+    goldWaiting = ents.filter((x) => x.gold || (x.lead && /at its Prime/.test(x.text)));
+    for (const x of goldWaiting) x.gold = true;
+    const lead = ents.find((x) => x.lead);
+    if (lead && !goldWaiting.includes(lead)) subs.say({ text: lead.text, marks: lead.marks });
   }
   // Replay the last action (against the AI or online): the same beats again, the state unchanged.
   function replay() {
@@ -480,7 +500,8 @@ export function startApp(params) {
     stopReact();
     if (r.who === undefined) r.who = HUMAN;
     lastShown = r;
-    if (r.who === AI) announce(r); else clearAnnouncement();
+    if (r.who === AI) announce(r); else if (ui.announce) ui.announce = null;
+    chronicle(r);
     presenting = true;
     ui.locked = true;
     ui.sel = null; ui.menu = null; ui.prompt = ''; ui.attacker = null; ui.previews = {};
@@ -489,6 +510,8 @@ export function startApp(params) {
     const mine = version;
     await presenter.play(r.prev, r.next, r.events);
     if (mine !== version) return;   // a new match started meanwhile
+    // (Gold lines whose beat didn't play, skipped or in a version without it, still say their line.)
+    for (const x of goldWaiting.splice(0)) subs.say({ text: x.text, gold: true, marks: x.marks });
     presenting = false;
     document.body.dataset.presenting = '';
     if (updates.length) return presentNext();
@@ -558,11 +581,7 @@ export function startApp(params) {
     hostClock = setInterval(tick, 500);
   }
   function stopHostClock() { clearInterval(hostClock); hostClock = null; }
-  function setCaption(text) {
-    let el = stage.querySelector('.caption');
-    if (!el) { el = document.createElement('div'); el.className = 'caption'; el.dataset.region = 'caption'; stage.appendChild(el); }
-    el.textContent = text;
-  }
+  // (Stage X3: the caption pill over the map is gone: the subtitle line and the Chronicle say what happened.)
 
   function advance() {
     clearTimeout(timer);
@@ -1040,6 +1059,8 @@ export function startApp(params) {
 
   function afterDraw() {
     if (screen !== 'match' || !s) return;
+    subs.attach(stage);
+    applyMarks();
     // (V5: the Location labels are taller now; where one would be under the prompt line, the prompt moves up to the
     // top of the band, under the upper row of cards.)
     // (Stage R: with 8 lanes the cards are taller, and the band between the rows holds the Location labels; the prompt
@@ -1322,6 +1343,7 @@ export function startApp(params) {
         settings = { ...settings, [k]: k === 'lowMotion' ? v === '1' : k === 'reactSeconds' ? Number(v) : v };
         ui.settings = settings;
         saveSettings(settings);
+        if (k === 'eventText' && v !== 'both') subs.clear();
         applyMotionClass();
         return draw();
       }
@@ -1533,6 +1555,14 @@ export function startApp(params) {
   window.addEventListener('scroll', () => hidePreview(), { capture: true, passive: true });
   document.addEventListener('pointerdown', () => hidePreview(), true);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hidePreview(); }, true);
+  // (Stage X3: hovering a Chronicle entry outlines its cards on the board; it never moves the board.)
+  stage.addEventListener('pointerover', (e) => {
+    const row = e.target.closest?.('.chr-row');
+    const m = row ? (ui?.chron?.[Number(row.dataset.chr)]?.marks ?? []) : [];
+    if (m === chrMarks || (!m.length && !chrMarks.length)) return;
+    chrMarks = m;
+    applyMarks();
+  });
   // Full cards tilt slightly under the pointer: the preview follows the pointer over the card it shows.
   stage.addEventListener('mousemove', (e) => {
     const pv = stage.querySelector('#preview');
@@ -1697,7 +1727,6 @@ export function startApp(params) {
     stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
     codex.layer.style.transform = stage.style.transform;
     netLayer.style.transform = stage.style.transform;
-    annLayer.style.transform = stage.style.transform;
     vfx.resize();
   };
   window.addEventListener('resize', fit);
@@ -1755,7 +1784,7 @@ export function startApp(params) {
   // (Stage X3, a dev aid for the clips and checks: the first legal action of yours whose fields match, played as if
   // you had clicked it.)
   const actWhere = (m) => { const a = mine().find((x) => Object.entries(m).every(([k, v]) => x[k] === v)); if (a) act(a); return a ?? null; };
-  if (params.has('dev')) window.__match = { actWhere, legal: () => mine(), act: (a) => act(a), loader: () => loader.stats(), get seed() { return seed; }, get screen() { return screen; }, state: () => s, fxDemo, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), vfxApi: vfx, resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
+  if (params.has('dev')) window.__match = { actWhere, legal: () => mine(), act: (a) => act(a), ui: () => ui, subs: () => subs.state(), loader: () => loader.stats(), get seed() { return seed; }, get screen() { return screen; }, state: () => s, fxDemo, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), vfxApi: vfx, resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
 }
 
 export { esc };

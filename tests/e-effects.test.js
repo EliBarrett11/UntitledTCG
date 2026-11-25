@@ -102,7 +102,7 @@ test('the three moments: built from the new kit, within their budgets, and used 
   assert.equal(effectFor('damage', 'Firebolt', 'strat'), 'e.firebolt.strat');
   assert.equal(effectFor('damage', 'Flask of Wildfire'), 'item.wildfire');
   const presenter = readFileSync('src/ui/presenter.js', 'utf8');
-  assert.match(presenter, /fxRun\(ctx, 'defeat', env\)/);   // (stage X1: 'defeat' plays e.defeat with its variant by kind)
+  assert.match(presenter, /fxRun\(ctx, wide \? 'defeat.legendary' : 'defeat', env\)/);   // (stage X1: 'defeat' plays e.defeat with its variant by kind; X3: a Legendary's at its weight)
   assert.ok(flatten('defeat').some((s) => s.tex === 'vfx-ash'), 'the burn is stage E\'s');
   assert.match(presenter, /settings\(\)\.lowMotion \? 'e\.prime\.low' : 'e\.prime'/);
 });

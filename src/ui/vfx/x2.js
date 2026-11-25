@@ -323,12 +323,18 @@ export function x2Effects() {
     { at: 0, op: 'emit', tex: 'fx-dot', on: 'dst', area: 'wide', rate: 120, dur: 600, speed: [10, 60], angle: 'up', spread: 90, life: [700, 1300], size: [3, 8], curl: 100, alpha: 0.8, tint: '#fff2d8', tint1: '#a07040', tintK: 1 },
     { at: 380, op: 'projectile', tex: 'vfx-ink-splashes', from: 'labelL', to: 'labelR', dur: 420, size: 50, count: 3, stagger: 60, alpha: 1, tint: '#2a1a10', tintK: 0.7 },
     { at: 380, op: 'call', fn: 'write' }] };
-  E['location.gone'] = { budget: 'locationGone', duration: 800, stageE: true, steps: [
+  // (Stage X3: the tile itself burns away along painted noise from its edges inward, with a thin bright edge, over the
+  // Wilds' map art already beneath it; embers and ash lift off it, a low warm light. No flash: the painted fire runs
+  // along the burning edge only.)
+  E['location.gone'] = { budget: 'locationGone', duration: 1300, stageE: true, steps: [
     { at: 0, op: 'call', fn: 'ghost' },
-    { at: 0, op: 'sprite', tex: 'vfx-burn-edge', on: 'dst', sizeSpan: 1.05, h: 360, scale: [1, 1.04], life: 760, alpha: 1, ...burn(0.2, 'vfx-noise-embers') },
-    { at: 60, op: 'dom', name: 'burn', el: 'ghost', dur: 600 },
-    { at: 60, op: 'emit', tex: 'fx-dot', on: 'dst', area: 'wide', rate: 160, dur: 560, speed: [40, 140], angle: 'up', spread: 50, life: [600, 1200], size: [3, 9], gravity: -100, curl: 120, alpha: 1, tint: '#fff2b8', tint1: '#ff3a08', tintK: 1 },
-    { at: 60, op: 'emit', tex: 'vfx-ash', on: 'dst', area: 'wide', rate: 30, dur: 560, speed: [30, 90], angle: 'up', spread: 60, life: [600, 900], size: [10, 18], alpha: 0.9 }] };
+    { at: 0, op: 'dom', name: 'erode', el: 'ghost', dur: 1050, noise: 'vfx-noise-brush', edge: 0.05, edgeWeight: 0.6 },
+    { at: 0, op: 'light', on: 'dst', col: '#ff8a2a', radius: 420, peak: 0.26, attack: 200, hold: 600, decay: 500 },
+    { at: 80, op: 'emit', tex: 'fx-dot', on: 'dst', ring: [1.0, 0.25], rate: 170, dur: 520, speed: [30, 120], angle: 'up', spread: 60, life: [600, 1200], size: [3, 9], gravity: -100, curl: 120, alpha: 1, tint: '#fff2b8', tint1: '#ff3a08', tintK: 1 },
+    { at: 500, op: 'emit', tex: 'fx-dot', on: 'dst', area: 'card', rate: 130, dur: 520, speed: [30, 120], angle: 'up', spread: 60, life: [600, 1200], size: [3, 9], gravity: -100, curl: 120, alpha: 1, tint: '#fff2b8', tint1: '#ff3a08', tintK: 1 },
+    { at: 120, op: 'emit', tex: 'vfx-ash', on: 'dst', area: 'card', rate: 26, dur: 900, speed: [30, 90], angle: 'up', spread: 60, life: [700, 1000], size: [10, 18], alpha: 0.85 },
+    { at: 700, op: 'burst', tex: 'vfx-smoke-puffs', on: 'dst', n: 6, area: 'card', speed: [20, 70], angle: 'up', spread: 60, life: [1200, 1700], size: [120, 170], scaleEnd: 2, gravity: -30, drag: 0.6, spin: [-40, 40], curl: 60, alpha: 0.3,
+      ...burn(0.35, 'vfx-noise-wisps', { flow: 0.15, noiseScale: 0.35 }), tint: '#6a5a5c', tintK: 0.8 }] };
   E.quest = { duration: 800, stageE: true, steps: [
     { at: 0, op: 'call', fn: 'pulse' },
     ...seal('stamp', { tint: '#6d4aa0' }).map((s) => ({ ...s, if: '!complete' })),
@@ -525,7 +531,7 @@ export function x2Effects() {
 
   Object.assign(E, cardSignatures());
   // (A budget names the beat a moment must fit: kept only where the moment is that beat's length, 85% to 100%.)
-  const LIM = { attackX: 1700, stratResolve: 2000, renown: 800, prime: 900, primeLow: 500, location: 1000, locationGone: 800, dominance: 600, lastBattle: 3000, wyrm: 3500, legendary: 3000 };
+  const LIM = { attackX: 1700, stratResolve: 2000, renown: 800, prime: 900, primeLow: 500, location: 1000, locationGone: 1300, dominance: 600, lastBattle: 3000, wyrm: 3500, legendary: 3000 };
   for (const d of Object.values(E)) if (d.budget && LIM[d.budget] && (d.duration < LIM[d.budget] * 0.85 || d.duration > LIM[d.budget])) delete d.budget;
   return E;
 }

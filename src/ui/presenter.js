@@ -8,7 +8,7 @@
 // Released Pile; Renown flows to the Warlord's dial as a ribbon of light.
 import { renderCard, cardBack, TOKEN_W, TOKEN_H } from './cards.js';
 import { accentOf, esc, HUMAN, AI, artOf, tintOf, foe, foes } from './text.js';
-import { handLayout, LANE_W, HAND, tileArt } from './view.js';
+import { handLayout, LANE_W, HAND, tileArt, mapHtml } from './view.js';
 import { hasGuard, mightOf } from '../engine/game.js';
 import { runEffect } from './vfx/runner.js';
 import { fly, flightFrames, flightMs } from './motion.js';
@@ -320,11 +320,23 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     el.animate([{ transform: 'rotate(0deg) skewX(0deg)' }, { transform: 'rotate(1.6deg) skewX(-3deg) scaleY(1.01)', offset: 0.25 }, { transform: 'rotate(-1.2deg) skewX(2.4deg)', offset: 0.55 }, { transform: 'rotate(0.5deg) skewX(-1deg)', offset: 0.8 }, { transform: 'rotate(0deg) skewX(0deg)' }], { duration: 900, easing: 'ease-out', composite: 'add' });
   }
   // V3: the map crossfades to its scorched twin as the Last Battle begins (about 1.2 s, on the Last Battle beat).
+  // (Stage X3: as it scorches, the Last Battle sweeps the held Locations away, each burning from its edges inward; the
+  // Wilds' labels fade; the Last Battle's own label, line and embers fade in after; the lanes take its look.)
+  let sweeping = null;
   function scorch(ctx) {
     const el = q('.map-scorch');
-    if (!el) return null;
-    el.style.opacity = '';
-    return ctx.anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 1200, easing: 'ease-in-out' });
+    const runs = [];
+    if (hold?.lb) {
+      const { map, late, wilds } = hold.lb;
+      hold.lb = null;
+      map.classList.add('last-battle');
+      for (const w of wilds) runs.push(ctx.anim(w, [{ opacity: 1 }, { opacity: 0 }], { duration: 600 }).then(() => w.remove()));
+      for (const t of late) { runs.push(ctx.anim(t, [{ opacity: 0 }, { opacity: 1 }], { duration: 900, delay: 900, fill: 'both' }).then(() => { t.style.opacity = ''; })); }
+      [...hold.tiles.keys()].forEach((uid, i) => runs.push(ctx.wait(i * 140).then(() => leave(ctx, uid))));
+    }
+    if (el) { el.style.opacity = ''; runs.push(ctx.anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 1200, easing: 'ease-in-out' })); }
+    sweeping = Promise.all(runs);
+    return sweeping;
   }
   const boxesOf = (sel) => [...stage.querySelectorAll(sel)].map((el) => box(el));
 
@@ -350,7 +362,6 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       }
     }
     cineFocus(f);
-    cineCaption(lastCaption);
   }
   function cineFocus(f) {
     const dim = stage.querySelector('.cine-dim');
@@ -429,7 +440,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     let lastAttack = null;
     // (A beat may belong to a cinematic: cine names it; the first and last beats open and close it.)
     let activeCine = null;
-    const B = (kind, caption, run, gl, extra = {}) => beats.push({ kind, caption, run, gl, ...(activeCine && !extra.cine ? { cine: activeCine } : {}), ...extra });
+    // (Stage X3: a big moment's beat is gold: its line is said, in gold, once its effect has landed.)
+    const GOLD = (kind, caption, extra) => ['prime', 'legendary', 'lastBattle'].includes(kind) || (kind === 'quest' && /is complete!$/.test(caption)) || (kind === 'summon' && !!extra.cineFirst);
+    const B = (kind, caption, run, gl, extra = {}) => beats.push({ kind, caption, run, gl, gold: GOLD(kind, caption, extra), ...(activeCine && !extra.cine ? { cine: activeCine } : {}), ...extra });
     const where = (who, space) => { const el = cell(who, space); return el ? box(el) : centre; };
     const whereCell = where;
     const handPos = (who, uid) => {
@@ -702,7 +715,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           if (merged.has(ei)) break;
           B('armour', `Armour: ${e.prevented} damage prevented.`, async (ctx) => { await ink(ctx, `Armour −${e.prevented}`, { cx: where(e.who, e.space).cx, cy: where(e.who, e.space).y + 4 }, 'info'); }, async (ctx) => {
             const at = where(e.who, e.space);
-            await fxRun(ctx, 'armour', { anchors: anchors({ dst: at, dstHp: tabAt(e.who, e.space, 'tab-h') }), hooks: { land: () => ink(ctx, `Armour −${e.prevented}`, { cx: at.cx, cy: at.y + 4 }, 'info') } });
+            // (Stage X3: the sigil, plates and sparks at the card's top edge, under its "Armour −N".)
+            const mark = { cx: at.cx, cy: at.y + 10, x: at.cx - 30, y: at.y - 20, w: 60, h: 60 };
+            await fxRun(ctx, 'armour', { anchors: anchors({ dst: at, dstHp: mark }), hooks: { land: () => ink(ctx, `Armour −${e.prevented}`, { cx: at.cx, cy: at.y + 4 }, 'info') } });
           });
           break;
         case 'defeated': {
@@ -736,8 +751,17 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 },
               },
             };
-            // (Stage X1: stage E's burn, with its variant by kind: stone, ghostlight, leaves or ice.)
-            await fxRun(ctx, 'defeat', env);
+            // (Stage X1: stage E's burn, with its variant by kind: stone, ghostlight, leaves or ice. Stage X3: a Legendary
+            // burns on its full 3-lane token, at the legendary weight: a bigger burn and a longer tail.)
+            const wide = (prevCard(e.who, e.space)?.width ?? 1) > 1;
+            const g0 = q(`[data-ghost="${e.who}:${e.space}"]`);
+            if (g0) { const gb = box(g0); env.anchors.card = gb; if (wide) { env.anchors.dst = gb; focus = gb; } }
+            const run = fxRun(ctx, wide ? 'defeat.legendary' : 'defeat', env);
+            // (Stage X3: its own Location follows on as the token finishes burning, under the defeat's long tail: one
+            // sequence. The Location's beat then waits for that burn rather than starting another.)
+            const own = wide ? [...prevLoc.values()].find((l) => l.legendaryUid === e.uid) : null;
+            if (own && hold?.tiles.has(own.uid)) { await ctx.wait(1500); hold.leaving.set(own.uid, leave(ctx, own.uid)); }
+            await run;
             burnt(env.els.ghost ?? q(`[data-ghost="${e.who}:${e.space}"]`));
           });
           break;
@@ -1264,26 +1288,26 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           break;
         }
         case 'locationRemoved': {
+          // (Stage X3: one continuous moment: the tile as it was burns away from its edges inward over the Wilds'
+          // map art, its label and line fading with it; then its lanes settle into the Wilds. A Legendary's own
+          // Location follows straight on from its defeat.)
           const l = prevLoc.get(e.uid);
-          B('locationGone', e.own ? `${e.name} is gone with its Legendary: its lanes are the Wilds again.` : `${e.name} expires: its lanes are the Wilds again.`, async (ctx) => { await ctx.wait(300); }, async (ctx) => {
-            if (!l) return;
-            const x = 24 + l.start * LANE_W + 4; const w = l.width * LANE_W - 8;
-            const dst = { x, y: 136, w, h: 622, cx: x + w / 2, cy: 447 };
-            const env = {
-              anchors: anchors({ dst }), els: {},
-              hooks: {
-                ghost: () => {
-                  const g = add(tileArt(l.card, w), x, 136, 'loc-ghost');
-                  g.style.width = `${w}px`;
-                  g.style.setProperty('--tint', tintOf(l.card.id));
-                  env.els.ghost = g;
-                  env.anchors.card = box(g);
-                },
-              },
-            };
-            await fxRun(ctx, 'location.gone', env);
-            env.els.ghost?.remove();
-          });
+          B('locationGone', e.own ? `${e.name} is gone with its Legendary: its lanes are the Wilds again.` : `${e.name} expires: its lanes are the Wilds again.`,
+            async (ctx) => { await (hold?.leaving.get(e.uid) ?? leave(ctx, e.uid, { gl: false })); },
+            async (ctx) => {
+              if (hold?.leaving.has(e.uid)) return hold.leaving.get(e.uid);
+              if (hold?.tiles.has(e.uid)) return leave(ctx, e.uid);
+              if (!l) return;
+              // (Only if the board wasn't held, e.g. a replay: a copy of the tile burns.)
+              const x = 24 + l.start * LANE_W + 4; const w = l.width * LANE_W - 8;
+              const dst = { x, y: 136, w, h: 622, cx: x + w / 2, cy: 447 };
+              const env = { anchors: anchors({ dst, card: dst }), els: {}, hooks: {} };
+              const g = add(tileArt(l.card, w), x, 136, 'loc-ghost');
+              g.style.width = `${w}px`;
+              env.els.ghost = g;
+              await fxRun(ctx, 'location.gone', env);
+              g.remove();
+            });
           break;
         }
         case 'fizzled':
@@ -1374,8 +1398,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             await fxRun(ctx, settings().lowMotion ? CINEMATICS.last.low : CINEMATICS.last.full, {
               anchors: anchors({ hornL: { cx: 24 + 560, cy: 450 }, skyL0: { cx: -320, cy: 450 }, skyL1: { cx: 360, cy: 450 }, skyR0: { cx: 1880, cy: 450 }, skyR1: { cx: 1200, cy: 450 },
                 mapBottom: { cx: 790, cy: 780, x: 40, y: 770, w: 1500, h: 20 }, centre: c0 }),
-              hooks: { cineOpen: () => cineOpen(c0), banner: () => lbBanner(ctx), bannerShort: () => lbBanner(ctx, true), scorch: () => scorch(ctx) },
+              hooks: { cineOpen: () => cineOpen(c0), banner: () => lbBanner(ctx), bannerShort: () => lbBanner(ctx, true), scorch: () => { scorch(ctx); } },
             });
+            await sweeping;
           }, { cine: 'last', cineFirst: true, cineLast: true });
           break;
         case 'dawn':
@@ -1399,6 +1424,140 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     return ctx.anim(el, [{ opacity: 0, transform: 'translate(-50%, 6px)' }, { opacity: 1, transform: 'translate(-50%, 0)', offset: 0.25 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], { duration: 800 });
   }
 
+  // --- Stage X3: what leaves the board leaves it in one continuous moment -----------------------------------------
+  // The board is drawn from the new state before the beats play, so a Location that expires (or goes with its
+  // Legendary, or is swept away by the Last Battle) would vanish at once, with its label, its dominance line and its
+  // creatures' bonuses, and a copy would come back later to burn. Instead, what leaves stays exactly as it was drawn
+  // (the tile, its label and line, the cells on its lanes) until its own beat: the tile then burns away along painted
+  // noise from its edges inward, over the Wilds' map art already beneath it, and only as the burn ends do the lanes
+  // settle into the Wilds (their labels fade in, the creatures' stats cross-fade to their new values).
+  let hold = null;
+  let prevMapEl = null;
+  // The map as the state before the action drew it (built once per action, off the page).
+  function prevMap(prev) {
+    if (!prevMapEl) { const d = document.createElement('div'); d.innerHTML = mapHtml(prev); prevMapEl = d.firstElementChild; }
+    return prevMapEl;
+  }
+  const laneOfLeft = (el) => Math.round(parseFloat(el.style.left) / LANE_W);
+  // A defeated creature's ghost is its slot card exactly as it was drawn, at its own size and place: a Legendary stays
+  // 3 lanes wide, a Spent card keeps its tilt and dimming. (Measured in the live map, then lifted out.)
+  function slotGhost(prev, who, space) {
+    const map = q('[data-region="map"]');
+    const old = prevMap(prev).querySelector(`[data-cell="${who}:${space}"]`)?.cloneNode(true);
+    const sc = old?.querySelector('.slot-card');
+    if (!map || !sc) return null;
+    old.style.visibility = 'hidden';
+    map.appendChild(old);
+    const mb = box(map);
+    const x = mb.x + old.offsetLeft + sc.offsetLeft; const y = mb.y + old.offsetTop + sc.offsetTop;
+    const w = sc.offsetWidth; const h = sc.offsetHeight;
+    old.remove();
+    sc.removeAttribute('data-hover');
+    for (const el of sc.querySelectorAll('[data-hover], [title]')) { el.removeAttribute('data-hover'); el.removeAttribute('title'); }
+    const g = add('', x, y, `ghost ghost-slot${sc.classList.contains('wide') ? ' ghost-wide' : ''}`);
+    g.style.width = `${w}px`; g.style.height = `${h}px`;
+    g.appendChild(sc);
+    return g;
+  }
+  function holdBoard(prev, next, events) {
+    hold = { tiles: new Map(), cells: new Map(), lb: null, leaving: new Map() };
+    const removed = events.filter((e) => e.type === 'locationRemoved').map((e) => e.uid);
+    const lb = events.some((e) => e.type === 'lastBattle') && !prev.lastBattle;
+    if (lb) for (const l of prev.locations) if (!removed.includes(l.uid)) removed.push(l.uid);
+    if (!removed.length) return;
+    const map = q('[data-region="map"]');
+    if (!map) return;
+    const om = prevMap(prev);
+    const defeated = new Set(events.filter((e) => e.type === 'defeated').map((e) => e.uid));
+    const anchor = map.querySelector('.wilds, .lb-label, .lane-num');
+    for (const uid of removed) {
+      const l = prev.locations.find((x) => x.uid === uid);
+      if (!l) continue;
+      const lanes = Array.from({ length: l.width }, (_, i) => l.start + i);
+      const tile = om.querySelector(`.loc[data-loc="${uid}"]`);
+      const label = om.querySelector(`.loc-label[data-loc="${uid}"]`)?.closest('.loc-label-wrap') ?? null;
+      for (const el of [tile, label]) if (el) { el.classList.add('loc-hold'); map.insertBefore(el, anchor); }
+      const wilds = [...map.querySelectorAll('.wilds')].filter((w) => lanes.includes(laneOfLeft(w)));
+      for (const w of wilds) w.style.opacity = '0';
+      hold.tiles.set(uid, { tile, label, wilds, lanes });
+      for (const who of [HUMAN, AI]) for (const lane of lanes) holdCell(map, om, prev, next, who, lane, defeated, uid);
+    }
+    if (lb) {
+      // The Last Battle's own look waits for its beat: the scorched map, its label and line, the embers; the Wilds'
+      // labels it replaces stay until then.
+      map.classList.remove('last-battle');
+      const late = [...map.querySelectorAll('.lb-label, .lb-dom, .embers')];
+      for (const el of late) el.style.opacity = '0';
+      const wilds = [...om.querySelectorAll('.wilds')];
+      for (const w of wilds) { w.classList.add('loc-hold'); map.insertBefore(w, anchor); }
+      hold.lb = { map, late, wilds };
+    }
+  }
+  // A cell on a leaving Location's lanes keeps the creature as it was drawn (its stats with the Location's bonus) until
+  // the lanes settle; an empty one keeps the tile's dark glass. A creature defeated in this action has its own ghost.
+  function holdCell(map, om, prev, next, who, lane, defeated, uid) {
+    const row = prev.players[who].row;
+    let start = lane;
+    for (let i = lane; i >= 0; i--) if (row[i] && i + (row[i].width ?? 1) > lane) { start = i; break; }
+    const key = `${who}:${start}`;
+    if (hold.cells.has(key)) return;
+    const was = row[start] && start + (row[start].width ?? 1) > lane ? row[start] : null;
+    const now = next.players[who].row[start];
+    const neu = map.querySelector(`[data-cell="${key}"]`);
+    const old = om.querySelector(`[data-cell="${key}"]`);
+    if (was && !defeated.has(was.uid) && now?.uid === was.uid && neu && old) {
+      neu.replaceWith(old);
+      hold.cells.set(key, { uid, old, neu });
+    } else if (neu && !neu.querySelector('.slot-card')) {
+      const slot = neu.querySelector('.empty-slot');
+      if (slot && !slot.classList.contains('on-tile')) { slot.classList.add('on-tile', 'held-tile'); hold.cells.set(key, { uid, slot }); }
+    }
+  }
+  // The lanes of these Locations settle into the Wilds: their labels fade in, the held cells cross-fade to the new.
+  function settleLanes(ctx, uids) {
+    const runs = [];
+    const fade = settings().lowMotion ? 200 : 420;
+    for (const uid of uids) {
+      const h = hold?.tiles.get(uid);
+      for (const w of h?.wilds ?? []) { w.style.opacity = ''; runs.push(ctx.anim(w, [{ opacity: 0 }, { opacity: 1 }], { duration: fade, fill: 'none' })); }
+    }
+    for (const [key, c] of hold?.cells ?? []) {
+      if (!uids.includes(c.uid)) continue;
+      hold.cells.delete(key);
+      if (c.slot) { c.slot.classList.remove('on-tile', 'held-tile'); continue; }
+      if (!c.old.isConnected) continue;
+      c.neu.style.opacity = '0';
+      c.old.after(c.neu);
+      c.old.style.pointerEvents = 'none';
+      runs.push(ctx.anim(c.neu, [{ opacity: 0 }, { opacity: 1 }], { duration: fade, fill: 'none' }).then(() => { c.neu.style.opacity = ''; }));
+      runs.push(ctx.anim(c.old, [{ opacity: 1 }, { opacity: 0 }], { duration: fade }).then(() => c.old.remove()));
+    }
+    return Promise.all(runs);
+  }
+  // A held Location leaves: its tile burns away from its edges inward (with the effects layer: the painted burn; in
+  // low motion or without it, a fade), its label and line fade with it, then its lanes settle.
+  async function leave(ctx, uid, { gl = true } = {}) {
+    const h = hold?.tiles.get(uid);
+    if (!h) return;
+    const low = !gl || settings().lowMotion || !vfx?.on;
+    const label = h.label;
+    const runs = [];
+    if (label) runs.push(ctx.anim(label, [{ opacity: 1 }, { opacity: 0 }], { duration: low ? 300 : 520, delay: low ? 0 : 120 }));
+    if (h.tile) {
+      if (low) runs.push(ctx.anim(h.tile, [{ opacity: 1 }, { opacity: 0 }], { duration: 400 }));
+      else {
+        const b = box(h.tile);
+        const env = { anchors: anchors({ dst: b, card: b }), els: { ghost: h.tile }, hooks: {} };
+        runs.push(fxRun(ctx, 'location.gone', env));
+      }
+    }
+    await Promise.all(runs);
+    if (h.tile) h.tile.style.opacity = '0';
+    await settleLanes(ctx, [uid]);
+    h.tile?.remove(); label?.remove();
+    hold.tiles.delete(uid);
+  }
+
   // Before the first beat: numbers still show their old values (Renown, Gold, Health) and new creatures are
   // hidden, until their beats land. The final redraw shows the state as it is.
   function prepare(prev, next, events = []) {
@@ -1406,14 +1565,14 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     // ghost of it (as it was) stands in its place from the start, and only its defeat beat removes it, when the burn
     // ends. Every way a card can leave by defeat (an attack, hitting back, Riposte, On Defeat damage, effects) goes
     // through the 'defeated' event.
+    prevMapEl = null;
+    holdBoard(prev, next, events);
     for (const e of events) {
       if (e.type !== 'defeated') continue;
       const was = prev.players[e.who].row[e.space];
       if (!was || q(`[data-ghost="${e.who}:${e.space}"]`)) continue;
-      const ce = cell(e.who, e.space);
-      if (!ce) continue;
-      const at = box(ce);
-      const g = add(renderCard(was, { size: 'token', live: true }), at.cx - 82, at.y, 'ghost ghost-token');
+      const g = slotGhost(prev, e.who, e.space);
+      if (!g) continue;
       g.dataset.ghost = `${e.who}:${e.space}`;
       g.dataset.burn = 'waiting';
     }
@@ -1451,13 +1610,13 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
       current = ctx;
       started += 1;
       lastCaption = b.caption;
-      cineCaption(b.caption);
+      // (Stage X3: no caption in the cinematic's bars: the subtitle line says it, in gold, once it has landed.)
       onBeat?.({ kind: b.kind, caption: b.caption, started, done, cine: vfx?.on ? b.cine ?? null : null });
       try { await (vfx?.on && b.gl ? b.gl(ctx) : b.run(ctx)); } catch (err) { console.warn('beat failed', b.kind, err); }
       done += 1;
       current = null;
       if (vfx?.on && b.cine && b.cineLast) { cineClose(); cine = null; }
-      onBeat?.({ kind: null, caption: b.caption, started, done });
+      onBeat?.({ kind: null, caption: b.caption, started, done, gold: !!b.gold });
     }
     if (cine) { cineClose(); cine = null; }
     const layer = fx();
