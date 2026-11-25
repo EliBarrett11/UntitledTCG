@@ -835,7 +835,14 @@ Built from `docs/38-stage-x-prompts.md` (X2), on X1b's recipe, starting with the
   - every sprite fades at its frame edge, so no square edges show;
   - mist lies level and doesn't spin.
 - **Engine:** three presentation events, which no rule reads: a Location counting down, a Location's Dawn heal, and an Item's Stock running out.
-CLIPSTBD
+- **Clips** (`tools/x2clips.mjs`, local in `tools/clips/x2/`):
+  - all 149 moments in 10 groups: elements 13, keywords 13, Actions 21, Events 12, Items 16, Campaigns 18, Locations 14, Legendaries 5, systems 18, attacks 19;
+  - each is shown before (307a277, X1b as reviewed) and after, side by side, with a 12-frame strip;
+  - there is a contact video per group.
+- **Frame times** (`tools/x1perf.mjs`, SwiftShader software WebGL, 1920×1080, at the top quality step):
+  - every moment averages 403–501 ms a frame (worst 517–850 ms), against X1b's 382–570 ms;
+  - automatic quality settled on the top step;
+  - a 60 fps verdict needs a real GPU (`?fps=1`).
 - **Results:**
   - all 52 test files pass;
   - neat text and card contrast pass;
