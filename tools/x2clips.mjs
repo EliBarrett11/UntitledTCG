@@ -29,6 +29,8 @@ const BEFORE = process.env.CLIPS_BEFORE ?? '307a277';
 const args = process.argv.slice(2);
 const newOnly = args.includes('--new-only');
 const contactOnly = args.includes('--contact-only');
+// (--skip-done: moments whose clip is already made are left alone, to resume an interrupted run.)
+const skipDone = args.includes('--skip-done');
 const only = args.filter((a) => !a.startsWith('--'));
 const log = (...a) => console.log(...a);
 const ff = (a) => execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...a]);
@@ -111,6 +113,7 @@ const summary = [];
 for (const m of ALL) {
   if (!want(m) || contactOnly) continue;
   const safe = m.name.replace(/[^a-z0-9.-]/gi, '_');
+  if (skipDone && (existsSync(join(out, `x2-${safe}-before-vs-after.webm`)) || existsSync(join(out, `x2-${safe}.webm`)))) continue;
   const rn = await record(m, 'new');
   const ro = !newOnly && m.before ? await record(m, 'old') : null;
   const tn = join(raw, `${safe}-new.webm`); const to = join(raw, `${safe}-old.webm`);
