@@ -858,3 +858,63 @@ Built to `docs/archive/25-stage-l-prompt.md`. No rule changed. The rulebook's se
    - Renown is the painted star and a ribbon of gold light to the Warlord's dial.
 10. **The old kit is gone:** 106 textures (23.6 MB) and every storyboard that used them; the ambient candles, dust and fog and the victory screen now use the painted kit too.
 11. **Three presentation events** were added to the engine, so these moments can be seen; no rule reads them: a Location counting down, a Location's Dawn heal, and an Item's Stock running out.
+
+## 25. Readings from stage X3 (the Round, the match and the screens): needing Elliott's approval
+
+1. **What leaves the board leaves it in one moment** (the X2 play-test):
+   - Until its own beat, a Location that expires, goes with its Legendary or is swept away by the Last Battle stays exactly as it was drawn. That covers its tile, its label and dominance line, and its creatures with their bonus stats.
+   - At its beat the tile burns away along painted noise from its edges inward, over the Wilds' map art already beneath it, while its label and line fade.
+   - Only then do the lanes settle: the Wilds' labels fade in, and the creatures' stats cross-fade to their new values.
+   - `tools/x3leave.mjs` checks every frame for a flash, a snap or a resize.
+2. **A Legendary keeps its 3-lane size through its defeat:**
+   - Its ghost is its token exactly as drawn: full width, and still tilted and dimmed if it was Spent. The same now holds for every defeated creature's ghost.
+   - It burns at the legendary weight: a harder hit, a slower erosion, twice the embers and a longer tail.
+   - Its Location starts burning as the token finishes, under the defeat's tail, so the two read as one sequence.
+3. **The subtitle line** sits in the band between the battlefield and your hand: one quiet line at 14.5 px on a soft dark backing.
+   - It describes the action just taken. Each line stays at least 2.5 s plus 60 ms a word, and the next one waits behind it.
+   - With more than three lines waiting, the oldest plain ones are dropped; the Chronicle still has them.
+   - A Prime, a Legendary, a Quest completing, the Last Battle and the match's end are worded in gold, and appear once their effect has landed.
+   - It lies beneath the hand and the effects: a card you lift, or an effect, covers it, never the other way round.
+   - The band is only about 17 px tall, so a "★ PRIME" tab standing above a hand card shares it. While a line shows over a tab, that tab steps aside, and its card keeps its gold Prime glow.
+   - A line too long for the band is set a little smaller, down to 12.5 px.
+   - The cinematics' letterbox bars no longer carry a caption.
+4. **The cards a line names are outlined** on the board while it shows: a thin warm outline on the source and target creatures, cards or Warlord.
+5. **The Chronicle:** the column's "Last actions" panel is now the history.
+   - It shows the last 4 events, newest on top: 4 rows are what fit the panel; the full log has the rest.
+   - Each row has the card's thumbnail (a card back for a sealed Strat, which is never named) and an icon: attack, play, defeat, Renown, Gold or pass.
+   - Each row has its side's colour on the left edge: red for you, blue for the enemy, gold for neither.
+   - One action can give several rows, for example the attack, then the defeat, then the Gold it won.
+   - Hovering a row outlines its cards on the board in cool blue. Clicking opens the full log.
+6. **The other player's announcement** sits inside the turn plaque in the right-hand column, beside their side of the board, in place of the plaque's line. It has a small thumbnail, what they did and to what, and the line; hovering shows the whole of it.
+   - It stays until you act or they act again, so it no longer vanishes before it can be read.
+7. **The Event text setting:** Both (the default), Chronicle only, or Off.
+   - Off turns off the subtitle line and its outlines.
+   - The Chronicle stays in the column either way: it's the history, not a pop-up.
+8. **The small gold glint** at a struck card's corner in every element's impact was Armour's sigil and plates, played twice: once inside the hit and again in Armour's own beat.
+   - It now plays once, in Armour's beat, at the card's top edge under "Armour −N".
+9. **The Round:**
+   - **Dawn:** a warm band of light sweeps the map from the east. The creatures that ready stay tilted and dimmed until then, then turn upright one after another with a glint and motes. The Round's number lights, and a ribbon of gold runs between the Warlords if initiative passed.
+   - **The Battle Phase** opens with its banner (who has initiative), crossed steel flaring at the centre, and a light on the Warlord with initiative.
+   - **Dusk:** amber light ebbs across the map from the west into a violet dusk falling from the top, then the lanterns.
+   - **A change of turn:** a slim ribbon of light runs from the turn plaque to the Warlord whose turn it is.
+10. **The Last Battle's arrival:** as the map scorches, each Location burns away from its edges inward, one after another.
+    - The Wilds' labels fade.
+    - The Last Battle's own label, line and embers fade in afterwards.
+    - The lanes take its look over a moment rather than at once.
+11. **The match's end is a cinematic before the end screen:**
+    - **Victory:** the battlefield floods with gold, with rays, a burst, a laurel, Renown stars and a slow push-in. "VICTORY" appears, and the light runs to your Warlord.
+    - **Defeat:** the battlefield's light drains cold, a crack runs across it, ash falls and cold smoke rolls from your Warlord, under "DEFEAT".
+    - In low motion, a short light and then the screen.
+12. **The screens:**
+    - **Panels** (settings, the full log, menus, the deck choice, the deck builder's dialogs, the lobby) unroll from their top edge with a little overshoot and settle. When they close, a copy fades and settles down where each was.
+    - **Buttons** lift and warm on hover and settle on press.
+    - **A change of screen** wipes a band of warm light across.
+    - **The title** rises and settles, and a slow band of light crosses its painted art.
+    - **Match setup:** the two sides swing in on their banners and VS breathes. Begin plays **the VS moment** before the match: the two Warlords' banners swing in from the sides, then VS is stamped between them with a flare and sparks (about 1.2 s; none in low motion).
+    - **The Codex:** a new page turns in under a band of light.
+    - **The Library:**
+      - a filter's cards settle in with a light stagger;
+      - a card added to a deck flares gold in its row and settles, and one taken out dims;
+      - the deck's count pulses.
+    - **The lobby:** the room code glows while it waits.
+    - **Loading:** embers drift along the painted loading bar.
