@@ -373,6 +373,8 @@ for (const [w, h] of SIZES) {
     await page.goto(withDev(`${url}${sc.query}`), { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
     if (sc.steps) await sc.steps(page);
+    // (Stage X2: the Codex slides in over 0.18 s: measure it once it has, not mid-slide on a loaded machine.)
+    await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.target?.id === 'codex').map((a) => a.finished.catch(() => {})))).catch(() => {});
     const problems = [];
     if (sc.need && !(await page.$(sc.need))) problems.push(`the scene didn't reach ${sc.need}`);
     if (sc.preview && !(await page.$('.preview:not([hidden]) .card-full'))) problems.push('the hover preview did not show');
