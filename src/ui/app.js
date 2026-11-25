@@ -1,6 +1,7 @@
 // The match against the AI, in the browser. Every action goes through legalActions and applyAction; the
 // UI never edits the state. A choice is narrowed one click at a time: the legal actions for what you
 // clicked, then (one field at a time) the space, the leftmost lane, the cards to Release, the target.
+import { RULES } from '../engine/rules.js';
 import { defineCards, cardAtRound, cardDef, campaignCreatureOf, creatureAtLevel } from '../engine/cards.js';
 import { CARDS, FIRST_DECK } from '../data/cards.js';
 import { createGame, applyAction, legalActions, actor, actionKey, lanesHere, lanesOf, passBlockers, meetsCondition, protections, primeNextRound, onBoard, syncBonuses, summonChoiceTrigger } from '../engine/game.js';
@@ -392,6 +393,46 @@ export function startApp(params) {
     },
   };
   Object.assign(R_SCENES, N_SCENES);
+  // Stage X3's scenes (dev aids for the clips and checks of a Location leaving the board; never part of play):
+  //   x3-expire     n-board with Gallows Hill on its last Round and the enemy already passed: your Pass ends the
+  //                 Battle Phase, and at Dusk it expires with creatures on its lanes;
+  //   x3-legend     an enemy Ashen Wyrm at 1 Health on The Ashfall, and your Ready Gorran to defeat it (the checks
+  //                 attack it with __match.actWhere);
+  //   x3-lastbattle n-board in Round 9 with the enemy already passed: your Pass ends the Round, and at the next Dawn
+  //                 the Last Battle sweeps both Locations away.
+  const X3_SCENES = {
+    'x3-expire': () => {
+      N_SCENES['n-board']();
+      s.locations[0].roundsLeft = 1;
+      s.strats = [];
+      for (const c of s.players[HUMAN].row) if (c) c.spent = true;
+      s.passesInARow = 1;
+    },
+    'x3-legend': () => {
+      s = structuredClone(s);
+      const me = s.players[HUMAN]; const them = s.players[AI];
+      const L = (id, level, uid) => onBoard(s, creatureAtLevel(cardDef(id), level, uid));
+      me.row = me.row.map(() => null); them.row = them.row.map(() => null); s.locations = []; s.strats = [];
+      const wyrm = { ...onBoard(s, cardAtRound('the-ashen-wyrm', s.round, 'scene-wyrm')), spent: true };
+      them.row[2] = wyrm;
+      const loc = cardAtRound(wyrm.ownLocation, s.round, 'loc-of-scene-wyrm');
+      s.locations.push({ uid: 'loc-scene-wyrm', owner: AI, card: loc, name: loc.name, start: 2, width: wyrm.width, roundsLeft: null, passive: loc.passive, legendaryUid: wyrm.uid });
+      me.row[3] = { ...L('ironhide-brawler', 5, 'scene-gorran'), spent: false };
+      me.row[6] = { ...L('stonewatch-bulwark', 4, 'scene-hilde'), spent: true };
+      them.row[6] = { ...L('rime-elemental', 4, 'scene-rime'), spent: true };
+      them.hand = them.hand.filter((c) => c.cardType !== 'Action');
+      syncBonuses(s);
+      them.row[2].currentHealth = 1;
+    },
+    'x3-lastbattle': () => {
+      N_SCENES['n-board']();
+      s.round = RULES.lastBattleRound - 1;
+      s.strats = [];
+      for (const c of s.players[HUMAN].row) if (c) c.spent = true;
+      s.passesInARow = 1;
+    },
+  };
+  Object.assign(R_SCENES, X3_SCENES);
 
   function apply(a) {
     const before = s.log.length;
@@ -1711,7 +1752,10 @@ export function startApp(params) {
     return { played };
   }
   // (The checks' hook, fxdemo included: only with ?dev.)
-  if (params.has('dev')) window.__match = { loader: () => loader.stats(), get seed() { return seed; }, get screen() { return screen; }, state: () => s, fxDemo, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), vfxApi: vfx, resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
+  // (Stage X3, a dev aid for the clips and checks: the first legal action of yours whose fields match, played as if
+  // you had clicked it.)
+  const actWhere = (m) => { const a = mine().find((x) => Object.entries(m).every(([k, v]) => x[k] === v)); if (a) act(a); return a ?? null; };
+  if (params.has('dev')) window.__match = { actWhere, legal: () => mine(), act: (a) => act(a), loader: () => loader.stats(), get seed() { return seed; }, get screen() { return screen; }, state: () => s, fxDemo, presenting: () => presenting, beats: () => presenter.counts, boardProblems, vfx: () => vfx.stats(), vfxApi: vfx, resetVfxStats: () => vfx.resetStats(), layering: () => presenter.layering(), tip: () => ({ key: tip.key, pending: tip.pending, now: termUnderPointer()?.id ?? null }) };
 }
 
 export { esc };
