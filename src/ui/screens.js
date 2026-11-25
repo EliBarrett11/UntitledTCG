@@ -132,8 +132,8 @@ export function endScreen(s, ui = {}) {
   return `<div class="screen screen-end ${win ? 'victory' : 'defeat'}" data-region="end">
     <div class="end-bg" aria-hidden="true"></div>
     <div class="end-banner left" aria-hidden="true"></div><div class="end-banner right" aria-hidden="true"></div>
-    ${win ? `<div class="end-burst" aria-hidden="true"><i class="rays" style="background-image:url(${vfx('victory-rays')})"></i><i class="flash" style="background-image:url(${vfx('impact-flash')})"></i><i class="laurel" style="background-image:url(${vfx('laurel-of-light')})"></i></div>
-      <div class="end-fount left" aria-hidden="true" style="background-image:url(${vfx('flame-tongue')})"></div><div class="end-fount right" aria-hidden="true" style="background-image:url(${vfx('flame-tongue')})"></div>
+    ${win ? `<div class="end-burst" aria-hidden="true"><i class="rays" style="background-image:url(${vfx('vfx-holy-rays')})"></i><i class="flash" style="background-image:url(${vfx('vfx-impact-star')})"></i><i class="laurel" style="background-image:url(${vfx('vfx-laurel-wreath')})"></i></div>
+      <div class="end-fount left" aria-hidden="true" style="background-image:url(${vfx('vfx-holy-rays')})"></div><div class="end-fount right" aria-hidden="true" style="background-image:url(${vfx('vfx-holy-rays')})"></div>
       <div class="motes" aria-hidden="true">${motes(40, 'rise spark')}</div>`
       : `<div class="motes" aria-hidden="true">${motes(44, 'fall')}</div>`}
     <div class="end-head"><div class="dialog-title end-title">${head}</div><div class="end-how">${esc(resultLine(s))}</div></div>

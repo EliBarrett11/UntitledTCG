@@ -4,7 +4,7 @@
 // and each keeps within the existing timing budgets (docs/archive/10-feel-and-vfx.md).
 import { test, run, assert } from './helpers.js';
 import { CARDS, FIRST_DECK } from '../src/data/cards.js';
-import { EFFECTS, BUDGET, BUDGET_SLACK, attackEffectFor, effectFor, heldEffectFor, longestRun, cardByName, texturesOf, arrivalEffectFor, placedEffectFor, attackVars } from '../src/ui/vfx/library.js';
+import { EFFECTS, BUDGET, BUDGET_SLACK, attackEffectFor, effectFor, heldEffectFor, longestRun, cardByName, texturesOf, arrivalEffectFor, placedEffectFor, attackVars, cinematicFor } from '../src/ui/vfx/library.js';
 import { flatten } from '../src/ui/vfx/runner.js';
 import { readFileSync } from 'node:fs';
 
@@ -82,9 +82,11 @@ test('stage N2: the six painted textures are in their cues, and the cards that u
   assert.ok(attackVars({ id: 'skyreach-wyvern', form: 'skyreach-stormwing' }).flags.storm && !attackVars({ id: 'skyreach-wyvern', form: 'skyreach-wyvern' }).flags.storm, 'only the Stormwing\'s strike has lightning');
   assert.ok(EFFECTS['attack.soaring'].steps.some((s) => s.tex === 'vfx-lightning-fork' && s.if === 'storm'));
   assert.equal(effectFor('spend', 'The Deepmaw'), 'water.spend');
-  assert.equal(arrivalEffectFor({ id: 'the-deepmaw', form: 'the-deepmaw' }), 'water.surge');
-  // (The Deepmaw's summon and its surge together stay within a Legendary's arrival.)
-  assert.ok(longestRun('summon') + longestRun('water.surge') <= lim('legendary'));
+  // (Stage X2: the Deepmaw's arrival is a Legendary cinematic of its own, rising out of the Drowned Reach in water,
+  // within the Wyrm's budget.)
+  assert.equal(cinematicFor({ id: 'the-deepmaw', form: 'the-deepmaw' }), 'deepmaw');
+  assert.ok(texturesOf('cine.deepmaw').has('vfx-water-surge'));
+  assert.ok(longestRun('cine.deepmaw') <= lim('wyrm'));
   assert.equal(effectFor('damage', 'The Drowned Reach'), 'water.dusk');
   assert.equal(placedEffectFor('Stormbreak Crags'), 'location.storm');
   assert.equal(placedEffectFor('Gallows Hill'), null);

@@ -427,6 +427,36 @@ export function x2Effects() {
     { at: 0, op: 'sprite', tex: 'vfx-fire-ring', on: 'dst', size: 600, flat: 0.42, life: 900, alpha: 0.8, ...burn(0.5, 'vfx-noise-embers'), mark: true },
     { at: 0, op: 'flash', k: [0.5, 0.5], dur: 240 },
     { at: 200, op: 'call', fn: 'fadeIn', wait: true }] };
+  // The Deepmaw rises out of The Drowned Reach (stage X2): the water darkens and churns, mist rolls in, rain lashes,
+  // the sea heaves up in a surge and it breaks through: the legendary impact in water, the Reach's surge across its lanes.
+  E['cine.deepmaw'] = { budget: 'wyrm', duration: 2200, stageE: true, steps: [
+    { at: 0, op: 'call', fn: 'cineOpen' },
+    { at: 0, op: 'dip', on: 'dst', radius: 600, peak: 0.6, attack: 300, hold: 1600, decay: 900 },
+    { at: 0, op: 'light', on: 'dst', col: '#1a4a8a', radius: 900, peak: -0.35, attack: 300, hold: 800, decay: 600 },
+    { at: 0, op: 'burst', tex: 'vfx-fog-bank', on: 'dst', n: 6, area: [700, 120], speed: [20, 60], spread: 360, life: [1400, 1900], size: [300, 420], scaleEnd: 1.4, alpha: 0.5, ...burn(0.5, 'vfx-noise-wisps', { flow: 0.2 }), ...P('water', 0.8) },
+    { at: 100, op: 'emit', tex: 'vfx-rain-streaks', on: 'dst', area: 'wide', rate: 80, dur: 1400, speed: [500, 800], angle: 'down', spread: 10, life: [300, 400], size: [50, 80], alpha: 0.7, ...P('water', 0.8) },
+    { at: 200, op: 'wave', on: 'dst', radius: 700, strength: 14, dur: 600, width: 50 },
+    { at: 450, op: 'call', fn: 'drop' },
+    { at: 500, op: 'sprite', tex: 'vfx-water-surge', on: 'dst', sizeK: 3.4, scale: [0.3, 1.1], curve: 'out', life: 1100, alpha: 1, ...burn(0.35, 'vfx-noise-wisps', { flow: 0.3 }), ...P('water', 0.6) },
+    { at: 750, op: 'call', fn: 'arrive' },
+    { at: 750, op: 'dom', name: 'slam', el: 'dst', dur: 260 },
+    ...shift(impact('water', 'legendary', { hold: null, debris: false, mark: 'crack' }).filter((s) => !(s.op === 'dom' && s.name === 'knock')), 750),
+    { at: 760, op: 'burst', tex: 'vfx-ink-splashes', on: 'dst', n: 30, speed: [300, 900], angle: 'up', spread: 220, life: [600, 1000], size: [24, 46], gravity: 1300, spin: [-400, 400], alpha: 1, ...burn(0.5, 'vfx-noise-cells'), ...P('water', 0.9) },
+    { at: 1000, op: 'sprite', tex: 'vfx-water-surge', on: 'dst', sizeK: 2.2, flat: 0.5, dy: 80, scale: [0.4, 1.2], curve: 'out', life: 1000, alpha: 0.8, ...burn(0.4, 'vfx-noise-wisps', { flow: 0.3 }), ...P('water', 0.6), mark: true }] };
+  E['cine.deepmaw.low'] = { budget: 'wyrm', duration: 1000, stageE: true, steps: [
+    { at: 0, op: 'call', fn: 'cineOpen' },
+    { at: 0, op: 'light', on: 'dst', col: '#3fd0d8', radius: 700, peak: 0.45, attack: 200, hold: 400, decay: 400 },
+    { at: 0, op: 'sprite', tex: 'vfx-water-surge', on: 'dst', sizeK: 2, life: 900, alpha: 0.8, ...burn(0.5, 'vfx-noise-wisps'), ...P('water', 0.6) },
+    { at: 0, op: 'flash', k: [0.5, 0.5], dur: 240 },
+    { at: 200, op: 'call', fn: 'fadeIn', wait: true }] };
+  // Inside a cinematic, a trigger only tags its words (the cinematic is the moment); the Last Battle's short version.
+  E['trigger.cine'] = { duration: 200, steps: [{ at: 0, op: 'call', fn: 'tag' }] };
+  E['cine.last.low'] = { duration: 1000, stageE: true, steps: [
+    { at: 0, op: 'call', fn: 'cineOpen' },
+    { at: 0, op: 'call', fn: 'scorch' },
+    { at: 0, op: 'light', on: 'centre', col: '#ff5a20', radius: 1000, peak: 0.5, attack: 200, hold: 500, decay: 300 },
+    { at: 150, op: 'flash', k: [0.8, 0.8], dur: 300 },
+    { at: 150, op: 'call', fn: 'bannerShort', wait: true }] };
   E['cine.aldric.quest'] = { duration: 1000, stageE: true, steps: [
     { at: 0, op: 'call', fn: 'cineOpen' },
     ...seal('dst', { at: 60, size: 2, tint: '#6d4aa0' }),

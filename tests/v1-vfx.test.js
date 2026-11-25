@@ -50,7 +50,7 @@ test('every creature in the first deck (each form) and the Campaign Creature res
   assert.equal(attackEffectFor({ traits: { kind: 'Undead' } }), 'attack.undead');
   assert.equal(attackEffectFor({ attackKind: 'Arcane', traits: { class: 'Wizard' } }), 'attack.arcane');
   assert.ok(attackVars(c('ashen-spire-apprentice', 'archmagus-of-the-ashen-spire')).flags.lightning);
-  assert.equal(attackVars({ series: 'Heavy' }).vars.slash, 'cleave-arc');
+  assert.equal(attackVars({ series: 'Heavy' }).vars.slash, 'vfx-slash-crescent');   // (stage X2: painted kit only)
   assert.ok(attackVars(c('stonehide-basilisk')).flags.stone);
 });
 

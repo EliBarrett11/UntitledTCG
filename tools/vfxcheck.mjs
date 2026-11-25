@@ -88,7 +88,7 @@ if (notSeen.length) { failures += 1; console.log(`FAIL  storyboard effects never
 if (alsoNot.length) console.log(`      (Not met in these matches: ${alsoNot.join(', ')}.)`);
 // 2. Missing textures.
 await match(browser, `?seed=7&autoplay=1&pace=30&speed=fast&lowmotion=0&vfxmissing=${Object.keys(manifest).join(',')}`, { actions: 160, label: 'every texture missing (stand-ins drawn in code)' });
-await match(browser, '?seed=11&autoplay=1&pace=30&speed=fast&lowmotion=0', { actions: 160, label: 'texture downloads failing', route: (r) => (/(slash-arc|impact-flash|renown-ribbon|summon-sigil|embers-atlas)/.test(r.request().url()) ? r.abort() : r.continue()) });
+await match(browser, '?seed=11&autoplay=1&pace=30&speed=fast&lowmotion=0', { actions: 160, label: 'texture downloads failing', route: (r) => (/(vfx-slash-crescent|vfx-impact-star|vfx-renown-star|vfx-arcane-glyphring|vfx-sparks)/.test(r.request().url()) ? r.abort() : r.continue()) });
 // 3. The 2D fallback.
 const r2 = await match(browser, '?seed=7&autoplay=1&pace=30&speed=fast&lowmotion=0&webgl=0', { actions: 160, label: '2D fallback (?webgl=0)' });
 if (r2.info.mode !== '2d') { failures += 1; console.log('FAIL  ?webgl=0 did not use the 2D fallback'); }

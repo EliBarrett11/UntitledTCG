@@ -16,6 +16,8 @@ import { effectText } from '../engine/wording.js';
 import { gameParams } from './devparams.js';
 import { BEAT_EFFECTS, attackEffectFor, attackVars, effectFor, healFlags, heldEffectFor, cardByName, eventFlags, reactFlags, cinematicFor, CINEMATICS, arrivalEffectFor, placedEffectFor, signatureFor, MOMENT_OF_KIND } from './vfx/library.js';
 import { EFFECTS } from './vfx/library.js';
+// The Legendaries whose arrival is a cinematic (stage X2: both).
+const LEGEND_CINE = new Set(['wyrm', 'deepmaw']);
 import { OLD_OF } from './vfx/stageE.js';
 
 const STAGE_W = 1920;
@@ -477,12 +479,14 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             focus = where(e.who, e.space);
             await slide(ctx, renderCard(card, { size: 'mini' }), handPos(e.who, e.uid), focus, { scaleTo: 0.82 });
             if (t) { t.style.opacity = ''; await ctx.anim(t, [{ transform: 'translateY(-10px)', opacity: 0.6 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 220, fill: 'none' }); }
-          }, cinematicFor(card) === 'wyrm' ? async (ctx) => {
-            // 5.9: the Ashen Wyrm arrives (a cinematic; its On Summon breath follows in it).
+          }, LEGEND_CINE.has(cinematicFor(card)) ? async (ctx) => {
+            // 5.9: the Ashen Wyrm arrives (a cinematic; its On Summon breath follows in it). (Stage X2: and the Deepmaw,
+            // rising out of the Drowned Reach: each Legendary has its own.)
+            const cine = CINEMATICS[cinematicFor(card)];
             const t = token(e.who, e.space);
             if (t) t.style.opacity = '0';
             focus = where(e.who, e.space);
-            await fxRun(ctx, settings().lowMotion ? CINEMATICS.wyrm.low : CINEMATICS.wyrm.full, {
+            await fxRun(ctx, settings().lowMotion ? cine.low : cine.full, {
               anchors: anchors({ dst: focus }), els: { dst: t }, tint: accentOf(card),
               hooks: {
                 cineOpen: () => cineOpen(focus),
@@ -512,8 +516,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             // (Stage N2: a card's own arrival moment, like the Deepmaw rising on its water surge.)
             const own = arrivalEffectFor(card);
             if (own) await fxRun(ctx, own, { anchors: anchors({ dst: focus }), els: { dst: t }, tint: card ? accentOf(card) : '#c7a15a' });
-          }, cinematicFor(card) === 'wyrm' ? { cine: 'wyrm', cineFirst: true } : {});
-          if (cinematicFor(card) === 'wyrm') activeCine = 'wyrm';
+          }, LEGEND_CINE.has(cinematicFor(card)) ? { cine: cinematicFor(card), cineFirst: true } : {});
+          if (LEGEND_CINE.has(cinematicFor(card))) activeCine = cinematicFor(card);
           break;
         }
         case 'primeSummon': {
@@ -646,7 +650,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
                 dstHp: d ? tabAt(foe, e.target.space, 'tab-h') : undefined, dstAtk: d ? tabAt(foe, e.target.space, 'tab-a') : undefined }), els: { src: ab, dst: tb ?? toEl },
               tint: colour, tint2: d ? accentOf(d) : colour, amount: e.amount,
               flags: { ...av.flags, back: !!e.back, armour: armour > 0, armourBack: armourBack > 0, guard: !!(d && hasGuard(d, guardKind)) },
-              vars: { ...av.vars, slash2: d ? attackVars(d).vars.slash2 : 'slash-arc', guardSigil: guardKind === 'Shield' ? 'vfx-shield-sigil' : 'vfx-ward-hex' },
+              vars: { ...av.vars, slash2: d ? attackVars(d).vars.slash2 : 'vfx-slash-crescent', guardSigil: guardKind === 'Shield' ? 'vfx-shield-sigil' : 'vfx-ward-hex' },
               hooks: {
                 land: () => {
                   if (tb) setText(tb.querySelector('.tab-h span'), next.players[foe].row[e.target.space]?.currentHealth ?? 0);
@@ -786,7 +790,6 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
               anchors: anchors({ src, dst: targets[0].box }), els: { dst: targets[0].el }, targets,
               tint: srcCard ? accentOf(srcCard) : srcInfo ? accentOf(srcInfo.def) : '#c7a15a', amount: e.amount,
               flags: { ...healFlags(e.name), lightning: srcCard ? attackVars(srcCard).flags.lightning : false, armour: armour > 0 },
-              vars: { slash: 'impact-flash', burst: 'arcane-vortex', bolt: 'arcane-bolt' },
               hooks: {
                 land: () => {
                   for (const t of e.targets) {
@@ -1118,7 +1121,8 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
             const lbl = q(`.loc-label[data-loc="${e.uid}"]`);
             const rb = region ? box(region) : dst;
             const lb = lbl ? box(lbl) : { ...dst, cy: 440 };
-            const ink = vfx?.textureUrl?.('ink-spread-mask');
+            // (Stage X2: the painted dust burst's soft blob is the mask the Location's ink spreads through.)
+            const ink = vfx?.textureUrl?.('vfx-dust-burst');
             await fxRun(ctx, 'location', {
               anchors: anchors({ dst: rb, labelL: { ...lb, cx: lb.x }, labelR: { ...lb, cx: lb.x + lb.w } }),
               hooks: {

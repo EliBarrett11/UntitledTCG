@@ -6,46 +6,26 @@
 // a soft stand-in drawn in code takes its place: never an error. Big textures are scaled down on load
 // (effects are soft and seldom drawn large), which keeps GPU memory small.
 
-// The stand-in shape for each texture (by id). Anything not listed falls back by its name.
-const SHAPE = {
-  glow: ['impact-flash', 'dial-flare', 'heal-bloom', 'salve-glow', 'arcane-orb', 'fire-burst', 'arcane-vortex', 'crown-of-light', 'victory-rays',
-    'lantern-glint', 'gold-dust-swirl', 'coin-shower', 'laurel-of-light', 'ember-cracks', 'react-flare', 'energy-spark', 'selection-glow', 'quest-stamp', 'armour-plates'],
-  ring: ['shockwave-ring', 'halo-ring', 'summon-sigil', 'rune-circle', 'shield-sigil', 'ward-sigil', 'firestorm-ring', 'compass-rose', 'hammer-sigil'],
-  streak: ['lunge-streak', 'arrow-trail', 'renown-ribbon', 'arcane-bolt', 'arcane-lightning', 'fire-breath', 'quill-stroke', 'blade-runes-glint', 'foil-streak',
-    'dawn-sweep', 'fog-of-war', 'smoke-tendrils', 'grave-mist', 'dust-ground-ring', 'wing-gust', 'ink-trail', 'dusk-wash', 'burning-card-edge'],
-  arc: ['slash-arc', 'cleave-arc', 'bite-snap', 'banner-cut'],
-  claws: ['claw-rake'],
-  cross: ['riposte-cross'],
-  spark: ['embers-atlas', 'metal-sparks-atlas', 'renown-motes-atlas', 'heal-motes-atlas', 'dust-motes-atlas', 'impact-glints-atlas', 'rune-glyphs-atlas', 'flames-atlas', 'ember-storm', 'victory-sparks', 'fuse-spark'],
-  shard: ['ash-flakes-atlas', 'rock-shards-atlas', 'bone-shards-atlas', 'glass-shards-atlas', 'splinters-atlas', 'wax-seal-shards-atlas', 'fur-tufts-atlas',
-    'feathers-atlas', 'ink-splatter-atlas', 'knife-streaks-atlas', 'autumn-leaves-atlas', 'defeat-cracks'],
-  coin: ['coin-spin-atlas', 'gold-coin'],
-  smoke: ['smoke-puff', 'ambush-burst', 'dust-burst', 'smoke-atlas', 'poison-mist', 'spirit-rise', 'soul-wisp', 'drain-wisps', 'spectral-wail', 'crimson-draught-splash',
-    'liquid-fire-splash', 'burn-away-mask', 'ink-spread-mask', 'parchment-burn-mask', 'candle-snuff'],
-  pillar: ['holy-pillar', 'gate-of-light', 'candle-flame', 'flame-tongue', 'empower-aura', 'ready-rim'],
-  card: ['folded-letter', 'scroll-open', 'wax-seal', 'war-banner', 'arrow', 'arrowhead'],
-};
-const SHAPE_OF = new Map(Object.entries(SHAPE).flatMap(([k, ids]) => ids.map((id) => [id, k])));
-// Solid stand-ins are drawn with normal blending; the rest are light.
+// The stand-in shape for each texture of the painted kit (by id), drawn in code until the texture arrives.
+// (Stage X2: the old kit is gone; only the painted kit, vfx-*, and code-drawn light remain.)
 const SOLID = new Set(['shard', 'coin', 'card']);
-
-// Stage E: the effects kit's textures (vfx-*), each stood in for by its nearest shape.
 const KIT = { 'vfx-slash-crescent': 'arc', 'vfx-impact-star': 'glow', 'vfx-shockwave': 'ring', 'vfx-fire-burst': 'glow', 'vfx-fire-ring': 'ring', 'vfx-fire-trail': 'streak',
   'vfx-holy-rays': 'glow', 'vfx-prime-burst': 'glow', 'vfx-renown-star': 'glow', 'vfx-arcane-glyphring': 'ring', 'vfx-burn-edge': 'streak', 'vfx-ghost-veil': 'streak',
   'vfx-dust-burst': 'smoke', 'vfx-crack': 'shard1', 'vfx-scorch-mark': 'scorch', 'vfx-shield-sigil': 'ring', 'vfx-ward-hex': 'ring', 'vfx-holy-dome': 'glow', 'vfx-arcane-lance': 'streak',
   'vfx-arcane-ribbon': 'streak', 'vfx-shadow-claws': 'arc', 'vfx-shadow-eyes': 'glow',
-  // (Stage N2.)
-  'vfx-frost-crust': 'ring', 'vfx-ice-shards': 'spark', 'vfx-venom-drips': 'spark', 'vfx-water-surge': 'smoke', 'vfx-lightning-fork': 'streak', 'vfx-rage-aura': 'pillar' };
+  'vfx-frost-crust': 'ring', 'vfx-ice-shards': 'spark', 'vfx-venom-drips': 'spark', 'vfx-water-surge': 'smoke', 'vfx-lightning-fork': 'streak', 'vfx-rage-aura': 'pillar',
+  'vfx-claw-rake': 'claws', 'vfx-wax-seal': 'card', 'vfx-arrow': 'card', 'vfx-coins': 'coin', 'vfx-energy-crystals': 'shard', 'vfx-gears': 'ring', 'vfx-armour-plates': 'shard',
+  'vfx-throwing-knives': 'shard', 'vfx-feathers': 'shard', 'vfx-ink-splashes': 'shard', 'vfx-bone-shards': 'shard', 'vfx-potion-splash': 'smoke', 'vfx-earth-burst': 'smoke',
+  'vfx-heal-bloom': 'glow', 'vfx-light-flare': 'glow', 'vfx-arcane-orb': 'glow', 'vfx-laurel-wreath': 'ring', 'vfx-fog-bank': 'streak', 'vfx-rain-streaks': 'streak',
+  'vfx-wind-gust': 'streak', 'vfx-speed-streaks': 'streak', 'vfx-vines': 'streak', 'vfx-fire-breath': 'streak', 'vfx-rune-glyphs': 'spark' };
 export function shapeOf(id) {
   if (/^vfx-noise-/.test(id)) return 'noise';
   if (KIT[id]) return KIT[id];
   if (/^vfx-(sparks|holy-motes|fire-tongues|arcane-shards|ghostlight-flames)$/.test(id)) return 'spark';
   if (/^vfx-(ash|debris|leaves|petals)$/.test(id)) return 'shard';
   if (/^vfx-(smoke-puffs|shadow-wisps)$/.test(id)) return 'smoke';
-  if (SHAPE_OF.has(id)) return SHAPE_OF.get(id);
-  if (/atlas$/.test(id)) return 'spark';
-  if (/ring|sigil|circle/.test(id)) return 'ring';
-  if (/streak|trail|bolt|sweep|wash|mist/.test(id)) return 'streak';
+  if (/ring|sigil/.test(id)) return 'ring';
+  if (/streak|trail/.test(id)) return 'streak';
   return 'glow';
 }
 
@@ -170,7 +150,7 @@ export function drawStandIn(id) {
       break;
     }
     case 'card':
-      if (id === 'wax-seal') { g.fillStyle = '#8a1a1e'; g.beginPath(); g.arc(cx, cy, W * 0.36, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#c0484a'; g.lineWidth = 6; g.beginPath(); g.arc(cx, cy, W * 0.24, 0, Math.PI * 2); g.stroke(); }
+      if (id === 'vfx-wax-seal') { g.fillStyle = '#8a1a1e'; g.beginPath(); g.arc(cx, cy, W * 0.36, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#c0484a'; g.lineWidth = 6; g.beginPath(); g.arc(cx, cy, W * 0.24, 0, Math.PI * 2); g.stroke(); }
       else if (/arrow/.test(id)) { g.fillStyle = '#6b4a2a'; g.fillRect(20, cy - 4, W - 60, 8); g.fillStyle = '#b8b2a6'; g.beginPath(); g.moveTo(W - 10, cy); g.lineTo(W - 50, cy - 18); g.lineTo(W - 50, cy + 18); g.fill(); }
       else { g.fillStyle = '#d8c39a'; g.fillRect(W * 0.12, H * 0.22, W * 0.76, H * 0.56); g.strokeStyle = '#8a6d45'; g.lineWidth = 3; g.strokeRect(W * 0.12, H * 0.22, W * 0.76, H * 0.56); g.beginPath(); g.moveTo(W * 0.12, H * 0.22); g.lineTo(cx, cy); g.lineTo(W * 0.88, H * 0.22); g.stroke(); }
       break;

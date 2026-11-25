@@ -30,19 +30,20 @@ export function createAmbient({ missing = new Set() } = {}) {
     const parts = [];
     // Dust motes.
     motes.forEach((m, i) => {
-      const look = has('dust-motes-atlas') ? frameStyle('dust-motes-atlas', i, m.w * 2) : dot(m.w, 'rgba(255,226,170,0.8)');
+      const look = has('vfx-holy-motes') ? frameStyle('vfx-holy-motes', i, m.w * 2) : dot(m.w, 'rgba(255,226,170,0.8)');
       parts.push(`<i class="amb-mote" style="left:${m.x}px;top:${m.y}px;${look};${delay(m.dur, m.ph)}"></i>`);
     });
     // Candles at the four corners of the map.
     for (const [x, y, flip] of [[6, 4, 0], [1478, 4, 1], [6, 560, 0], [1478, 560, 1]]) {
-      const flame = has('candle-flame') ? `background-image:url(${url('candle-flame')});background-size:contain;background-repeat:no-repeat;background-position:center` : dot(30, 'rgba(255,190,110,0.9)');
+      // (Stage X2: the painted kit's flame tongue, one frame of its sheet.)
+      const flame = has('vfx-fire-tongues') ? frameStyle('vfx-fire-tongues', (x + y) % 16, 30) : dot(30, 'rgba(255,190,110,0.9)');
       parts.push(`<i class="amb-candle" style="left:${x}px;top:${y}px;${delay(3.2, x * 0.01 + y * 0.003)}${flip ? ';animation-direction:reverse' : ''}"><b style="${flame}"></b></i>`);
     }
     // In the Last Battle: embers and ash blow across the map, with sheets of the ember storm behind them.
     if (s?.lastBattle) {
-      if (has('ember-storm')) for (let i = 0; i < 3; i++) parts.push(`<i class="amb-storm" style="top:${60 + i * 190}px;background-image:url(${url('ember-storm')});background-size:100% 100%;${delay(9 + i * 2, i * 3.1)}"></i>`);
+      if (has('vfx-fire-trail')) for (let i = 0; i < 3; i++) parts.push(`<i class="amb-storm" style="top:${60 + i * 190}px;background-image:url(${url('vfx-fire-trail')});background-size:100% 100%;${delay(9 + i * 2, i * 3.1)}"></i>`);
       embers.forEach((e, i) => {
-        const id = e.ash ? 'ash-flakes-atlas' : 'embers-atlas';
+        const id = e.ash ? 'vfx-ash' : 'vfx-sparks';
         const look = has(id) ? frameStyle(id, i, e.w * 2) : dot(e.w, e.ash ? 'rgba(90,80,70,0.8)' : 'rgba(255,150,60,0.95)');
         parts.push(`<i class="amb-ember${e.ash ? ' ash' : ''}" style="top:${e.y}px;${look};${delay(e.dur, e.ph)}"></i>`);
       });
@@ -59,7 +60,7 @@ export function createAmbient({ missing = new Set() } = {}) {
       const last = runs[runs.length - 1];
       if (last && Math.abs(last.r - l) < 2) last.r = l + wd; else runs.push({ l, r: l + wd });
     }
-    const look = has('fog-of-war') ? `background-image:url(${url('fog-of-war')});background-size:100% 100%` : 'background:radial-gradient(ellipse, rgba(230,220,200,0.6), transparent 70%)';
+    const look = has('vfx-fog-bank') ? `background-image:url(${url('vfx-fog-bank')});background-size:100% 100%` : 'background:radial-gradient(ellipse, rgba(230,220,200,0.6), transparent 70%)';
     return runs.map((r, i) => `<i class="amb-fog" style="left:${r.l}px;width:${r.r - r.l}px;${look};${delay(18, i * 5)}"></i>`).join('');
   }
 
