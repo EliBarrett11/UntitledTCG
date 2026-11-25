@@ -23,10 +23,13 @@ const manifest = JSON.parse(readFileSync(join(root, 'assets/vfx/manifest.json'),
 // V1 (section 3) and V2 (section 5): each series' attack, the Actions' modes, Events, Locations, Dawn and Dusk, the
 // Quest and the cinematics. Stage E's rebuilt moments stand in for the ones they replace (defeat, the Firebolts).
 const STORYBOARD = ['attack.oathsworn', 'attack.ironhide', 'attack.spire', 'attack.hollowfoot', 'attack.deepforge', 'attack.thornwood', 'attack.beast', 'attack.barrow',
-  'attack.stonehide', 'defeat', 'summon', 'renown', 'heal', 'strat.seal', 'strat.resolve', 'gold.gain', 'item.bought', 'react', 'event', 'draw', 'location',
-  'location.gone', 'dawn', 'dusk', 'dominance.scored', 'quest', 'e.firebolt.strat', 'nightraid.strat', 'cine.wyrm', 'cine.last'];
-const ALSO = ['attack.wyrm', 'wyrm.onsummon', 'renown.favour', 'riposte', 'item.wildfire', 'item.draught', 'item.held.blade', 'item.held.shield', 'e.firebolt', 'e.firebolt.react', 'e.attack.steel', 'e.prime',
-  'shade.drain', 'parry.adapt', 'nightraid.adapt', 'mending.strat', 'energy', 'cine.aldric', 'cine.aldric.quest'];
+  'attack.stonehide', 'defeat', 'summon', 'renown', 'heal', 'strat.seal', 'strat.resolve', 'gold.gain', /^(item\.bought|card\..+\.bought)$/, 'react', /^(event|card\..+\.(release|favour))$/, 'draw', 'location',
+  'location.gone', 'dawn', 'dusk', 'dominance.scored', /^(quest|card\..+\.(step|complete))$/, 'e.firebolt.strat', 'card.night-raid.strat', 'cine.wyrm', 'cine.last'];
+// (Stage X2: a card's own signature plays where a generic moment did: an Item's purchase, an Event's Release, a Quest's
+// step. Each entry is an effect id or a pattern of ids.)
+const ALSO = ['attack.wyrm', 'wyrm.onsummon', 'renown.favour', 'riposte', 'card.flask-of-wildfire.consumed', 'card.draught-of-vigour.consumed', /^card\..+\.held$/, 'e.firebolt', 'e.firebolt.react', 'e.attack.steel', 'e.prime',
+  'shade.drain', 'card.parry.adapt', 'card.night-raid.adapt', 'card.mending-prayer.strat', 'energy', 'cine.aldric', 'cine.aldric.quest'];
+const played = (seen, e) => (e instanceof RegExp ? [...seen].some((x) => e.test(x)) : seen.has(e));
 // Chromium's own notices about software GPU readbacks are not page problems.
 const noise = (t) => /GL Driver Message|GPU stall due to ReadPixels|Automatic fallback to software WebGL/.test(t);
 
@@ -79,10 +82,10 @@ for (const q of ['seed=5', 'seed=7', `seed=11&${PREFER}`, 'seed=3&scene=quest', 
   // (Stage R: the 8-lane matches go differently, so more seeds may be needed; it stops once every effect played.)
   const r = await match(browser, `?${q}&autoplay=1&pace=30&speed=fast&lowmotion=0`, { label: `coverage, ${q}` });
   for (const e of r.seen) seen.add(e);
-  if (STORYBOARD.every((e) => seen.has(e)) && ALSO.every((e) => seen.has(e))) break;
+  if (STORYBOARD.every((e) => played(seen, e)) && ALSO.every((e) => played(seen, e))) break;
 }
-const notSeen = STORYBOARD.filter((e) => !seen.has(e));
-const alsoNot = ALSO.filter((e) => !seen.has(e));
+const notSeen = STORYBOARD.filter((e) => !played(seen, e)).map(String);
+const alsoNot = ALSO.filter((e) => !played(seen, e)).map(String);
 console.log(`      Effects played: ${[...seen].sort().join(', ')}.`);
 if (notSeen.length) { failures += 1; console.log(`FAIL  storyboard effects never played: ${notSeen.join(', ')}`); } else console.log('PASS  every storyboard effect played in a real match.');
 if (alsoNot.length) console.log(`      (Not met in these matches: ${alsoNot.join(', ')}.)`);
