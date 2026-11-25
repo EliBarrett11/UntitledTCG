@@ -190,9 +190,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     alive = false;
     el.remove();
   }
-  function banner(ctx, title, sub = '', cls = '') {
+  function banner(ctx, title, sub = '', cls = '', dur = 1000) {
     const el = add(`<div class="banner-title">${esc(title)}</div>${sub ? `<div class="banner-sub">${esc(sub)}</div>` : ''}`, 790, 412, `banner ${cls}`);
-    return ctx.anim(el, [{ opacity: 0, transform: 'translate(-50%,-50%) scale(0.96)' }, { opacity: 1, transform: 'translate(-50%,-50%) scale(1)', offset: 0.2 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 1000 });
+    return ctx.anim(el, [{ opacity: 0, transform: 'translate(-50%,-50%) scale(0.96)' }, { opacity: 1, transform: 'translate(-50%,-50%) scale(1)', offset: 0.2 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: dur });
   }
   function pulse(ctx, el, colour = '#f0c86e') {
     if (!el) return Promise.resolve();
@@ -430,6 +430,33 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
   // --- The beats for one action ------------------------------------------------------------------------------
   // prev and next are the states before and after; the board shows next. held: numbers shown at their old
   // values until their beat lands.
+  const resultWord = (how) => ({ renown: 'by Renown', 'out of creatures': 'no creatures left' }[how] ?? '');
+  // Stage X3: a wash of painted light across the map (Dawn: warm, from the east; Dusk: amber ebbing to violet, from the
+  // west). Low motion: a fade in place.
+  function mapSweep(ctx, kind) {
+    const map = q('[data-region="map"]');
+    if (!map) return null;
+    const el = document.createElement('div');
+    el.className = `map-sweep ${kind}`;
+    map.appendChild(el);
+    const low = settings().lowMotion;
+    const frames = low ? [{ opacity: 0 }, { opacity: 1, offset: 0.4 }, { opacity: 0 }]
+      : kind === 'dawn' ? [{ opacity: 0, transform: 'translateX(60%)' }, { opacity: 1, offset: 0.35 }, { opacity: 0, transform: 'translateX(-60%)' }]
+        : [{ opacity: 0, transform: 'translateX(-60%)' }, { opacity: 1, offset: 0.4 }, { opacity: 0.0, transform: 'translateX(60%)' }];
+    return ctx.anim(el, frames, { duration: kind === 'dawn' ? 1300 : 1200, easing: 'ease-in-out', fill: 'none' }).then(() => el.remove());
+  }
+  // Stage X3: the creatures that ready at Dawn stay Spent (tilted, dimmed) until the Dawn beat turns them upright.
+  let readying = [];
+  function readiedTokens() { return readying.filter((t) => t.isConnected); }
+  function readyAll(ctx, instant = false) {
+    const list = readiedTokens();
+    readying = [];
+    list.forEach((t, i) => {
+      const go = () => { t.classList.remove('spent', 'held-spent'); if (t.dataset.wasReady === '1') t.classList.add('ready'); };
+      if (instant || settings().lowMotion) go(); else setTimeout(go, ctx.ms(i * 60));
+    });
+    return ctx.wait(instant ? 0 : 400 + list.length * 60);
+  }
   function beatsFor(prev, next, events) {
     const beats = [];
     const held = { renown: { [HUMAN]: prev.players[HUMAN].renown, [AI]: prev.players[AI].renown }, gold: { [HUMAN]: prev.players[HUMAN].gold, [AI]: prev.players[AI].gold } };
@@ -1328,7 +1355,7 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           break;
         case 'dusk':
           B('dusk', `Round ${e.round} · Dusk.`, async (ctx) => { await banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk'); }, async (ctx) => {
-            await fxRun(ctx, 'dusk', { anchors: anchors(), hooks: { banner: () => banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk'), candles: () => stage.querySelector('.ambient')?.classList.add('dusk-bright') } });
+            await fxRun(ctx, 'dusk', { anchors: anchors(), hooks: { banner: () => banner(ctx, 'DUSK', `Round ${e.round}`, 'dusk'), sweep: () => mapSweep(ctx, 'dusk'), candles: () => stage.querySelector('.ambient')?.classList.add('dusk-bright') } });
           });
           break;
         case 'dominance': {
@@ -1404,15 +1431,47 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           }, { cine: 'last', cineFirst: true, cineLast: true });
           break;
         case 'dawn':
-          if (e.round > 1) B('dawn', `Round ${e.round} · Dawn.`, async (ctx) => { await banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'); }, async (ctx) => {
-            // 5.7: the sweep, Energy pips refilling with sparks, recovered Exert glinting (new cards fly in next).
+          if (e.round > 1) B('dawn', `Round ${e.round} · Dawn.`, async (ctx) => { await banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'); await readyAll(ctx, true); }, async (ctx) => {
+            // 5.7 (stage X3): light sweeps the map from the east, warming it; each creature that readies turns upright
+            // with a glint; Energy pips refill with sparks, recovered Exert glints; the Round's number lights and, if
+            // initiative passed, a ribbon of gold runs from one Warlord to the other.
             const recovered = Math.max(0, prev.players[HUMAN].exhaust.length - next.players[HUMAN].exhaust.length);
             // (Stage H: the sparks land on your Energy crystal; recovered Exert glints on its ready runes.)
             const exerts = boxesOf(`[data-region="energy-${HUMAN}"] .ex-rune.ready`);
-            await fxRun(ctx, 'dawn', { anchors: anchors(), lists: { pips: boxesOf(`[data-region="energy-${HUMAN}"] .en-crys`), exerts: recovered ? exerts.slice(-recovered) : [] },
-              hooks: { banner: () => banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn') } });
+            const readied = readiedTokens().map((t) => box(t));
+            const ini = next.initiative; const was = prev.initiative;
+            const lordBox = (w) => (warlordEl(w) ? box(warlordEl(w)) : centre);
+            const rnd = q('.round-n');
+            await Promise.all([
+              fxRun(ctx, 'dawn', { anchors: anchors(), lists: { pips: boxesOf(`[data-region="energy-${HUMAN}"] .en-crys`), exerts: recovered ? exerts.slice(-recovered) : [], readied },
+                hooks: { banner: () => banner(ctx, 'DAWN', `Round ${e.round}`, 'dawn'), sweep: () => mapSweep(ctx, 'dawn'), ready: () => readyAll(ctx) } }),
+              fxRun(ctx, 'round.start', { anchors: anchors({ round: rnd ? box(rnd) : centre, lordFrom: lordBox(was), lordTo: lordBox(ini) }), flags: { swap: ini !== was },
+                hooks: { number: () => (rnd ? pulse(ctx, rnd, '#ffd89a') : null) } }),
+            ]);
           });
           break;
+        // (Stage X3: the Battle Phase opens: the side with initiative is lit, steel flares at the centre.)
+        case 'battlePhase': {
+          const side = e.initiative === HUMAN ? 'You have initiative' : `${foe()} has initiative`;
+          B('battle', `Round ${e.round} · Battle Phase. ${side}.`, async (ctx) => { await banner(ctx, 'BATTLE', side, 'battle'); }, async (ctx) => {
+            const lord = warlordEl(e.initiative);
+            await fxRun(ctx, 'battle', { anchors: anchors({ lordTo: lord ? box(lord) : centre }), hooks: { banner: () => banner(ctx, 'BATTLE', side, 'battle') } });
+          });
+          break;
+        }
+        // (Stage X3: the match ends as a cinematic: your Warlord floods with gold, or its light drains.)
+        case 'gameOver': {
+          const win = e.winner === HUMAN;
+          const lord = warlordEl(HUMAN);
+          B('gameOver', win ? 'Victory!' : e.winner ? 'Defeat.' : 'A draw.', async (ctx) => { await ctx.wait(400); }, async (ctx) => {
+            const lb = e.winner || lord ? box(lord ?? stage) : centre;
+            const low = settings().lowMotion;
+            await fxRun(ctx, low ? 'match.end.low' : win ? 'match.victory' : 'match.defeat', { anchors: anchors({ lord: lb }), flags: { win },
+              hooks: { cineOpen: () => cineOpen(centre), banner: () => banner(ctx, win ? 'VICTORY' : e.winner ? 'DEFEAT' : 'A DRAW', resultWord(e.how), win ? 'victory' : 'defeat', 1900), end: () => null } });
+            cineClose();
+          }, { gold: true });
+          break;
+        }
         default: break;
       }
     }
@@ -1567,6 +1626,19 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     // through the 'defeated' event.
     prevMapEl = null;
     holdBoard(prev, next, events);
+    readying = [];
+    if (events.some((e) => e.type === 'dawn' && e.round > 1)) {
+      for (const who of [HUMAN, AI]) next.players[who].row.forEach((c, lane) => {
+        const was = prev.players[who].row[lane];
+        if (!c || !was || was.uid !== c.uid || !was.spent || c.spent) return;
+        const t = token(who, lane);
+        if (!t) return;
+        t.dataset.wasReady = t.classList.contains('ready') ? '1' : '';
+        t.classList.remove('ready');
+        t.classList.add('spent', 'held-spent');
+        readying.push(t);
+      });
+    }
     for (const e of events) {
       if (e.type !== 'defeated') continue;
       const was = prev.players[e.who].row[e.space];

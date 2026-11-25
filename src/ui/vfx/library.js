@@ -26,6 +26,7 @@ import { CARDS } from '../../data/cards.js';
 import { stageEffects } from './stageE.js';
 import { coreEffects } from './core.js';
 import { x2Effects } from './x2.js';
+import { x3Effects } from './x3.js';
 import { hitstopMs } from './shaping.js';
 
 // The timing budget at normal speed (docs/archive/10-feel-and-vfx.md section 2), and the slack allowed for hit-stop.
@@ -59,12 +60,14 @@ Object.assign(EFFECTS, stageEffects({ GUARD, GOLD }));
 Object.assign(EFFECTS, coreEffects());
 // Stage X2: every other system and every card's own signature (x2.js), merged last.
 Object.assign(EFFECTS, x2Effects());
+// Stage X3: the Round, the match and its end (x3.js).
+Object.assign(EFFECTS, x3Effects());
 
 export const BEAT_EFFECTS = {
   summon: 'summon', legendary: 'legendary', attack: 'attack.martial', riposte: 'riposte', armour: 'armour', defeat: 'defeat', returned: 'returned',
   effect: 'effect.damage', trigger: 'trigger', renown: 'renown', prime: 'prime.summon', gold: 'gold.gain', strat: 'strat.seal', stratResolve: 'strat.resolve', react: 'react',
   event: 'event', item: 'item.bought', location: 'location', locationGone: 'location.gone', card: 'event', quest: 'quest', fizzle: 'quiet',
-  pass: 'quiet', retain: 'quiet', decline: 'quiet', dusk: 'dusk', dominance: 'dominance.scored', lastBattle: 'cine.last', dawn: 'dawn',
+  pass: 'quiet', retain: 'quiet', decline: 'quiet', dusk: 'dusk', battle: 'battle', gameOver: 'match.victory', dominance: 'dominance.scored', lastBattle: 'cine.last', dawn: 'dawn',
   draw: 'draw', energy: 'energy',
 };
 // The cinematics (5.9): the effect for each, its low-motion version, and its budget.

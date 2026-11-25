@@ -119,6 +119,7 @@ export function startApp(params) {
   }
   // Gold lines (a Prime, a Legendary, a Quest completing, the Last Battle) wait for their effect to land.
   let goldWaiting = [];
+  let lastActor = null;
   let skipHeld = false;       // Space held: skip ahead
   let paceWaiting = false;    // paused after the AI's action, until you go on
   let pausedFor = null;       // (the action that pause was for, once you've gone on)
@@ -448,6 +449,9 @@ export function startApp(params) {
       for (const c of s.players[HUMAN].row) if (c) c.spent = true;
       s.passesInARow = 1;
     },
+    // x3-win / x3-lose: x3-expire with you (or the enemy) one Renown short of winning: Dusk's dominance decides it.
+    'x3-win': () => { X3_SCENES['x3-expire'](); s.players[HUMAN].renown = RULES.win - 1; s.players[AI].renown = 40; },
+    'x3-lose': () => { X3_SCENES['x3-expire'](); s.players[AI].renown = RULES.win - 1; s.players[HUMAN].renown = 40; },
   };
   Object.assign(R_SCENES, X3_SCENES);
 
@@ -592,6 +596,12 @@ export function startApp(params) {
     ui.attacker = null;
     const who = actor(s);
     if (s.phase === 'gameOver' || !who) return draw();
+    // (Stage X3: the turn passes: once drawn, a slim ribbon of light runs from the plaque to whose turn it is.)
+    if (lastActor && who !== lastActor && s.phase === 'battle') setTimeout(() => {
+      const pl = stage.querySelector('[data-region="turn-plaque"]'); const lord = stage.querySelector(`[data-region="warlord-${who}"]`);
+      if (pl && lord) { const a = stageBox(pl); const b = stageBox(lord); presenter.flourish('turn', { anchors: { plaque: { ...a, cx: a.x + 20, cy: a.y + a.h / 2 }, lordTo: { ...b, cx: b.x + b.w / 2, cy: b.y + b.h / 2 } } }); }
+    }, 0);
+    lastActor = who;
     if (online.active()) {
       // Online: the friend's move comes from the host (as an update); this screen waits, and says so.
       if (who === AI) {
