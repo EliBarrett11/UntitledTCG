@@ -24,6 +24,7 @@ import { createCodex } from './codex.js';
 import { announcement, costPreview, energyDisplay } from './turn.js';
 import { chronicleOf } from './chronicle.js';
 import { createSubtitles } from './subtitle.js';
+import { watchPanels, screenWipe, vsMoment } from './screenfx.js';
 import { termAtOffset, tipHtml } from './tips.js';
 import { createOnline, lobbyScreen, netOverlay, savedHostMatch, forgetHostMatch } from './online.js';
 import { createLibrary } from './library.js';
@@ -105,6 +106,8 @@ export function startApp(params) {
   document.getElementById('viewport').appendChild(netLayer);
   // Stage X3: the subtitle line, in its own layer over the stage (redraws never touch it), in the band between the
   // battlefield and the hand; while a line shows, the cards it names are outlined on the board.
+  // (Stage X3: panels unroll open and settle closed; see screenfx.js.)
+  watchPanels(stage, { lowMotion: () => !!settings.lowMotion });
   let subMarks = [];
   let chrMarks = [];
   const stageBox = (el) => { const k = stage.getBoundingClientRect().width / STAGE_W; const sr = stage.getBoundingClientRect(); const r = el.getBoundingClientRect(); return { x: (r.left - sr.left) / k, y: (r.top - sr.top) / k, w: r.width / k, h: r.height / k }; };
@@ -242,6 +245,8 @@ export function startApp(params) {
     if (fading) { fading.cancel(); fading = null; }
     let fade = null;
     if (!lm && stage.animate) {
+      // (Stage X3: a band of warm light wipes across as the old screen fades.)
+      screenWipe(document.getElementById('viewport'), { lowMotion: lm });
       fade = stage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards', easing: 'ease-in' });
       fading = fade;
       await fade.finished.catch(() => {});
@@ -1323,7 +1328,12 @@ export function startApp(params) {
       case 'again': seed += 1; return go(nextScreen('end', 'again'));
       case 'to-title': if (online.active()) return online.leave(); notice = ''; return go('title');
       case 'play': notice = ''; return go(nextScreen('title', 'play'));
-      case 'begin': if (online.active()) return online.beginMatch(); return go(nextScreen('setup', 'begin'), () => newMatch({ opening: true }));
+      case 'begin': {
+        if (online.active()) return online.beginMatch();
+        // (Stage X3: the VS moment, then the match.)
+        const vp = document.getElementById('viewport');
+        return vsMoment(vp, { lowMotion: !!settings.lowMotion || params.has('dev') && !params.has('vs') }).then(() => go(nextScreen('setup', 'begin'), () => newMatch({ opening: true })));
+      }
       // Stage M: playing a friend.
       case 'friend': case 'net-host': notice = ''; return online.hostNew(params.has('seed') ? seed : (Date.now() >>> 0));
       case 'net-resume': notice = ''; return online.hostResume();

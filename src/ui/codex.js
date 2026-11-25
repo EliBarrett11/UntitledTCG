@@ -182,8 +182,11 @@ export function createCodex(viewport, { state, viewer: seatOf, lowMotion, librar
     fitCrumb();
     if (html === lastHtml && !fresh) return;
     const y = body.scrollTop;
+    const turned = lastHtml !== '' && lastHtml != null;
     body.innerHTML = html;
     lastHtml = html;
+    // (Stage X3: a new page turns in, a band of light across it.)
+    if (turned) { body.classList.remove('cx-turn'); void body.offsetWidth; body.classList.add('cx-turn'); }
     body.scrollTop = fresh ? 0 : y;
     fillForms();
   }

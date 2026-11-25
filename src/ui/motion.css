@@ -1,0 +1,110 @@
+/* Stage X3 (docs/38): the screens move in the board's language: painted light, erosion, weight and settle.
+   Everything here is quiet in low motion: fades only, short. */
+
+/* --- Panels: open by unrolling from the top edge, with a small overshoot and settle (closing: see screenfx.js) --- */
+.sfx-open { animation: sfx-unroll .32s cubic-bezier(.2,.9,.25,1.12) both; transform-origin: 50% 0; }
+@keyframes sfx-unroll {
+  0% { opacity: 0; clip-path: inset(0 0 100% 0 round 8px); transform: translateY(-6px) scaleY(.98); filter: brightness(1.4); }
+  60% { opacity: 1; clip-path: inset(0 0 0 0 round 8px); filter: brightness(1.1); }
+  100% { opacity: 1; clip-path: inset(0 0 0 0 round 8px); transform: none; filter: none; } }
+.sfx-open-low { animation: sfx-fade .14s linear both; }
+@keyframes sfx-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* --- Buttons: on hover they lift and warm (a glow of painted light round them); a press settles down; release
+   springs back. (Their own backgrounds and shadows are left alone.) --------------------------------------------- */
+.scr-btn, .btn, .tp-btn, .set, .ld-btn, .lib-fbtn, .deck-change, .deck-opt, .menu-item, .log-open {
+  transition: transform .2s cubic-bezier(.3,1.5,.5,1), filter .22s ease; }
+.scr-btn:hover:not(:disabled), .btn:hover:not(:disabled), .tp-btn:hover:not(:disabled), .set:hover, .ld-btn:hover:not(:disabled), .lib-fbtn:hover, .deck-change:hover, .deck-opt:hover, .menu-item:hover {
+  transform: translateY(-1px); filter: brightness(1.1) drop-shadow(0 0 7px rgba(255,200,120,.45)); }
+.scr-btn:active:not(:disabled), .btn:active:not(:disabled), .tp-btn:active:not(:disabled), .set:active, .ld-btn:active:not(:disabled), .lib-fbtn:active, .deck-change:active, .deck-opt:active, .menu-item:active, .log-open:active {
+  transform: translateY(1px) scale(.975); filter: brightness(.94); transition-duration: .06s; }
+body.low-motion .scr-btn, body.low-motion .btn, body.low-motion .tp-btn, body.low-motion .set, body.low-motion .ld-btn, body.low-motion .lib-fbtn, body.low-motion .deck-change, body.low-motion .deck-opt, body.low-motion .menu-item { transition: filter .12s; }
+body.low-motion .scr-btn:hover, body.low-motion .btn:hover, body.low-motion .tp-btn:hover, body.low-motion .set:hover, body.low-motion .ld-btn:hover, body.low-motion .lib-fbtn:hover, body.low-motion .deck-change:hover, body.low-motion .deck-opt:hover, body.low-motion .menu-item:hover,
+body.low-motion .scr-btn:active, body.low-motion .btn:active, body.low-motion .tp-btn:active, body.low-motion .set:active, body.low-motion .ld-btn:active, body.low-motion .menu-item:active { transform: none; }
+
+/* --- The title screen: the title rises and settles; a slow band of light crosses the painted art ---------------- */
+.screen-title .title-block { animation: title-rise .9s cubic-bezier(.2,.8,.25,1) both .1s; }
+@keyframes title-rise { from { opacity: 0; transform: translateY(14px); filter: blur(2px); } to { opacity: 1; transform: none; filter: none; } }
+.screen-title .title-buttons > * { animation: title-rise .6s cubic-bezier(.2,.8,.25,1) both; }
+.screen-title .title-buttons > *:nth-child(1) { animation-delay: .45s; } .screen-title .title-buttons > *:nth-child(2) { animation-delay: .53s; }
+.screen-title .title-buttons > *:nth-child(3) { animation-delay: .61s; } .screen-title .title-buttons > *:nth-child(4) { animation-delay: .69s; }
+.screen-title .title-art::after { content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,214,150,.55) 48%, rgba(255,180,100,.3) 54%, transparent 70%); background-size: 300% 100%; animation: title-light 14s ease-in-out infinite; }
+@keyframes title-light { 0% { background-position: 120% 0; } 55%, 100% { background-position: -20% 0; } }
+body.low-motion .screen-title .title-block, body.low-motion .screen-title .title-buttons > * { animation: sfx-fade .3s linear both; }
+body.low-motion .screen-title .title-art::after { animation: none; }
+
+/* --- Match setup: the sides swing in on their banners, VS breathes ----------------------------------------------- */
+.screen-setup .setup-you { animation: setup-in-l .6s cubic-bezier(.2,.9,.25,1.08) both; }
+.screen-setup .setup-enemy { animation: setup-in-r .6s cubic-bezier(.2,.9,.25,1.08) both .06s; }
+@keyframes setup-in-l { from { opacity: 0; transform: translateX(-40px) rotate(-1deg); } to { opacity: 1; transform: none; } }
+@keyframes setup-in-r { from { opacity: 0; transform: translateX(40px) rotate(1deg); } to { opacity: 1; transform: none; } }
+.screen-setup .setup-vs { animation: vs-breathe 3.2s ease-in-out infinite; }
+@keyframes vs-breathe { 50% { text-shadow: 0 0 22px rgba(255,190,90,.75), 0 0 2px #fff2c8; } }
+body.low-motion .screen-setup .setup-you, body.low-motion .screen-setup .setup-enemy { animation: sfx-fade .25s linear both; }
+body.low-motion .screen-setup .setup-vs { animation: none; }
+
+/* --- The VS moment (between setup and the match) ------------------------------------------------------------------ */
+.vs-moment { position: fixed; inset: 0; z-index: 950; pointer-events: none; overflow: hidden; display: grid; place-items: center; font-family: Cinzel, serif; }
+.vs-shade { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(30,16,6,.55), rgba(6,3,1,.92)); animation: sfx-fade .25s linear both; }
+.vs-side { position: absolute; top: 50%; width: 42vw; height: 22vh; translate: 0 -50%; display: flex; align-items: center; padding: 0 3vw; box-sizing: border-box;
+  font-size: clamp(16px, 2.2vw, 40px); font-weight: 700; letter-spacing: .18em; color: #f6e7c7; text-shadow: 0 2px 10px #000; }
+.vs-side.you { left: 0; justify-content: flex-start; background: linear-gradient(90deg, rgba(110,24,22,.95), rgba(110,24,22,.7) 70%, transparent);
+  clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%); animation: vs-in-l .42s cubic-bezier(.2,.9,.3,1.15) both; }
+.vs-side.them { right: 0; justify-content: flex-end; background: linear-gradient(270deg, rgba(36,71,126,.95), rgba(36,71,126,.7) 70%, transparent);
+  clip-path: polygon(8% 0, 100% 0, 100% 100%, 0 100%); animation: vs-in-r .42s cubic-bezier(.2,.9,.3,1.15) both; }
+@keyframes vs-in-l { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes vs-in-r { from { transform: translateX(100%); } to { transform: none; } }
+.vs-word { position: relative; font-size: clamp(48px, 9vw, 170px); font-weight: 900; letter-spacing: .06em; color: #ffe2a0;
+  text-shadow: 0 0 30px rgba(255,170,70,.9), 0 0 4px #fff4d6, 0 6px 16px #000; animation: vs-stamp .5s cubic-bezier(.3,1.6,.4,1) both .32s; }
+@keyframes vs-stamp { 0% { opacity: 0; transform: scale(2.4); filter: blur(6px); } 60% { opacity: 1; transform: scale(.94); filter: none; } 100% { opacity: 1; transform: scale(1); } }
+.vs-flare { position: absolute; width: 60vmin; height: 60vmin; border-radius: 50%; background: radial-gradient(circle, rgba(255,240,200,.95), rgba(255,170,70,.5) 30%, rgba(255,120,40,0) 70%) center / contain no-repeat;
+  mix-blend-mode: screen; animation: vs-flare .7s ease-out both .34s; }
+@keyframes vs-flare { 0% { opacity: 0; transform: scale(.2); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1.4); } }
+.vs-sparks { position: absolute; left: 50%; top: 50%; }
+.vs-sparks i { position: absolute; width: 3px; height: 18px; border-radius: 2px; background: linear-gradient(#fff6d8, #ff8a2a); rotate: var(--a); transform-origin: 50% -10px;
+  animation: vs-spark .55s cubic-bezier(.2,.7,.3,1) both calc(.36s + var(--d)); opacity: 0; }
+@keyframes vs-spark { 0% { opacity: 1; translate: 0 0; } 100% { opacity: 0; translate: 0 22vmin; } }
+.vs-moment.out { opacity: 0; transition: opacity .3s ease; }
+
+/* --- A change of screen: a band of warm light wipes across ----------------------------------------------------- */
+.screen-wipe { position: fixed; inset: -10% -20%; z-index: 940; pointer-events: none; mix-blend-mode: screen;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,200,120,.32) 46%, rgba(255,240,200,.5) 50%, rgba(255,200,120,.32) 54%, transparent 70%); }
+
+/* --- The Codex: a new page turns in under a band of light ---------------------------------------------------------- */
+.cx-body.cx-turn { animation: cx-turn .34s cubic-bezier(.2,.8,.25,1) both; }
+.cx-body.cx-turn::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 5; mix-blend-mode: screen;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,220,160,.35) 50%, transparent 70%) 0 0 / 300% 100% no-repeat; animation: cx-light .5s ease-out both; }
+@keyframes cx-turn { from { opacity: .2; transform: perspective(900px) rotateY(-7deg) translateX(14px); transform-origin: 0 50%; } to { opacity: 1; transform: none; } }
+@keyframes cx-light { from { background-position: 110% 0; } to { background-position: -10% 0; opacity: 0; } }
+body.low-motion .cx-body.cx-turn { animation: sfx-fade .15s linear both; }
+body.low-motion .cx-body.cx-turn::before { display: none; }
+
+/* --- The Library: a filter's cards settle in with a stagger; the deck builder's rows flare as a card lands ------- */
+.lib-shuffle .lib-tile, .lib-shuffle .lib-card { animation: lib-in .34s cubic-bezier(.2,.8,.25,1.05) both; }
+.lib-shuffle .lib-tile:nth-child(2n), .lib-shuffle .lib-card:nth-child(2n) { animation-delay: .03s; }
+.lib-shuffle .lib-tile:nth-child(3n), .lib-shuffle .lib-card:nth-child(3n) { animation-delay: .06s; }
+.lib-shuffle .lib-tile:nth-child(5n), .lib-shuffle .lib-card:nth-child(5n) { animation-delay: .09s; }
+@keyframes lib-in { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+.ld-card.ld-added { animation: ld-added .6s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes ld-added { 0% { transform: translateX(-14px); box-shadow: inset 0 0 0 1px rgba(255,214,130,.9), 0 0 16px rgba(255,190,90,.7); background-color: rgba(255,200,110,.25); }
+  60% { transform: translateX(2px); } 100% { transform: none; box-shadow: none; } }
+.ld-card.ld-taken { animation: ld-taken .45s ease-out both; }
+@keyframes ld-taken { 0% { filter: brightness(1.6) sepia(.6); } 100% { filter: none; } }
+.ld-count.ld-pulse { animation: ld-pulse .5s ease-out; }
+@keyframes ld-pulse { 40% { transform: scale(1.18); color: #ffe2a0; text-shadow: 0 0 10px rgba(255,190,90,.8); } }
+body.low-motion .lib-shuffle .lib-tile, body.low-motion .lib-shuffle .lib-card, body.low-motion .ld-card.ld-added, body.low-motion .ld-card.ld-taken, body.low-motion .ld-count.ld-pulse { animation: sfx-fade .15s linear both; }
+
+/* --- The online lobby: the panel rises, the room code glows while it waits ---------------------------------------- */
+.lobby-code { animation: lobby-glow 2.6s ease-in-out infinite; }
+@keyframes lobby-glow { 50% { text-shadow: 0 0 14px rgba(255,200,110,.7), 0 0 2px #fff2c8; } }
+.lobby-wait::after { content: ' …'; display: inline-block; animation: lobby-dots 1.4s steps(4) infinite; width: 1.2em; overflow: hidden; vertical-align: bottom; }
+@keyframes lobby-dots { from { width: 0; } to { width: 1.2em; } }
+body.low-motion .lobby-code, body.low-motion .lobby-wait::after { animation: none; }
+
+/* --- Loading: embers drift along the painted bar, its leading edge flickers ---------------------------------------- */
+.lb-fill { animation: lb-embers 2.2s linear infinite; }
+@keyframes lb-embers { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 220px 0; } }
+.lb-edge { animation: lb-flicker .9s ease-in-out infinite alternate; }
+@keyframes lb-flicker { from { opacity: .75; scale: .92; } to { opacity: 1; scale: 1.08; } }
+body.low-motion .lb-fill, body.low-motion .lb-edge { animation: none; }

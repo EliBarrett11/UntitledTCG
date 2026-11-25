@@ -74,10 +74,28 @@ export function createLibrary({ stage, codex, store, toast = () => {}, onBack = 
       <section class="lib-deck" data-region="lib-deck" aria-label="${deck ? 'The deck' : 'Your decks'}">${deck ? deckHtml() : decksHtml()}</section>
     </div>`;
     document.body.dataset.step = dialog ? `lib:${dialog.kind}` : deck ? 'lib:deck' : 'lib';
+    markDeckChanges();
     if (keepFocus) {
       const el = stage.querySelector(`[data-lib-focus="${keepFocus}"]`);
       if (el) { el.focus({ preventScroll: true }); if (caret != null && el.setSelectionRange) try { el.setSelectionRange(caret, caret); } catch { /* not a text field */ } }
     } else if (dialog) stage.querySelector('.ld-dialog input, .ld-dialog textarea, .ld-dialog .scr-btn.primary')?.focus({ preventScroll: true });
+  }
+  // (Stage X3: a card added to the deck lands in its row with a gold flare and settles; one taken out dims; the
+  // count pulses. The rows are compared with the last drawing's.)
+  let lastCopies = null;
+  function markDeckChanges() {
+    const rows = [...stage.querySelectorAll('.ld-card[data-lib-row]')];
+    const now = new Map(rows.map((r) => [r.dataset.libRow, Number((r.querySelector('.ld-x')?.textContent ?? '').replace(/\D/g, '')) || 0]));
+    if (lastCopies && deck) {
+      for (const r of rows) {
+        const was = lastCopies.get(r.dataset.libRow) ?? 0;
+        const n = now.get(r.dataset.libRow);
+        if (n > was) r.classList.add('ld-added'); else if (n < was) r.classList.add('ld-taken');
+      }
+      const total = [...now.values()].reduce((a, b) => a + b, 0); const before = [...lastCopies.values()].reduce((a, b) => a + b, 0);
+      if (total !== before) stage.querySelector('.ld-count')?.classList.add('ld-pulse');
+    }
+    lastCopies = deck ? now : null;
   }
   // Redraw only the grid (typing in the search box keeps its focus and caret).
   function drawGrid() {
@@ -85,6 +103,8 @@ export function createLibrary({ stage, codex, store, toast = () => {}, onBack = 
     if (!g) return draw();
     const y = g.scrollTop;
     g.innerHTML = gridHtml();
+    // (Stage X3: the cards a filter leaves settle in, a light stagger.)
+    g.classList.remove('lib-shuffle'); void g.offsetWidth; g.classList.add('lib-shuffle');
     g.scrollTop = y;
     const f = stage.querySelector('[data-region="lib-filters"]');
     if (f) { const fy = f.scrollTop; f.innerHTML = filtersHtml(); f.scrollTop = fy; }
