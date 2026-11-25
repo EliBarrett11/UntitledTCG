@@ -1236,6 +1236,23 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
           break;
         }
         // A Location expires at Dusk: it burns away like parchment.
+        // Stage X2: the Market. An Item's Stock runs out (it burns away on the stall); a new Item is stocked (it arrives
+        // in a flare of light and coins).
+        case 'marketStockOut': {
+          B('item', `${e.name} leaves the Market: its Stock ran out.`, async (ctx) => { await ctx.wait(200); }, async (ctx) => {
+            const mc = q('.market-card');
+            await fxRun(ctx, 'market.out', { anchors: anchors({ dst: mc ? box(mc) : { cx: 1750, cy: 700, x: 1650, y: 560, w: 200, h: 280 } }) });
+          });
+          break;
+        }
+        case 'marketStocked': {
+          B('item', `${e.name} is on sale in the Market (Stock ${e.stock}).`, async (ctx) => { await ctx.wait(200); }, async (ctx) => {
+            const panel = q('[data-region="market"]');
+            const pb = panel ? box(panel) : { cx: 1750, cy: 700, x: 1650, y: 560, w: 200, h: 280 };
+            await fxRun(ctx, 'market.stock', { anchors: anchors({ dst: { ...pb, cy: pb.cy + 20 } }), flags: { restock: e.why === 'restock' } });
+          });
+          break;
+        }
         // Stage X2: a Location counts down at Dusk: its tile breathes light and its Rounds label ticks.
         case 'locationTick': {
           B('location', `${e.name}: ${e.roundsLeft} Round${e.roundsLeft === 1 ? '' : 's'} left.`, async (ctx) => { await ctx.wait(200); }, async (ctx) => {
@@ -1453,6 +1470,9 @@ export function createPresenter(stage, { settings, onBeat, vfx = null }) {
     skip: () => { if (cine) cine.skip = true; if (current) current.skip(); },
     get busy() { return !!current; },
     get counts() { return { started, done }; },
+    // Stage X2: a small painted moment outside the beats (Energy and Exert spent as a card is paid for): it runs on its
+    // own, holding nothing up.
+    flourish: (id, env = {}) => (vfx?.on && !settings().lowMotion ? runEffect(beatCtx(), vfx, id, { anchors: { centre: { cx: 960, cy: 540, x: 860, y: 440, w: 200, h: 200 }, ...(env.anchors ?? {}) }, lists: env.lists ?? {} }).catch(() => {}) : null),
     // (V5: for the effects check.)
     layering: () => ({ n: layering.n, bad: layering.bad.slice(), by: { ...layering.by } }),
   };

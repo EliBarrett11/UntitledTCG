@@ -1036,6 +1036,14 @@ export function startApp(params) {
         requestAnimationFrame(tick);
       }
       if (p.exhaust.length > lastExhaust && !settings.lowMotion) flareRunes(disp, p.exhaust.length - lastExhaust);
+      // (Stage X2: Energy spent shatters from its crystal in painted light; Exert spent flares from its runes into it.)
+      if (to < from || p.exhaust.length > lastExhaust) {
+        const sr = stage.getBoundingClientRect(); const k = sr.width / STAGE_W;
+        const bx = (el) => { const r = el.getBoundingClientRect(); return { cx: (r.left + r.width / 2 - sr.left) / k, cy: (r.top + r.height / 2 - sr.top) / k, x: (r.left - sr.left) / k, y: (r.top - sr.top) / k, w: r.width / k, h: r.height / k }; };
+        const crys = disp.querySelector('.en-crys') ?? num;
+        if (crys && to < from) presenter.flourish('energy.spend', { anchors: { dst: bx(crys) } });
+        if (crys && p.exhaust.length > lastExhaust) presenter.flourish('energy.exert', { anchors: { dst: bx(crys) }, lists: { runes: [...disp.querySelectorAll('.ex-rune.tired')].slice(-(p.exhaust.length - lastExhaust)).map(bx) } });
+      }
     }
     lastEnergy = p.baseEnergy;
     lastExhaust = p.exhaust.length;

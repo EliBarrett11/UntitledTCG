@@ -1107,6 +1107,8 @@ function marketTurn(s, who) {
   const c = m.onSale;
   m.pool.push(c);
   m.onSale = null;
+  // (Stage X2: a presentation event, so the Item can be seen leaving: no rule reads it.)
+  emit(s, 'marketStockOut', { uid: c.uid, name: c.name });
   log(s, `${c.name} leaves the Market (its Stock ran out).`);
   stockMarket(s, 'stock', c.id);
 }

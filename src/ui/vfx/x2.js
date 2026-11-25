@@ -357,6 +357,28 @@ export function x2Effects() {
     { at: 0, op: 'sprite', tex: 'vfx-renown-star', on: 'lvl', size: 110, life: 460, alpha: 1.1, ...reveal() },
     { at: 250, op: 'call', fn: 'tick' }] };
 
+  // Energy and Exert spent as a card is paid for (the Energy panel's flourish, outside the beats): the crystal sheds
+  // shards of cyan light; each Exert rune spent flares and its light flies into the crystal.
+  E['energy.spend'] = { duration: 600, stageE: true, steps: crystals('dst', { gained: false, n: 5 }) };
+  E['energy.exert'] = { duration: 700, stageE: true, steps: [
+    { at: 0, op: 'sprite', tex: 'vfx-light-flare', each: 'runes', size: 80, scale: [0.4, 1.1], curve: 'out', life: 420, alpha: 1, ...burn(0.4, 'vfx-noise-cells'), tint: '#ffb070', tintK: 0.6 },
+    { at: 0, op: 'burst', tex: 'vfx-energy-crystals', each: 'runes', n: 3, speed: [80, 200], angle: 'up', spread: 160, life: [300, 500], size: [16, 24], gravity: 500, spin: [-300, 300], alpha: 1, ...burn(0.4, 'vfx-noise-cells'), tint: '#ffb070', tintK: 0.5 },
+    ...shift(crystals('dst', { gained: true, n: 3 }), 220)] };
+
+  // The Market: a new Item stocked (light pours onto the stall, coins glint, a merchant's seal), and an Item whose Stock
+  // ran out burning away from its edges into ash.
+  E['market.stock'] = { duration: 800, stageE: true, steps: [
+    { at: 0, op: 'light', on: 'dst', col: GOLD, radius: 260, peak: 0.45, attack: 120, hold: 200, decay: 400 },
+    { at: 0, op: 'sprite', tex: 'vfx-light-flare', on: 'dst', size: 300, scale: [0.4, 1.05], curve: 'out', life: 600, alpha: 0.8, ...burn(0.4, 'vfx-noise-wisps'), ...P('holy', 0.6) },
+    { at: 80, op: 'burst', tex: 'vfx-coins', on: 'dst', n: 6, speed: [120, 300], angle: 'up', spread: 140, life: [500, 800], size: [22, 34], gravity: 900, spin: [-400, 400], alpha: 1, ...burn(0.6, 'vfx-noise-cells') },
+    { at: 80, op: 'burst', tex: 'fx-dot', on: 'dst', n: 40, area: 'card', speed: [20, 120], angle: 'up', spread: 90, life: [600, 1100], size: [3, 8], curl: 100, alpha: 1, tint: '#fff2d8', tint1: '#d8892c', tintK: 1 },
+    ...seal('dst', { at: 200, size: 0.9, tint: '#c08a3a', shards: false }).map((s) => ({ ...s, if: 'restock' }))] };
+  E['market.out'] = { duration: 800, stageE: true, steps: [
+    { at: 0, op: 'sprite', tex: 'vfx-burn-edge', on: 'dst', sizeK: 1.05, h: 290, life: 760, alpha: 1, ...burn(0.15, 'vfx-noise-embers') },
+    { at: 0, op: 'emit', tex: 'fx-dot', on: 'dst', area: 'card', rate: 140, dur: 600, speed: [30, 120], angle: 'up', spread: 60, life: [500, 1000], size: [3, 8], gravity: -80, curl: 100, alpha: 1, tint: '#fff2b8', tint1: '#ff3a08', tintK: 1 },
+    { at: 100, op: 'emit', tex: 'vfx-ash', on: 'dst', area: 'card', rate: 30, dur: 600, speed: [20, 80], angle: 'up', spread: 60, life: [600, 900], size: [10, 18], alpha: 0.9 },
+    { at: 0, op: 'light', on: 'dst', col: '#ff8a2a', radius: 220, peak: 0.35, attack: 120, hold: 300, decay: 300 }] };
+
   // Held Items in general (each Item has its own too).
   E['item.held.blade'] = { duration: 900, stageE: true, steps: [
     { at: 0, op: 'call', fn: 'tag' },
