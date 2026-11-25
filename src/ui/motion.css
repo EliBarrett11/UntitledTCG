@@ -1,14 +1,19 @@
 /* Stage X3 (docs/38): the screens move in the board's language: painted light, erosion, weight and settle.
    Everything here is quiet in low motion: fades only, short. */
 
-/* --- Panels: open by unrolling from the top edge, with a small overshoot and settle (closing: see screenfx.js) --- */
+/* --- Panels: open by unfolding from the top edge, with a small overshoot and settle (closing: see screenfx.js) --- */
 .sfx-open { animation: sfx-unroll .32s cubic-bezier(.2,.9,.25,1.12) both; transform-origin: 50% 0; }
 @keyframes sfx-unroll {
-  0% { opacity: 0; clip-path: inset(0 0 100% 0 round 8px); transform: translateY(-6px) scaleY(.98); filter: brightness(1.4); }
-  60% { opacity: 1; clip-path: inset(0 0 0 0 round 8px); filter: brightness(1.1); }
-  100% { opacity: 1; clip-path: inset(0 0 0 0 round 8px); transform: none; filter: none; } }
+  0% { opacity: 0; transform: translateY(-8px) scaleY(.94); filter: brightness(1.4); }
+  60% { opacity: 1; transform: translateY(1px) scaleY(1.01); filter: brightness(1.1); }
+  100% { opacity: 1; transform: none; filter: none; } }
+/* (Nothing is clipped while it opens, so a click on it lands at once; the play menu opens quicker still.) */
+.menu.sfx-open { animation-duration: .18s; }
 .sfx-open-low { animation: sfx-fade .14s linear both; }
 @keyframes sfx-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* A closing panel's copy is never in the way. */
+.sfx-ghost, .sfx-ghost * { pointer-events: none !important; }
 
 /* --- Buttons: on hover they lift and warm (a glow of painted light round them); a press settles down; release
    springs back. (Their own backgrounds and shadows are left alone.) --------------------------------------------- */

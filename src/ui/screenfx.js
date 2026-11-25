@@ -50,6 +50,9 @@ export function watchPanels(stage, { lowMotion }) {
     for (const w of wraps) { host.appendChild(w); host = w; }
     const c = was.el.cloneNode(true);
     c.classList.remove('sfx-open', 'sfx-open-low');
+    // (A copy only: nothing in it can be clicked, focused or found as the real panel.)
+    top.inert = true;
+    for (const el of [c, ...c.querySelectorAll('*')]) { el.removeAttribute('data-act'); el.removeAttribute('data-region'); el.removeAttribute('data-nav'); el.removeAttribute('id'); }
     Object.assign(c.style, { position: 'absolute', left: `${was.rect.x}px`, top: `${was.rect.y}px`, width: `${was.rect.w}px`, height: `${was.rect.h}px`, right: 'auto', bottom: 'auto', margin: '0', transform: 'none', translate: 'none', animation: 'none' });
     host.appendChild(c);
     const low = lowMotion();
