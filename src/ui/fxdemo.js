@@ -239,3 +239,48 @@ function stageX1(s, name, ME, THEM, { me, them, lane, foeAt }) {
   }
   return { s, steps: [] };
 }
+
+// Stage X2 (dev only, for the clips): play any effect on the live board, by id, with its anchors taken from the board:
+// your hand (src), an enemy creature (dst; targets: the first n), the Warlord's dial, your Gold, the Market, the piles,
+// the Quest tracker, a Location's tile. The presenter's hooks are left out (nothing lands): this shows the effect alone.
+// It needs only runner.js and the effects layer (window.__match.vfxApi), so the same page in an earlier version can play
+// that version's effect for a before-and-after clip.
+export async function showcase(id, { targets = 1, own = false, src = 'hand', flags = {} } = {}) {
+  const { runEffect } = await import('./vfx/runner.js');
+  const vfx = window.__match?.vfxApi;
+  const stage = document.getElementById('stage');
+  if (!vfx || !stage) return { error: 'no effects layer' };
+  const sr = stage.getBoundingClientRect(); const k = sr.width / 1920;
+  const bx = (el) => { if (!el) return null; const r = el.getBoundingClientRect(); return { x: (r.left - sr.left) / k, y: (r.top - sr.top) / k, w: r.width / k, h: r.height / k, cx: (r.left - sr.left + r.width / 2) / k, cy: (r.top - sr.top + r.height / 2) / k }; };
+  const q = (sel) => stage.querySelector(sel);
+  const ME = 'p1'; const THEM = 'p2';
+  const toks = (who) => [...stage.querySelectorAll(`[data-cell^="${who}:"] .slot-card`)].map(bx);
+  const enemy = toks(own ? ME : THEM);
+  const mine = toks(ME);
+  const centre = { cx: 960, cy: 540, x: 860, y: 440, w: 200, h: 200 };
+  const card = { cx: 790, cy: 400, x: 690, y: 260, w: 200, h: 280 };
+  const dst = enemy[0] ?? centre;
+  const loc = bx(q('.loc')) ?? { ...centre, w: 600, h: 160, x: 660 };
+  const tgts = (enemy.length ? enemy : [centre]).slice(0, targets).map((b) => ({ box: b }));
+  const srcBox = src === 'mine' ? mine[0] ?? centre : src === 'loc' ? loc : bx(q('[data-region="hand"]')) ?? { cx: 800, cy: 930, x: 600, y: 860, w: 400, h: 140 };
+  const quest = bx(q(`[data-region="quest-${ME}"]`)) ?? centre;
+  const anchors = {
+    centre, src: srcBox, dst, card, candle: { cx: card.x - 46, cy: card.cy - 20, w: 60, h: 120 }, horn: { cx: 790, cy: card.y + card.h + 200 },
+    dial: bx(q(`[data-region="warlord-${ME}"]`)) ?? centre, gold: bx(q('[data-region="your-gold"] .gold-n')) ?? centre, market: bx(q('.market-card')) ?? bx(q('[data-region="market"]')) ?? centre,
+    pile: bx(q(`[data-region="piles-${ME}"]`)) ?? centre, drawPile: bx(q(`[data-region="piles-${ME}"] .pile`)) ?? centre, hand: srcBox, stamp: { ...quest, w: 40, h: 40 },
+    dstHp: bx(q(`[data-cell^="${own ? ME : THEM}:"] .slot-card .tab-h`)) ?? dst, lvl: dst, reveal: dst, label: loc, labelL: { ...loc, cx: loc.x }, labelR: { ...loc, cx: loc.x + loc.w },
+    banner: { cx: 790, cy: 452, w: 70, h: 145 }, mapL: { cx: 40, cy: 450 }, mapR: { cx: 1540, cy: 450 }, mapBottom: { cx: 790, cy: 760, w: 1500, h: 40 }, hornL: { cx: 260, cy: 450 },
+    stormL: { ...loc, cx: loc.x, cy: loc.y + loc.h * 0.4 }, stormR: { ...loc, cx: loc.x + loc.w, cy: loc.y + loc.h * 0.45 }, stormL2: { ...loc, cx: loc.x, cy: loc.y + loc.h * 0.7 }, stormR2: { ...loc, cx: loc.x + loc.w, cy: loc.y + loc.h * 0.65 },
+  };
+  if (src === 'loc') anchors.dst = loc;
+  const ctx = { skipping: false, anims: [], timers: [], wakers: [], ms: (n) => n, wait: (n) => new Promise((r) => setTimeout(r, n)), anim: (el, fr, o) => (el ? el.animate(fr, { fill: 'none', ...o }).finished.catch(() => {}) : Promise.resolve()) };
+  document.body.dataset.effect = id;
+  document.body.dataset.effectSeq = String(Number(document.body.dataset.effectSeq ?? 0) + 1);
+  await runEffect(ctx, vfx, id, { anchors, targets: tgts, els: {}, tint: '#c7a15a', tint2: '#c7a15a', sideTint: '#c7a15a', amount: 3, flags,
+    vars: { hornRot: 90, guardSigil: 'vfx-shield-sigil' },
+    lists: { released: [{ cx: card.cx - 190, cy: card.cy, x: card.cx - 250, y: card.cy - 84, w: 120, h: 168 }, { cx: card.cx + 190, cy: card.cy, x: card.cx + 130, y: card.cy - 84, w: 120, h: 168 }],
+      pips: [...stage.querySelectorAll(`[data-region="energy-${ME}"] .en-crys`)].map(bx), exerts: [...stage.querySelectorAll(`[data-region="energy-${ME}"] .ex-rune`)].map(bx),
+      runes: [...stage.querySelectorAll(`[data-region="energy-${ME}"] .ex-rune`)].map(bx) },
+    hooks: {} });
+  return { played: [id] };
+}
